@@ -1,5 +1,16 @@
 # Historique
 
+## 0.5.1 — 2026-10-01
+
+- Procédure de mise à jour : terminer les opérations en cours et recharger Codex
+  après remplacement du plugin pour éviter de conserver les chemins de l'ancienne
+  copie installée.
+- Diagnostic des hooks : distinguer configuration et confiance, exécution directe
+  des scripts, puis exécution réelle dans l'application après rechargement.
+- README et procédure de publication alignés sur ces contrôles. Aucun changement
+  du code des hooks ou des opérations de production ; aucune attribution automatique
+  de tous les codes 1 à un problème de cache.
+
 ## 0.5.0 — 2026-10-01
 
 - Recette native pour le passage du board approuvé à une toile cousue : contours

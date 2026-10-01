@@ -7,11 +7,14 @@ Plugin Codex pour préparer et produire des assets 3D à partir d'images de réf
 avec un choix de méthode par composant, des données de construction explicites et
 une validation humaine aux étapes déterminantes.
 
-**Version 0.5.0 — socle de développement.** Le runtime et ses contrats sont testés.
+**Version 0.5.1 — socle de développement.** Le runtime et ses contrats sont testés.
 Le profil d'installation Windows est testé, avec découverte MCP et diagnostic
 compatibles avec le manifeste Codex. Une
 production complète sur un vrai vêtement ou un asset articulé reste à qualifier.
-Voir [les résultats et limites](VALIDATION.md) et la [release 0.5.0](https://github.com/leuzeus/atelier-3d/releases/tag/v0.5.0).
+Voir [les résultats et limites](VALIDATION.md) et la [release 0.5.1](https://github.com/leuzeus/atelier-3d/releases/tag/v0.5.1).
+
+La version 0.5.1 précise la mise à jour et le diagnostic des hooks. Leur code et
+les opérations de production restent ceux de 0.5.0.
 
 ## Ce que fait le plugin
 
@@ -72,6 +75,10 @@ python -m venv .venv
 
 Suivre ensuite [le guide d'installation et de configuration](references/getting-started.md).
 Cloner le dépôt ou télécharger un ZIP n'installe pas le plugin dans Codex.
+
+Après le remplacement d'une version installée, fermer puis rouvrir Codex avant
+de reprendre la production : une conversation peut conserver les chemins de
+l'ancienne copie. Voir [mise à jour et erreurs de hooks](references/getting-started.md#mise-à-jour-et-erreurs-de-hooks).
 
 Après installation, sélectionner **Atelier 3D** avec `@` dans une conversation
 Codex locale, joindre les références et préciser un dossier d'asset distinct du
