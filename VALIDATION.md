@@ -1,6 +1,23 @@
 # Validation d'Atelier 3D
 
-## État de la version 0.5.3
+## État de la version 0.5.4
+
+| Vérification du correctif | Résultat | Portée |
+| --- | --- | --- |
+| Suite Python Windows | PASS : 185 tests | Admission de cadrage, diagnostics, mappings et régressions |
+| Contrats JSON indépendants | PASS : 8 distribués + configuration locale privée | Aucun contrat de fabrication modifié |
+| Cadrage natif Blender 5.2.2 LTS | PASS : processus isolé | ORTHO/PERSP, sélection/transforms/mesh/fichiers/état préservés ; cas étrangers et éditrices refusés |
+| Capture de viewport synthétique | PASS | Pixels issus de Blender ; aucune validation artistique d'un asset réel |
+| Vrai échec local après 32 frames Cloth | PASS du test de refus | Qualité hors limites, positions et zones conservées ; essai reste FAIL |
+| Nettoyage puis restauration | PASS | Diagnostic encore inspectable, original/mesh/gates préservés, aucun PASS local ni admission full |
+| Régression complète native de couture | PASS | Probes physiques, local/full, circuit d'échec et freeze sur fixture synthétique |
+| Projet et Blender consommateur | UNTOUCHED | Retest du cadrage et d'un nouvel échec nécessaire après rechargement |
+| Coupon limité à une région du patron | NOT_IMPLEMENTED | Étendues de pièces et coutures omises exposées ; supports/découpes régionales non inventés |
+
+Voir [le protocole](references/viewport-diagnostics.md) et
+[les essais 0.5.4](references/validation-viewport-0.5.4.md).
+
+## État vérifié en version 0.5.3
 
 | Vérification du correctif | Résultat | Portée |
 | --- | --- | --- |

@@ -1,5 +1,22 @@
 # Historique
 
+## 0.5.4 — 2026-10-01
+
+- `frame_view(component_id, object_name)` cadre un mesh visible appartenant au
+  composant/package de la copie de travail ; sélection, orientation et mode de
+  vue conservés. Refus des scènes étrangères, archives, objets masqués, mode
+  édition, vues caméra/quad et verrous. Aucun checkpoint, sortie ou validation
+  implicite. Le refus de navigation directe indique désormais ce parcours.
+- Un échec de Cloth après évaluation conserve les dernières positions, triangles,
+  mapping vers le mesh complet, recette et contexte exécutés, arêtes et faces
+  hors limites, écarts par couture et pénétrations localisées, avant nettoyage.
+  Un SVG montre trois projections mesurées du résultat explicitement FAIL.
+- `inspect_sewing_failure(component_id, attempt_dir)` vérifie et lit cette preuve
+  après échec/restauration, sans supprimer le pending ni qualifier une simulation.
+- Le sous-ensemble par panneaux remappe aussi les contours/bords et conserve les
+  indices source et coutures omises. Il reste un ensemble de pièces entières,
+  dont l'étendue est rapportée ; aucun nouveau découpage ou support automatique.
+
 ## 0.5.3 — 2026-10-01
 
 - Reçus `garment` immuables sous `blender/garment-receipts/<component_id>/`, avec

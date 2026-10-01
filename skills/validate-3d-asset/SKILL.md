@@ -5,6 +5,11 @@ description: Valider un asset 3D selon sa destination et distinguer résultat te
 
 # validate-3d-asset
 
+Le cadrage natif `frame_view` aide à capturer les pixels d'un candidat identifié,
+sans le modifier. Les diagnostics `inspect_sewing_failure` restent FAIL et
+historiques, même après restauration ; ne jamais les utiliser comme preuve PASS.
+Lire le [protocole de cadrage/diagnostic](../../references/viewport-diagnostics.md).
+
 Lire [la validation de production](../../references/validation.md). Inspecter la géométrie dans Blender et ouvrir les rendus. Pour chaque reconstruction, conserver un rapport reconstruction.schema.json lié au hash du package et du mesh ; studio_accept_reconstruction exige tous les checks PASS. Construire ensuite validation.schema.json : profil, contrôles nécessaires, fichiers et hashes, preuve visuelle. Enregistrer final-validation, montrer les rendus à l'utilisateur et enregistrer sa décision final liée au rapport exact. studio_transition COMPLETE refuse les fichiers modifiés, les jobs encore actifs ou les contrôles manquants. Ne pas fabriquer des PASS pour satisfaire la machine d'état.
 
 Respecter [la revue humaine de construction](../../references/construction-review.md). Après préparation des packages, le board doit montrer les données réellement utilisées et attendre la validation humaine du découpage. Les opérations Blender passent par `studio_blender_operation`; ne pas contourner un refus par un script direct. Conserver les sources, ouvrir les preuves visuelles et ne pas confondre contrôles techniques et acceptation artistique.

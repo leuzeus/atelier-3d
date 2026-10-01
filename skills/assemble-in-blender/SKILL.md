@@ -5,6 +5,13 @@ description: Assembler dans une copie Blender des reconstructions 3D indépendan
 
 # assemble-in-blender
 
+Pour examiner les pixels d'un candidat, utiliser `frame_view` avec component_id
+et object_name exact dans `studio_blender_operation`, puis capturer VIEW_3D.
+Après un échec Cloth, lire `inspect_sewing_failure(component_id, attempt_dir)`
+et son tracé mesuré avant de supprimer/rejouer quoi que ce soit. Cela ne valide
+pas l'essai ; restaurer le checkpoint avant une nouvelle mutation. Voir le
+[protocole de cadrage/diagnostic](../../references/viewport-diagnostics.md).
+
 Avant de reprendre une session existante, suivre [le protocole de continuité](../../references/blender-continuity.md).
 Demander un nouveau code exact au Studio actualisé : le résultat doit identifier
 la version et la racine attendues. Utiliser `resume` avec des arguments vides pour
