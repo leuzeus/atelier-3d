@@ -6,8 +6,8 @@ from .planning import require_board
 
 def code_for(project_root, operation, arguments):
     payload = dict(project_root=project_root, operation=operation, arguments=arguments)
-    return ("# Atelier 3D controlled operation v1\nimport sys\n"
-        f"sys.path.insert(0, {str(ROOT)!r})\nfrom blender.operations import dispatch\n"
+    return ("# Atelier 3D controlled operation v2\nimport runpy\n"
+        f"dispatch = runpy.run_path({str(ROOT / 'blender/bootstrap.py')!r})['dispatch_current']\n"
         f"result = dispatch(**{payload!r})\n")
 
 
@@ -24,9 +24,9 @@ def parse_code(code):
 
 def admit_operation(project, operation, arguments):
     state = project.state()
-    if operation not in ("prepare", "inspect", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn"):
+    if operation not in ("prepare", "resume", "inspect", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn"):
         raise StudioError("Unknown guarded Blender operation")
-    required = {"prepare": set(), "inspect": set(), "garment": {"package_dir"}, "assemble": {"plan_path"},
+    required = {"prepare": set(), "resume": set(), "inspect": set(), "garment": {"package_dir"}, "assemble": {"plan_path"},
         "run_script": {"purpose", "path", "sha256", "component_ids"}, "restore_checkpoint": set(),
         "simulate_sewn": {"component_id", "recipe_path", "phase", "scope"},
         "freeze_sewn": {"component_id", "recipe_path"}}[operation]
@@ -35,6 +35,24 @@ def admit_operation(project, operation, arguments):
     if operation == "garment" and "rebuild" in arguments:
         required = required | {"rebuild"}
         if not isinstance(arguments['rebuild'], bool):raise StudioError('rebuild must be a boolean')
+    if operation == "garment" and "migrate_legacy" in arguments:
+        required = required | {"migrate_legacy"}
+        if not isinstance(arguments['migrate_legacy'], bool):
+            raise StudioError('migrate_legacy must be a boolean')
+        if arguments['migrate_legacy'] and arguments.get('rebuild') is not True:
+            raise StudioError('Legacy migration requires explicit rebuild=true')
+    if operation == 'garment' and {'legacy_snapshot_sha256', 'legacy_script_receipts'} & set(arguments):
+        required |= {'legacy_snapshot_sha256', 'legacy_script_receipts'}
+        fingerprint = arguments.get('legacy_snapshot_sha256')
+        receipts = arguments.get('legacy_script_receipts')
+        if arguments.get('migrate_legacy') is not True:
+            raise StudioError('Legacy snapshot archival requires migrate_legacy=true')
+        if not isinstance(fingerprint, str) or len(fingerprint) != 64 or any(c not in '0123456789abcdef' for c in fingerprint):
+            raise StudioError('Legacy snapshot must be the SHA-256 returned by inspect')
+        if not isinstance(receipts, list) or not receipts or any(not isinstance(p, str) or not p for p in receipts):
+            raise StudioError('Legacy modified mesh requires explicit script receipts')
+        if len(set(receipts)) != len(receipts):
+            raise StudioError('Legacy script receipts must be unique')
     if operation == "run_script" and arguments.get("purpose") == "simulate":
         required = required | {"simulation_plan"}
     if set(arguments) != required:
@@ -49,8 +67,8 @@ def admit_operation(project, operation, arguments):
         return
     if operation != "inspect":
         no_pending_operation(state)
-    if operation in ("prepare", "inspect"):
-        if state["stage"] == "COMPLETE" and operation == "prepare":
+    if operation in ("prepare", "resume", "inspect"):
+        if state["stage"] == "COMPLETE" and operation != "inspect":
             raise StudioError("Completed project is immutable")
         return
     require_board(project, state)

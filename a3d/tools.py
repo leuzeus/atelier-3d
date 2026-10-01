@@ -113,14 +113,14 @@ def check_pipeline(project_root):
     return admission(Project(project_root))
 
 
-@tool("studio_blender_operation", "Prepare exact code for a guarded Blender operation. Read admission again at execution. Raw procedural reconstruction cannot substitute a reviewed pattern route.",
+@tool("studio_blender_operation", "Prepare exact code loading this plugin version and repeating admission in Blender. Use resume to checkpoint an existing dirty working scene. Legacy garment migration requires explicit rebuild and migrate_legacy. Raw reconstruction cannot substitute a reviewed route.",
       {**P, "operation": S, "arguments": O}, ("project_root", "operation", "arguments"))
 def blender_operation(project_root, operation, arguments):
     from .guard import admit_operation, code_for
     project = Project(project_root)
     admit_operation(project, operation, arguments)
     return {"code": code_for(str(project.root), operation, arguments), "executed": False,
-        "next": "Pass this exact code to execute_blender_code; the dispatcher repeats admission before changing the scene."}
+        "next": "Pass this exact code to execute_blender_code; it activates this installation, repeats admission, and reports runtime.root/version. For an existing working scene use resume, not prepare."}
 
 
 @tool("studio_record_evidence", "Hash an existing in-project evidence file. Does not assert that its contents are correct.",

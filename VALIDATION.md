@@ -1,6 +1,24 @@
 # Validation d'Atelier 3D
 
-## État de la version 0.5.0
+## État de la version 0.5.2
+
+| Vérification du correctif | Résultat | Portée |
+| --- | --- | --- |
+| Suite Python Windows | PASS : 170 tests | Contrats, hooks, admission, chargement de version, reprise, migration et recettes |
+| Contrats JSON indépendants | PASS : 8 fichiers distribués | Un neuvième contrôle local vérifie la configuration privée, exclue du package |
+| Continuité Blender 5.2.2 LTS | PASS : deux processus isolés | Modules 0.4.0 réellement chargés puis remplacés, scène dirty sauvegardée en copie, refus d'une scène étrangère |
+| Ancien mesh brut et variante densifiée | PASS : fixtures synthétiques | Archivage avec géométrie/rest conservés, mapping nouvellement dérivé, décisions et sources inchangées |
+| Inversion cylindrique `mirror_u` | PASS | Formule attendue, rest 2D inchangé et ancien maillage invalidé après changement de recette |
+| Régression du cycle de vie Blender | PASS | Erreur après mutation, blocage, restauration et assemblage séparé |
+| Projet consommateur et Blender déjà ouvert | UNTOUCHED | Les essais utilisent leurs propres projets et processus ; aucune migration réelle revendiquée |
+| Nouvelle simulation physique, fitting et export Unreal | NOT_EXECUTED | Ce correctif ne qualifie pas la robe ni les recettes de production |
+| Mise à jour de l'installation active dans Codex | NOT_EXECUTED pour ce correctif | Publication, installation et rechargement sont des étapes distinctes |
+
+Voir [le rapport 0.5.2 et sa reproduction](references/validation-continuity-0.5.2.md).
+Les résultats antérieurs ci-dessous restent historiques, sans être transférés à
+une nouvelle recette ou à un asset réel.
+
+## Socle vérifié en version 0.5.0
 
 Le socle logiciel, les contrats et des opérations natives Blender ont été
 vérifiés. **La qualification de production d'un asset complet reste non exécutée.**
@@ -52,7 +70,8 @@ La validation indépendante JSON requiert PowerShell 7 (`Test-Json`). Les schém
 externes des manifestes peuvent être passés à `scripts/validate_contracts.ps1`
 avec `-OfficialSchemaDirectory` ; ils ne sont pas téléchargés par la CI.
 
-`tests/native_lifecycle_smoke.py` et `tests/native_sewing_smoke.py` sont des essais
+`tests/native_lifecycle_smoke.py`, `tests/native_sewing_smoke.py` et
+`tests/native_continuity_smoke.py` sont des essais
 Blender séparés : ils doivent s'exécuter
 dans un processus Blender dédié, avec scène vide et son dossier de travail de test,
 jamais dans la scène de production ouverte. Examiner ce script avant exécution.

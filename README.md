@@ -7,14 +7,17 @@ Plugin Codex pour préparer et produire des assets 3D à partir d'images de réf
 avec un choix de méthode par composant, des données de construction explicites et
 une validation humaine aux étapes déterminantes.
 
-**Version 0.5.1 — socle de développement.** Le runtime et ses contrats sont testés.
+**Version 0.5.2 — socle de développement.** Le runtime et ses contrats sont testés.
 Le profil d'installation Windows est testé, avec découverte MCP et diagnostic
 compatibles avec le manifeste Codex. Une
 production complète sur un vrai vêtement ou un asset articulé reste à qualifier.
-Voir [les résultats et limites](VALIDATION.md) et la [release 0.5.1](https://github.com/leuzeus/atelier-3d/releases/tag/v0.5.1).
+Voir [les résultats et limites](VALIDATION.md) et la [release 0.5.2](https://github.com/leuzeus/atelier-3d/releases/tag/v0.5.2).
 
-La version 0.5.1 précise la mise à jour et le diagnostic des hooks. Leur code et
-les opérations de production restent ceux de 0.5.0.
+La version 0.5.2 corrige la reprise dans un Blender déjà ouvert : activation de
+la version demandée, checkpoint de la scène modifiée via `resume`, et archivage
+contrôlé des panneaux 0.4.0, y compris les variantes densifiées documentées, avant
+reconstruction. Le placement cylindrique accepte aussi `mirror_u` sans modifier
+les patrons à plat. Voir [le protocole de reprise](references/blender-continuity.md).
 
 ## Ce que fait le plugin
 

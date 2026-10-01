@@ -1,5 +1,27 @@
 # Historique
 
+## 0.5.2 — 2026-10-01
+
+- Chargement du dispatcher depuis l'installation explicitement demandée, avec
+  remplacement des modules `a3d` et `blender` conservés dans l'interpréteur et
+  nouvelle vérification de l'admission. Le résultat indique version et racine.
+- Opération `resume` : checkpoint des modifications en mémoire, sans recharger
+  la scène, changer le fichier de travail ni effacer la session ou une erreur.
+- `garment(rebuild=true, migrate_legacy=true)` : reconnaissance limitée des
+  panneaux 0.4.0 par identité, package, topologie, reçu et checkpoint. Archivage
+  conservant leur géométrie avant création d'un nouveau maillage dérivé ; aucune
+  attribution artificielle de rôle de simulation ou de correspondance de couture.
+- Variante legacy densifiée : archivage explicite lié à l'empreinte courante et
+  aux reçus des anciens scripts, avec vérification avant/après et conservation
+  des formes de repos. L'ancien mesh reste non validé ; ses indices ne sont pas
+  réutilisés dans le maillage natif dérivé.
+- Tests de refus et essai natif de reprise d'une scène legacy modifiée, dans un
+  processus Blender isolé ; validations du découpage et sources conservées.
+- Placement cylindrique `mirror_u` explicite : sens d'enroulement inversé sans
+  modifier les contours ou le rest 2D. L'option fait partie de l'empreinte de
+  recette et invalide le maillage dérivé antérieur ; contrôles avant simulation
+  conservés. Le défaut reste `false` pour les recettes existantes.
+
 ## 0.5.1 — 2026-10-01
 
 - Procédure de mise à jour : terminer les opérations en cours et recharger Codex

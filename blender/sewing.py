@@ -54,6 +54,7 @@ def placed_point(point, placement):
     if placement["mode"]=="cylinder":
         radius=placement["radius_cm"]
         angle=(x-placement["origin_2d_cm"][0])/radius
+        if placement.get('mirror_u', False):angle=-angle
         local=(radius*math.sin(angle),y-placement["origin_2d_cm"][1],radius*math.cos(angle))
     else:local=(x,y,0.)
     rotation=Euler([math.radians(v) for v in placement["rotation_degrees"]],"XYZ").to_matrix()
