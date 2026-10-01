@@ -1,5 +1,21 @@
 # Historique
 
+## 0.5.3 — 2026-10-01
+
+- Reçus `garment` immuables sous `blender/garment-receipts/<component_id>/`, avec
+  identité du composant, SHA du package et lien conservé dans l'objet Blender.
+  Les opérations suivantes ne remplacent plus le reçu historique global.
+- `verify_legacy_import` vérifie l'objet d'import dans un checkpoint guardé :
+  hash du fichier, identité composant/package et topologie du package. Lecture
+  de l'objet sans ouvrir sa scène, puis retrait des datablocks temporaires ;
+  aucun checkpoint ni état d'opération en attente n'est créé par cette vérification.
+- `legacy_checkpoint_receipt` permet une migration après perte du reçu unique.
+  La nouvelle preuve décrit l'objet réellement observé ; elle ne transforme pas
+  le reçu d'un autre composant en reçu d'import du mesh migré.
+- Régression native avec trois imports réels 0.4.0, manteau densifié par un script
+  guardé, conservation des voisins/rest/sources et refus des preuves invalides.
+  Le code de reprise 0.5.2 reste compatible.
+
 ## 0.5.2 — 2026-10-01
 
 - Chargement du dispatcher depuis l'installation explicitement demandée, avec

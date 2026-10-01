@@ -161,7 +161,7 @@ def assemble(project_root, plan_path):
 
 
 def garment(project_root, package_dir, recipe_path=None, rebuild=False, migrate_legacy=False,
-            legacy_snapshot_sha256=None, legacy_script_receipts=None):
+            legacy_snapshot_sha256=None, legacy_script_receipts=None, legacy_checkpoint_receipt=None):
     import bpy
     from mathutils import Euler, Vector
     project, rec = working(project_root)
@@ -192,7 +192,8 @@ def garment(project_root, package_dir, recipe_path=None, rebuild=False, migrate_
                 raise StudioError('Legacy panels require explicit migrate_legacy=true and provenance checks')
             from blender.legacy import legacy_snapshot, validate_legacy_panels
             legacy_proof = validate_legacy_panels(project, previous[0], data, component['package']['sha256'],
-                                                 legacy_snapshot_sha256, legacy_script_receipts)
+                                                 legacy_snapshot_sha256, legacy_script_receipts,
+                                                 legacy_checkpoint_receipt)
             legacy_proof['before_sha256'] = legacy_snapshot(previous[0])
             legacy = True
         elif migrate_legacy:
@@ -225,7 +226,6 @@ def garment(project_root, package_dir, recipe_path=None, rebuild=False, migrate_
         legacy_proof['after_sha256'] = legacy_snapshot(previous[0])
         if legacy_proof['before_sha256'] != legacy_proof['after_sha256']:
             raise StudioError('Legacy mesh changed during archival; restore checkpoint')
-    bpy.ops.wm.save_as_mainfile(filepath=rec["working"], check_existing=False)
     receipt = {"checkpoint": saved, "object": obj.name, "vertices": len(payload["rest_cm"]),
         "archived_simulations": [] if legacy else [o.name for o in previous],
         "archived_legacy_panels": [o.name for o in previous] if legacy else [],
@@ -233,8 +233,28 @@ def garment(project_root, package_dir, recipe_path=None, rebuild=False, migrate_
         "sewing_edges": sum(len(s["pairs"]) for s in payload["seams"].values() if s["kind"] == "permanent"),
         "derived_mesh": obj["a3d_sewing_mesh"], "derived_mesh_sha256": sha(path), "context": context,
         "simulation": "NOT_EXECUTED", "visual_validation": "NOT_EXECUTED"}
-    atomic_json(project.data / "blender/garment-receipt.json", receipt)
+    from a3d.garment_receipts import write_receipt
+    stored = write_receipt(project, data['component_id'], component['package']['sha256'], receipt)
+    obj['a3d_garment_receipt'] = stored['path']
+    obj['a3d_garment_receipt_sha256'] = stored['sha256']
+    # Persist the object-to-receipt binding, preserving the historical global file.
+    bpy.ops.wm.save_as_mainfile(filepath=rec['working'], check_existing=False)
+    receipt['receipt'] = stored
     return receipt
+
+
+def verify_legacy_import(project_root, package_dir, checkpoint_receipt):
+    """Check a recoverable historical import without starting a scene mutation."""
+    import bpy
+    from blender.legacy import checkpoint_import_proof, has_legacy_identity
+    project, _ = working(project_root)
+    data = read_json(inside(project.root, package_dir) / 'garment.json')
+    _, component = project.ready(data['component_id'])
+    objects = [obj for obj in bpy.data.objects if obj.get('a3d_component_id') == data['component_id']]
+    if len(objects) != 1 or not has_legacy_identity(objects[0], data['component_id'], component['package']['sha256']):
+        raise StudioError('Recovery requires one current unversioned legacy mesh with this component/package')
+    proof = checkpoint_import_proof(project, objects[0].name, data, component['package']['sha256'], checkpoint_receipt)
+    return {**proof, 'checked_only': True, 'visual_validation': 'NOT_EXECUTED'}
 
 
 def inspect(project_root):
@@ -270,7 +290,8 @@ def inspect(project_root):
 def _perform(project_root, operation, arguments):
     if operation != "run_script":
         from blender.sewing import simulate_sewn, freeze_sewn
-        return {"prepare": prepare, "resume": resume, "inspect": inspect, "garment": garment, "assemble": assemble,
+        return {"prepare": prepare, "resume": resume, "inspect": inspect, "verify_legacy_import": verify_legacy_import,
+            "garment": garment, "assemble": assemble,
             "simulate_sewn": simulate_sewn, "freeze_sewn": freeze_sewn}[operation](project_root, **arguments)
     import bpy
     import runpy
@@ -362,7 +383,7 @@ def dispatch(project_root, operation, arguments):
     admit_operation(project, operation, arguments)
     if operation == "restore_checkpoint":
         return restore_checkpoint(project_root)
-    if operation in ("prepare", "resume", "inspect"):
+    if operation in ("prepare", "resume", "inspect", "verify_legacy_import"):
         return _perform(project_root, operation, arguments)
     import bpy
     saved = checkpoint(project_root)

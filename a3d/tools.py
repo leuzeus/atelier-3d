@@ -113,7 +113,7 @@ def check_pipeline(project_root):
     return admission(Project(project_root))
 
 
-@tool("studio_blender_operation", "Prepare exact code loading this plugin version and repeating admission in Blender. Use resume to checkpoint an existing dirty working scene. Legacy garment migration requires explicit rebuild and migrate_legacy. Raw reconstruction cannot substitute a reviewed route.",
+@tool("studio_blender_operation", "Prepare exact code loading this plugin version and repeating admission in Blender. Use resume for an existing dirty scene. verify_legacy_import checks a historical checkpoint without starting a mutation; garment can use its legacy_checkpoint_receipt for explicit legacy migration. Garment receipts are immutable per component/package. Raw reconstruction cannot substitute a reviewed route.",
       {**P, "operation": S, "arguments": O}, ("project_root", "operation", "arguments"))
 def blender_operation(project_root, operation, arguments):
     from .guard import admit_operation, code_for

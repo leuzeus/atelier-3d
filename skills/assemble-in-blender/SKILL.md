@@ -16,6 +16,11 @@ provenance ; ne jamais leur ajouter artificiellement un rôle ou un mapping.
 Pour une variante densifiée, fournir l'empreinte récente d'`inspect` et les reçus
 de scripts vérifiés selon le protocole. L'archivage n'est pas une acceptation de
 ce mesh ; le nouveau mapping doit provenir des sources approuvées.
+Si l'ancien reçu global appartient à un autre composant, utiliser d'abord
+`verify_legacy_import` avec le package et un reçu guardé existant référençant un
+checkpoint contenant les panneaux initiaux. Après lecture native vérifiée, ajouter
+`legacy_checkpoint_receipt` à la migration. Ne pas renommer un reçu étranger ni
+fabriquer un reçu d'import. Conserver le chemin/SHA de chaque nouveau reçu `garment`.
 
 Lire [le protocole Blender](../../references/blender.md). Utiliser le MCP Blender officiel déjà connecté. Demander le code exact à `studio_blender_operation` puis le transmettre tel quel à l'outil Python Blender ; le dispatcher vérifie à nouveau les prérequis. `prepare` crée une copie sans écraser l'original. Vérifier la scène connectée. Après approbation humaine du board de découpage, `garment` construit les panneaux issus du package approuvé. Pour l'assemblage, faire approuver les relations critiques puis appeler `assemble`. Le mannequin de collision et la simulation restent un travail de scène explicite et traçable. Ne jamais substituer des tubes/surfaces procédurales à PATTERN_SEWN. Ne jamais souder des composants must_remain_separate. Inspecter les pixels avant toute conclusion.
 

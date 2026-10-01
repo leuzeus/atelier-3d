@@ -35,3 +35,8 @@ Les anciens rapports sans ces preuves restent lisibles mais ne permettent plus d
 Un fichier haché et un label PASS ne prouvent pas une silhouette fidèle, un patron réalisable, une simulation stable ou un bon import Unreal. Le contrôle humain et les tests réels du projet restent indispensables. Les hooks nécessitent la confiance native Codex ; les outils externes non contrôlés ne constituent pas une surface hermétiquement bloquée.
 
 Pour la reconstruction textile, suivre [la recette native](sewn-toile.md) : `garment`, `simulate_sewn` local puis full, `freeze_sewn`. Les réglages techniques restent séparés des décisions humaines de conception.
+
+Pour un ancien import dont le reçu unique a été perdu, `verify_legacy_import`
+contrôle la preuve dans un checkpoint avant toute migration, sans créer d'opération
+en attente. Les nouveaux reçus `garment` sont immuables et séparés par composant,
+avec le SHA du package. Voir [la récupération des reçus](blender-continuity.md).
