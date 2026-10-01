@@ -13,6 +13,8 @@
   Un réglage technique n’impose pas une nouvelle approbation du board inchangé.
 - Consolidation des seules coutures permanentes. Fermetures, bords libres et
   pièces amovibles préservés ; absence de soudure par proximité.
+- Version du serveur MCP et diagnostic alignés sur le manifeste réellement
+  installé, y compris le profil Windows sans `plugin.json` à la racine.
 - Tests natifs synthétiques et documentation du parcours. Aucun asset complet,
   fitting complexe ou export Unreal qualifié par ces tests.
 

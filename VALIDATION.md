@@ -9,12 +9,12 @@ l'ajustement des patrons ou la qualité d'un export de jeu.
 
 | Vérification | Résultat connu | Portée |
 | --- | --- | --- |
-| Suite Python sous Windows | PASS : 156 tests | Contrats, packages, refus, parcours autorisés, MCP, hooks, board et recette de couture synthétique |
+| Suite Python sous Windows | PASS : 158 tests | Contrats, packages, refus, parcours autorisés, MCP, hooks, board, recette de couture synthétique et profil d’installation Windows |
 | Rendu du board synthétique | PASS : pixels examinés | Lisibilité, légende, repères et échelle relative ; aucune qualification d'un vrai vêtement |
 | Blender 5.2.2 LTS | PASS : essai natif indépendant | Import, panneaux existants, erreur après mutation, blocage, restauration et reprise |
 | Recette native de couture | PASS : fixtures isolées, deux résolutions pour les trois sondes physiques | Gravité, couture, contact réellement sollicité, sous-ensemble local puis complet, consolidation et conservation des ouvertures ; voir le rapport 0.5.0 |
 | Revue des rendus natifs | Effectuée sur les fixtures synthétiques | Contact et assemblage de fragments cylindriques ; aucune qualification d'une vraie emmanchure ni d'une robe |
-| Distribution 0.5.0 | Archive source vérifiée localement | Publication et installation de cette correction non exécutées dans cette validation |
+| Distribution 0.5.0 | Archive source vérifiée localement | Voir la release GitHub et les contrôles de version de l’installation locale |
 | Installation Codex sous Windows | PASS lors de l'installation locale 0.4.0 | Nouveau serveur : 29 outils et fichiers de runtime vérifiés ; rechargement d'une conversation existante à vérifier séparément |
 | Connexion Comfy officielle | PASS lors du diagnostic local antérieur | Découverte du serveur existant ; ne prouve pas la compatibilité de chaque workflow GPU |
 | Image de production via Codex Image | NOT_EXECUTED dans les tests du plugin | Fournisseur explicitement simulé ; pas de reçu réel inventé |

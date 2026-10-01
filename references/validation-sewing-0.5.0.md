@@ -23,7 +23,7 @@ Voir [le parcours et les arguments](sewn-toile.md).
 
 | Contrôle | Résultat et portée |
 | --- | --- |
-| Suite Python | **PASS, 156 tests** : contrats, packages, protocoles, hooks, board, coutures et progression |
+| Suite Python | **PASS, 158 tests** : contrats, packages, protocoles, hooks, board, coutures et progression |
 | JSON indépendant | **PASS** : recette et fixtures avec PowerShell `Test-Json` ; 8 fichiers distribués, plus la configuration locale lorsqu'elle existe |
 | Source dense | 4 001 points collinéaires rééchantillonnés en 21 points ; source inchangée, erreur de contour et échantillons appariés vérifiés |
 | Repos et placement | Refus d'arêtes effondrées, triangles dégénérés, coordonnées non finies et étirement ×41,6 |
@@ -85,5 +85,8 @@ Le temps gagné sur un vêtement complet n'est donc pas mesuré.
 
 La route de modélisation classique pour accessoires n'est pas ajoutée dans cette
 correction ; les routes publiques restent `PATTERN_SEWN` et `MULTIVIEW_PART`.
-La correction 0.5.0 est préparée localement. Sa publication GitHub, sa CI distante
-et son installation Codex sont distinctes et ne sont pas attestées par ce rapport.
+Ce rapport décrit les essais locaux. Avant publication, deux tests supplémentaires
+ont vérifié l’identité de version du serveur et le démarrage du profil Windows
+sans manifeste racine : le total passe de 156 à 158 tests. La publication GitHub,
+sa CI distante et l’installation Codex sont des contrôles distincts ; consulter
+[la release 0.5.0](https://github.com/leuzeus/atelier-3d/releases/tag/v0.5.0).

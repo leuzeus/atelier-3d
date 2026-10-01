@@ -8,10 +8,10 @@ avec un choix de méthode par composant, des données de construction explicites
 une validation humaine aux étapes déterminantes.
 
 **Version 0.5.0 — socle de développement.** Le runtime et ses contrats sont testés.
-L'installation Codex 0.4.0 et les connexions ont été vérifiées sous Windows ;
-la correction 0.5.0 nécessite une mise à jour distincte de l'installation. Une
+Le profil d'installation Windows est testé, avec découverte MCP et diagnostic
+compatibles avec le manifeste Codex. Une
 production complète sur un vrai vêtement ou un asset articulé reste à qualifier.
-Voir [les résultats et limites](VALIDATION.md).
+Voir [les résultats et limites](VALIDATION.md) et la [release 0.5.0](https://github.com/leuzeus/atelier-3d/releases/tag/v0.5.0).
 
 ## Ce que fait le plugin
 
