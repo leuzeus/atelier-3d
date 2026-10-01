@@ -19,7 +19,7 @@ def prepare(project_root):
     import bpy
     project = Project(project_root)
     if (project.data / "blender/session.json").exists():
-        raise StudioError("A working scene already exists; explicitly resume that scene")
+        raise StudioError("A working scene already exists; use resume on that connected scene")
     original = Path(bpy.data.filepath).resolve() if bpy.data.filepath else None
     original_hash = sha(original) if original and original.is_file() else None
     working = inside(project.root, f".a3d/blender/working-{uuid.uuid4().hex}.blend", False)
@@ -54,6 +54,23 @@ def checkpoint(project_root):
     result = {"path": path.relative_to(project.root).as_posix(), "sha256": sha(path), "created_at": now()}
     atomic_json(project.data / "blender/last-checkpoint.json", result)
     return result
+
+
+def resume(project_root):
+    """Preserve the live (including dirty) working scene without replacing it."""
+    import bpy
+    project, rec = working(project_root)
+    working_hash = sha(Path(rec['working']))
+    dirty = bpy.data.is_dirty
+    saved = checkpoint(project_root)
+    working(project_root)
+    if sha(Path(rec['working'])) != working_hash:
+        raise StudioError('Resume unexpectedly changed the on-disk working scene')
+    receipt = {'working': rec['working'], 'checkpoint': saved, 'dirty_before': dirty,
+               'dirty_after': bpy.data.is_dirty, 'working_file_unchanged': True,
+               'visual_validation': 'NOT_EXECUTED'}
+    atomic_json(project.data / ('blender/resume-' + uuid.uuid4().hex + '.json'), receipt)
+    return receipt
 
 
 def assemble(project_root, plan_path):
@@ -143,7 +160,8 @@ def assemble(project_root, plan_path):
     return receipt
 
 
-def garment(project_root, package_dir, recipe_path=None, rebuild=False):
+def garment(project_root, package_dir, recipe_path=None, rebuild=False, migrate_legacy=False,
+            legacy_snapshot_sha256=None, legacy_script_receipts=None):
     import bpy
     from mathutils import Euler, Vector
     project, rec = working(project_root)
@@ -163,10 +181,24 @@ def garment(project_root, package_dir, recipe_path=None, rebuild=False):
         if sha(inside(data_dir, name)) != expected:
             raise StudioError("Extracted garment package changed")
     previous=[o for o in bpy.data.objects if o.get('a3d_component_id')==data['component_id']]
+    legacy = False
+    legacy_proof = None
     if previous:
         if not rebuild:raise StudioError('Garment already constructed; explicit rebuild=true archives the previous derived simulation mesh')
-        if len(previous)!=1 or previous[0].get('a3d_role')!='simulation':
-            raise StudioError('Only an unaccepted derived simulation mesh can be rebuilt')
+        if len(previous)!=1 or previous[0].type!='MESH' or previous[0].get('a3d_package_sha256')!=component['package']['sha256']:
+            raise StudioError('Rebuild requires one mesh with the current component and package identity')
+        if previous[0].get('a3d_role')!='simulation':
+            if not migrate_legacy:
+                raise StudioError('Legacy panels require explicit migrate_legacy=true and provenance checks')
+            from blender.legacy import legacy_snapshot, validate_legacy_panels
+            legacy_proof = validate_legacy_panels(project, previous[0], data, component['package']['sha256'],
+                                                 legacy_snapshot_sha256, legacy_script_receipts)
+            legacy_proof['before_sha256'] = legacy_snapshot(previous[0])
+            legacy = True
+        elif migrate_legacy:
+            raise StudioError('Legacy archival cannot target an existing native simulation')
+    elif migrate_legacy:
+        raise StudioError('No legacy mesh to archive')
     saved = state.get("pending_blender_operation", {}).get("checkpoint") or checkpoint(project_root)
     if recipe_path is None:
         raise StudioError("A derived sewing recipe is required; use templates/sewing-recipe.json without modifying approved contours")
@@ -187,10 +219,17 @@ def garment(project_root, package_dir, recipe_path=None, rebuild=False):
     obj["a3d_sewing_mesh_sha256"] = sha(path)
     for old in previous:
         old['a3d_source_component_id']=data['component_id'];del old['a3d_component_id']
-        old['a3d_role']='archived-simulation';old.hide_set(True);old.hide_render=True
+        old['a3d_role']='archived-legacy-panels' if legacy else 'archived-simulation'
+        old.hide_set(True);old.hide_render=True
+    if legacy:
+        legacy_proof['after_sha256'] = legacy_snapshot(previous[0])
+        if legacy_proof['before_sha256'] != legacy_proof['after_sha256']:
+            raise StudioError('Legacy mesh changed during archival; restore checkpoint')
     bpy.ops.wm.save_as_mainfile(filepath=rec["working"], check_existing=False)
     receipt = {"checkpoint": saved, "object": obj.name, "vertices": len(payload["rest_cm"]),
-        "archived_simulations": [o.name for o in previous],
+        "archived_simulations": [] if legacy else [o.name for o in previous],
+        "archived_legacy_panels": [o.name for o in previous] if legacy else [],
+        "legacy_archive": legacy_proof,
         "sewing_edges": sum(len(s["pairs"]) for s in payload["seams"].values() if s["kind"] == "permanent"),
         "derived_mesh": obj["a3d_sewing_mesh"], "derived_mesh_sha256": sha(path), "context": context,
         "simulation": "NOT_EXECUTED", "visual_validation": "NOT_EXECUTED"}
@@ -216,9 +255,12 @@ def inspect(project_root):
                         "polygons": len(mesh.polygons), "nonmanifold_edges": nonmanifold, "degenerate_faces": degenerate,
                         "dimensions_m": list(obj.dimensions), "materials": len(mesh.materials),
                         "uv_layers": len(mesh.uv_layers), "armature_modifiers": sum(m.type == "ARMATURE" for m in obj.modifiers)})
+        if not any(key in obj for key in ('a3d_role', 'a3d_sewing_mesh', 'a3d_sewing_mesh_sha256')):
+            from blender.legacy import legacy_snapshot
+            objects[-1]['legacy_snapshot_sha256'] = legacy_snapshot(obj)
     from blender.sewing import collider_info
     colliders = [collider_info(o) for o in bpy.context.scene.objects if o.type == "MESH" and any(m.type == "COLLISION" for m in o.modifiers)]
-    report = {"blender_version": bpy.app.version_string, "working": rec["working"], "objects": objects, "auxiliary_colliders": colliders,
+    report = {"blender_version": bpy.app.version_string, "working": rec["working"], "is_dirty": bpy.data.is_dirty, "objects": objects, "auxiliary_colliders": colliders,
               "evaluated_geometry": "NOT_EXECUTED", "identity": "NOT_EXECUTED", "visual": "NOT_EXECUTED",
               "note": "Counts are evidence, not automatic acceptance; evaluate modifiers, rig deformation and silhouette separately."}
     atomic_json(project.data / "blender/inspection.json", report)
@@ -228,7 +270,7 @@ def inspect(project_root):
 def _perform(project_root, operation, arguments):
     if operation != "run_script":
         from blender.sewing import simulate_sewn, freeze_sewn
-        return {"prepare": prepare, "inspect": inspect, "garment": garment, "assemble": assemble,
+        return {"prepare": prepare, "resume": resume, "inspect": inspect, "garment": garment, "assemble": assemble,
             "simulate_sewn": simulate_sewn, "freeze_sewn": freeze_sewn}[operation](project_root, **arguments)
     import bpy
     import runpy
@@ -320,7 +362,7 @@ def dispatch(project_root, operation, arguments):
     admit_operation(project, operation, arguments)
     if operation == "restore_checkpoint":
         return restore_checkpoint(project_root)
-    if operation in ("prepare", "inspect"):
+    if operation in ("prepare", "resume", "inspect"):
         return _perform(project_root, operation, arguments)
     import bpy
     saved = checkpoint(project_root)

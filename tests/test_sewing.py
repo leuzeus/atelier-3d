@@ -15,6 +15,24 @@ def sources():
 
 
 class BoundaryTests(unittest.TestCase):
+    def test_mirror_u_preserves_source_boundaries_and_changes_recipe_identity(self):
+        from blender.sewing import mesh_recipe_digest
+        data,recipe=sources();original=digest(data)
+        recipe['placements']['front']['mode']='cylinder'
+        before=prepare_boundaries(data,recipe);before_hash=mesh_recipe_digest(recipe)
+        recipe['placements']['front']['mirror_u']=True
+        self.assertEqual(prepare_boundaries(data,recipe),before)
+        self.assertEqual(digest(data),original)
+        self.assertNotEqual(mesh_recipe_digest(recipe),before_hash)
+
+    def test_mirror_u_must_be_boolean_and_cylindrical(self):
+        data,recipe=sources()
+        recipe['placements']['front']['mirror_u']=True
+        with self.assertRaisesRegex(StudioError,'cylindrical'):validate_recipe(data,recipe)
+        recipe['placements']['front']['mode']='cylinder'
+        recipe['placements']['front']['mirror_u']='true'
+        with self.assertRaises(StudioError):validate_recipe(data,recipe)
+
     def test_dense_collinear_contours_are_not_simulation_resolution(self):
         points=[[0,i/100] for i in range(4001)]
         values=resample_parameters([points],2,.02)

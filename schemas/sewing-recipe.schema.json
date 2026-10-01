@@ -144,6 +144,11 @@
             "minimum": 0.01,
             "maximum": 1000
           },
+          "mirror_u": {
+            "type": "boolean",
+            "default": false,
+            "description": "Reverse cylindrical U winding only; preserve the source contour and flat rest coordinates."
+          },
           "origin_2d_cm": {
             "type": "array",
             "items": {

@@ -5,6 +5,18 @@ description: Assembler dans une copie Blender des reconstructions 3D indépendan
 
 # assemble-in-blender
 
+Avant de reprendre une session existante, suivre [le protocole de continuité](../../references/blender-continuity.md).
+Demander un nouveau code exact au Studio actualisé : le résultat doit identifier
+la version et la racine attendues. Utiliser `resume` avec des arguments vides pour
+conserver en checkpoint les modifications non enregistrées de la scène de travail
+connectée. Ne pas effacer `session.json`, relancer `prepare` ou provoquer un échec
+pour obtenir une sauvegarde. Les panneaux 0.4.0 non acceptés passent uniquement par
+`garment` avec `rebuild=true` et `migrate_legacy=true`, après les vérifications de
+provenance ; ne jamais leur ajouter artificiellement un rôle ou un mapping.
+Pour une variante densifiée, fournir l'empreinte récente d'`inspect` et les reçus
+de scripts vérifiés selon le protocole. L'archivage n'est pas une acceptation de
+ce mesh ; le nouveau mapping doit provenir des sources approuvées.
+
 Lire [le protocole Blender](../../references/blender.md). Utiliser le MCP Blender officiel déjà connecté. Demander le code exact à `studio_blender_operation` puis le transmettre tel quel à l'outil Python Blender ; le dispatcher vérifie à nouveau les prérequis. `prepare` crée une copie sans écraser l'original. Vérifier la scène connectée. Après approbation humaine du board de découpage, `garment` construit les panneaux issus du package approuvé. Pour l'assemblage, faire approuver les relations critiques puis appeler `assemble`. Le mannequin de collision et la simulation restent un travail de scène explicite et traçable. Ne jamais substituer des tubes/surfaces procédurales à PATTERN_SEWN. Ne jamais souder des composants must_remain_separate. Inspecter les pixels avant toute conclusion.
 
 Enregistrer et faire approuver assembly-plan, avec tous les composants, leurs sorties acceptées et les hashes du fichier de travail/checkpoint. Utiliser mode=existing pour les panneaux cousus déjà construits, mode=import pour les fichiers de parties. L’opération produit assembly-result nécessaire à REFINING. Après erreur, utiliser restore_checkpoint avant une nouvelle mutation. Voir les [contrôles des étapes](../../references/lifecycle-guards.md).

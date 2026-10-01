@@ -144,6 +144,8 @@ def validate_recipe(data, recipe):
         raise StudioError("Sewing recipe component mismatch")
     if set(recipe["placements"]) != set(data["pieces"]):
         raise StudioError("Declare the placement of every panel")
+    if any(p.get('mirror_u', False) and p['mode'] != 'cylinder' for p in recipe['placements'].values()):
+        raise StudioError('mirror_u is supported only for cylindrical placement')
     if recipe["mesh"]["min_stretch"] >= recipe["mesh"]["max_stretch"]:
         raise StudioError("Invalid placement strain bounds")
     if set(recipe["trial_pieces"]) - data["pieces"].keys() or len(set(recipe["trial_pieces"])) < 2:

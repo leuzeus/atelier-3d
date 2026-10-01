@@ -12,6 +12,10 @@ nouvelle revue du [board](fabrication-board.md).
 Toutes les opérations ci-dessous passent par `studio_blender_operation`, puis
 son code exact est transmis au MCP Blender connecté. Vérifier la scène, appeler
 `prepare` pour créer la copie de travail, puis conserver cette copie connectée.
+Si la session existe déjà, utiliser `resume` pour en sauvegarder un checkpoint,
+sans perdre les modifications en mémoire. Après une mise à jour, demander un
+nouveau code exact au Studio actualisé et contrôler `runtime.version` dans le
+résultat. Voir [la reprise et les panneaux legacy](blender-continuity.md).
 
 1. Extraire le package approuvé dans un nouveau répertoire du projet. Préparer
    le mannequin auxiliaire, ses dimensions, sa pose et son modifier Collision.
@@ -110,6 +114,22 @@ dans la scène, avec sa géométrie intacte ; seuls les meshes de simulation non
 acceptés sont remplaçables. Ne pas retoucher le mapping pour contourner le contrôle.
 
 ## Scripts personnalisés et limites
+
+### Sens d'enroulement cylindrique
+
+Chaque placement `mode="cylinder"` accepte `mirror_u`, booléen facultatif, `false`
+par défaut. Avec `true`, l'angle devient `-(u-origin_u)/radius_cm`. Le rayon reste
+positif ; la hauteur locale, les contours, le rest 2D et les identifiants des
+coutures sont conservés. Avec une rotation `[90,0,0]`, une position `[0,0,149]` et
+une origine `[0,0]`, cela donne `(-r*sin(u/r), -r*cos(u/r), 149+v)`.
+
+L'option est réservée au cylindre. Elle fait partie du hash des placements : sa
+modification exige un nouveau maillage dérivé et un nouvel essai local, sans
+réapprobation du découpage inchangé. Les contrôles de déformation, sens des coutures,
+collisions et déplacement restent actifs. Un sens représentable ou des tangentes
+admissibles ne prouvent pas un placement correct du col ou une simulation stable.
+
+### Exécution personnalisée
 
 Préférer les opérations natives ci-dessus. Un `run_script` de purpose `simulate`
 doit aussi fournir un plan avec `sewing_recipe` et `phase`, respecter les mêmes
