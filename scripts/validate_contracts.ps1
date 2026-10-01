@@ -8,6 +8,7 @@ function Test-Contract([string]$Instance, [string]$Schema) {
     $checks.Add([pscustomobject]@{ file = [IO.Path]::GetRelativePath($projectRoot, $Instance); result = 'PASS' })
 }
 Test-Contract (Join-Path $projectRoot 'templates/config.json') (Join-Path $projectRoot 'schemas/config.schema.json')
+Test-Contract (Join-Path $projectRoot 'templates/sewing-recipe.json') (Join-Path $projectRoot 'schemas/sewing-recipe.schema.json')
 $localConfig = Join-Path $projectRoot 'config.local.json'
 if (Test-Path -LiteralPath $localConfig) {
     Test-Contract $localConfig (Join-Path $projectRoot 'schemas/config.schema.json')

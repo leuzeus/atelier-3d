@@ -1,6 +1,6 @@
 # Validation d'Atelier 3D
 
-## État de la version 0.4.0
+## État de la version 0.5.0
 
 Le socle logiciel, les contrats et des opérations natives Blender ont été
 vérifiés. **La qualification de production d'un asset complet reste non exécutée.**
@@ -9,10 +9,12 @@ l'ajustement des patrons ou la qualité d'un export de jeu.
 
 | Vérification | Résultat connu | Portée |
 | --- | --- | --- |
-| Suite Python sous Windows | PASS : 133 tests lors de la correction 0.4.0 | Contrats, packages, refus, parcours autorisés, MCP, hooks cmd/PowerShell et fixtures synthétiques |
-| Vérifications ciblées finales du board | PASS : 56 tests | Fabrication, proportions, annotations, preuves, hooks et protocole |
+| Suite Python sous Windows | PASS : 156 tests | Contrats, packages, refus, parcours autorisés, MCP, hooks, board et recette de couture synthétique |
 | Rendu du board synthétique | PASS : pixels examinés | Lisibilité, légende, repères et échelle relative ; aucune qualification d'un vrai vêtement |
 | Blender 5.2.2 LTS | PASS : essai natif indépendant | Import, panneaux existants, erreur après mutation, blocage, restauration et reprise |
+| Recette native de couture | PASS : fixtures isolées, deux résolutions pour les trois sondes physiques | Gravité, couture, contact réellement sollicité, sous-ensemble local puis complet, consolidation et conservation des ouvertures ; voir le rapport 0.5.0 |
+| Revue des rendus natifs | Effectuée sur les fixtures synthétiques | Contact et assemblage de fragments cylindriques ; aucune qualification d'une vraie emmanchure ni d'une robe |
+| Distribution 0.5.0 | Archive source vérifiée localement | Publication et installation de cette correction non exécutées dans cette validation |
 | Installation Codex sous Windows | PASS lors de l'installation locale 0.4.0 | Nouveau serveur : 29 outils et fichiers de runtime vérifiés ; rechargement d'une conversation existante à vérifier séparément |
 | Connexion Comfy officielle | PASS lors du diagnostic local antérieur | Découverte du serveur existant ; ne prouve pas la compatibilité de chaque workflow GPU |
 | Image de production via Codex Image | NOT_EXECUTED dans les tests du plugin | Fournisseur explicitement simulé ; pas de reçu réel inventé |
@@ -22,7 +24,8 @@ l'ajustement des patrons ou la qualité d'un export de jeu.
 
 Les rapports des corrections [0.2.0](references/validation-pipeline-0.2.0.md),
 [0.3.0](references/validation-lifecycle-0.3.0.md) et
-[0.4.0](references/validation-fabrication-0.4.0.md) décrivent les essais locaux.
+[0.4.0](references/validation-fabrication-0.4.0.md) et
+[0.5.0](references/validation-sewing-0.5.0.md) décrivent les essais locaux.
 Les journaux `work/` mentionnés dans ces rapports sont conservés localement et
 **ne sont pas distribués**. Pour une preuve publique reproductible, consulter
 [les exécutions CI et leur commit](https://github.com/leuzeus/atelier-3d/actions/workflows/ci.yml).
@@ -49,10 +52,14 @@ La validation indépendante JSON requiert PowerShell 7 (`Test-Json`). Les schém
 externes des manifestes peuvent être passés à `scripts/validate_contracts.ps1`
 avec `-OfficialSchemaDirectory` ; ils ne sont pas téléchargés par la CI.
 
-`tests/native_lifecycle_smoke.py` est un essai Blender séparé : il doit s'exécuter
+`tests/native_lifecycle_smoke.py` et `tests/native_sewing_smoke.py` sont des essais
+Blender séparés : ils doivent s'exécuter
 dans un processus Blender dédié, avec scène vide et son dossier de travail de test,
 jamais dans la scène de production ouverte. Examiner ce script avant exécution.
-Il ne fait pas partie de `unittest discover` ni des jobs GitHub Actions.
+Ils ne font pas partie de `unittest discover` ni des jobs GitHub Actions. Utiliser
+`--background --factory-startup --disable-autoexec --python-exit-code 1` pour que
+les erreurs Python échouent réellement au niveau du processus. Pour le script
+de couture, consulter [les commandes et limites](references/validation-sewing-0.5.0.md).
 
 ## Qualification de production à effectuer
 

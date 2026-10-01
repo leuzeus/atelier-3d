@@ -15,7 +15,7 @@ from blender.operations import dispatch
 
 def script(project, filename, body, purpose, **extra):
     path = project.data / ("blender/" + filename + ".py")
-    path.write_text(body)
+    path.write_text(body, encoding="utf-8")
     return {"path": path.relative_to(project.root).as_posix(), "sha256": sha(path), "purpose": purpose,
         "component_ids": list(project.state()["components"]), **extra}
 
@@ -44,16 +44,21 @@ for garment in (False, True):
         component = project.state()["components"]["garment.coat"]
         extracted = project.data / "reconstruction/extracted"
         extract_package(project.root / component["package"]["path"], extracted)
-        dispatch(str(project.root), "garment", {"package_dir": extracted.relative_to(project.root).as_posix()})
-        atomic_json(project.data / "evidence/simulation.json", {"component_id": "garment.coat", "type": "cloth",
-            "frame_start": 1, "frame_end": 24, "quality": 5, "max_frames": 24, "collision_components": [], "baked": False})
-        dispatch(str(project.root), "run_script", script(project, "simulation-fixture", "# Fixture: no bake or GPU\n", "simulate", simulation_plan=".a3d/evidence/simulation.json"))
-        assert bpy.context.scene.frame_end == 24
+        recipe = read_json(ROOT / "templates/sewing-recipe.json")
+        # The fixture reverses these seam chains. Place the paired panels with
+        # matching directions; physics is tested in native_sewing_smoke.py.
+        for pid in ("back", "sleeve-right"):
+            recipe["placements"][pid]["rotation_degrees"][0] = -90
+        atomic_json(project.root / "recipe.json", recipe)
+        construction = dispatch(str(project.root), "garment", {
+            "package_dir": extracted.relative_to(project.root).as_posix(), "recipe_path": "recipe.json"})
+        expected_vertices = len(bpy.data.objects[construction["object"]].data.vertices)
         sewn_snapshot = project.data / "outputs/sewn-reconstruction.blend"
         shutil.copyfile(session["working"], sewn_snapshot)
         accept(project, record(project, sewn_snapshot))
     else:
         accept(project)
+        expected_vertices = 3
     data = plan(project, "existing" if garment else "import")
     project.transition("ASSEMBLING", "assembly-plan")
     # Inject a failure after a receipt exists: recovery must invalidate it too.
@@ -82,7 +87,6 @@ for garment in (False, True):
     project.transition("REFINING", "assembly-result")
     mesh_objects = [o for o in bpy.data.objects if o.type == "MESH" and o.get("a3d_component_id")]
     assert len(mesh_objects) == 1
-    expected_vertices = 16 if garment else 3
     assert len(mesh_objects[0].data.vertices) == expected_vertices
     stable_assembly_hash = result["artifact"]["sha256"]
     fail = script(project, "intentional-failure", "import bpy\nbpy.data.objects.new('FAILED_PARTIAL_OBJECT', None)\nraise RuntimeError('Synthetic failure after mutation')\n", "refine")

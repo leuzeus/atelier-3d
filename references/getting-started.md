@@ -108,7 +108,7 @@ franchir une étape. Lire [le parcours complet](production.md).
 .\.venv\Scripts\python.exe -B scripts/studio.py tools
 .\.venv\Scripts\python.exe -B scripts/studio.py call studio_create_project --arguments create-project.json
 New-Item -ItemType Directory -Force dist | Out-Null
-.\.venv\Scripts\python.exe -B scripts/package_plugin.py --output dist/atelier-3d-0.4.0.zip
+.\.venv\Scripts\python.exe -B scripts/package_plugin.py --output dist/atelier-3d-0.5.0.zip
 ```
 
 `create-project.json` doit contenir `project_root` absolu et un `asset` conforme à

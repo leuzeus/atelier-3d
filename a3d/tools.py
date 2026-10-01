@@ -32,7 +32,7 @@ P = {"project_root": S}
       {"project_root": S, "live_comfy": B})
 def doctor(project_root=None, live_comfy=False):
     config = load_config()
-    result = {"plugin": {"status": "PASS", "version": "0.4.0", "schema_files": len(list((ROOT / "schemas").glob("*.json")))},
+    result = {"plugin": {"status": "PASS", "version": read_json(ROOT / 'plugin.json')['version'], "schema_files": len(list((ROOT / "schemas").glob("*.json")))},
               "comfyui": {"status": "NOT_EXECUTED", "url": config["comfyui"]["base_url"]},
               "blender": {"status": "NOT_EXECUTED", "reason": "Probe the external Blender MCP through Codex; this bridge does not impersonate it."},
               "platform_qualification": {"windows": "see validation report", "macos": "NOT_EXECUTED", "linux": "NOT_EXECUTED"}}

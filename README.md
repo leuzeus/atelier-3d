@@ -7,8 +7,9 @@ Plugin Codex pour préparer et produire des assets 3D à partir d'images de réf
 avec un choix de méthode par composant, des données de construction explicites et
 une validation humaine aux étapes déterminantes.
 
-**Version 0.4.0 — socle de développement.** Le runtime et ses contrats sont testés.
-L'installation Codex et les connexions ont été vérifiées sous Windows. Une
+**Version 0.5.0 — socle de développement.** Le runtime et ses contrats sont testés.
+L'installation Codex 0.4.0 et les connexions ont été vérifiées sous Windows ;
+la correction 0.5.0 nécessite une mise à jour distincte de l'installation. Une
 production complète sur un vrai vêtement ou un asset articulé reste à qualifier.
 Voir [les résultats et limites](VALIDATION.md).
 
@@ -87,7 +88,7 @@ générale de production ne vaut pas approbation d'une image encore inexistante.
 ## Architecture
 
 Les **11 skills** guident Codex ; le serveur Studio expose **29 outils MCP** et
-utilise **17 schémas JSON**. L'état canonique du projet est conservé dans SQLite
+utilise **18 schémas JSON**. L'état canonique du projet est conservé dans SQLite
 sous `.a3d`, avec les preuves et décisions. Les fichiers `.partpkg` et
 `.garmentpkg` sont des archives de transport contrôlées.
 
@@ -111,6 +112,7 @@ le terme « local » décrit Studio, les fichiers de projet et l'adaptateur Comf
 - [Déroulement et état du projet](references/production.md)
 - [Proposition de méthode et revue du découpage](references/construction-review.md)
 - [Board et patrons de fabrication](references/fabrication-board.md)
+- [Du board approuvé à une toile cousue](references/sewn-toile.md)
 - [Contrôles des étapes et récupération](references/lifecycle-guards.md)
 - [Packages](references/packages.md), [références visuelles](references/references-3d.md),
   [Comfy local](references/comfy-official.md), [Blender](references/blender.md)
@@ -124,8 +126,11 @@ Les exemples sont synthétiques : ils ne démontrent pas la fidélité d'un vêt
 Les templates SD1.5 et Hunyuan doivent être adaptés et qualifiés sur les nœuds et
 modèles présents. Aucun modèle n'est téléchargé automatiquement.
 
-La construction des panneaux Cloth est fournie ; le placement, le fitting,
-le bake, la retopologie, les UV, le rig et les exports restent des travaux
+La recette native sépare contours précis, maillage de simulation et surface
+cousue. Elle vérifie masse par sommet, contexte de collision et essais physiques
+locaux avant la toile complète, puis conserve les ouvertures et pièces amovibles.
+Les placements sont limités aux panneaux plats ou enroulés ; le fitting complexe,
+le bake d’animation, la retopologie, les UV, le rig et les exports restent des travaux
 assistés à exécuter et à vérifier sur chaque asset. Les contrôles numériques
 ne certifient pas l'apparence ni la véracité d'une preuve déclarée.
 
