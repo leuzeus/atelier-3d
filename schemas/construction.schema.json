@@ -1,0 +1,718 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "asset_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 90
+    },
+    "units": {
+      "const": "cm"
+    },
+    "target": {
+      "enum": [
+        "game",
+        "animation",
+        "render",
+        "3d_print"
+      ]
+    },
+    "height_cm": {
+      "type": "number",
+      "minimum": 0.001
+    },
+    "orthographic": {
+      "type": "object",
+      "properties": {
+        "front": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            },
+            "basis": {
+              "type": "string",
+              "enum": [
+                "reference",
+                "inferred-design"
+              ]
+            },
+            "notes": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            },
+            "source_evidence_keys": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "subject_bbox_px": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "minimum": 0
+              },
+              "minItems": 4,
+              "maxItems": 4
+            },
+            "subject_height_cm": {
+              "type": "number",
+              "minimum": 0.01
+            }
+          },
+          "required": [
+            "path",
+            "basis",
+            "notes",
+            "source_evidence_keys",
+            "subject_bbox_px",
+            "subject_height_cm"
+          ],
+          "additionalProperties": false
+        },
+        "side": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            },
+            "basis": {
+              "type": "string",
+              "enum": [
+                "reference",
+                "inferred-design"
+              ]
+            },
+            "notes": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            },
+            "source_evidence_keys": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "subject_bbox_px": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "minimum": 0
+              },
+              "minItems": 4,
+              "maxItems": 4
+            },
+            "subject_height_cm": {
+              "type": "number",
+              "minimum": 0.01
+            }
+          },
+          "required": [
+            "path",
+            "basis",
+            "notes",
+            "source_evidence_keys",
+            "subject_bbox_px",
+            "subject_height_cm"
+          ],
+          "additionalProperties": false
+        },
+        "back": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            },
+            "basis": {
+              "type": "string",
+              "enum": [
+                "reference",
+                "inferred-design"
+              ]
+            },
+            "notes": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            },
+            "source_evidence_keys": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "subject_bbox_px": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "minimum": 0
+              },
+              "minItems": 4,
+              "maxItems": 4
+            },
+            "subject_height_cm": {
+              "type": "number",
+              "minimum": 0.01
+            }
+          },
+          "required": [
+            "path",
+            "basis",
+            "notes",
+            "source_evidence_keys",
+            "subject_bbox_px",
+            "subject_height_cm"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "front",
+        "side",
+        "back"
+      ],
+      "additionalProperties": false
+    },
+    "exploded": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "basis": {
+          "type": "string",
+          "enum": [
+            "reference",
+            "inferred-design"
+          ]
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "source_evidence_keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "generation_evidence_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "annotations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "component_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240
+              },
+              "piece_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240
+              },
+              "anchor_px": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "label_position_px": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "required": [
+              "component_id",
+              "piece_id",
+              "anchor_px",
+              "label_position_px"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0,
+          "maxItems": 100
+        }
+      },
+      "required": [
+        "path",
+        "basis",
+        "notes",
+        "source_evidence_keys",
+        "annotations"
+      ],
+      "additionalProperties": false
+    },
+    "components": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "pipeline": {
+            "type": "string",
+            "enum": [
+              "PATTERN_SEWN",
+              "MULTIVIEW_PART"
+            ]
+          },
+          "assembly_notes": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "pieces": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 240
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 240
+                },
+                "material": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 240
+                },
+                "dimensions_cm": {
+                  "type": "array",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "minItems": 2,
+                  "maxItems": 3
+                },
+                "basis": {
+                  "type": "string",
+                  "enum": [
+                    "observed",
+                    "inferred",
+                    "user-confirmed"
+                  ]
+                },
+                "construction": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 240
+                },
+                "grain_direction": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "seam_allowance_cm": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 10
+                },
+                "source_evidence_keys": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 1,
+                  "uniqueItems": true
+                },
+                "reference_notes": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                },
+                "characteristics": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 240
+                  },
+                  "minItems": 1,
+                  "maxItems": 8
+                },
+                "pattern": {
+                  "type": "object",
+                  "properties": {
+                    "cut_quantity": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 20
+                    },
+                    "cut_instruction": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 240
+                    },
+                    "cut_outline_cm": {
+                      "type": "array",
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        },
+                        "minItems": 2,
+                        "maxItems": 2
+                      },
+                      "minItems": 3,
+                      "maxItems": 1000
+                    },
+                    "folds": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 240
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 240
+                          },
+                          "kind": {
+                            "enum": [
+                              "fold",
+                              "on-fold",
+                              "center"
+                            ]
+                          },
+                          "line_cm": {
+                            "type": "array",
+                            "items": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "minItems": 2,
+                            "maxItems": 40
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "kind",
+                          "line_cm"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "minItems": 0,
+                      "maxItems": 30
+                    },
+                    "fold_notes": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 240
+                    },
+                    "assembly_marks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 240
+                          },
+                          "seam_id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 240
+                          },
+                          "position": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          "symbol": {
+                            "enum": [
+                              "notch",
+                              "double-notch"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "seam_id",
+                          "position",
+                          "symbol"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "minItems": 0,
+                      "maxItems": 100
+                    },
+                    "mark_notes": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 240
+                    }
+                  },
+                  "required": [
+                    "cut_quantity",
+                    "cut_instruction",
+                    "cut_outline_cm",
+                    "folds",
+                    "fold_notes",
+                    "assembly_marks",
+                    "mark_notes"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "material",
+                "dimensions_cm",
+                "basis",
+                "construction",
+                "source_evidence_keys",
+                "reference_notes",
+                "characteristics"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "pipeline",
+          "assembly_notes",
+          "pieces"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "body_measurements": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 240
+      },
+      "minItems": 1
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 240
+      }
+    },
+    "unresolved_blockers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 240
+      }
+    },
+    "silhouette_checks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 240
+      },
+      "minItems": 1
+    },
+    "mobility_checks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 240
+      },
+      "minItems": 1
+    },
+    "delivery_requirements": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 240
+      },
+      "minItems": 1
+    },
+    "source_references": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "properties": {
+          "evidence_key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "evidence_key",
+          "source_ref"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "proportion_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "source_evidence_key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "view": {
+            "enum": [
+              "front",
+              "side",
+              "back",
+              "exploded"
+            ]
+          },
+          "reference_spans_px": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "view_spans_px": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "tolerance_relative": {
+            "type": "number",
+            "minimum": 0.001,
+            "maximum": 0.15
+          }
+        },
+        "required": [
+          "label",
+          "source_evidence_key",
+          "view",
+          "reference_spans_px",
+          "view_spans_px",
+          "tolerance_relative"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 4,
+      "maxItems": 60
+    }
+  },
+  "required": [
+    "schema_version",
+    "asset_id",
+    "title",
+    "units",
+    "target",
+    "height_cm",
+    "orthographic",
+    "exploded",
+    "components",
+    "body_measurements",
+    "assumptions",
+    "unresolved_blockers",
+    "silhouette_checks",
+    "mobility_checks",
+    "delivery_requirements",
+    "source_references",
+    "proportion_checks"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

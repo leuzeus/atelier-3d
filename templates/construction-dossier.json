@@ -1,0 +1,599 @@
+{
+  "schema_version": 1,
+  "asset_id": "test-character",
+  "title": "SYNTHETIC TEST ONLY - not a usable cutting plan",
+  "units": "cm",
+  "target": "animation",
+  "height_cm": 180,
+  "orthographic": {
+    "front": {
+      "path": ".a3d/evidence/synthetic-board.png",
+      "basis": "inferred-design",
+      "notes": "SYNTHETIC contract image only, never a production reference",
+      "source_evidence_keys": [
+        "reference.original"
+      ],
+      "subject_bbox_px": [
+        0,
+        0,
+        64,
+        128
+      ],
+      "subject_height_cm": 160
+    },
+    "side": {
+      "path": ".a3d/evidence/synthetic-board.png",
+      "basis": "inferred-design",
+      "notes": "SYNTHETIC contract image only, never a production reference",
+      "source_evidence_keys": [
+        "reference.original"
+      ],
+      "subject_bbox_px": [
+        0,
+        0,
+        64,
+        128
+      ],
+      "subject_height_cm": 160
+    },
+    "back": {
+      "path": ".a3d/evidence/synthetic-board.png",
+      "basis": "inferred-design",
+      "notes": "SYNTHETIC contract image only, never a production reference",
+      "source_evidence_keys": [
+        "reference.original"
+      ],
+      "subject_bbox_px": [
+        0,
+        0,
+        64,
+        128
+      ],
+      "subject_height_cm": 160
+    }
+  },
+  "exploded": {
+    "path": ".a3d/evidence/synthetic-board.png",
+    "basis": "inferred-design",
+    "notes": "SYNTHETIC contract image only, never a production reference",
+    "source_evidence_keys": [
+      "reference.original"
+    ],
+    "annotations": [
+      {
+        "component_id": "garment.coat",
+        "piece_id": "front",
+        "anchor_px": [
+          10,
+          50
+        ],
+        "label_position_px": [
+          3,
+          80
+        ]
+      },
+      {
+        "component_id": "garment.coat",
+        "piece_id": "back",
+        "anchor_px": [
+          22,
+          50
+        ],
+        "label_position_px": [
+          3,
+          92
+        ]
+      },
+      {
+        "component_id": "garment.coat",
+        "piece_id": "sleeve-left",
+        "anchor_px": [
+          34,
+          50
+        ],
+        "label_position_px": [
+          3,
+          104
+        ]
+      },
+      {
+        "component_id": "garment.coat",
+        "piece_id": "sleeve-right",
+        "anchor_px": [
+          46,
+          50
+        ],
+        "label_position_px": [
+          3,
+          116
+        ]
+      }
+    ]
+  },
+  "proportion_checks": [
+    {
+      "label": "Synthetic width/height front",
+      "source_evidence_key": "reference.original",
+      "view": "front",
+      "reference_spans_px": [
+        [
+          [
+            0,
+            0
+          ],
+          [
+            40,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            100
+          ]
+        ]
+      ],
+      "view_spans_px": [
+        [
+          [
+            0,
+            0
+          ],
+          [
+            40,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            100
+          ]
+        ]
+      ],
+      "tolerance_relative": 0.05
+    },
+    {
+      "label": "Synthetic width/height side",
+      "source_evidence_key": "reference.original",
+      "view": "side",
+      "reference_spans_px": [
+        [
+          [
+            0,
+            0
+          ],
+          [
+            40,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            100
+          ]
+        ]
+      ],
+      "view_spans_px": [
+        [
+          [
+            0,
+            0
+          ],
+          [
+            40,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            100
+          ]
+        ]
+      ],
+      "tolerance_relative": 0.05
+    },
+    {
+      "label": "Synthetic width/height back",
+      "source_evidence_key": "reference.original",
+      "view": "back",
+      "reference_spans_px": [
+        [
+          [
+            0,
+            0
+          ],
+          [
+            40,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            100
+          ]
+        ]
+      ],
+      "view_spans_px": [
+        [
+          [
+            0,
+            0
+          ],
+          [
+            40,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            100
+          ]
+        ]
+      ],
+      "tolerance_relative": 0.05
+    },
+    {
+      "label": "Synthetic width/height exploded",
+      "source_evidence_key": "reference.original",
+      "view": "exploded",
+      "reference_spans_px": [
+        [
+          [
+            0,
+            0
+          ],
+          [
+            40,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            100
+          ]
+        ]
+      ],
+      "view_spans_px": [
+        [
+          [
+            0,
+            0
+          ],
+          [
+            40,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            100
+          ]
+        ]
+      ],
+      "tolerance_relative": 0.05
+    }
+  ],
+  "source_references": [
+    {
+      "evidence_key": "reference.original",
+      "source_ref": "test:original-image-fixture"
+    }
+  ],
+  "components": {
+    "garment.coat": {
+      "pipeline": "PATTERN_SEWN",
+      "assembly_notes": "Synthetic test assembly",
+      "pieces": [
+        {
+          "id": "front",
+          "label": "Synthetic front",
+          "material": "test cotton",
+          "dimensions_cm": [
+            20,
+            40
+          ],
+          "basis": "inferred",
+          "construction": "Synthetic contract fixture only",
+          "grain_direction": [
+            0,
+            1
+          ],
+          "seam_allowance_cm": 1,
+          "source_evidence_keys": [
+            "reference.original"
+          ],
+          "reference_notes": "Synthetic rectangular silhouette fixture, not an analysis of a real garment",
+          "characteristics": [
+            "Synthetic contract piece; no production fitting"
+          ],
+          "pattern": {
+            "cut_quantity": 1,
+            "cut_instruction": "Synthetic one piece only",
+            "cut_outline_cm": [
+              [
+                -1,
+                -1
+              ],
+              [
+                21,
+                -1
+              ],
+              [
+                21,
+                41
+              ],
+              [
+                -1,
+                41
+              ]
+            ],
+            "folds": [
+              {
+                "id": "F1",
+                "label": "Pli milieu",
+                "kind": "fold",
+                "line_cm": [
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    40
+                  ]
+                ]
+              }
+            ],
+            "fold_notes": "Synthetic center fold",
+            "assembly_marks": [
+              {
+                "id": "R1",
+                "seam_id": "torso-right",
+                "position": 0.3,
+                "symbol": "notch"
+              },
+              {
+                "id": "R2",
+                "seam_id": "sleeve-left",
+                "position": 0.3,
+                "symbol": "notch"
+              }
+            ],
+            "mark_notes": "Synthetic paired sewing notches"
+          }
+        },
+        {
+          "id": "back",
+          "label": "Synthetic back",
+          "material": "test cotton",
+          "dimensions_cm": [
+            20,
+            40
+          ],
+          "basis": "inferred",
+          "construction": "Synthetic contract fixture only",
+          "grain_direction": [
+            0,
+            1
+          ],
+          "seam_allowance_cm": 1,
+          "source_evidence_keys": [
+            "reference.original"
+          ],
+          "reference_notes": "Synthetic rectangular silhouette fixture, not an analysis of a real garment",
+          "characteristics": [
+            "Synthetic contract piece; no production fitting"
+          ],
+          "pattern": {
+            "cut_quantity": 1,
+            "cut_instruction": "Synthetic one piece only",
+            "cut_outline_cm": [
+              [
+                -1,
+                -1
+              ],
+              [
+                21,
+                -1
+              ],
+              [
+                21,
+                41
+              ],
+              [
+                -1,
+                41
+              ]
+            ],
+            "folds": [],
+            "fold_notes": "No fold on this synthetic piece",
+            "assembly_marks": [
+              {
+                "id": "R1",
+                "seam_id": "torso-right",
+                "position": 0.7,
+                "symbol": "notch"
+              },
+              {
+                "id": "R3",
+                "seam_id": "sleeve-right",
+                "position": 0.3,
+                "symbol": "notch"
+              }
+            ],
+            "mark_notes": "Synthetic paired sewing notches"
+          }
+        },
+        {
+          "id": "sleeve-left",
+          "label": "Synthetic sleeve-left",
+          "material": "test cotton",
+          "dimensions_cm": [
+            20,
+            40
+          ],
+          "basis": "inferred",
+          "construction": "Synthetic contract fixture only",
+          "grain_direction": [
+            0,
+            1
+          ],
+          "seam_allowance_cm": 1,
+          "source_evidence_keys": [
+            "reference.original"
+          ],
+          "reference_notes": "Synthetic rectangular silhouette fixture, not an analysis of a real garment",
+          "characteristics": [
+            "Synthetic contract piece; no production fitting"
+          ],
+          "pattern": {
+            "cut_quantity": 1,
+            "cut_instruction": "Synthetic one piece only",
+            "cut_outline_cm": [
+              [
+                -1,
+                -1
+              ],
+              [
+                21,
+                -1
+              ],
+              [
+                21,
+                41
+              ],
+              [
+                -1,
+                41
+              ]
+            ],
+            "folds": [],
+            "fold_notes": "No fold on this synthetic piece",
+            "assembly_marks": [
+              {
+                "id": "R2",
+                "seam_id": "sleeve-left",
+                "position": 0.3,
+                "symbol": "notch"
+              }
+            ],
+            "mark_notes": "Synthetic paired sewing notches"
+          }
+        },
+        {
+          "id": "sleeve-right",
+          "label": "Synthetic sleeve-right",
+          "material": "test cotton",
+          "dimensions_cm": [
+            20,
+            40
+          ],
+          "basis": "inferred",
+          "construction": "Synthetic contract fixture only",
+          "grain_direction": [
+            0,
+            1
+          ],
+          "seam_allowance_cm": 1,
+          "source_evidence_keys": [
+            "reference.original"
+          ],
+          "reference_notes": "Synthetic rectangular silhouette fixture, not an analysis of a real garment",
+          "characteristics": [
+            "Synthetic contract piece; no production fitting"
+          ],
+          "pattern": {
+            "cut_quantity": 1,
+            "cut_instruction": "Synthetic one piece only",
+            "cut_outline_cm": [
+              [
+                -1,
+                -1
+              ],
+              [
+                21,
+                -1
+              ],
+              [
+                21,
+                41
+              ],
+              [
+                -1,
+                41
+              ]
+            ],
+            "folds": [],
+            "fold_notes": "No fold on this synthetic piece",
+            "assembly_marks": [
+              {
+                "id": "R3",
+                "seam_id": "sleeve-right",
+                "position": 0.3,
+                "symbol": "notch"
+              }
+            ],
+            "mark_notes": "Synthetic paired sewing notches"
+          }
+        }
+      ]
+    }
+  },
+  "body_measurements": [
+    "Synthetic height 180 cm; no real fitting"
+  ],
+  "assumptions": [
+    "Synthetic data"
+  ],
+  "unresolved_blockers": [
+    "Remplacer toutes les données et images synthétiques, produire la vue éclatée avec Codex Image et mesurer les proportions réelles."
+  ],
+  "silhouette_checks": [
+    "Compare sleeve and wrist width against reference"
+  ],
+  "mobility_checks": [
+    "Run and raised arm poses"
+  ],
+  "delivery_requirements": [
+    "Synthetic contract test only"
+  ]
+}

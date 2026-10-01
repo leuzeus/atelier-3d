@@ -1,0 +1,13 @@
+[project]
+name = "atelier-3d"
+version = "0.4.0"
+description = "Local 3D production orchestration for Codex"
+requires-python = ">=3.11"
+dependencies = []
+license = "MIT"
+license-files = ["LICENSE"]
+readme = "README.md"
+
+[project.urls]
+Repository = "https://github.com/leuzeus/atelier-3d"
+Issues = "https://github.com/leuzeus/atelier-3d/issues"

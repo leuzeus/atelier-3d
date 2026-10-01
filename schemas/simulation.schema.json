@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Atelier 3D simulation",
+  "type": "object",
+  "properties": {
+    "component_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+      "maxLength": 100
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "cloth",
+        "rigid_body"
+      ]
+    },
+    "frame_start": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "frame_end": {
+      "type": "integer",
+      "minimum": 2
+    },
+    "quality": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 20
+    },
+    "collision_components": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+        "maxLength": 100
+      },
+      "minItems": 0
+    },
+    "baked": {
+      "type": "boolean"
+    },
+    "max_frames": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2400
+    }
+  },
+  "required": [
+    "component_id",
+    "type",
+    "frame_start",
+    "frame_end",
+    "quality",
+    "collision_components",
+    "baked",
+    "max_frames"
+  ],
+  "additionalProperties": false
+}

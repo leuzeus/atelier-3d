@@ -1,0 +1,25 @@
+{
+  "id": "synthetic-coat",
+  "name": "Manteau : contrat synthétique de panneaux et coutures",
+  "target": "animation",
+  "height_cm": 180,
+  "units": "cm",
+  "components": [
+    {
+      "id": "garment.coat",
+      "type": "garment",
+      "features": {
+        "sheet_like": true,
+        "sewn": true,
+        "rigid": false,
+        "articulated": false,
+        "hidden_structure": false
+      },
+      "evidence": [
+        "fixture-source"
+      ],
+      "independent_geometry": true
+    }
+  ],
+  "relationships": []
+}

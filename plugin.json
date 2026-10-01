@@ -1,0 +1,23 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "atelier-3d",
+  "version": "0.4.0",
+  "description": "Local 3D production orchestration with component routing, ComfyUI jobs, reconstruction packages and Blender workflows.",
+  "author": {
+    "name": "Atelier 3D project"
+  },
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Atelier 3D",
+        "shortDescription": "Production 3D par composants",
+        "longDescription": "Orchestrateur local pour références propres, patrons cousus, reconstruction multivue par pièce et assemblage Blender. Configuration et validation des backends requises.",
+        "developerName": "Atelier 3D project",
+        "category": "Productivity",
+        "defaultPrompt": "Prépare un projet 3D reprenable à partir de mes références, avec un routage par composant.",
+        "logo": "./assets/icon.svg"
+      },
+      "hooks": "./hooks/hooks.json"
+    }
+  }
+}

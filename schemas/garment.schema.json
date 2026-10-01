@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Atelier 3D garment",
+  "type": "object",
+  "properties": {
+    "component_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+      "maxLength": 100
+    },
+    "units": {
+      "const": "cm"
+    },
+    "pieces": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "vertices": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "minItems": 3
+          },
+          "faces": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "minItems": 3
+            },
+            "minItems": 1
+          },
+          "edges": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "minItems": 2
+            }
+          },
+          "position_cm": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "rotation_degrees": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "required": [
+          "vertices",
+          "faces",
+          "edges",
+          "position_cm",
+          "rotation_degrees"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "seams": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+            "maxLength": 100
+          },
+          "piece_a": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+            "maxLength": 100
+          },
+          "edge_a": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+            "maxLength": 100
+          },
+          "piece_b": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+            "maxLength": 100
+          },
+          "edge_b": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+            "maxLength": 100
+          },
+          "orientation": {
+            "type": "string",
+            "enum": [
+              "forward",
+              "reverse"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "piece_a",
+          "edge_a",
+          "piece_b",
+          "edge_b",
+          "orientation"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "material": {
+      "type": "object",
+      "properties": {
+        "mass_kg": {
+          "type": "number",
+          "minimum": 0.001
+        },
+        "tension_stiffness": {
+          "type": "number",
+          "minimum": 0
+        },
+        "compression_stiffness": {
+          "type": "number",
+          "minimum": 0
+        },
+        "shear_stiffness": {
+          "type": "number",
+          "minimum": 0
+        },
+        "bending_stiffness": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "mass_kg",
+        "tension_stiffness",
+        "compression_stiffness",
+        "shear_stiffness",
+        "bending_stiffness"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "component_id",
+    "units",
+    "pieces",
+    "seams",
+    "material"
+  ],
+  "additionalProperties": false
+}

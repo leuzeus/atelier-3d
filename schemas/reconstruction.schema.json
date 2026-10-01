@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Atelier 3D reconstruction",
+  "type": "object",
+  "properties": {
+    "component_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+      "maxLength": 100
+    },
+    "package_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "artifact": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "checks": {
+      "type": "object",
+      "properties": {
+        "scale": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "FAIL",
+            "SKIP",
+            "NOT_EXECUTED",
+            "INCONCLUSIVE"
+          ]
+        },
+        "orientation": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "FAIL",
+            "SKIP",
+            "NOT_EXECUTED",
+            "INCONCLUSIVE"
+          ]
+        },
+        "anchors": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "FAIL",
+            "SKIP",
+            "NOT_EXECUTED",
+            "INCONCLUSIVE"
+          ]
+        },
+        "identity": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "FAIL",
+            "SKIP",
+            "NOT_EXECUTED",
+            "INCONCLUSIVE"
+          ]
+        },
+        "separation": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "FAIL",
+            "SKIP",
+            "NOT_EXECUTED",
+            "INCONCLUSIVE"
+          ]
+        },
+        "geometry": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "FAIL",
+            "SKIP",
+            "NOT_EXECUTED",
+            "INCONCLUSIVE"
+          ]
+        }
+      },
+      "required": [
+        "scale",
+        "orientation",
+        "anchors",
+        "identity",
+        "separation",
+        "geometry"
+      ],
+      "additionalProperties": false
+    },
+    "check_evidence": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "path",
+          "sha256"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "visual_review_evidence": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "component_id",
+    "package_sha256",
+    "artifact",
+    "checks",
+    "check_evidence",
+    "visual_review_evidence"
+  ],
+  "additionalProperties": false
+}

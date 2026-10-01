@@ -1,0 +1,263 @@
+{
+  "component_id": "garment.coat",
+  "units": "cm",
+  "pieces": {
+    "front": {
+      "vertices": [
+        [
+          0,
+          0
+        ],
+        [
+          20,
+          0
+        ],
+        [
+          20,
+          40
+        ],
+        [
+          0,
+          40
+        ]
+      ],
+      "faces": [
+        [
+          0,
+          1,
+          2
+        ],
+        [
+          0,
+          2,
+          3
+        ]
+      ],
+      "edges": {
+        "left": [
+          0,
+          3
+        ],
+        "right": [
+          1,
+          2
+        ],
+        "top": [
+          3,
+          2
+        ]
+      },
+      "position_cm": [
+        0,
+        -15,
+        80
+      ],
+      "rotation_degrees": [
+        90,
+        0,
+        0
+      ]
+    },
+    "back": {
+      "vertices": [
+        [
+          0,
+          0
+        ],
+        [
+          20,
+          0
+        ],
+        [
+          20,
+          40
+        ],
+        [
+          0,
+          40
+        ]
+      ],
+      "faces": [
+        [
+          0,
+          1,
+          2
+        ],
+        [
+          0,
+          2,
+          3
+        ]
+      ],
+      "edges": {
+        "left": [
+          0,
+          3
+        ],
+        "right": [
+          1,
+          2
+        ],
+        "top": [
+          3,
+          2
+        ]
+      },
+      "position_cm": [
+        0,
+        15,
+        80
+      ],
+      "rotation_degrees": [
+        90,
+        0,
+        0
+      ]
+    },
+    "sleeve-left": {
+      "vertices": [
+        [
+          0,
+          0
+        ],
+        [
+          20,
+          0
+        ],
+        [
+          20,
+          40
+        ],
+        [
+          0,
+          40
+        ]
+      ],
+      "faces": [
+        [
+          0,
+          1,
+          2
+        ],
+        [
+          0,
+          2,
+          3
+        ]
+      ],
+      "edges": {
+        "left": [
+          0,
+          3
+        ],
+        "right": [
+          1,
+          2
+        ],
+        "top": [
+          3,
+          2
+        ]
+      },
+      "position_cm": [
+        -25,
+        0,
+        100
+      ],
+      "rotation_degrees": [
+        90,
+        0,
+        0
+      ]
+    },
+    "sleeve-right": {
+      "vertices": [
+        [
+          0,
+          0
+        ],
+        [
+          20,
+          0
+        ],
+        [
+          20,
+          40
+        ],
+        [
+          0,
+          40
+        ]
+      ],
+      "faces": [
+        [
+          0,
+          1,
+          2
+        ],
+        [
+          0,
+          2,
+          3
+        ]
+      ],
+      "edges": {
+        "left": [
+          0,
+          3
+        ],
+        "right": [
+          1,
+          2
+        ],
+        "top": [
+          3,
+          2
+        ]
+      },
+      "position_cm": [
+        25,
+        0,
+        100
+      ],
+      "rotation_degrees": [
+        90,
+        0,
+        0
+      ]
+    }
+  },
+  "seams": [
+    {
+      "id": "torso-right",
+      "piece_a": "front",
+      "edge_a": "right",
+      "piece_b": "back",
+      "edge_b": "left",
+      "orientation": "reverse"
+    },
+    {
+      "id": "sleeve-left",
+      "piece_a": "front",
+      "edge_a": "left",
+      "piece_b": "sleeve-left",
+      "edge_b": "right",
+      "orientation": "forward"
+    },
+    {
+      "id": "sleeve-right",
+      "piece_a": "back",
+      "edge_a": "right",
+      "piece_b": "sleeve-right",
+      "edge_b": "left",
+      "orientation": "forward"
+    }
+  ],
+  "material": {
+    "mass_kg": 0.3,
+    "tension_stiffness": 15,
+    "compression_stiffness": 15,
+    "shear_stiffness": 5,
+    "bending_stiffness": 0.5
+  }
+}

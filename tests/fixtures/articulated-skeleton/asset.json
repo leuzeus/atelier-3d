@@ -1,0 +1,72 @@
+{
+  "id": "synthetic-skeleton",
+  "name": "Squelette : crâne, mâchoire et thorax séparés",
+  "target": "animation",
+  "height_cm": 180,
+  "units": "cm",
+  "components": [
+    {
+      "id": "body.skull",
+      "type": "anatomy",
+      "features": {
+        "sheet_like": false,
+        "sewn": false,
+        "rigid": true,
+        "articulated": true,
+        "hidden_structure": false
+      },
+      "evidence": [
+        "fixture-source"
+      ],
+      "independent_geometry": true
+    },
+    {
+      "id": "body.jaw",
+      "type": "anatomy",
+      "features": {
+        "sheet_like": false,
+        "sewn": false,
+        "rigid": true,
+        "articulated": true,
+        "hidden_structure": false
+      },
+      "evidence": [
+        "fixture-source"
+      ],
+      "independent_geometry": true
+    },
+    {
+      "id": "body.ribcage",
+      "type": "anatomy",
+      "features": {
+        "sheet_like": false,
+        "sewn": false,
+        "rigid": true,
+        "articulated": true,
+        "hidden_structure": false
+      },
+      "evidence": [
+        "fixture-source"
+      ],
+      "independent_geometry": true
+    }
+  ],
+  "relationships": [
+    {
+      "a": "body.skull",
+      "b": "body.jaw",
+      "type": "hinged",
+      "must_remain_separate": true,
+      "may_merge": false,
+      "requires_clearance_in_reference": true
+    },
+    {
+      "a": "body.ribcage",
+      "b": "body.skull",
+      "type": "parented",
+      "must_remain_separate": true,
+      "may_merge": false,
+      "requires_clearance_in_reference": true
+    }
+  ]
+}

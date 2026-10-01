@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Atelier 3D config",
+  "type": "object",
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "comfyui": {
+      "type": "object",
+      "properties": {
+        "base_url": {
+          "type": "string",
+          "minLength": 1
+        },
+        "request_timeout_seconds": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 55
+        },
+        "max_parallel_jobs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "mcp_command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cli_command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "data_root": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
+        }
+      },
+      "required": [
+        "base_url",
+        "request_timeout_seconds",
+        "max_parallel_jobs",
+        "mcp_command",
+        "cli_command",
+        "data_root"
+      ],
+      "additionalProperties": false
+    },
+    "blender": {
+      "type": "object",
+      "properties": {
+        "expected_mcp_server": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "expected_mcp_server"
+      ],
+      "additionalProperties": false
+    },
+    "workspace": {
+      "type": "object",
+      "properties": {
+        "default_root": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
+        }
+      },
+      "required": [
+        "default_root"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "version",
+    "comfyui",
+    "blender",
+    "workspace"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,17 @@
+{
+  "name": "atelier-3d",
+  "version": "0.4.0",
+  "description": "Local 3D production orchestration.",
+  "skills": "./skills",
+  "mcpServers": "./.codex-plugin/mcp.json",
+  "hooks": "./hooks/hooks.json",
+  "interface": {
+    "displayName": "Atelier 3D",
+    "shortDescription": "Production 3D par composants",
+    "longDescription": "Orchestrateur local pour références propres, patrons cousus, reconstruction multivue par pièce et assemblage Blender. Configuration et validation des backends requises.",
+    "developerName": "Atelier 3D project",
+    "category": "Productivity",
+    "defaultPrompt": "Prépare un projet 3D reprenable à partir de mes références, avec un routage par composant.",
+    "logo": "./assets/icon.svg"
+  }
+}

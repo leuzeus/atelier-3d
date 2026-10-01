@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Atelier 3D assembly",
+  "type": "object",
+  "properties": {
+    "asset_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+      "maxLength": 100
+    },
+    "working_blend": {
+      "type": "string",
+      "minLength": 1
+    },
+    "original_blend": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "checkpoint": {
+      "type": "string",
+      "minLength": 1
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+            "maxLength": 100
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "position_cm": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "rotation_degrees": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "scale": {
+            "type": "number",
+            "minimum": 1e-06
+          },
+          "anchor_local": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "anchor_world_cm": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "mode": {
+            "enum": [
+              "import",
+              "existing"
+            ],
+            "default": "import"
+          }
+        },
+        "required": [
+          "id",
+          "path",
+          "sha256",
+          "position_cm",
+          "rotation_degrees",
+          "scale",
+          "anchor_local",
+          "anchor_world_cm"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "a": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+            "maxLength": 100
+          },
+          "b": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+            "maxLength": 100
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "fused",
+              "attached",
+              "sewn",
+              "hinged",
+              "sliding",
+              "deformable-around",
+              "layered-contact",
+              "free",
+              "parented"
+            ]
+          },
+          "must_remain_separate": {
+            "type": "boolean"
+          },
+          "may_merge": {
+            "type": "boolean"
+          },
+          "requires_clearance_in_reference": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "a",
+          "b",
+          "type",
+          "must_remain_separate",
+          "may_merge",
+          "requires_clearance_in_reference"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "working_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "checkpoint_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "asset_id",
+    "working_blend",
+    "original_blend",
+    "checkpoint",
+    "components",
+    "relationships",
+    "working_sha256",
+    "checkpoint_sha256"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,117 @@
+import ast
+import importlib.util
+import json
+import subprocess
+import sys
+import unittest
+from pathlib import Path
+
+from a3d.core import ROOT, StudioError
+from a3d.server import Server
+from a3d.tools import TOOLS, call
+
+
+class ProtocolTests(unittest.TestCase):
+    def initialized(self):
+        s=Server()
+        s.handle({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}})
+        s.handle({"jsonrpc":"2.0","method":"notifications/initialized"})
+        return s
+
+    def test_lifecycle_and_discovery(self):
+        s=self.initialized(); response=s.handle({"jsonrpc":"2.0","id":2,"method":"tools/list"})
+        self.assertGreater(len(response["result"]["tools"]),15)
+
+    def test_preinitialize_tools_refused(self):
+        s=Server(); r=s.handle({"jsonrpc":"2.0","id":1,"method":"tools/list"})
+        self.assertIn("error",r)
+
+    def test_notification_has_no_response(self):
+        self.assertIsNone(Server().handle({"jsonrpc":"2.0","method":"notifications/initialized"}))
+
+    def test_unknown_tool_is_protocol_error(self):
+        r=self.initialized().handle({"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"delete-everything"}})
+        self.assertEqual(r["error"]["code"],-32602)
+
+    def test_invalid_arguments_are_tool_error(self):
+        r=self.initialized().handle({"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"studio_project_status","arguments":{}}})
+        self.assertTrue(r["result"]["isError"])
+
+    def test_stdio_smoke_process(self):
+        messages=[
+          {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}},
+          {"jsonrpc":"2.0","method":"notifications/initialized"},
+          {"jsonrpc":"2.0","id":2,"method":"tools/list"},
+          {"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"studio_doctor","arguments":{"live_comfy":False}}},
+          {"jsonrpc":"2.0","id":4,"method":"ping"}]
+        run=subprocess.run([sys.executable,"-B",str(ROOT/"servers/studio/main.py")],
+            input="\n".join(json.dumps(v) for v in messages)+"\n",capture_output=True,text=True,encoding="utf-8",timeout=10)
+        self.assertEqual(run.returncode,0,run.stderr)
+        output=[json.loads(v) for v in run.stdout.splitlines()]
+        self.assertEqual([r["id"] for r in output],[1,2,3,4])
+        self.assertFalse(output[2]["result"]["isError"])
+
+    def test_hook_stop_has_loop_guard(self):
+        from tests.test_core import Case
+        import tempfile
+        from tests.support import ready_project
+        spec=importlib.util.spec_from_file_location("studio_hook",ROOT/"hooks/handler.py")
+        mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+        (ROOT/"work/test-runs").mkdir(parents=True,exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=ROOT/"work/test-runs") as root:
+            ready_project(root)
+            event={"cwd":root,"hook_event_name":"Stop"}
+            self.assertEqual(mod.handle(event)["decision"],"block")
+            self.assertEqual(mod.handle({**event,"stop_hook_active":True}),{})
+
+    def test_all_delivered_python_parses(self):
+        from scripts.package_plugin import inventory
+        for path in inventory():
+            if path.suffix == ".py":
+                with self.subTest(path=path): ast.parse(path.read_text(encoding="utf-8-sig"))
+
+    def test_schemas_and_skill_links_exist(self):
+        from a3d.core import read_json
+        import re
+        self.assertEqual(len(list((ROOT/"skills").glob("*/SKILL.md"))),11)
+        for path in (ROOT/"skills").glob("*/SKILL.md"):
+            text=path.read_text(encoding="utf-8")
+            self.assertIn("name: "+path.parent.name,text)
+            for relative in re.findall(r"\]\(([^)]+)\)",text):
+                self.assertTrue((path.parent/relative).resolve().is_file(),relative)
+        for path in (ROOT/"schemas").glob("*.json"): read_json(path)
+
+    def test_distribution_contains_mcp_entrypoint_and_excludes_machine_state(self):
+        from scripts.package_plugin import inventory
+        files={p.relative_to(ROOT).as_posix() for p in inventory()}
+        self.assertIn("servers/studio/main.py",files)
+        self.assertIn("mcp.json",files)
+        self.assertIn("hooks/handler.py",files)
+        self.assertNotIn("config.local.json",files)
+        self.assertFalse(any(name.startswith("work/") or ".sqlite3" in name for name in files))
+
+
+class HealthContractTests(unittest.TestCase):
+    def test_native_nested_server_state_is_normalized(self):
+        from unittest.mock import MagicMock
+        from a3d.comfy import Comfy
+        native=MagicMock()
+        native.__enter__.return_value=native
+        native.call.return_value={"server":{"running":True,"url":"http://127.0.0.1:8188"},"workspace":{"path":"example"}}
+        result=Comfy(factory=lambda *args:native).health()
+        self.assertTrue(result["running"])
+        self.assertEqual(result["workspace"],{"path":"example"})
+
+    def test_native_stopped_server_is_not_available(self):
+        from unittest.mock import MagicMock
+        from a3d.comfy import Comfy
+        native=MagicMock();native.__enter__.return_value=native
+        native.call.return_value={"server":{"running":False}}
+        self.assertFalse(Comfy(factory=lambda *args:native).health()["running"])
+
+    def test_unknown_server_shape_does_not_claim_health(self):
+        from unittest.mock import MagicMock
+        from a3d.comfy import Comfy
+        native=MagicMock();native.__enter__.return_value=native
+        native.call.return_value={"server":{}}
+        with self.assertRaises(StudioError):Comfy(factory=lambda *args:native).health()

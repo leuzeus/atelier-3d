@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Vulnérabilité de sécurité
+    url: https://github.com/leuzeus/atelier-3d/security/advisories/new
+    about: Utiliser un signalement privé, sans exposer de secret dans une issue.

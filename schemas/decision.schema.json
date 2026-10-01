@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Atelier 3D decision",
+  "type": "object",
+  "properties": {
+    "decision_type": {
+      "const": "pipeline_route"
+    },
+    "subject": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+      "maxLength": 100
+    },
+    "selected": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "PATTERN_SEWN",
+            "MULTIVIEW_PART"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "alternatives": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "PATTERN_SEWN",
+          "MULTIVIEW_PART"
+        ]
+      },
+      "minItems": 0
+    },
+    "requires_human": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "decision_type",
+    "subject",
+    "selected",
+    "confidence",
+    "evidence",
+    "reasons",
+    "alternatives",
+    "requires_human"
+  ],
+  "additionalProperties": false
+}

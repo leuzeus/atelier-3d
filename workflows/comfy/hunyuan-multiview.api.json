@@ -1,0 +1,141 @@
+{
+  "1": {
+    "class_type": "ImageOnlyCheckpointLoader",
+    "inputs": {
+      "ckpt_name": "hunyuan3d-dit-v2-mv.safetensors"
+    }
+  },
+  "2": {
+    "class_type": "ModelSamplingAuraFlow",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "shift": 1
+    }
+  },
+  "3": {
+    "class_type": "Hunyuan3Dv2ConditioningMultiView",
+    "inputs": {
+      "front": [
+        "21",
+        0
+      ],
+      "left": [
+        "23",
+        0
+      ]
+    }
+  },
+  "4": {
+    "class_type": "EmptyLatentHunyuan3Dv2",
+    "inputs": {
+      "resolution": 3072,
+      "batch_size": 1
+    }
+  },
+  "5": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": [
+        "2",
+        0
+      ],
+      "seed": 42,
+      "steps": 30,
+      "cfg": 7.5,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "positive": [
+        "3",
+        0
+      ],
+      "negative": [
+        "3",
+        1
+      ],
+      "latent_image": [
+        "4",
+        0
+      ],
+      "denoise": 1
+    }
+  },
+  "6": {
+    "class_type": "VAEDecodeHunyuan3D",
+    "inputs": {
+      "samples": [
+        "5",
+        0
+      ],
+      "vae": [
+        "1",
+        2
+      ],
+      "num_chunks": 8000,
+      "octree_resolution": 256
+    }
+  },
+  "7": {
+    "class_type": "VoxelToMesh",
+    "inputs": {
+      "voxel": [
+        "6",
+        0
+      ],
+      "algorithm": "surface net",
+      "threshold": 0.6
+    }
+  },
+  "8": {
+    "class_type": "SaveGLB",
+    "inputs": {
+      "mesh": [
+        "7",
+        0
+      ],
+      "filename_prefix": "Atelier3D"
+    }
+  },
+  "20": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "front.clean.png"
+    }
+  },
+  "21": {
+    "class_type": "CLIPVisionEncode",
+    "inputs": {
+      "clip_vision": [
+        "1",
+        1
+      ],
+      "image": [
+        "20",
+        0
+      ],
+      "crop": "none"
+    }
+  },
+  "22": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "left.clean.png"
+    }
+  },
+  "23": {
+    "class_type": "CLIPVisionEncode",
+    "inputs": {
+      "clip_vision": [
+        "1",
+        1
+      ],
+      "image": [
+        "22",
+        0
+      ],
+      "crop": "none"
+    }
+  }
+}

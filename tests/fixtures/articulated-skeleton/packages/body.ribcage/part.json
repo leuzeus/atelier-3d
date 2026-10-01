@@ -1,0 +1,64 @@
+{
+  "component_id": "body.ribcage",
+  "required_views": [
+    "front",
+    "left"
+  ],
+  "views": {
+    "front": {
+      "path": "front.clean.png",
+      "role": "clean",
+      "dimensions": [
+        64,
+        128
+      ],
+      "camera": {
+        "projection": "orthographic",
+        "view": "front",
+        "axis": [
+          0,
+          -1,
+          0
+        ],
+        "up": [
+          0,
+          0,
+          1
+        ],
+        "height_cm": 24
+      }
+    },
+    "left": {
+      "path": "left.clean.png",
+      "role": "clean",
+      "dimensions": [
+        64,
+        128
+      ],
+      "camera": {
+        "projection": "orthographic",
+        "view": "left",
+        "axis": [
+          -1,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          0,
+          1
+        ],
+        "height_cm": 24
+      }
+    }
+  },
+  "anchors": {
+    "neck": [
+      0,
+      0,
+      0
+    ]
+  },
+  "relationships": [],
+  "topology_target": "animation"
+}

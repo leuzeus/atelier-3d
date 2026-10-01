@@ -1,0 +1,26 @@
+# Proposition de pipeline et validation du découpage
+
+La production suit la méthode proposée et approuvée, composant par composant.
+Un échec ou une dépendance indisponible ne permet pas de changer de méthode.
+Le modèle peut proposer une alternative argumentée ; seul l'utilisateur décide.
+
+## Parcours obligatoire
+
+1. Sélectionner le projet explicitement, analyser les références et atteindre ANALYZED avec les preuves existantes. Appeler `studio_propose_pipeline`. Le routeur recommande ; il ne valide ni la disponibilité des backends ni le choix humain.
+2. Présenter la proposition et les étapes. Enregistrer la décision réelle sous `route.<component_id>` avec `pipeline-proposal`, sa citation et la référence de son message. Résoudre les routes puis passer à ROUTED.
+3. Produire les données adaptées à chaque route et les packages correspondants. Pour PATTERN_SEWN : vrais contours SVG en cm, panneaux, coutures appariées et matériaux ; pour MULTIVIEW_PART : vues propres, dimensions, ancrages et séparation. Aucune illustration générative ne devient un patron exploitable par simple renommage.
+4. Préparer un dossier `construction.schema.json` selon `templates/construction-dossier.json`. Renseigner gabarit, mesures, pièces, matières, dimensions, provenance visuelle, hypothèses, assemblages, silhouette, mobilité et livraison. Les dimensions 2D des pièces textiles doivent correspondre aux contours du package. Le droit-fil et la marge sont déclarés explicitement ; une marge nulle convient à une surface de simulation sans marge de coupe.
+5. À PACKAGED, appliquer le [contrat de fabrication](fabrication-board.md) : préparer la demande de vue éclatée, la générer avec Codex Image intégré depuis les images originales, enregistrer son résultat réel et mesurer les proportions. Puis appeler `studio_build_construction_board`. Il produit une **image SVG autonome** et un dossier HTML. L'image comporte **1. vues orthographiques, 2. décomposition du vêtement, 3. patrons 2D** lorsqu'un composant utilise PATTERN_SEWN. Les contours viennent directement des packages, pas d'une nouvelle génération d'image. Le board montre les libellés, matières, dimensions, caractéristiques, coupe, couture, plis, droit-fil et repères appariés. Les patrons partagent une échelle commune. Le dossier développe les coordonnées et assemblages. L'image n'est pas un patron d'impression à l'échelle 1:1 ; les valeurs en cm et les données de package font foi.
+6. Ouvrir l'image et le dossier et examiner leurs pixels. Les présenter à l'utilisateur. **Cette image sert à la validation du découpage par un humain. Attendre sa décision explicite avant la construction 3D.** Demander un avis concret sur les pièces, séparations, continuités, manches/poignets, pans et pièce amovible. Un « produis la robe » antérieur ne vaut pas approbation d'un board qui n'existait pas encore.
+7. Enregistrer seulement cette décision sous `construction` en liant `construction-board`. Passer à RECONSTRUCTING puis utiliser les opérations contrôlées. Toute modification du board, de ses sources, du dossier, des packages ou du routage invalide cette admission. Régénérer puis faire réexaminer le découpage.
+8. Vérifier la silhouette du résultat contre les références avant rig détaillé, LODs et export. Conserver la preuve visuelle et la décision `silhouette`. Une réussite technique ne remplace pas l'acceptation artistique.
+
+## Contrôles et limites
+
+L'admission est répétée dans les transitions, le lancement Comfy et les opérations Blender. Les hooks approuvés bloquent les appels Blender non contrôlés et les lancements directs connus lorsqu'un projet est identifié. Un rattachement par `session_id` garde le contexte dans les chats dont le cwd est extérieur au projet ; sans identifiant fourni par l'hôte, le cwd ou `project_root` est nécessaire. Le skill sélectionne donc le projet à chaque invocation.
+
+Les hooks ne sont pas un bac à sable du système, ne détectent pas toutes les formes de code indirect et nécessitent la confiance native de Codex. Les scripts de simulation/finition sont des scripts de confiance dont le hash, le stade, les composants déjà construits et le checkpoint sont contrôlés ; leur intention artistique n'est pas démontrable automatiquement. Les références visuelles et les citations humaines restent à examiner honnêtement, pas à inventer.
+
+Les anciens projets sans proposition ou board sont refusés à l'admission ; ils ne sont pas migrés vers un faux état approuvé. Conserver leur historique et préparer une révision explicite. Ce contrôle n'améliore pas rétroactivement leurs meshes.
+
+Le board de préparation est construit à partir des images de référence originales fournies par l’utilisateur, avant modélisation. Ne jamais utiliser le mesh produit comme sa propre référence de conception. Le dossier doit fournir `source_references` (preuves des originaux et origine dans la conversation), `source_evidence_keys` pour chaque vue et pièce, et `reference_notes` pour les indices observés ou extrapolés. Les références sources doivent être celles examinées dans le gate references. Elles sont intégrées au board et au dossier. Le type mesh-render est refusé pour les vues de ce board. Un board documentaire créé après la 3D est un diagnostic séparé et ne remplace jamais cette validation.

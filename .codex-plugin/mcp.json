@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "studio": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-B",
+        "servers/studio/main.py"
+      ],
+      "cwd": ".",
+      "env": {
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      }
+    }
+  }
+}

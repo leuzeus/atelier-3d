@@ -1,0 +1,180 @@
+{
+  "version": 1,
+  "workflows": {
+    "hunyuan-multiview": {
+      "file": "hunyuan-multiview.api.json",
+      "phase": "reconstruction",
+      "pipeline": "MULTIVIEW_PART",
+      "view_parameters": {
+        "front": "front",
+        "left": "left"
+      },
+      "output_prefix_target": [
+        "8",
+        "filename_prefix"
+      ],
+      "parameters": {
+        "checkpoint": {
+          "target": [
+            "1",
+            "ckpt_name"
+          ],
+          "schema": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": "hunyuan3d-dit-v2-mv.safetensors",
+          "required": false
+        },
+        "front": {
+          "target": [
+            "20",
+            "image"
+          ],
+          "schema": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required": true
+        },
+        "left": {
+          "target": [
+            "22",
+            "image"
+          ],
+          "schema": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required": true
+        },
+        "seed": {
+          "target": [
+            "5",
+            "seed"
+          ],
+          "schema": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "default": 42,
+          "required": false
+        },
+        "steps": {
+          "target": [
+            "5",
+            "steps"
+          ],
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 80
+          },
+          "default": 30,
+          "required": false
+        },
+        "octree_resolution": {
+          "target": [
+            "6",
+            "octree_resolution"
+          ],
+          "schema": {
+            "type": "integer",
+            "minimum": 64,
+            "maximum": 256
+          },
+          "default": 256,
+          "required": false
+        }
+      }
+    },
+    "reference-sd15": {
+      "file": "reference-sd15.api.json",
+      "phase": "references",
+      "pipeline": null,
+      "view_parameters": {},
+      "output_prefix_target": [
+        "7",
+        "filename_prefix"
+      ],
+      "parameters": {
+        "checkpoint": {
+          "target": [
+            "1",
+            "ckpt_name"
+          ],
+          "schema": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": "v1-5-pruned-emaonly.safetensors",
+          "required": false
+        },
+        "prompt": {
+          "target": [
+            "2",
+            "text"
+          ],
+          "schema": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required": true
+        },
+        "negative": {
+          "target": [
+            "3",
+            "text"
+          ],
+          "schema": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": "text, labels, perspective, cropped, watermark",
+          "required": false
+        },
+        "seed": {
+          "target": [
+            "5",
+            "seed"
+          ],
+          "schema": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "default": 42,
+          "required": false
+        },
+        "source": {
+          "target": [
+            "8",
+            "image"
+          ],
+          "schema": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required": true
+        },
+        "denoise": {
+          "target": [
+            "5",
+            "denoise"
+          ],
+          "schema": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 0.7
+          },
+          "default": 0.35,
+          "required": false
+        }
+      },
+      "source_parameters": [
+        "source"
+      ]
+    }
+  }
+}

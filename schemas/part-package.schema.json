@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Atelier 3D part-package",
+  "type": "object",
+  "properties": {
+    "component_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+      "maxLength": 100
+    },
+    "required_views": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "front",
+          "back",
+          "left",
+          "right"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "views": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "const": "clean"
+          },
+          "dimensions": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16384
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "camera": {
+            "type": "object",
+            "properties": {
+              "projection": {
+                "const": "orthographic"
+              },
+              "view": {
+                "type": "string",
+                "minLength": 1
+              },
+              "axis": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "up": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "height_cm": {
+                "type": "number",
+                "minimum": 0.001
+              }
+            },
+            "required": [
+              "projection",
+              "view",
+              "axis",
+              "up",
+              "height_cm"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "path",
+          "role",
+          "dimensions",
+          "camera"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "anchors": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "a": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+            "maxLength": 100
+          },
+          "b": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+            "maxLength": 100
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "fused",
+              "attached",
+              "sewn",
+              "hinged",
+              "sliding",
+              "deformable-around",
+              "layered-contact",
+              "free",
+              "parented"
+            ]
+          },
+          "must_remain_separate": {
+            "type": "boolean"
+          },
+          "may_merge": {
+            "type": "boolean"
+          },
+          "requires_clearance_in_reference": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "a",
+          "b",
+          "type",
+          "must_remain_separate",
+          "may_merge",
+          "requires_clearance_in_reference"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "topology_target": {
+      "type": "string",
+      "enum": [
+        "animation",
+        "game",
+        "3d_print",
+        "render"
+      ]
+    }
+  },
+  "required": [
+    "component_id",
+    "required_views",
+    "views",
+    "anchors",
+    "relationships",
+    "topology_target"
+  ],
+  "additionalProperties": false
+}

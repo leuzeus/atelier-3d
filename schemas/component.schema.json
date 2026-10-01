@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Atelier 3D component",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+      "maxLength": 100
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "garment",
+        "anatomy",
+        "armor",
+        "prop",
+        "body"
+      ]
+    },
+    "features": {
+      "type": "object",
+      "properties": {
+        "sheet_like": {
+          "type": "boolean"
+        },
+        "sewn": {
+          "type": "boolean"
+        },
+        "rigid": {
+          "type": "boolean"
+        },
+        "articulated": {
+          "type": "boolean"
+        },
+        "hidden_structure": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "independent_geometry": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "id",
+    "type",
+    "features",
+    "evidence",
+    "independent_geometry"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Atelier 3D asset",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+      "maxLength": 100
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target": {
+      "type": "string",
+      "enum": [
+        "animation",
+        "game",
+        "3d_print",
+        "render"
+      ]
+    },
+    "height_cm": {
+      "type": "number",
+      "minimum": 0.001
+    },
+    "units": {
+      "const": "cm"
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+            "maxLength": 100
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "garment",
+              "anatomy",
+              "armor",
+              "prop",
+              "body"
+            ]
+          },
+          "features": {
+            "type": "object",
+            "properties": {
+              "sheet_like": {
+                "type": "boolean"
+              },
+              "sewn": {
+                "type": "boolean"
+              },
+              "rigid": {
+                "type": "boolean"
+              },
+              "articulated": {
+                "type": "boolean"
+              },
+              "hidden_structure": {
+                "type": "boolean"
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          },
+          "independent_geometry": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "features",
+          "evidence",
+          "independent_geometry"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "a": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+            "maxLength": 100
+          },
+          "b": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+            "maxLength": 100
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "fused",
+              "attached",
+              "sewn",
+              "hinged",
+              "sliding",
+              "deformable-around",
+              "layered-contact",
+              "free",
+              "parented"
+            ]
+          },
+          "must_remain_separate": {
+            "type": "boolean"
+          },
+          "may_merge": {
+            "type": "boolean"
+          },
+          "requires_clearance_in_reference": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "a",
+          "b",
+          "type",
+          "must_remain_separate",
+          "may_merge",
+          "requires_clearance_in_reference"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "required_checks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "target",
+    "height_cm",
+    "units",
+    "components",
+    "relationships"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Atelier 3D package",
+  "type": "object",
+  "properties": {
+    "format": {
+      "const": "codex-3d-package"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "package_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "asset_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+      "maxLength": 100
+    },
+    "component_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$",
+      "maxLength": 100
+    },
+    "pipeline": {
+      "type": "string",
+      "enum": [
+        "PATTERN_SEWN",
+        "MULTIVIEW_PART"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "units": {
+      "const": "cm"
+    },
+    "coordinate_system": {
+      "type": "object",
+      "properties": {
+        "up": {
+          "const": "Z"
+        },
+        "front": {
+          "const": "-Y"
+        },
+        "handedness": {
+          "const": "right"
+        }
+      },
+      "required": [
+        "up",
+        "front",
+        "handedness"
+      ],
+      "additionalProperties": false
+    },
+    "entrypoints": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "provenance": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "created_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "source",
+        "created_by",
+        "notes"
+      ],
+      "additionalProperties": false
+    },
+    "checksums": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    }
+  },
+  "required": [
+    "format",
+    "schema_version",
+    "package_id",
+    "asset_id",
+    "component_id",
+    "pipeline",
+    "created_at",
+    "units",
+    "coordinate_system",
+    "entrypoints",
+    "dependencies",
+    "provenance",
+    "checksums"
+  ],
+  "additionalProperties": false
+}
