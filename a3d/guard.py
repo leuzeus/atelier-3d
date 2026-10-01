@@ -24,10 +24,17 @@ def parse_code(code):
 
 def admit_operation(project, operation, arguments):
     state = project.state()
-    if operation not in ("prepare", "inspect", "garment", "assemble", "run_script", "restore_checkpoint"):
+    if operation not in ("prepare", "inspect", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn"):
         raise StudioError("Unknown guarded Blender operation")
     required = {"prepare": set(), "inspect": set(), "garment": {"package_dir"}, "assemble": {"plan_path"},
-        "run_script": {"purpose", "path", "sha256", "component_ids"}, "restore_checkpoint": set()}[operation]
+        "run_script": {"purpose", "path", "sha256", "component_ids"}, "restore_checkpoint": set(),
+        "simulate_sewn": {"component_id", "recipe_path", "phase", "scope"},
+        "freeze_sewn": {"component_id", "recipe_path"}}[operation]
+    if operation == "garment" and "recipe_path" in arguments:
+        required = required | {"recipe_path"}
+    if operation == "garment" and "rebuild" in arguments:
+        required = required | {"rebuild"}
+        if not isinstance(arguments['rebuild'], bool):raise StudioError('rebuild must be a boolean')
     if operation == "run_script" and arguments.get("purpose") == "simulate":
         required = required | {"simulation_plan"}
     if set(arguments) != required:
@@ -47,12 +54,27 @@ def admit_operation(project, operation, arguments):
             raise StudioError("Completed project is immutable")
         return
     require_board(project, state)
+    if operation in ("simulate_sewn", "freeze_sewn"):
+        if state["stage"] != "RECONSTRUCTING":
+            raise StudioError("Native sewing requires RECONSTRUCTING")
+        _, component = project.ready(arguments["component_id"])
+        if component["route"]["selected"] != "PATTERN_SEWN" or component["stage"] == "RECONSTRUCTED":
+            raise StudioError("Native sewing requires an unaccepted sewn component")
+        from .core import contract
+        recipe = contract("sewing-recipe", read_json(inside(project.root, arguments["recipe_path"])))
+        if recipe["component_id"] != arguments["component_id"]:
+            raise StudioError("Sewing recipe identity mismatch")
+        if operation == "simulate_sewn" and (arguments["phase"] not in ("mount", "drape") or arguments["scope"] not in ("local", "full")):
+            raise StudioError("Unknown sewing phase or scope")
+        return
     if operation == "garment":
         if state["stage"] != "RECONSTRUCTING":
             raise StudioError("Sewn panel construction requires RECONSTRUCTING")
         data_dir = inside(project.root, arguments["package_dir"])
         data = read_json(data_dir / "garment.json")
         _, component = project.ready(data["component_id"])
+        if component['stage']=='RECONSTRUCTED':
+            raise StudioError('Accepted sewing reconstruction is immutable; create a new revision')
         if component["route"]["selected"] != "PATTERN_SEWN":
             raise StudioError("Sewn operation cannot change the selected pipeline")
         manifest = read_json(data_dir / "manifest.json")
@@ -61,6 +83,10 @@ def admit_operation(project, operation, arguments):
         for path, checksum in manifest["checksums"].items():
             if sha(inside(data_dir, path)) != checksum:
                 raise StudioError("Extracted pattern input changed")
+        if "recipe_path" not in arguments:
+            raise StudioError("garment requires recipe_path for its derived simulation mesh; keep approved packages unchanged")
+        from .sewing import validate_recipe
+        validate_recipe(data, read_json(inside(project.root, arguments["recipe_path"])))
     elif operation == "assemble":
         if state["stage"] != "ASSEMBLING":
             raise StudioError("Assembly requires ASSEMBLING")

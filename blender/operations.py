@@ -143,7 +143,7 @@ def assemble(project_root, plan_path):
     return receipt
 
 
-def garment(project_root, package_dir):
+def garment(project_root, package_dir, recipe_path=None, rebuild=False):
     import bpy
     from mathutils import Euler, Vector
     project, rec = working(project_root)
@@ -153,6 +153,7 @@ def garment(project_root, package_dir):
     data_dir = inside(project.root, package_dir)
     data = contract("garment", read_json(data_dir / "garment.json"))
     _, component = project.ready(data["component_id"])
+    if component['stage']=='RECONSTRUCTED':raise StudioError('Accepted sewing reconstruction is immutable')
     if component["route"]["selected"] != "PATTERN_SEWN":
         raise StudioError("Component is not routed to sewn panels")
     manifest = read_json(data_dir / "manifest.json")
@@ -161,40 +162,38 @@ def garment(project_root, package_dir):
     for name, expected in manifest["checksums"].items():
         if sha(inside(data_dir, name)) != expected:
             raise StudioError("Extracted garment package changed")
-    if any(o.get("a3d_component_id") == data["component_id"] for o in bpy.data.objects):
-        raise StudioError("Garment already constructed")
+    previous=[o for o in bpy.data.objects if o.get('a3d_component_id')==data['component_id']]
+    if previous:
+        if not rebuild:raise StudioError('Garment already constructed; explicit rebuild=true archives the previous derived simulation mesh')
+        if len(previous)!=1 or previous[0].get('a3d_role')!='simulation':
+            raise StudioError('Only an unaccepted derived simulation mesh can be rebuilt')
     saved = state.get("pending_blender_operation", {}).get("checkpoint") or checkpoint(project_root)
-    vertices, faces, edges, offsets = [], [], [], {}
-    for pid, panel in data["pieces"].items():
-        offsets[pid] = len(vertices)
-        rotation = Euler([math.radians(x) for x in panel["rotation_degrees"]], "XYZ").to_matrix()
-        position = Vector([v / 100 for v in panel["position_cm"]])
-        vertices.extend(tuple(rotation @ Vector((p[0] / 100, p[1] / 100, 0)) + position) for p in panel["vertices"])
-        faces.extend([i + offsets[pid] for i in face] for face in panel["faces"])
-    for seam in data["seams"]:
-        a = data["pieces"][seam["piece_a"]]["edges"][seam["edge_a"]]
-        b = data["pieces"][seam["piece_b"]]["edges"][seam["edge_b"]]
-        if seam["orientation"] == "reverse":
-            b = list(reversed(b))
-        edges.extend((offsets[seam["piece_a"]] + x, offsets[seam["piece_b"]] + y) for x, y in zip(a, b, strict=True))
-    mesh = bpy.data.meshes.new("A3D.panels." + data["component_id"])
-    mesh.from_pydata(vertices, edges, faces)
-    mesh.update()
-    obj = bpy.data.objects.new("A3D." + data["component_id"], mesh)
-    bpy.context.scene.collection.objects.link(obj)
+    if recipe_path is None:
+        raise StudioError("A derived sewing recipe is required; use templates/sewing-recipe.json without modifying approved contours")
+    from blender.sewing import build_mesh, make_object, preflight
+    recipe = read_json(inside(project.root, recipe_path))
+    payload = build_mesh(data, recipe)
+    payload.update(package_sha256=component["package"]["sha256"],
+        source_garment=(data_dir / "garment.json").relative_to(project.root).as_posix())
+    obj = make_object(payload, "A3D." + data["component_id"])
     obj["a3d_component_id"] = data["component_id"]
     obj["a3d_package_sha256"] = component["package"]["sha256"]
-    cloth = obj.modifiers.new("Sewing", "CLOTH")
-    cloth.settings.use_sewing_springs = True
-    cloth.settings.mass = data["material"]["mass_kg"]
-    for key in ("tension_stiffness", "compression_stiffness", "shear_stiffness", "bending_stiffness"):
-        setattr(cloth.settings, key, data["material"][key])
-    cloth.collision_settings.use_self_collision = True
-    # Simulation is intentionally separate: collision mannequin and frame budget
-    # need a live scene-specific decision before a potentially expensive bake.
+    bpy.context.scene.unit_settings.system = "METRIC"
+    # Never change a non-metric scene scale to make an invalid placement pass.
+    context, _, _ = preflight(obj, payload, recipe)
+    path = project.data / ("blender/sewing-mesh-" + uuid.uuid4().hex + ".json")
+    atomic_json(path, payload)
+    obj["a3d_sewing_mesh"] = path.relative_to(project.root).as_posix()
+    obj["a3d_sewing_mesh_sha256"] = sha(path)
+    for old in previous:
+        old['a3d_source_component_id']=data['component_id'];del old['a3d_component_id']
+        old['a3d_role']='archived-simulation';old.hide_set(True);old.hide_render=True
     bpy.ops.wm.save_as_mainfile(filepath=rec["working"], check_existing=False)
-    receipt = {"checkpoint": saved, "object": obj.name, "vertices": len(vertices), "sewing_edges": len(edges),
-               "simulation": "NOT_EXECUTED", "visual_validation": "NOT_EXECUTED"}
+    receipt = {"checkpoint": saved, "object": obj.name, "vertices": len(payload["rest_cm"]),
+        "archived_simulations": [o.name for o in previous],
+        "sewing_edges": sum(len(s["pairs"]) for s in payload["seams"].values() if s["kind"] == "permanent"),
+        "derived_mesh": obj["a3d_sewing_mesh"], "derived_mesh_sha256": sha(path), "context": context,
+        "simulation": "NOT_EXECUTED", "visual_validation": "NOT_EXECUTED"}
     atomic_json(project.data / "blender/garment-receipt.json", receipt)
     return receipt
 
@@ -217,7 +216,9 @@ def inspect(project_root):
                         "polygons": len(mesh.polygons), "nonmanifold_edges": nonmanifold, "degenerate_faces": degenerate,
                         "dimensions_m": list(obj.dimensions), "materials": len(mesh.materials),
                         "uv_layers": len(mesh.uv_layers), "armature_modifiers": sum(m.type == "ARMATURE" for m in obj.modifiers)})
-    report = {"blender_version": bpy.app.version_string, "working": rec["working"], "objects": objects,
+    from blender.sewing import collider_info
+    colliders = [collider_info(o) for o in bpy.context.scene.objects if o.type == "MESH" and any(m.type == "COLLISION" for m in o.modifiers)]
+    report = {"blender_version": bpy.app.version_string, "working": rec["working"], "objects": objects, "auxiliary_colliders": colliders,
               "evaluated_geometry": "NOT_EXECUTED", "identity": "NOT_EXECUTED", "visual": "NOT_EXECUTED",
               "note": "Counts are evidence, not automatic acceptance; evaluate modifiers, rig deformation and silhouette separately."}
     atomic_json(project.data / "blender/inspection.json", report)
@@ -226,7 +227,9 @@ def inspect(project_root):
 
 def _perform(project_root, operation, arguments):
     if operation != "run_script":
-        return {"prepare": prepare, "inspect": inspect, "garment": garment, "assemble": assemble}[operation](project_root, **arguments)
+        from blender.sewing import simulate_sewn, freeze_sewn
+        return {"prepare": prepare, "inspect": inspect, "garment": garment, "assemble": assemble,
+            "simulate_sewn": simulate_sewn, "freeze_sewn": freeze_sewn}[operation](project_root, **arguments)
     import bpy
     import runpy
     project, rec = working(project_root)
@@ -242,19 +245,21 @@ def _perform(project_root, operation, arguments):
     if arguments["purpose"] == "simulate":
         from a3d.lifecycle import simulation_plan
         plan = simulation_plan(project, state, arguments["simulation_plan"], arguments["component_ids"])
-        for cid in plan["collision_components"]:
-            colliders = [o for o in bpy.data.objects if o.type == "MESH" and o.get("a3d_component_id") == cid]
-            if not colliders or any(not any(m.type == "COLLISION" for m in o.modifiers) for o in colliders):
-                raise StudioError("Declared collision component needs actual collision geometry: " + cid)
-        cloths = [m for o in bpy.data.objects if o.get("a3d_component_id") == plan["component_id"] for m in o.modifiers if m.type == "CLOTH"]
-        if not cloths:
-            raise StudioError("Sewn geometry has no Cloth modifier")
-        bpy.context.scene.frame_start = plan["frame_start"]
-        bpy.context.scene.frame_end = plan["frame_end"]
-        for modifier in cloths:
-            modifier.settings.quality = plan["quality"]
-            modifier.point_cache.frame_start = plan["frame_start"]
-            modifier.point_cache.frame_end = plan["frame_end"]
+        from blender.sewing import (managed_inputs, preflight, apply_physics, physical_snapshot,
+            mesh_digest, trial_binding, object_mesh)
+        from a3d.core import digest
+        sim_obj, sim_payload, sim_recipe = managed_inputs(project, plan["component_id"], plan["sewing_recipe"])
+        sim_context, sim_colliders, sim_trees = preflight(sim_obj, sim_payload, sim_recipe)
+        local_path = project.data / "blender/sewing" / (plan["component_id"] + "-local.json")
+        expected_binding = trial_binding(sim_obj, sim_payload, sim_recipe, plan["phase"], sim_context)
+        if not local_path.exists() or read_json(local_path).get("binding") != expected_binding or read_json(local_path).get("simulation") != "PASS":
+            raise StudioError("Custom simulation requires the current native local trial")
+        if not any(c["role"] == "mannequin" for c in sim_recipe["colliders"]):
+            raise StudioError("Custom garment simulation requires its auxiliary mannequin")
+        sim_initial = object_mesh(sim_obj)[0]
+        sim_base_hash = mesh_digest(sim_obj)
+        _, _, sim_collection = apply_physics(sim_obj, sim_payload, sim_recipe, plan["phase"], sim_colliders)
+        sim_expected = physical_snapshot(sim_obj)
     saved = state.get("pending_blender_operation", {}).get("checkpoint") or checkpoint(project_root)
     path = inside(project.root, arguments["path"])
     if sha(path) != arguments["sha256"]:
@@ -263,6 +268,24 @@ def _perform(project_root, operation, arguments):
     # serve as arbitrary reconstruction entrypoints; retain a recovery copy.
     runpy.run_path(str(path), init_globals={"A3D_PROJECT_ROOT": str(project.root)}, run_name="__a3d_operation__")
     working(project_root)
+    if arguments["purpose"] == "simulate":
+        from blender.sewing import verify_physics, preflight, object_mesh, penetration_cm
+        from a3d.sewing import distance, mesh_quality
+        verify_physics(sim_obj, sim_expected)
+        preflight(sim_obj, sim_payload, sim_recipe)
+        final = object_mesh(sim_obj, True)[0]
+        if mesh_digest(sim_obj) != sim_base_hash:
+            raise StudioError("Custom simulation changed the base mesh instead of evaluating Cloth")
+        movement = max(distance(a,b)*100 for a,b in zip(sim_initial,final,strict=True))
+        if bpy.context.scene.frame_current != plan["frame_end"] or movement < sim_recipe["limits"]["min_movement_cm"]:
+            raise StudioError("Custom script produced no measured completed cloth response")
+        final_cm = [[v*100 for v in p] for p in final]
+        mesh_quality(sim_payload['rest_cm'], final_cm, sim_payload['faces'], sim_recipe['mesh'])
+        if movement > sim_recipe['limits']['max_displacement_cm'] or penetration_cm(final_cm, sim_trees) > sim_recipe['limits']['max_penetration_cm']:
+            raise StudioError('Custom simulation exceeded displacement or contact limits')
+        if any(distance(final_cm[a], final_cm[b]) > sim_recipe['limits']['max_seam_gap_cm']
+            for seam in sim_payload['seams'].values() if seam['kind'] == 'permanent' for a,b in seam['pairs']):
+            raise StudioError('Custom simulation did not settle the permanent seams')
     bpy.ops.wm.save_as_mainfile(filepath=rec["working"], check_existing=False)
     receipt = {"operation": arguments["purpose"], "script": arguments["path"], "sha256": arguments["sha256"],
         "component_ids": arguments["component_ids"], "checkpoint": saved, "visual_validation": "NOT_EXECUTED"}

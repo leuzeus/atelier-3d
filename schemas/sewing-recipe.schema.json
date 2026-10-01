@@ -1,0 +1,540 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Atelier 3D derived sewing recipe",
+  "type": "object",
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "component_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mass": {
+      "type": "object",
+      "properties": {
+        "basis": {
+          "enum": [
+            "total_kg",
+            "areal_density_kg_m2"
+          ]
+        },
+        "value": {
+          "type": "number",
+          "minimum": 0.0001,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "basis",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "mesh": {
+      "type": "object",
+      "properties": {
+        "spacing_cm": {
+          "type": "number",
+          "minimum": 0.2,
+          "maximum": 10
+        },
+        "max_boundary_error_cm": {
+          "type": "number",
+          "minimum": 0.0001,
+          "maximum": 1
+        },
+        "max_vertices": {
+          "type": "integer",
+          "minimum": 20,
+          "maximum": 50000
+        },
+        "min_angle_degrees": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 30
+        },
+        "min_edge_cm": {
+          "type": "number",
+          "minimum": 0.0001,
+          "maximum": 1
+        },
+        "min_stretch": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 1
+        },
+        "max_stretch": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 3
+        }
+      },
+      "required": [
+        "spacing_cm",
+        "max_boundary_error_cm",
+        "max_vertices",
+        "min_angle_degrees",
+        "min_edge_cm",
+        "min_stretch",
+        "max_stretch"
+      ],
+      "additionalProperties": false
+    },
+    "seams": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "enum": [
+              "permanent",
+              "closure",
+              "detachable"
+            ]
+          },
+          "ease_b_over_a": {
+            "type": "number",
+            "minimum": -0.5,
+            "maximum": 1
+          },
+          "tolerance_relative": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 0.15
+          }
+        },
+        "required": [
+          "kind",
+          "ease_b_over_a",
+          "tolerance_relative"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "placements": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "enum": [
+              "flat",
+              "cylinder"
+            ]
+          },
+          "position_cm": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "rotation_degrees": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "radius_cm": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 1000
+          },
+          "origin_2d_cm": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "required": [
+          "mode",
+          "position_cm",
+          "rotation_degrees",
+          "radius_cm",
+          "origin_2d_cm"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "trial_pieces": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 2
+    },
+    "pins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "piece": {
+            "type": "string",
+            "minLength": 1
+          },
+          "edge": {
+            "type": "string",
+            "minLength": 1
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 1
+          }
+        },
+        "required": [
+          "piece",
+          "edge",
+          "weight"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "collision_collection": {
+      "type": "string",
+      "minLength": 1
+    },
+    "colliders": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "enum": [
+              "mannequin",
+              "support"
+            ]
+          },
+          "dimensions_cm": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "tolerance_cm": {
+            "type": "number",
+            "minimum": 0.001,
+            "maximum": 5
+          },
+          "geometry_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "outer_thickness_cm": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "inner_thickness_cm": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5
+          }
+        },
+        "required": [
+          "object",
+          "role",
+          "dimensions_cm",
+          "tolerance_cm",
+          "geometry_sha256",
+          "outer_thickness_cm",
+          "inner_thickness_cm"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "no_collision_reason": {
+      "type": "string"
+    },
+    "phases": {
+      "type": "object",
+      "properties": {
+        "mount": {
+          "type": "object",
+          "properties": {
+            "frames": {
+              "type": "integer",
+              "minimum": 8,
+              "maximum": 240
+            },
+            "quality": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 20
+            },
+            "fps": {
+              "type": "integer",
+              "minimum": 12,
+              "maximum": 120
+            },
+            "gravity_m_s2": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "sewing_force_per_kg": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 100000
+            },
+            "tension_stiffness": {
+              "type": "number",
+              "minimum": 0.01,
+              "maximum": 500
+            },
+            "compression_stiffness": {
+              "type": "number",
+              "minimum": 0.01,
+              "maximum": 500
+            },
+            "shear_stiffness": {
+              "type": "number",
+              "minimum": 0.01,
+              "maximum": 500
+            },
+            "bending_stiffness": {
+              "type": "number",
+              "minimum": 0.001,
+              "maximum": 50
+            },
+            "structural_damping": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 50
+            },
+            "air_damping": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 50
+            },
+            "collision_distance_cm": {
+              "type": "number",
+              "minimum": 0.01,
+              "maximum": 2
+            },
+            "self_collision": {
+              "type": "boolean"
+            },
+            "self_distance_cm": {
+              "type": "number",
+              "minimum": 0.01,
+              "maximum": 2
+            },
+            "collision_quality": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 20
+            },
+            "damping_reference_mass_kg": {
+              "type": "number",
+              "minimum": 1e-06,
+              "maximum": 1
+            }
+          },
+          "required": [
+            "frames",
+            "quality",
+            "fps",
+            "gravity_m_s2",
+            "sewing_force_per_kg",
+            "tension_stiffness",
+            "compression_stiffness",
+            "shear_stiffness",
+            "bending_stiffness",
+            "structural_damping",
+            "air_damping",
+            "collision_distance_cm",
+            "self_collision",
+            "self_distance_cm",
+            "collision_quality",
+            "damping_reference_mass_kg"
+          ],
+          "additionalProperties": false
+        },
+        "drape": {
+          "type": "object",
+          "properties": {
+            "frames": {
+              "type": "integer",
+              "minimum": 8,
+              "maximum": 240
+            },
+            "quality": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 20
+            },
+            "fps": {
+              "type": "integer",
+              "minimum": 12,
+              "maximum": 120
+            },
+            "gravity_m_s2": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "sewing_force_per_kg": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 100000
+            },
+            "tension_stiffness": {
+              "type": "number",
+              "minimum": 0.01,
+              "maximum": 500
+            },
+            "compression_stiffness": {
+              "type": "number",
+              "minimum": 0.01,
+              "maximum": 500
+            },
+            "shear_stiffness": {
+              "type": "number",
+              "minimum": 0.01,
+              "maximum": 500
+            },
+            "bending_stiffness": {
+              "type": "number",
+              "minimum": 0.001,
+              "maximum": 50
+            },
+            "structural_damping": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 50
+            },
+            "air_damping": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 50
+            },
+            "collision_distance_cm": {
+              "type": "number",
+              "minimum": 0.01,
+              "maximum": 2
+            },
+            "self_collision": {
+              "type": "boolean"
+            },
+            "self_distance_cm": {
+              "type": "number",
+              "minimum": 0.01,
+              "maximum": 2
+            },
+            "collision_quality": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 20
+            },
+            "damping_reference_mass_kg": {
+              "type": "number",
+              "minimum": 1e-06,
+              "maximum": 1
+            }
+          },
+          "required": [
+            "frames",
+            "quality",
+            "fps",
+            "gravity_m_s2",
+            "sewing_force_per_kg",
+            "tension_stiffness",
+            "compression_stiffness",
+            "shear_stiffness",
+            "bending_stiffness",
+            "structural_damping",
+            "air_damping",
+            "collision_distance_cm",
+            "self_collision",
+            "self_distance_cm",
+            "collision_quality",
+            "damping_reference_mass_kg"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "mount",
+        "drape"
+      ],
+      "additionalProperties": false
+    },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "max_displacement_cm": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "min_movement_cm": {
+          "type": "number",
+          "minimum": 0.0001,
+          "maximum": 1
+        },
+        "max_seam_gap_cm": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 5
+        },
+        "weld_gap_cm": {
+          "type": "number",
+          "minimum": 0.001,
+          "maximum": 1
+        },
+        "max_penetration_cm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "max_displacement_cm",
+        "min_movement_cm",
+        "max_seam_gap_cm",
+        "weld_gap_cm",
+        "max_penetration_cm"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "version",
+    "component_id",
+    "mass",
+    "mesh",
+    "seams",
+    "placements",
+    "trial_pieces",
+    "pins",
+    "collision_collection",
+    "colliders",
+    "no_collision_reason",
+    "phases",
+    "limits"
+  ],
+  "additionalProperties": false
+}

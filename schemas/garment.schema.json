@@ -114,6 +114,13 @@
               "forward",
               "reverse"
             ]
+          },
+          "kind": {
+            "enum": [
+              "permanent",
+              "closure",
+              "detachable"
+            ]
           }
         },
         "required": [
@@ -133,7 +140,8 @@
       "properties": {
         "mass_kg": {
           "type": "number",
-          "minimum": 0.001
+          "minimum": 0.001,
+          "description": "Legacy unqualified value. Native cloth requires an explicit mass basis in the derived sewing recipe; this value is never copied as Blender per-vertex mass."
         },
         "tension_stiffness": {
           "type": "number",

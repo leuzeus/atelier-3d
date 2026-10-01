@@ -15,3 +15,5 @@ Le CLI expose les mêmes outils : python scripts/studio.py tools ; python script
 Depuis 0.2.0, toutes les routes nécessitent une proposition enregistrée et revue. Entre PACKAGED et RECONSTRUCTING, produire puis faire approuver le board de découpage via le gate `construction` lié à `construction-board`. Voir [la revue de construction](construction-review.md). Les anciennes preuves générales ne remplacent pas cette revue.
 
 Depuis 0.3.0, chaque jalon de production exige ses preuves spécialisées : lire [les contrôles du cycle complet](lifecycle-guards.md). Le passage entre étapes ne peut plus être justifié par le seul brief.
+
+Depuis 0.5.0, après le board textile approuvé, employer [la recette de toile cousue](sewn-toile.md). Les essais techniques locaux sont liés à la recette exécutée, sans nouveau gate humain pour un découpage inchangé.

@@ -1,0 +1,169 @@
+{
+  "version": 1,
+  "component_id": "garment.coat",
+  "mass": {
+    "basis": "areal_density_kg_m2",
+    "value": 0.3
+  },
+  "mesh": {
+    "spacing_cm": 2,
+    "max_boundary_error_cm": 0.05,
+    "max_vertices": 30000,
+    "min_angle_degrees": 2,
+    "min_edge_cm": 0.001,
+    "min_stretch": 0.8,
+    "max_stretch": 1.25
+  },
+  "seams": {
+    "torso-right": {
+      "kind": "permanent",
+      "ease_b_over_a": 0,
+      "tolerance_relative": 0.02
+    },
+    "sleeve-left": {
+      "kind": "permanent",
+      "ease_b_over_a": 0,
+      "tolerance_relative": 0.02
+    },
+    "sleeve-right": {
+      "kind": "permanent",
+      "ease_b_over_a": 0,
+      "tolerance_relative": 0.02
+    }
+  },
+  "placements": {
+    "front": {
+      "mode": "flat",
+      "position_cm": [
+        0,
+        -15,
+        80
+      ],
+      "rotation_degrees": [
+        90,
+        0,
+        0
+      ],
+      "radius_cm": 10,
+      "origin_2d_cm": [
+        0,
+        0
+      ]
+    },
+    "back": {
+      "mode": "flat",
+      "position_cm": [
+        0,
+        15,
+        80
+      ],
+      "rotation_degrees": [
+        -90,
+        0,
+        0
+      ],
+      "radius_cm": 10,
+      "origin_2d_cm": [
+        0,
+        0
+      ]
+    },
+    "sleeve-left": {
+      "mode": "flat",
+      "position_cm": [
+        -25,
+        0,
+        100
+      ],
+      "rotation_degrees": [
+        90,
+        0,
+        0
+      ],
+      "radius_cm": 10,
+      "origin_2d_cm": [
+        0,
+        0
+      ]
+    },
+    "sleeve-right": {
+      "mode": "flat",
+      "position_cm": [
+        25,
+        0,
+        100
+      ],
+      "rotation_degrees": [
+        -90,
+        0,
+        0
+      ],
+      "radius_cm": 10,
+      "origin_2d_cm": [
+        0,
+        0
+      ]
+    }
+  },
+  "trial_pieces": [
+    "front",
+    "back"
+  ],
+  "pins": [],
+  "collision_collection": "A3D.Colliders",
+  "colliders": [],
+  "no_collision_reason": "SYNTHETIC TEMPLATE ONLY: add the measured mannequin before a full garment run",
+  "phases": {
+    "mount": {
+      "frames": 24,
+      "quality": 10,
+      "fps": 24,
+      "gravity_m_s2": [
+        0,
+        0,
+        -2
+      ],
+      "sewing_force_per_kg": 20000,
+      "tension_stiffness": 12,
+      "compression_stiffness": 12,
+      "shear_stiffness": 6,
+      "bending_stiffness": 0.03,
+      "structural_damping": 1,
+      "air_damping": 0.01,
+      "collision_distance_cm": 0.3,
+      "self_collision": false,
+      "self_distance_cm": 0.3,
+      "collision_quality": 4,
+      "damping_reference_mass_kg": 0.001
+    },
+    "drape": {
+      "frames": 32,
+      "quality": 10,
+      "fps": 24,
+      "gravity_m_s2": [
+        0,
+        0,
+        -9.81
+      ],
+      "sewing_force_per_kg": 20000,
+      "tension_stiffness": 12,
+      "compression_stiffness": 12,
+      "shear_stiffness": 6,
+      "bending_stiffness": 0.03,
+      "structural_damping": 1,
+      "air_damping": 0.01,
+      "collision_distance_cm": 0.3,
+      "self_collision": true,
+      "self_distance_cm": 0.3,
+      "collision_quality": 4,
+      "damping_reference_mass_kg": 0.001
+    }
+  },
+  "limits": {
+    "max_displacement_cm": 30,
+    "min_movement_cm": 0.01,
+    "max_seam_gap_cm": 0.5,
+    "weld_gap_cm": 0.15,
+    "max_penetration_cm": 0.05
+  }
+}

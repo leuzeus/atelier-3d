@@ -1,5 +1,23 @@
 # Historique
 
+## 0.5.0 — 2026-10-01
+
+- Recette native pour le passage du board approuvé à une toile cousue : contours
+  conservés, maillage de simulation indépendant, correspondance des coutures,
+  placement contrôlé et reconstruction dérivée avec archivage de l’ancienne copie.
+- Masse totale ou surfacique convertie en masse par sommet, plafond de couture
+  fini et amortissement rapporté à la masse ; contrôle des paramètres exécutés.
+- Mannequin auxiliaire identifié, forme de repos, pins, collection de collision,
+  cache court et essais mesurés de gravité, couture et contact.
+- Essai local avant chaque recette complète ; arrêt après deux échecs complets.
+  Un réglage technique n’impose pas une nouvelle approbation du board inchangé.
+- Consolidation des seules coutures permanentes. Fermetures, bords libres et
+  pièces amovibles préservés ; absence de soudure par proximité.
+- Version du serveur MCP et diagnostic alignés sur le manifeste réellement
+  installé, y compris le profil Windows sans `plugin.json` à la racine.
+- Tests natifs synthétiques et documentation du parcours. Aucun asset complet,
+  fitting complexe ou export Unreal qualifié par ces tests.
+
 ## 0.4.0 — 2026-10-01
 
 - Vue éclatée préparée pour Codex Image à partir des références originales,

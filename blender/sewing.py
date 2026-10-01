@@ -1,0 +1,552 @@
+"""Native, bounded cloth recipe. Imported only inside Blender.
+
+Reference contours, a derived simulation mesh and a frozen render copy are
+separate artifacts. No proximity-based welding or editing of source packages.
+"""
+import copy
+import math
+import uuid
+from pathlib import Path
+from a3d.core import StudioError, atomic_json, contract, digest, inside, read_json, sha
+from a3d.sewing import (distance, mass_settings, mesh_quality, point_inside,
+    prepare_boundaries, segment_distance, signed_area, validate_recipe, weld_permanent)
+
+
+def mesh_recipe_digest(recipe):
+    return digest({k:recipe[k] for k in ("component_id","mesh","placements","seams","pins")})
+
+
+def triangulate(boundary, recipe):
+    from mathutils import Vector
+    from mathutils.geometry import delaunay_2d_cdt
+    polygon=boundary["polygon"]
+    spacing=recipe["mesh"]["spacing_cm"]
+    points=[Vector(p) for p in polygon]
+    xmin,xmax=min(p[0] for p in polygon),max(p[0] for p in polygon)
+    ymin,ymax=min(p[1] for p in polygon),max(p[1] for p in polygon)
+    nx,ny=math.ceil((xmax-xmin)/spacing),math.ceil((ymax-ymin)/spacing)
+    if nx*ny>recipe["mesh"]["max_vertices"]*4:
+        raise StudioError("Interior grid exceeds the declared mesh budget")
+    for j in range(1,ny):
+        for i in range(1,nx):
+            p=[xmin+i*spacing,ymin+j*spacing]
+            if point_inside(p,polygon) and min(segment_distance(p,a,b) for a,b in zip(polygon,polygon[1:]+polygon[:1])) >= .4*spacing:
+                points.append(Vector(p))
+    ids=list(range(len(polygon)))
+    if signed_area(polygon)<0:ids.reverse()
+    verts,edges,faces,orig,_,_=delaunay_2d_cdt(points,[],[ids],1,1e-6,True)
+    mapping={j:i for i,inputs in enumerate(orig) for j in inputs}
+    if any(i not in mapping for i in range(len(polygon))) or len({mapping[i] for i in range(len(polygon))})!=len(polygon):
+        raise StudioError("Triangulator collapsed a boundary anchor")
+    if any(distance(verts[mapping[i]],polygon[i])>1e-4 for i in range(len(polygon))):
+        raise StudioError("Triangulator moved a boundary anchor")
+    if any(len(f)!=3 for f in faces):raise StudioError("Constrained triangulation did not produce triangles")
+    # CDT faces are CCW. Preserve the source boundary's orientation, corrected by
+    # the explicit seam graph rather than by arbitrary proximity of panels.
+    if bool(boundary["flip"]) ^ (signed_area(boundary["source"])<0):
+        faces=[list(reversed(f)) for f in faces]
+    return [list(v) for v in verts],faces,mapping
+
+
+def placed_point(point, placement):
+    from mathutils import Euler,Vector
+    x,y=point
+    if placement["mode"]=="cylinder":
+        radius=placement["radius_cm"]
+        angle=(x-placement["origin_2d_cm"][0])/radius
+        local=(radius*math.sin(angle),y-placement["origin_2d_cm"][1],radius*math.cos(angle))
+    else:local=(x,y,0.)
+    rotation=Euler([math.radians(v) for v in placement["rotation_degrees"]],"XYZ").to_matrix()
+    return list(rotation@Vector(local)+Vector(placement["position_cm"]))
+
+
+def build_mesh(data, recipe):
+    boundaries,seams,reports=prepare_boundaries(data,recipe)
+    rest,placed,faces=[],[],[]
+    panels={};pins={}
+    for index,(pid,boundary) in enumerate(boundaries.items()):
+        verts,local_faces,mapping=triangulate(boundary,recipe)
+        offset=len(rest)
+        rest.extend([[v[0],v[1],index*1000.] for v in verts])
+        placed.extend(placed_point(v,recipe["placements"][pid]) for v in verts)
+        faces.extend([[offset+i for i in f] for f in local_faces])
+        panels[pid]={"indices":list(range(offset,len(rest))),
+            "source_contour_sha256":boundary["source_sha256"],
+            "boundary":[offset+mapping[i] for i in range(len(boundary["polygon"]))],
+            "boundary_source_arclength_cm":boundary["keys"],
+            "edges":{name:[offset+mapping[i] for i in ids] for name,ids in boundary["edges"].items()}}
+        for seam in seams.values():
+            for side in ("a","b"):
+                if seam["piece_"+side]==pid:seam[side]=[offset+mapping[i] for i in seam[side]]
+        if len(rest)>recipe["mesh"]["max_vertices"]:raise StudioError("Simulation vertex budget exceeded")
+    for seam in seams.values():seam["pairs"]=list(zip(seam.pop("a"),seam.pop("b"),strict=True))
+    for pin in recipe["pins"]:
+        for i in panels[pin["piece"]]["edges"][pin["edge"]]:pins[str(i)]=max(pins.get(str(i),0),pin["weight"])
+    if pins and all(pins.get(str(i),0)>=1 for i in range(len(rest))):raise StudioError("Every simulation vertex is pinned")
+    quality=mesh_quality(rest,placed,faces,recipe["mesh"])
+    return {"version":1,"component_id":data["component_id"],"recipe_mesh_sha256":mesh_recipe_digest(recipe),
+        "source_garment_sha256":digest(data),"rest_cm":rest,"placed_cm":placed,"faces":faces,"panels":panels,
+        "seams":seams,"pins":pins,"quality":quality,"seam_lengths":reports,
+        "full_rest_area_cm2":quality["rest_area_cm2"]}
+
+
+def subset_mesh(payload, piece_ids):
+    keep=sorted(i for pid in piece_ids for i in payload["panels"][pid]["indices"])
+    mapping={old:i for i,old in enumerate(keep)}
+    sub=copy.deepcopy(payload)
+    for key in ("rest_cm","placed_cm"):sub[key]=[payload[key][i] for i in keep]
+    sub["faces"]=[[mapping[i] for i in f] for f in payload["faces"] if all(i in mapping for i in f)]
+    sub["pins"]={str(mapping[int(i)]):w for i,w in payload["pins"].items() if int(i) in mapping}
+    sub["seams"]={sid:{**s,"pairs":[[mapping[a],mapping[b]] for a,b in s["pairs"]]}
+        for sid,s in payload["seams"].items() if s["piece_a"] in piece_ids and s["piece_b"] in piece_ids}
+    sub["panels"]={pid:{**payload["panels"][pid],"indices":[mapping[i] for i in payload["panels"][pid]["indices"]]}
+        for pid in piece_ids}
+    return sub
+
+
+def make_object(payload, name):
+    import bpy
+    edges=sorted({tuple(sorted(p)) for s in payload["seams"].values() if s["kind"]=="permanent" for p in s["pairs"]})
+    mesh=bpy.data.meshes.new(name)
+    mesh.from_pydata([[v/100 for v in p] for p in payload["placed_cm"]],edges,payload["faces"]);mesh.update()
+    obj=bpy.data.objects.new(name,mesh);bpy.context.scene.collection.objects.link(obj)
+    obj.shape_key_add(name="Placement")
+    rest=obj.shape_key_add(name="A3D.FlatRest")
+    for v,p in zip(rest.data,payload["rest_cm"],strict=True):v.co=[x/100 for x in p]
+    rest.value=0.
+    group=obj.vertex_groups.new(name="A3D.Pins")
+    for i,w in payload["pins"].items():group.add([int(i)],w,"REPLACE")
+    obj["a3d_role"]="simulation"
+    return obj
+
+
+def object_mesh(obj, evaluated=False):
+    import bpy
+    target=obj.evaluated_get(bpy.context.evaluated_depsgraph_get()) if evaluated else obj
+    mesh=target.to_mesh() if evaluated else obj.data
+    try:
+        vertices=[list(obj.matrix_world@v.co) for v in mesh.vertices]
+        faces=[list(p.vertices) for p in mesh.polygons]
+        return vertices,faces
+    finally:
+        if evaluated:target.to_mesh_clear()
+
+
+def mesh_digest(obj, evaluated=False):
+    v,f=object_mesh(obj,evaluated)
+    return digest({"vertices_m":[[round(x,7) for x in p] for p in v],"faces":f})
+
+
+def collider_info(obj):
+    import bpy
+    bpy.context.view_layer.update()
+    return {"object":obj.name,"dimensions_cm":[round(v*100,5) for v in obj.dimensions],
+        "geometry_sha256":mesh_digest(obj,True),"scale":list(obj.scale),
+        "visible":obj.visible_get(),"collision_enabled":any(m.type=="COLLISION" and m.show_viewport for m in obj.modifiers),
+        "outer_thickness_cm":obj.collision.thickness_outer*100,"inner_thickness_cm":obj.collision.thickness_inner*100}
+
+
+def context_colliders(recipe):
+    import bpy
+    from mathutils.bvhtree import BVHTree
+    from mathutils import Vector
+    if abs(bpy.context.scene.unit_settings.scale_length-1)>1e-8:
+        raise StudioError("Cloth recipe requires Blender meters (scale_length=1)")
+    trees=[];objects=[];snapshots=[]
+    for expected in recipe["colliders"]:
+        obj=bpy.data.objects.get(expected["object"])
+        if obj is None or obj.type!="MESH":raise StudioError("Missing declared auxiliary collider: "+expected["object"])
+        current=collider_info(obj)
+        if not current["collision_enabled"] or not current["visible"] or any(abs(s-1)>1e-6 for s in obj.scale):
+            raise StudioError("Collider must be visible, have applied scale and an enabled Collision modifier")
+        if current["geometry_sha256"]!=expected["geometry_sha256"] or any(abs(a-b)>expected["tolerance_cm"] for a,b in zip(current["dimensions_cm"],expected["dimensions_cm"])):
+            raise StudioError("Mannequin dimensions, pose or geometry differ from the recipe")
+        if any(abs(current[k]-expected[k])>1e-5 for k in ('outer_thickness_cm','inner_thickness_cm')):
+            raise StudioError('Executed collider thickness differs from the recipe')
+        vertices,faces=object_mesh(obj,True)
+        edges={}
+        for f in faces:
+            for a,b in zip(f,f[1:]+f[:1]):edges[tuple(sorted((a,b)))]=edges.get(tuple(sorted((a,b))),0)+1
+        if expected["role"]=="mannequin" and any(n!=2 for n in edges.values()):
+            raise StudioError("Mannequin collision volume must be closed")
+        trees.append(BVHTree.FromPolygons([Vector(p) for p in vertices],faces))
+        objects.append(obj);snapshots.append(current)
+    return objects,trees,snapshots
+
+
+def penetration_cm(coords, trees):
+    from mathutils import Vector
+    maximum=0.
+    for point in coords:
+        p=Vector([x/100 for x in point])
+        for tree in trees:
+            hit,normal,_,_=tree.find_nearest(p)
+            if hit is not None:maximum=max(maximum,-(p-hit).dot(normal)*100)
+    return maximum
+
+
+def preflight(obj,payload,recipe):
+    import bpy
+    from mathutils import Matrix
+    if mesh_recipe_digest(recipe)!=payload["recipe_mesh_sha256"]:
+        raise StudioError("Meshing, seams, pins or placement changed; rebuild a derived toile without changing the approved package")
+    if any(abs(obj.matrix_world[i][j]-Matrix.Identity(4)[i][j])>1e-7 for i in range(4) for j in range(4)):
+        raise StudioError("Apply placement in the recipe; simulation object transform must be identity")
+    if obj.hide_get() or not obj.visible_get():raise StudioError("Simulation cloth is hidden/excluded from the active view layer")
+    if any(m.type not in ("CLOTH",) for m in obj.modifiers):raise StudioError("Keep render/armature modifiers off the simulation mesh")
+    coords,faces=object_mesh(obj)
+    coords=[[x*100 for x in p] for p in coords]
+    if faces!=payload["faces"]:raise StudioError("Simulation topology differs from its boundary map")
+    quality=mesh_quality(payload["rest_cm"],coords,faces,recipe["mesh"])
+    for seam in payload['seams'].values():
+        if seam['kind']!='permanent':continue
+        for (a,b),(c,d) in zip(seam['pairs'],seam['pairs'][1:]):
+            x=[coords[c][i]-coords[a][i] for i in range(3)]
+            y=[coords[d][i]-coords[b][i] for i in range(3)]
+            cosine=sum(u*v for u,v in zip(x,y))/(math.sqrt(sum(v*v for v in x))*math.sqrt(sum(v*v for v in y)))
+            if cosine<-.5:raise StudioError('Placed seam directions oppose each other; inspect orientation before sewing')
+    keys=obj.data.shape_keys
+    if keys is None or "A3D.FlatRest" not in keys.key_blocks:raise StudioError("Missing flat rest shape key")
+    if any(distance([x*100 for x in v.co],p)>1e-3 for v,p in zip(keys.key_blocks["A3D.FlatRest"].data,payload["rest_cm"],strict=True)):
+        raise StudioError("Flat rest shape was edited")
+    if any(abs(k.value)>1e-8 for k in keys.key_blocks[1:]):raise StudioError("Rest/display shape keys must not deform the base mesh")
+    group=obj.vertex_groups.get("A3D.Pins")
+    if group is None:raise StudioError("Missing construction pin group")
+    actual={}
+    for v in obj.data.vertices:
+        for g in v.groups:
+            if g.group==group.index and g.weight>0:actual[str(v.index)]=g.weight
+    if set(actual)!=set(payload["pins"]) or any(abs(w-payload["pins"][i])>1e-6 for i,w in actual.items()):
+        raise StudioError("Construction pin weights differ from the recipe")
+    colliders,trees,snapshots=context_colliders(recipe)
+    penetration=penetration_cm(coords,trees)
+    if penetration>recipe["limits"]["max_penetration_cm"]:
+        raise StudioError("Cloth starts inside a collider: %.4f cm"%penetration)
+    return {"quality":quality,"colliders":snapshots,"max_penetration_cm":penetration},colliders,trees
+
+
+def apply_physics(obj,payload,recipe,phase,colliders):
+    import bpy
+    scene=bpy.context.scene;profile=recipe["phases"][phase]
+    for m in list(obj.modifiers):
+        if m.type=="CLOTH":obj.modifiers.remove(m)
+    scene.frame_set(1);scene.frame_start=1;scene.frame_end=profile["frames"]
+    scene.render.fps=profile["fps"];scene.render.fps_base=1.;scene.use_gravity=True;scene.gravity=profile["gravity_m_s2"]
+    cloth=obj.modifiers.new("A3D.Cloth", "CLOTH");settings=cloth.settings
+    area=mesh_quality(payload["rest_cm"],payload["placed_cm"],payload["faces"],recipe["mesh"])["rest_area_cm2"]
+    mass=copy.deepcopy(recipe["mass"])
+    if mass["basis"]=="total_kg":mass["value"]*=area/payload["full_rest_area_cm2"]
+    calculated=mass_settings(mass,area,len(payload["rest_cm"]),profile["sewing_force_per_kg"])
+    settings.mass=calculated["mass_per_vertex_kg"];settings.sewing_force_max=calculated["sewing_force_max"]
+    settings.use_sewing_springs=any(s["kind"]=="permanent" for s in payload["seams"].values())
+    settings.rest_shape_key=obj.data.shape_keys.key_blocks["A3D.FlatRest"];settings.use_dynamic_mesh=False
+    settings.vertex_group_mass="A3D.Pins";settings.pin_stiffness=1.;settings.quality=profile["quality"];settings.time_scale=1.
+    damping_scale=calculated["mass_per_vertex_kg"]/profile["damping_reference_mass_kg"]
+    calculated['damping_scale']=damping_scale
+    settings.effector_weights.gravity=1.;settings.air_damping=profile["air_damping"]*damping_scale
+    for name in ("tension_stiffness","compression_stiffness","shear_stiffness","bending_stiffness"):
+        setattr(settings,name,profile[name])
+    for name in ("tension_damping","compression_damping","shear_damping","bending_damping"):
+        setattr(settings,name,profile["structural_damping"]*damping_scale)
+    collection=bpy.data.collections.new(recipe["collision_collection"]+"."+uuid.uuid4().hex[:8])
+    scene.collection.children.link(collection)
+    for collider in colliders:collection.objects.link(collider)
+    collision=cloth.collision_settings;collision.collection=collection
+    collision.use_collision=bool(colliders);collision.use_self_collision=profile["self_collision"]
+    collision.distance_min=profile["collision_distance_cm"]/100;collision.self_distance_min=profile["self_distance_cm"]/100
+    collision.collision_quality=profile["collision_quality"]
+    # Current Blender groups EXCLUDE triangles from contact. Name and content
+    # deliberately describe that meaning; do not use an "interior inclusion" group.
+    group=obj.vertex_groups.get("A3D.SeamSelfExclusion") or obj.vertex_groups.new(name="A3D.SeamSelfExclusion")
+    group.remove(list(range(len(obj.data.vertices))))
+    seam_ids={i for seam in payload["seams"].values() if seam["kind"]=="permanent" for pair in seam["pairs"] for i in pair}
+    ids=sorted(seam_ids | {i for face in payload['faces'] if seam_ids.intersection(face) for i in face})
+    if ids:group.add(ids,1.,"REPLACE")
+    collision.vertex_group_self_collisions=group.name;collision.vertex_group_object_collisions=""
+    cloth.point_cache.frame_start=1;cloth.point_cache.frame_end=profile["frames"];cloth.point_cache.use_disk_cache=False
+    if not math.isclose(settings.mass,calculated["mass_per_vertex_kg"],rel_tol=1e-5) or not math.isclose(settings.sewing_force_max,calculated["sewing_force_max"],rel_tol=1e-5):
+        raise StudioError("Blender clamped the planned physical parameters")
+    assigned={k:profile[k] for k in ('tension_stiffness','compression_stiffness','shear_stiffness','bending_stiffness')}
+    assigned.update({k:profile['structural_damping']*damping_scale for k in
+        ('tension_damping','compression_damping','shear_damping','bending_damping')})
+    assigned['air_damping']=profile['air_damping']*damping_scale
+    contacts={'distance_min':profile['collision_distance_cm']/100,'self_distance_min':profile['self_distance_cm']/100}
+    if any(not math.isclose(getattr(settings,k),v,rel_tol=1e-5,abs_tol=1e-9) for k,v in assigned.items()) or any(
+        not math.isclose(getattr(collision,k),v,rel_tol=1e-5,abs_tol=1e-9) for k,v in contacts.items()):
+        raise StudioError('Blender clamped stiffness, damping or contact distances; revise the technical recipe')
+    return cloth,calculated,collection
+
+
+def physical_snapshot(obj):
+    import bpy
+    cloths=[m for m in obj.modifiers if m.type=="CLOTH"]
+    if len(cloths)!=1:raise StudioError("Expected exactly one Cloth modifier")
+    m=cloths[0];s=m.settings;c=m.collision_settings;scene=bpy.context.scene
+    fields=("mass","sewing_force_max","use_sewing_springs","quality","time_scale","use_dynamic_mesh","vertex_group_mass","pin_stiffness",
+        "tension_stiffness","compression_stiffness","shear_stiffness","bending_stiffness","tension_damping","compression_damping","shear_damping","bending_damping","air_damping")
+    groups={g.name:g.index for g in obj.vertex_groups}
+    weights={name:[(v.index,round(w.weight,7)) for v in obj.data.vertices for w in v.groups if w.group==index]
+        for name,index in groups.items() if name in (s.vertex_group_mass,c.vertex_group_self_collisions,c.vertex_group_object_collisions)}
+    return {"settings":{k:getattr(s,k) for k in fields},"rest_shape_key":s.rest_shape_key.name if s.rest_shape_key else None,
+        "group_weights_sha256":digest(weights),
+        "gravity_weight":s.effector_weights.gravity,"cache":[m.point_cache.frame_start,m.point_cache.frame_end,m.point_cache.use_disk_cache],
+        "collisions":{k:getattr(c,k) for k in ("use_collision","use_self_collision","distance_min","self_distance_min","collision_quality","vertex_group_self_collisions","vertex_group_object_collisions")},
+        "collection":sorted(o.name for o in c.collection.objects) if c.collection else None,
+        "gravity":list(scene.gravity),"use_gravity":scene.use_gravity,"fps":scene.render.fps,"fps_base":scene.render.fps_base,
+        "scale_length":scene.unit_settings.scale_length,"modifier_enabled":m.show_viewport and m.show_render}
+
+
+def verify_physics(obj, expected):
+    if physical_snapshot(obj)!=expected:raise StudioError("Executed Cloth/cache/context parameters differ from the recipe (including recreated modifiers)")
+
+
+def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None):
+    import bpy
+    cloth,mass,collection=apply_physics(obj,payload,recipe,phase,colliders)
+    expected=physical_snapshot(obj)
+    start=[[x*100 for x in p] for p in object_mesh(obj)[0]]
+    pairs=[p for seam in payload["seams"].values() if seam["kind"]=="permanent" for p in seam["pairs"]]
+    initial_gap=max((distance(start[a],start[b]) for a,b in pairs),default=0.)
+    history=[];maximum_displacement=0.;coords=start
+    try:
+        for frame in range(1,recipe["phases"][phase]["frames"]+1):
+            bpy.context.scene.frame_set(frame)
+            # Explicit depsgraph evaluation on EVERY frame, not just frame_set or
+            # an API return code; otherwise a background cloth may never advance.
+            coords=[[x*100 for x in p] for p in object_mesh(obj,True)[0]]
+            if len(coords)!=len(start) or any(not math.isfinite(x) for p in coords for x in p):raise StudioError("Nonfinite cloth or changed evaluated topology")
+            movement=max(distance(a,b) for a,b in zip(start,coords))
+            maximum_displacement=max(maximum_displacement,movement)
+            if maximum_displacement>recipe["limits"]["max_displacement_cm"]:raise StudioError("Cloth displacement budget exceeded; diagnose the local case")
+            gap=max((distance(coords[a],coords[b]) for a,b in pairs),default=0.)
+            solver=cloth.solver_result
+            history.append({"frame":frame,"max_movement_cm":movement,"max_seam_gap_cm":gap,
+                "solver_max_iterations":solver.max_iterations if solver else None})
+            if save_progress:save_progress(history)
+        verify_physics(obj,expected)
+        final_quality=mesh_quality(payload['rest_cm'],coords,payload['faces'],recipe['mesh'])
+        if maximum_displacement<recipe["limits"]["min_movement_cm"]:
+            raise StudioError("No measured cloth response; a successful API call is not a simulation")
+        penetration=penetration_cm(coords,trees)
+        if penetration>recipe["limits"]["max_penetration_cm"]:raise StudioError("Final cloth penetrates its declared collider")
+        final_gap=history[-1]["max_seam_gap_cm"]
+        if pairs and final_gap>recipe["limits"]["max_seam_gap_cm"]:raise StudioError("Seams did not settle within the declared tolerance")
+        if pairs and initial_gap>recipe["limits"]["max_seam_gap_cm"] and final_gap>=initial_gap*.95:
+            raise StudioError("No measured sewing improvement")
+        return coords,{"simulation":"PASS","phase":phase,"mass":mass,"executed":expected,"frames":history,"final_quality":final_quality,
+            "max_penetration_cm":penetration,"initial_gap_cm":initial_gap,"final_gap_cm":final_gap,
+            "centroid_start_cm":[sum(p[k] for p in start)/len(start) for k in range(3)],
+            "centroid_end_cm":[sum(p[k] for p in coords)/len(coords) for k in range(3)],
+            "visual_validation":"NOT_EXECUTED"}
+    finally:
+        # No stale cache can qualify a subsequent run. The caller stores evaluated
+        # coordinates as a new state, preserving the independent flat rest key.
+        if cloth in list(obj.modifiers):obj.modifiers.remove(cloth)
+        if collection.name in bpy.data.collections:bpy.data.collections.remove(collection)
+
+
+def commit_positions(obj,coords):
+    for i,p in enumerate(coords):
+        value=[x/100 for x in p];obj.data.vertices[i].co=value
+        obj.data.shape_keys.key_blocks[0].data[i].co=value
+    obj.data.update()
+
+
+def grid_probe(spacing, two=False, height=6.):
+    """Synthetic square coupons, independent of any user geometry."""
+    rest=[];placed=[];faces=[];pins={};seams={}
+    n=max(2,math.ceil(10/spacing));w=10/n
+    for panel in range(2 if two else 1):
+        off=len(rest)
+        for y in range(n+1):
+            for x in range(n+1):
+                rest.append([x*w,y*w,panel*1000.])
+                placed.append([x*w+panel*11,y*w,height])
+                if two and ((panel==0 and x==0) or (panel==1 and x==n)):pins[str(len(rest)-1)]=1.
+        for y in range(n):
+            for x in range(n):
+                a=off+y*(n+1)+x
+                faces.extend([[a,a+1,a+n+2],[a,a+n+2,a+n+1]])
+    if two:
+        seams['coupon']={'kind':'permanent','pairs':[[y*(n+1)+n,(n+1)**2+y*(n+1)] for y in range(n+1)]}
+    return {'rest_cm':rest,'placed_cm':placed,'faces':faces,'pins':pins,'seams':seams,'full_rest_area_cm2':100*(2 if two else 1)}
+
+
+def backend_probes(recipe,phase,output_dir,proof_callback=None):
+    """Three tiny physical tests in a separate scene; zero user-scene mutations."""
+    import bpy
+    from mathutils.bvhtree import BVHTree
+    from mathutils import Vector
+    output_dir=Path(output_dir);output_dir.mkdir(parents=True,exist_ok=True)
+    original=bpy.context.window.scene
+    scene=bpy.data.scenes.new('A3D.BackendProbes.'+uuid.uuid4().hex[:8])
+    bpy.context.window.scene=scene;scene.unit_settings.system='METRIC';scene.unit_settings.scale_length=1.
+    results={}
+    try:
+        for case in ('gravity','sewing','contact'):
+            local=copy.deepcopy(recipe)
+            # Mechanism probes isolate forces; the subsequent project-local trial
+            # uses the unmodified material, gravity and collision recipe.
+            profile=local['phases'][phase]
+            profile['gravity_m_s2']=[0,0,0] if case=='sewing' else [0,0,-9.81]
+            profile['self_collision']=False
+            profile['frames']=24 if case=='sewing' else 12
+            local['limits']['max_displacement_cm']=100
+            local['limits']['max_seam_gap_cm']=.5
+            # Start contact close enough that the measured free-fall control
+            # would cross the support within the same twelve evaluated frames.
+            payload=grid_probe(local['mesh']['spacing_cm'],case=='sewing',height=2. if case=='contact' else 6.)
+            obj=make_object(payload,'A3D.Probe.'+case)
+            colliders=[];trees=[]
+            if case=='contact':
+                bpy.ops.mesh.primitive_cube_add(size=1,location=(.05,.05,-.05))
+                body=bpy.context.object;body.name='A3D.ProbeSupport';body.scale=(.6,.6,.1)
+                bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+                body.modifiers.new('Collision','COLLISION');body.collision.thickness_outer=.001
+                v,f=object_mesh(body)
+                trees=[BVHTree.FromPolygons([Vector(p) for p in v],f)];colliders=[body]
+            if proof_callback:proof_callback(case,'before',obj)
+            coords,report=simulate_object(obj,payload,local,phase,colliders,trees)
+            if case=='gravity' and sum(p[2] for p in coords)/len(coords)>=5.:
+                raise StudioError('Gravity probe did not fall at least 1 cm')
+            if case=='contact' and (min(p[2] for p in coords)<-.1 or max(p[2] for p in coords)>2.):
+                raise StudioError('Contact probe did not settle above its support')
+            if case=='contact':
+                free_fall=results['gravity']['centroid_end_cm'][2]-results['gravity']['centroid_start_cm'][2]
+                if 2.+free_fall>=-.1:
+                    raise StudioError('Contact probe never challenged the support; free-fall control did not reach it')
+                report['unopposed_contact_centroid_z_cm']=2.+free_fall
+            commit_positions(obj,coords)
+            if proof_callback:proof_callback(case,'after',obj)
+            report['case']=case;report['synthetic']=True;results[case]=report
+            atomic_json(output_dir/(case+'.json'),report)
+            for o in list(scene.objects):bpy.data.objects.remove(o,do_unlink=True)
+        return {'blender_version':bpy.app.version_string,'checks':results,'simulation':'PASS','visual_validation':'NOT_EXECUTED'}
+    finally:
+        for o in list(scene.objects):bpy.data.objects.remove(o,do_unlink=True)
+        bpy.context.window.scene=original
+        bpy.data.scenes.remove(scene)
+
+
+def managed_inputs(project,component_id,recipe_path):
+    import bpy
+    state,component=project.ready(component_id)
+    if component['stage']=='RECONSTRUCTED':raise StudioError('Accepted sewing geometry is immutable')
+    objects=[o for o in bpy.data.objects if o.type=='MESH' and o.get('a3d_component_id')==component_id and o.get('a3d_role')=='simulation']
+    if len(objects)!=1:raise StudioError('Prepare exactly one native derived simulation mesh with garment(recipe_path=...)')
+    obj=objects[0]
+    meta=inside(project.root,obj['a3d_sewing_mesh'])
+    if sha(meta)!=obj['a3d_sewing_mesh_sha256']:raise StudioError('Derived boundary map changed')
+    payload=read_json(meta)
+    if payload['package_sha256']!=component['package']['sha256'] or obj.get('a3d_package_sha256')!=component['package']['sha256']:
+        raise StudioError('Simulation mesh package changed')
+    source=inside(project.root,payload['source_garment'])
+    data=read_json(source)
+    if digest(data)!=payload['source_garment_sha256']:raise StudioError('Extracted source contours changed')
+    recipe=read_json(inside(project.root,recipe_path));validate_recipe(data,recipe)
+    preflight(obj,payload,recipe)
+    return obj,payload,recipe
+
+
+def trial_binding(obj,payload,recipe,phase,context):
+    import bpy
+    return digest({'recipe':recipe,'phase':phase,'mesh':mesh_digest(obj),'map':obj['a3d_sewing_mesh_sha256'],
+        'blender':bpy.app.version_string,'colliders':context['colliders']})
+
+
+def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
+    import bpy
+    from blender.operations import working
+    project,session=working(project_root)
+    obj,payload,recipe=managed_inputs(project,component_id,recipe_path)
+    context,colliders,trees=preflight(obj,payload,recipe)
+    # Bind the trial to current geometry, rest, support weights, body pose and
+    # physical recipe. Parameter tuning invalidates a TECHNICAL trial, not the
+    # human approval of unmodified patterns.
+    binding=trial_binding(obj,payload,recipe,phase,context)
+    directory=project.data/'blender/sewing';directory.mkdir(parents=True,exist_ok=True)
+    local_path=directory/(component_id+'-local.json')
+    if scope=='full':
+        if not any(c['role']=='mannequin' for c in recipe['colliders']):
+            raise StudioError('Full garment trial needs the identified, measured auxiliary mannequin')
+        if not local_path.is_file() or read_json(local_path).get('binding')!=binding or read_json(local_path).get('simulation')!='PASS':
+            raise StudioError('Run the current local sleeve/armhole trial before a full toile')
+    attempt_dir=directory/('attempt-'+uuid.uuid4().hex);attempt_dir.mkdir()
+    progress_path=attempt_dir/'progress.json'
+    counter_path=directory/(component_id+'-attempts.json')
+    counters=read_json(counter_path) if counter_path.exists() else {'full_failures':0}
+    if scope=='full' and counters['full_failures']>=2:
+        raise StudioError('Two full attempts failed: diagnose and pass the local trial before another full run')
+    target=obj
+    original_scene_settings=(bpy.context.scene.frame_current,bpy.context.scene.frame_start,bpy.context.scene.frame_end,
+        bpy.context.scene.render.fps,bpy.context.scene.render.fps_base,list(bpy.context.scene.gravity),bpy.context.scene.use_gravity)
+    try:
+        if scope=='local':
+            probe_recipe=copy.deepcopy(recipe)
+            if recipe['mass']['basis']=='total_kg':probe_recipe['mass']={'basis':'areal_density_kg_m2','value':recipe['mass']['value']/(payload['full_rest_area_cm2']/10000)}
+            probes=backend_probes(probe_recipe,phase,attempt_dir/'backend-probes')
+            local_payload=copy.deepcopy(payload)
+            local_payload['placed_cm']=[[x*100 for x in p] for p in object_mesh(obj)[0]]
+            local_payload=subset_mesh(local_payload,recipe['trial_pieces'])
+            # Disable original cloth collision: only the explicit collision
+            # collection is used; the project mesh is preserved and not simulated.
+            target=make_object(local_payload,'A3D.LocalTrial.'+uuid.uuid4().hex[:8])
+            payload_for_run=local_payload
+        else:payload_for_run=payload
+        coords,report=simulate_object(target,payload_for_run,recipe,phase,colliders,trees,
+            lambda rows:atomic_json(progress_path,{'frames':rows}))
+        if context_colliders(recipe)[2]!=context['colliders']:
+            raise StudioError('Auxiliary mannequin pose changed during simulation')
+        report.update(binding=binding,scope=scope,component_id=component_id,recipe_path=recipe_path,recipe_sha256=digest(recipe),
+            context=context,package_sha256=payload['package_sha256'],trial_pieces=recipe['trial_pieces'])
+        if scope=='local':
+            report['backend_probes']=probes
+            report['local_result_cm']=coords
+            atomic_json(local_path,report)
+            counters['full_failures']=0
+        else:
+            commit_positions(obj,coords)
+            report['result_mesh_sha256']=mesh_digest(obj)
+            report['boundary_map_sha256']=obj['a3d_sewing_mesh_sha256']
+            atomic_json(directory/(component_id+'-full.json'),report)
+        atomic_json(counter_path,counters);atomic_json(attempt_dir/'result.json',report)
+        if scope=='full':bpy.ops.wm.save_as_mainfile(filepath=session['working'],check_existing=False)
+        return {'simulation':'PASS','scope':scope,'phase':phase,'report':(attempt_dir/'result.json').relative_to(project.root).as_posix(),
+            'mass':report['mass'],'final_gap_cm':report['final_gap_cm'],'visual_validation':'NOT_EXECUTED'}
+    except BaseException as exc:
+        if scope=='full':counters['full_failures']+=1;atomic_json(counter_path,counters)
+        atomic_json(attempt_dir/'failure.json',{'error':str(exc),'scope':scope,'binding':binding,'simulation':'FAIL'})
+        raise
+    finally:
+        if scope=='local':
+            if target!=obj and target.name in bpy.data.objects:bpy.data.objects.remove(target,do_unlink=True)
+            sc=bpy.context.scene;frame,sc.frame_start,sc.frame_end,sc.render.fps,sc.render.fps_base,gravity,sc.use_gravity=original_scene_settings
+            sc.gravity=gravity;sc.frame_set(frame)
+
+
+def freeze_sewn(project_root,component_id,recipe_path):
+    import bpy
+    from blender.operations import working
+    project,session=working(project_root)
+    obj,payload,recipe=managed_inputs(project,component_id,recipe_path)
+    report_path=project.data/'blender/sewing'/(component_id+'-full.json')
+    if not report_path.exists():raise StudioError('No completed full toile to freeze')
+    report=read_json(report_path)
+    if report.get('simulation')!='PASS' or report.get('result_mesh_sha256')!=mesh_digest(obj) or report['recipe_sha256']!=digest(recipe) or report.get('boundary_map_sha256')!=obj['a3d_sewing_mesh_sha256']:
+        raise StudioError('Full simulation evidence is stale')
+    coords,faces=object_mesh(obj)
+    vertices,new_faces,mapping,count=weld_permanent(coords,faces,payload['seams'],recipe['limits']['weld_gap_cm']/100)
+    mesh=bpy.data.meshes.new('A3D.SewnSurface');mesh.from_pydata(vertices,[],new_faces);mesh.update()
+    result=bpy.data.objects.new('A3D.Sewn.'+component_id,mesh);bpy.context.scene.collection.objects.link(result)
+    result['a3d_component_id']=component_id;result['a3d_package_sha256']=payload['package_sha256'];result['a3d_role']='render'
+    result['a3d_source_simulation']=obj.name
+    obj['a3d_source_component_id']=component_id;del obj['a3d_component_id'];obj['a3d_role']='archived-simulation'
+    obj.hide_set(True);obj.hide_render=True
+    receipt={'operation':'freeze_sewn','component_id':component_id,'object':result.name,'vertices_before':len(coords),
+        'vertices_after':len(vertices),'explicit_unions':count,'mapping':mapping,
+        'preserved_links':[sid for sid,s in payload['seams'].items() if s['kind']!='permanent'],
+        'source_simulation_report':report_path.relative_to(project.root).as_posix(),'source_simulation_sha256':sha(report_path),
+        'visual_validation':'NOT_EXECUTED'}
+    atomic_json(project.data/'blender/sewing'/(component_id+'-frozen.json'),receipt)
+    bpy.ops.wm.save_as_mainfile(filepath=session['working'],check_existing=False)
+    return {k:v for k,v in receipt.items() if k!='mapping'}

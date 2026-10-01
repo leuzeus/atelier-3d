@@ -6,6 +6,22 @@ from tests.support import PROVENANCE, ready_project
 from tests.test_core import Case
 
 class FixtureTests(Case):
+    def test_package_allows_different_source_seam_sampling(self):
+        import xml.etree.ElementTree as ET
+        source=self.root/'source'
+        shutil.copytree(ROOT/'tests/fixtures/garment-coat/package',source)
+        data=read_json(source/'garment.json');panel=data['pieces']['front']
+        panel['vertices'].insert(2,[20,20]);panel['faces']=[[0,1,2],[0,2,3],[0,3,4]]
+        panel['edges']={'left':[0,4],'right':[1,2,3],'top':[4,3]}
+        atomic_json(source/'garment.json',data)
+        tree=ET.parse(source/'pattern.svg')
+        polygon=next(e for e in tree.getroot().iter() if e.get('id')=='front')
+        polygon.set('points',' '.join(','.join(map(str,p)) for p in panel['vertices']))
+        tree.write(source/'pattern.svg',encoding='utf-8')
+        build_package(source,self.root/'unequal.garmentpkg','test.coat','garment.coat','PATTERN_SEWN',PROVENANCE)
+        extract_package(self.root/'unequal.garmentpkg',self.root/'extracted')
+        self.assertEqual(read_json(self.root/'extracted/garment.json'),data)
+
     def test_garment_contract_fixture_roundtrip(self):
         source=ROOT/"tests/fixtures/garment-coat"
         data=contract("asset",read_json(source/"asset.json"))

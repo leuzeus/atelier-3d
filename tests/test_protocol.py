@@ -12,6 +12,37 @@ from a3d.tools import TOOLS, call
 
 
 class ProtocolTests(unittest.TestCase):
+    def test_runtime_versions_match_both_manifests_and_pyproject(self):
+        import tomllib
+        from a3d import __version__
+        expected=json.loads((ROOT/'plugin.json').read_text(encoding='utf-8'))['version']
+        self.assertEqual(__version__,expected)
+        self.assertEqual(tomllib.loads((ROOT/'pyproject.toml').read_text(encoding='utf-8'))['project']['version'],expected)
+        self.assertEqual(Server().handle({'jsonrpc':'2.0','id':1,'method':'initialize','params':{}})['result']['serverInfo']['version'],expected)
+
+    def test_installed_compatibility_layout_starts_and_reports_version(self):
+        import shutil
+        import tempfile
+        (ROOT/'work/test-runs').mkdir(parents=True,exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=ROOT/'work/test-runs') as tmp:
+            target=Path(tmp)
+            for folder in ('a3d','servers','templates','schemas','.codex-plugin'):
+                shutil.copytree(ROOT/folder,target/folder,ignore=shutil.ignore_patterns('__pycache__'))
+            shutil.copy2(ROOT/'plugin.json',target/'plugin.portable.json')
+            self.assertFalse((target/'plugin.json').exists())
+            messages=[{'jsonrpc':'2.0','id':1,'method':'initialize','params':{}},
+                {'jsonrpc':'2.0','method':'notifications/initialized'},
+                {'jsonrpc':'2.0','id':2,'method':'tools/call','params':{'name':'studio_doctor','arguments':{'live_comfy':False}}}]
+            run=subprocess.run([sys.executable,'-B',str(target/'servers/studio/main.py')],
+                input='\n'.join(json.dumps(v) for v in messages)+'\n',cwd=target,
+                capture_output=True,text=True,encoding='utf-8',timeout=10)
+            self.assertEqual(run.returncode,0,run.stderr)
+            output=[json.loads(v) for v in run.stdout.splitlines()]
+            self.assertFalse(output[1]['result']['isError'])
+            doctor=json.loads(output[1]['result']['content'][0]['text'])
+            self.assertEqual(doctor['plugin']['version'],output[0]['result']['serverInfo']['version'])
+            self.assertEqual(doctor['plugin']['status'],'PASS')
+
     def initialized(self):
         s=Server()
         s.handle({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}})

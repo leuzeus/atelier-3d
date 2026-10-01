@@ -164,7 +164,10 @@ class LifecycleTests(Case):
     def test_simulation_budget_and_colliders_are_checked(self):
         p = ready_project(self.root, garment=True)
         data = {"component_id": "garment.coat", "type": "cloth", "frame_start": 1, "frame_end": 24,
-                "quality": 5, "collision_components": [], "baked": False, "max_frames": 24}
+                "quality": 10, "collision_components": [], "baked": False, "max_frames": 24,
+                "sewing_recipe": ".a3d/evidence/sewing-recipe.json", "phase": "mount"}
+        from a3d.core import ROOT, read_json
+        atomic_json(p.root / data['sewing_recipe'], read_json(ROOT / 'templates/sewing-recipe.json'))
         path = ".a3d/evidence/simulation.json"
         atomic_json(p.root / path, data)
         simulation_plan(p, p.state(), path, ["garment.coat"])
