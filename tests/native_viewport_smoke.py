@@ -25,14 +25,14 @@ def main():
     bpy.context.preferences.filepaths.temporary_directory = str(root)
     bpy.context.preferences.filepaths.save_version = 0
     project = ready_project(root / 'project', True)
-    
-    
+
+
     def execute(operation, arguments):
         namespace = {}
         exec(blender_operation(str(project.root), operation, arguments)['code'], namespace)
         return namespace['result']
-    
-    
+
+
     try:
         bpy.data.objects['Cube'].location.x = 5
         bpy.ops.wm.save_as_mainfile(filepath=str(root / 'original.blend'))
