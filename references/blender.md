@@ -2,7 +2,14 @@
 
 Ne pas réimplémenter ni installer Blender MCP pendant une production. Découvrir ses outils disponibles et vérifier la scène avant d'agir. Le package fournit blender/operations.py à exécuter dans Blender via l'outil Python officiel ; ce fichier n'est pas un serveur MCP Blender.
 
-Pour une opération, appeler `studio_blender_operation` avec le projet, le nom d'opération et ses arguments. Transmettre le champ `code` exactement à `execute_blender_code`. Le hook reconnaît ce point d'entrée et le dispatcher répète l'admission dans Blender. Les opérations disponibles sont prepare, resume, inspect, verify_legacy_import, garment, simulate_sewn, freeze_sewn, assemble, run_script et restore_checkpoint. Le code direct de reconstruction est refusé dans un projet rattaché. Lire les [contrôles de progression et de récupération](lifecycle-guards.md).
+Pour une opération, appeler `studio_blender_operation` avec le projet, le nom d'opération et ses arguments. Transmettre le champ `code` exactement à `execute_blender_code`. Le hook reconnaît ce point d'entrée et le dispatcher répète l'admission dans Blender. Les opérations disponibles sont prepare, resume, inspect, frame_view, inspect_sewing_failure, verify_legacy_import, garment, simulate_sewn, freeze_sewn, assemble, run_script et restore_checkpoint. Le code direct de reconstruction est refusé dans un projet rattaché. Lire les [contrôles de progression et de récupération](lifecycle-guards.md).
+
+Pour cadrer les pixels, utiliser `frame_view` avec l'ID du composant et le nom
+exact retourné par l'inspection, puis capturer `VIEW_3D`. Ne pas appeler la
+navigation directe pour changer implicitement sélection/visibilité. Après un
+échec Cloth, `inspect_sewing_failure` lit le diagnostic de la tentative, avec
+projections et positions évaluées ; il ne fait pas passer l'essai. Lire le
+[protocole de cadrage et diagnostic](viewport-diagnostics.md).
 
 `run_script` sert à simulate (RECONSTRUCTING, composants cousus déjà présents), refine (REFINING), behavior (BEHAVIOR_AUTHORING), validate/export (VALIDATING). Il exige purpose, path, sha256 et component_ids ; il vérifie la copie de travail et crée un checkpoint. Behavior et export exigent également la décision silhouette liée à silhouette-review. Simulate exige aussi simulation_plan, sewing_recipe, phase et un essai local natif correspondant. Ses paramètres et sa réponse physique sont vérifiés ; préférer simulate_sewn pour le parcours standard. Ce mécanisme ne constitue pas un bac à sable de Python.
 

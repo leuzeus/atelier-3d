@@ -95,12 +95,19 @@ def subset_mesh(payload, piece_ids):
     keep=sorted(i for pid in piece_ids for i in payload["panels"][pid]["indices"])
     mapping={old:i for i,old in enumerate(keep)}
     sub=copy.deepcopy(payload)
+    source_indices=payload.get('source_vertex_indices', list(range(len(payload['rest_cm']))))
+    source_faces=payload.get('source_face_indices', list(range(len(payload['faces']))))
+    sub['source_vertex_indices']=[source_indices[i] for i in keep]
+    sub['source_face_indices']=[source_faces[i] for i,f in enumerate(payload['faces']) if all(v in mapping for v in f)]
+    sub['omitted_seams']=[sid for sid,s in payload['seams'].items() if s['piece_a'] not in piece_ids or s['piece_b'] not in piece_ids]
     for key in ("rest_cm","placed_cm"):sub[key]=[payload[key][i] for i in keep]
     sub["faces"]=[[mapping[i] for i in f] for f in payload["faces"] if all(i in mapping for i in f)]
     sub["pins"]={str(mapping[int(i)]):w for i,w in payload["pins"].items() if int(i) in mapping}
     sub["seams"]={sid:{**s,"pairs":[[mapping[a],mapping[b]] for a,b in s["pairs"]]}
         for sid,s in payload["seams"].items() if s["piece_a"] in piece_ids and s["piece_b"] in piece_ids}
-    sub["panels"]={pid:{**payload["panels"][pid],"indices":[mapping[i] for i in payload["panels"][pid]["indices"]]}
+    sub["panels"]={pid:{**payload["panels"][pid],"indices":[mapping[i] for i in payload["panels"][pid]["indices"]],
+        "boundary":[mapping[i] for i in payload['panels'][pid]['boundary']],
+        "edges":{name:[mapping[i] for i in ids] for name,ids in payload['panels'][pid]['edges'].items()}}
         for pid in piece_ids}
     return sub
 
@@ -301,14 +308,14 @@ def verify_physics(obj, expected):
     if physical_snapshot(obj)!=expected:raise StudioError("Executed Cloth/cache/context parameters differ from the recipe (including recreated modifiers)")
 
 
-def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None):
+def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,save_diagnostic=None):
     import bpy
     cloth,mass,collection=apply_physics(obj,payload,recipe,phase,colliders)
     expected=physical_snapshot(obj)
     start=[[x*100 for x in p] for p in object_mesh(obj)[0]]
     pairs=[p for seam in payload["seams"].values() if seam["kind"]=="permanent" for p in seam["pairs"]]
     initial_gap=max((distance(start[a],start[b]) for a,b in pairs),default=0.)
-    history=[];maximum_displacement=0.;coords=start
+    history=[];maximum_displacement=0.;coords=start;frame=0
     try:
         for frame in range(1,recipe["phases"][phase]["frames"]+1):
             bpy.context.scene.frame_set(frame)
@@ -339,6 +346,29 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None)
             "centroid_start_cm":[sum(p[k] for p in start)/len(start) for k in range(3)],
             "centroid_end_cm":[sum(p[k] for p in coords)/len(coords) for k in range(3)],
             "visual_validation":"NOT_EXECUTED"}
+    except BaseException as exc:
+        if save_diagnostic:
+            try:
+                from a3d.sewing_diagnostics import failure_geometry
+                from mathutils import Vector
+                penetrations=[]
+                source=payload.get('source_vertex_indices', list(range(len(start))))
+                for i,point in enumerate(coords):
+                    if any(not math.isfinite(x) for x in point):continue
+                    p=Vector([x/100 for x in point])
+                    for ti,tree in enumerate(trees):
+                        hit,normal,_,_=tree.find_nearest(p)
+                        depth=-(p-hit).dot(normal)*100 if hit is not None else 0.
+                        if depth>recipe['limits']['max_penetration_cm']:
+                            penetrations.append({'index':i,'source_index':source[i] if i<len(source) else None,
+                                'collider':colliders[ti].name,'depth_cm':depth})
+                try:observed=physical_snapshot(obj)
+                except Exception as snapshot_error:observed={'unavailable':repr(snapshot_error)}
+                save_diagnostic({'error':str(exc),'frame':frame,'expected_execution':expected,'executed':observed,'frames':history,
+                    'geometry':failure_geometry(payload,coords,start,recipe,penetrations)})
+            except Exception as diagnostic_error:
+                exc.add_note('Failure diagnostic unavailable: '+repr(diagnostic_error))
+        raise
     finally:
         # No stale cache can qualify a subsequent run. The caller stores evaluated
         # coordinates as a new state, preserving the independent flat rest key.
@@ -479,6 +509,23 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
     if scope=='full' and counters['full_failures']>=2:
         raise StudioError('Two full attempts failed: diagnose and pass the local trial before another full run')
     target=obj
+    diagnostic_ref=None
+    def save_diagnostic(data):
+        nonlocal diagnostic_ref
+        data.update(schema_version=1,simulation='FAIL',accepted=False,visual_validation='NOT_EXECUTED',
+            component_id=component_id,phase=phase,scope=scope,binding=binding,context=context,
+            package_sha256=payload['package_sha256'],recipe_sha256=digest(recipe),recipe=recipe,
+            boundary_map_sha256=obj['a3d_sewing_mesh_sha256'],source_garment_sha256=payload['source_garment_sha256'],
+            checkpoint=project.state().get('pending_blender_operation',{}).get('checkpoint'))
+        path=attempt_dir/'diagnostic.json'
+        from a3d.sewing_diagnostics import preview_svg
+        preview=preview_svg(data)
+        if preview:
+            preview_path=attempt_dir/'diagnostic.svg'
+            preview_path.write_text(preview,encoding='utf-8')
+            data['preview']={'path':preview_path.relative_to(project.root).as_posix(),'sha256':sha(preview_path)}
+        atomic_json(path,data)
+        diagnostic_ref={'path':path.relative_to(project.root).as_posix(),'sha256':sha(path)}
     original_scene_settings=(bpy.context.scene.frame_current,bpy.context.scene.frame_start,bpy.context.scene.frame_end,
         bpy.context.scene.render.fps,bpy.context.scene.render.fps_base,list(bpy.context.scene.gravity),bpy.context.scene.use_gravity)
     try:
@@ -495,7 +542,7 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
             payload_for_run=local_payload
         else:payload_for_run=payload
         coords,report=simulate_object(target,payload_for_run,recipe,phase,colliders,trees,
-            lambda rows:atomic_json(progress_path,{'frames':rows}))
+            lambda rows:atomic_json(progress_path,{'frames':rows}),save_diagnostic)
         if context_colliders(recipe)[2]!=context['colliders']:
             raise StudioError('Auxiliary mannequin pose changed during simulation')
         report.update(binding=binding,scope=scope,component_id=component_id,recipe_path=recipe_path,recipe_sha256=digest(recipe),
@@ -516,7 +563,8 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
             'mass':report['mass'],'final_gap_cm':report['final_gap_cm'],'visual_validation':'NOT_EXECUTED'}
     except BaseException as exc:
         if scope=='full':counters['full_failures']+=1;atomic_json(counter_path,counters)
-        atomic_json(attempt_dir/'failure.json',{'error':str(exc),'scope':scope,'binding':binding,'simulation':'FAIL'})
+        atomic_json(attempt_dir/'failure.json',{'error':str(exc),'scope':scope,'binding':binding,'simulation':'FAIL',
+            'diagnostic':diagnostic_ref,'notes':getattr(exc,'__notes__',[])})
         raise
     finally:
         if scope=='local':

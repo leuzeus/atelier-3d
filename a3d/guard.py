@@ -24,9 +24,11 @@ def parse_code(code):
 
 def admit_operation(project, operation, arguments):
     state = project.state()
-    if operation not in ("prepare", "resume", "inspect", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn"):
+    if operation not in ("prepare", "resume", "inspect", "frame_view", "inspect_sewing_failure", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn"):
         raise StudioError("Unknown guarded Blender operation")
     required = {"prepare": set(), "resume": set(), "inspect": set(),
+        "frame_view": {"component_id", "object_name"},
+        "inspect_sewing_failure": {"component_id", "attempt_dir"},
         "verify_legacy_import": {"package_dir", "checkpoint_receipt"}, "garment": {"package_dir"}, "assemble": {"plan_path"},
         "run_script": {"purpose", "path", "sha256", "component_ids"}, "restore_checkpoint": set(),
         "simulate_sewn": {"component_id", "recipe_path", "phase", "scope"},
@@ -65,12 +67,29 @@ def admit_operation(project, operation, arguments):
     if set(arguments) != required:
         raise StudioError("Unexpected/missing operation arguments")
     from .lifecycle import no_pending_operation
+    if operation == 'inspect_sewing_failure':
+        from .sewing_diagnostics import inspect_failure
+        if arguments['component_id'] not in state['components']:
+            raise StudioError('Unknown diagnostic component')
+        inspect_failure(project, **arguments)
+        return
     if operation == "restore_checkpoint":
         pending = state.get("pending_blender_operation")
         if not pending:
             raise StudioError("No interrupted operation to recover")
         from .lifecycle import verify_files
         verify_files(project, [pending["checkpoint"]])
+        return
+    if operation == "frame_view":
+        if state['stage'] not in ('RECONSTRUCTING', 'RECONSTRUCTED', 'ASSEMBLING', 'REFINING', 'BEHAVIOR_AUTHORING', 'VALIDATING', 'COMPLETE', 'BLOCKED', 'FAILED'):
+            raise StudioError('Viewport framing requires an existing production candidate')
+        cid, name = arguments['component_id'], arguments['object_name']
+        if not isinstance(cid, str) or cid not in state['components'] or not state['components'][cid].get('package'):
+            raise StudioError('Viewport framing requires an existing packaged component')
+        if not isinstance(name, str) or not name.strip() or len(name) > 255 or any(ord(c) < 32 for c in name):
+            raise StudioError('Viewport framing requires an exact object name')
+        # Inspection must remain possible after a failure or invalidated board.
+        # Live scene, object and provenance checks occur inside Blender.
         return
     if operation != "inspect":
         no_pending_operation(state)

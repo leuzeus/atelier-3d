@@ -14,6 +14,11 @@ Ces contrôles prolongent la [revue de construction](construction-review.md). Il
 
 ## Capturer une revue visuelle
 
+Pendant la production, `frame_view` cadre un candidat visible de la copie de
+travail sans mutation de géométrie ni acceptation. `inspect_sewing_failure`
+conserve FAIL et pending tout en donnant accès aux positions, mappings et tracés
+historiques d'un essai évalué. Voir [le protocole de diagnostic](viewport-diagnostics.md).
+
 Sauvegarder la copie Blender de travail, puis en faire une copie byte pour byte dans un chemin unique sous `.a3d/outputs`. Ne pas utiliser le fichier de travail mutable comme archive de revue. Ouvrir les rendus PNG et les références originales côte à côte ; relever les écarts et demander la décision humaine aux jalons prévus.
 
 Dans `visual-review.schema.json`, renseigner `asset_id`, `purpose`, `artifacts` (chemins/hashes de ces copies), `images` (rendus PNG), `reference_evidence_keys` (images du gate references) et `notes`. La revue reconstruction/final doit référencer exactement les sorties du rapport associé. À l'entrée en comportement, le hash de la copie revue doit correspondre au fichier de travail courant. Les modifications de comportement ultérieures conservent la copie revue et nécessitent une nouvelle revue finale de leurs sorties.

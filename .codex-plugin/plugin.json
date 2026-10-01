@@ -1,6 +1,6 @@
 {
   "name": "atelier-3d",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Local 3D production orchestration.",
   "skills": "./skills",
   "mcpServers": "./.codex-plugin/mcp.json",
