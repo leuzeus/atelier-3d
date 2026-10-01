@@ -9,7 +9,7 @@ from a3d.core import ROOT, StudioError, atomic_json, sha
 from a3d.guard import admit_operation, code_for, parse_code
 from a3d.packages import extract_package
 from a3d.store import Project
-from blender.legacy import legacy_topology, validate_legacy_panels
+from blender.legacy import checkpoint_import_proof, legacy_topology, validate_legacy_panels
 from tests.support import asset, garment_source, ready_project
 from tests.test_core import Case
 
@@ -89,6 +89,10 @@ class LegacyMigrationTests(Case):
         self.receipt = {'object': self.obj.name, 'vertices': count, 'sewing_edges': seam_count,
                         'checkpoint': {'path': '.a3d/checkpoints/legacy.blend', 'sha256': sha(self.checkpoint)}}
         atomic_json(self.project.data / 'blender/garment-receipt.json', self.receipt)
+        with self.project.transaction() as db:
+            state = self.project.state(db)
+            self.project.save(db, state, 'blender_started', {'operation':'garment',
+                                                           'checkpoint':self.receipt['checkpoint']})
 
     def validate(self):
         return validate_legacy_panels(self.project, self.obj, self.data, 'a' * 64)
@@ -158,6 +162,40 @@ class LegacyMigrationTests(Case):
             with self.assertRaisesRegex(StudioError, 'foreign'):
                 validate_legacy_panels(self.project, self.obj, self.data, 'a' * 64, 'c' * 64, paths)
 
+    def test_overwritten_receipt_recovers_observed_checkpoint_evidence_without_relabeling_it(self):
+        receipt = {**self.receipt, 'object': 'A3D.garment.belt', 'vertices': 944, 'sewing_edges': 462}
+        path = self.project.data / 'blender/garment-receipt.json'
+        atomic_json(path, receipt); original = path.read_bytes()
+        observed = {'object': self.obj.name, 'component_id': 'garment.coat', 'package_sha256': 'a' * 64}
+        with patch('blender.legacy.read_checkpoint_object', return_value=observed) as native:
+            proof = validate_legacy_panels(self.project, self.obj, self.data, 'a' * 64,
+                                           checkpoint_receipt='.a3d/blender/garment-receipt.json')
+            self.assertIsNone(proof['import_receipt'])
+            self.assertEqual(proof['checkpoint_import_proof']['observed'], observed)
+            self.assertEqual(proof['checkpoint_import_proof']['kind'], 'guarded-checkpoint-object')
+            native.assert_called_once_with(self.checkpoint, self.obj.name, self.data, 'a' * 64)
+        self.assertEqual(path.read_bytes(), original)
+        self.assertNotIn('a3d_role', self.obj)
+
+    def test_recovery_refuses_missing_changed_or_unguarded_checkpoint_before_loading(self):
+        with patch('blender.legacy.read_checkpoint_object') as native:
+            for path in ('.a3d/blender/missing.json', '../outside.json'):
+                with self.subTest(path=path), self.assertRaises(StudioError):
+                    checkpoint_import_proof(self.project, self.obj.name, self.data, 'a' * 64, path)
+            self.checkpoint.write_bytes(b'changed')
+            with self.assertRaisesRegex(StudioError, 'checkpoint'):
+                checkpoint_import_proof(self.project, self.obj.name, self.data, 'a' * 64,
+                                        '.a3d/blender/garment-receipt.json')
+            native.assert_not_called()
+
+    def test_checkpoint_file_with_matching_hash_without_guarded_journal_entry_is_refused(self):
+        with self.project.transaction() as db:
+            db.execute("DELETE FROM events WHERE kind='blender_started'")
+        with patch('blender.legacy.read_checkpoint_object') as native, self.assertRaisesRegex(StudioError, 'journal'):
+            checkpoint_import_proof(self.project, self.obj.name, self.data, 'a' * 64,
+                                    '.a3d/blender/garment-receipt.json')
+        native.assert_not_called()
+
     def test_migration_requires_explicit_rebuild_and_keeps_board_gates(self):
         project = ready_project(self.root / 'approved', True)
         recipe = json.loads((ROOT / 'templates/sewing-recipe.json').read_text(encoding='utf-8'))
@@ -179,3 +217,14 @@ class LegacyMigrationTests(Case):
                         {'legacy_script_receipts': 'script.json'}, {'migrate_legacy': False}):
             with self.subTest(invalid=invalid), self.assertRaises(StudioError):
                 admit_operation(project, 'garment', {**args, 'rebuild': True, **extras, **invalid})
+        receipt_path = project.data / 'blender/garment-receipt.json'
+        atomic_json(receipt_path, self.receipt)
+        before = project.state()
+        admit_operation(project, 'verify_legacy_import', {'package_dir':'extracted',
+                                                         'checkpoint_receipt':'.a3d/blender/garment-receipt.json'})
+        self.assertEqual(project.state(), before)
+        admit_operation(project, 'garment', {**args, 'rebuild': True,
+            'legacy_checkpoint_receipt': '.a3d/blender/garment-receipt.json'})
+        with self.assertRaises(StudioError):
+            admit_operation(project, 'garment', {**args, 'rebuild': True,
+                'migrate_legacy':False, 'legacy_checkpoint_receipt':'.a3d/blender/garment-receipt.json'})

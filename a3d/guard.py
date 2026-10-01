@@ -24,9 +24,10 @@ def parse_code(code):
 
 def admit_operation(project, operation, arguments):
     state = project.state()
-    if operation not in ("prepare", "resume", "inspect", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn"):
+    if operation not in ("prepare", "resume", "inspect", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn"):
         raise StudioError("Unknown guarded Blender operation")
-    required = {"prepare": set(), "resume": set(), "inspect": set(), "garment": {"package_dir"}, "assemble": {"plan_path"},
+    required = {"prepare": set(), "resume": set(), "inspect": set(),
+        "verify_legacy_import": {"package_dir", "checkpoint_receipt"}, "garment": {"package_dir"}, "assemble": {"plan_path"},
         "run_script": {"purpose", "path", "sha256", "component_ids"}, "restore_checkpoint": set(),
         "simulate_sewn": {"component_id", "recipe_path", "phase", "scope"},
         "freeze_sewn": {"component_id", "recipe_path"}}[operation]
@@ -53,6 +54,12 @@ def admit_operation(project, operation, arguments):
             raise StudioError('Legacy modified mesh requires explicit script receipts')
         if len(set(receipts)) != len(receipts):
             raise StudioError('Legacy script receipts must be unique')
+    if operation == 'garment' and 'legacy_checkpoint_receipt' in arguments:
+        required |= {'legacy_checkpoint_receipt'}
+        if arguments.get('migrate_legacy') is not True:
+            raise StudioError('Legacy checkpoint recovery requires migrate_legacy=true')
+        if not isinstance(arguments['legacy_checkpoint_receipt'], str) or not arguments['legacy_checkpoint_receipt']:
+            raise StudioError('Legacy checkpoint recovery requires an existing receipt path')
     if operation == "run_script" and arguments.get("purpose") == "simulate":
         required = required | {"simulation_plan"}
     if set(arguments) != required:
@@ -85,7 +92,7 @@ def admit_operation(project, operation, arguments):
         if operation == "simulate_sewn" and (arguments["phase"] not in ("mount", "drape") or arguments["scope"] not in ("local", "full")):
             raise StudioError("Unknown sewing phase or scope")
         return
-    if operation == "garment":
+    if operation in ("garment", "verify_legacy_import"):
         if state["stage"] != "RECONSTRUCTING":
             raise StudioError("Sewn panel construction requires RECONSTRUCTING")
         data_dir = inside(project.root, arguments["package_dir"])
@@ -101,6 +108,12 @@ def admit_operation(project, operation, arguments):
         for path, checksum in manifest["checksums"].items():
             if sha(inside(data_dir, path)) != checksum:
                 raise StudioError("Extracted pattern input changed")
+        if operation == 'verify_legacy_import':
+            checkpoint_receipt = arguments['checkpoint_receipt']
+            if not isinstance(checkpoint_receipt, str) or not checkpoint_receipt:
+                raise StudioError('Legacy checkpoint recovery requires an existing receipt path')
+            inside(project.root, checkpoint_receipt)
+            return
         if "recipe_path" not in arguments:
             raise StudioError("garment requires recipe_path for its derived simulation mesh; keep approved packages unchanged")
         from .sewing import validate_recipe

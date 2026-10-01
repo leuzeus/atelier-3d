@@ -2,7 +2,7 @@
 
 Ne pas réimplémenter ni installer Blender MCP pendant une production. Découvrir ses outils disponibles et vérifier la scène avant d'agir. Le package fournit blender/operations.py à exécuter dans Blender via l'outil Python officiel ; ce fichier n'est pas un serveur MCP Blender.
 
-Pour une opération, appeler `studio_blender_operation` avec le projet, le nom d'opération et ses arguments. Transmettre le champ `code` exactement à `execute_blender_code`. Le hook reconnaît ce point d'entrée et le dispatcher répète l'admission dans Blender. Les opérations disponibles sont prepare, resume, inspect, garment, simulate_sewn, freeze_sewn, assemble, run_script et restore_checkpoint. Le code direct de reconstruction est refusé dans un projet rattaché. Lire les [contrôles de progression et de récupération](lifecycle-guards.md).
+Pour une opération, appeler `studio_blender_operation` avec le projet, le nom d'opération et ses arguments. Transmettre le champ `code` exactement à `execute_blender_code`. Le hook reconnaît ce point d'entrée et le dispatcher répète l'admission dans Blender. Les opérations disponibles sont prepare, resume, inspect, verify_legacy_import, garment, simulate_sewn, freeze_sewn, assemble, run_script et restore_checkpoint. Le code direct de reconstruction est refusé dans un projet rattaché. Lire les [contrôles de progression et de récupération](lifecycle-guards.md).
 
 `run_script` sert à simulate (RECONSTRUCTING, composants cousus déjà présents), refine (REFINING), behavior (BEHAVIOR_AUTHORING), validate/export (VALIDATING). Il exige purpose, path, sha256 et component_ids ; il vérifie la copie de travail et crée un checkpoint. Behavior et export exigent également la décision silhouette liée à silhouette-review. Simulate exige aussi simulation_plan, sewing_recipe, phase et un essai local natif correspondant. Ses paramètres et sa réponse physique sont vérifiés ; préférer simulate_sewn pour le parcours standard. Ce mécanisme ne constitue pas un bac à sable de Python.
 
@@ -15,6 +15,14 @@ Une scène étrangère, une opération en échec ou un projet COMPLETE sont refu
 Ne pas effacer la session ni provoquer une mutation échouée pour obtenir cette copie.
 Le [protocole de continuité](blender-continuity.md) décrit aussi la mise à jour du
 dispatcher et la migration contrôlée des panneaux 0.4.0.
+
+`verify_legacy_import(package_dir, checkpoint_receipt)` contrôle l'objet initial
+dans un checkpoint historique lorsque le reçu d'import a été remplacé par celui
+d'un autre composant. Il ne démarre pas une mutation. Après résultat vérifié,
+`garment` accepte `legacy_checkpoint_receipt` pour la récupération native ; suivre
+le protocole et conserver les arguments de diagnostic d'un mesh densifié.
+Chaque nouvelle opération `garment` produit un reçu immuable associé au composant
+et au package, avec un chemin/SHA retournés et un lien dans l'objet Blender.
 
 assemble importe les meshes admis, crée un parent par composant, conserve leurs IDs et applique rotation/échelle/recalage d'anchor. anchor_local est exprimé en unités Blender après import ; anchor_world_cm et position_cm sont en cm. Aucune fusion automatique. Le plan fixe les relations identiques à asset.json.
 

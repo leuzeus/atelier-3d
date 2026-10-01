@@ -1,6 +1,23 @@
 # Validation d'Atelier 3D
 
-## État de la version 0.5.2
+## État de la version 0.5.3
+
+| Vérification du correctif | Résultat | Portée |
+| --- | --- | --- |
+| Suite Python Windows | PASS : 176 tests | Reçus distincts, immutabilité, récupération et régressions des contrats/hooks |
+| Contrats JSON indépendants | PASS : 8 fichiers distribués | Neuvième contrôle local de la configuration privée, exclue du package |
+| Trois imports réels 0.4.0 dans Blender 5.2.2 LTS | PASS | Reçu du manteau remplacé par celui de la ceinture, puis manteau densifié par un script guardé |
+| Vérification native du checkpoint | PASS | Objet initial, identité composant/package et topologie vérifiés ; contexte et datablocks conservés après lecture |
+| Migration et rebuild multicomposants | PASS : fixture isolée | Mesh/rest et voisins préservés, nouveaux mappings, quatre reçus immuables pour trois composants et un rebuild |
+| Checkpoint réel du consommateur | PASS : lecture seule isolée | Objet d'import retrouvé dans le checkpoint historique ; aucun fichier consommateur ni Blender ouvert modifié |
+| Reprise dirty et ancien runtime en mémoire | PASS : régression 0.5.3 | Anciennes fonctionnalités de reprise conservées |
+| Migration réelle et physique du manteau | NOT_EXECUTED | Retest nécessaire dans le projet consommateur après rechargement de l'installation |
+
+Voir [le rapport 0.5.3](references/validation-receipts-0.5.3.md) et
+[le protocole de récupération](references/blender-continuity.md).
+Les résultats antérieurs restent historiques et ne qualifient pas un asset réel.
+
+## État vérifié en version 0.5.2
 
 | Vérification du correctif | Résultat | Portée |
 | --- | --- | --- |
@@ -71,7 +88,7 @@ externes des manifestes peuvent être passés à `scripts/validate_contracts.ps1
 avec `-OfficialSchemaDirectory` ; ils ne sont pas téléchargés par la CI.
 
 `tests/native_lifecycle_smoke.py`, `tests/native_sewing_smoke.py` et
-`tests/native_continuity_smoke.py` sont des essais
+`tests/native_continuity_smoke.py` et `tests/native_multigarment_smoke.py` sont des essais
 Blender séparés : ils doivent s'exécuter
 dans un processus Blender dédié, avec scène vide et son dossier de travail de test,
 jamais dans la scène de production ouverte. Examiner ce script avant exécution.
