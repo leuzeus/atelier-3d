@@ -74,6 +74,30 @@ les six définitions de hooks dans l'interface native avant de les approuver.
 Un serveur déjà attaché à une ancienne conversation ne se recharge pas forcément
 lorsqu'une nouvelle version est installée.
 
+### Mise à jour et erreurs de hooks
+
+Terminer les opérations en cours avant de remplacer le plugin. Après une mise à
+jour, fermer puis rouvrir Codex avant de reprendre la production. Le remplacement
+du cache peut retirer les scripts d'une ancienne version alors qu'une conversation
+conserve encore ses chemins : un hook peut alors sortir avec le code 1 avant même
+d'exécuter ses contrôles. Recharger seulement le MCP ne prouve pas que les hooks
+de la conversation ont été rechargés.
+
+Pour diagnostiquer `hook exited with code 1`, distinguer trois vérifications :
+
+- Les définitions sont présentes, activées et approuvées dans Codex.
+- Les commandes de la copie installée s'exécutent avec succès ; cela teste les
+  scripts, mais pas leur chargement dans une conversation déjà ouverte.
+- Une nouvelle exécution dans l'application réussit après rechargement. Consulter
+  les résultats du nouvel échange ; un ancien échec reste une preuve historique.
+
+Relever l'événement, la version et le chemin concernés, ainsi que l'erreur détaillée
+si elle est disponible. Ne pas attribuer un code 1 au remplacement du cache sur la
+seule base du message générique. Si l'échec persiste dans un nouvel échange après
+redémarrage, poursuivre le diagnostic du lanceur et de son environnement. Ne pas
+désactiver les hooks, recréer manuellement l'ancien cache ou accorder leur confiance
+par script pour masquer le problème.
+
 Le profil de compatibilité a été vérifié avec Codex 0.159.2. Il utilise
 `.codex-plugin/plugin.json`, un `cwd` relatif et une copie du manifeste portable
 renommée `plugin.portable.json` pour éviter un défaut de découverte des hooks
@@ -108,7 +132,7 @@ franchir une étape. Lire [le parcours complet](production.md).
 .\.venv\Scripts\python.exe -B scripts/studio.py tools
 .\.venv\Scripts\python.exe -B scripts/studio.py call studio_create_project --arguments create-project.json
 New-Item -ItemType Directory -Force dist | Out-Null
-.\.venv\Scripts\python.exe -B scripts/package_plugin.py --output dist/atelier-3d-0.5.0.zip
+.\.venv\Scripts\python.exe -B scripts/package_plugin.py --output dist/atelier-3d-0.5.1.zip
 ```
 
 `create-project.json` doit contenir `project_root` absolu et un `asset` conforme à
