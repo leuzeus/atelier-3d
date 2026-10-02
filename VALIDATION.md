@@ -1,5 +1,25 @@
 # Validation d'Atelier 3D
 
+## État de la version 0.6.0
+
+| Vérification | Résultat | Portée |
+| --- | --- | --- |
+| Suite Python Windows | PASS : 204 tests | Contrat opt-in, budgets, permanent seulement, binding et mesures finales |
+| Contrats indépendants | PASS : 9 distribués + config privée | Recette historique compatible ; aucun seuil physique assoupli |
+| Prépositionnement natif guardé | PASS sur fixture | Écart réduit, contours/rest/topologie/pins/package intacts ; fermeture préservée |
+| Références fixes contradictoires | PASS du refus | Simulation existante non archivée ; diagnostic et checkpoint conservés |
+| Raffinement natif | PASS / refus borné | Ancrages et aire conservés ; budget insuffisant refusé |
+| Raffinement du cas réel isolé | PASS technique | Angle minimal 2,2483° → 4,0195°, 6647 → 6649 sommets, contours et sources intacts |
+| Diagnostic final de qualité | PASS sur fixture | Qualité FAIL, couture FAIL et contact PASS visibles ensemble ; restauration vérifiée |
+| Régression physique native | PASS sur fixture | Probes, local/full/freeze et refus existants |
+| Prépositionnement du cas réel isolé | Précontrôle PASS | Fraction 0,125 ; aucun PASS Cloth ou fitting déduit |
+| Cloth après prépositionnement réel | FAIL à l'image 48 | Déformations et coutures encore hors limites ; essai expérimental, production intacte |
+| Validation visuelle/humaine du nouveau placement | NOT_EXECUTED | À réaliser dans le projet consommateur, après inspection des mesures |
+
+Voir [le contrat expérimental et le protocole d'essai](references/experimental-prefit.md).
+La fixture guardée teste l'intégration ; le cas réel est une reproduction isolée
+et ne constitue pas une qualification du projet consommateur.
+
 ## État de la version 0.5.9
 
 | Vérification | Résultat | Portée |
