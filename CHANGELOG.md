@@ -1,5 +1,20 @@
 # Historique
 
+## 0.5.5 — 2026-10-01
+
+- Ajout de `inspect_sewing_placement(component_id, recipe_path)` en lecture seule
+  dans la copie Blender attendue, avant Cloth ; identité package, recette, rest,
+  mesh, supports et collider vérifiés sans changer la scène ou les décisions.
+- Mesures par paire de couture : panneau, bord source, longueur d'arc,
+  coordonnées, poids de maintien et premier croisement du segment par collider.
+  Régions spatiales et orientations des faces, sans déduction anatomique.
+- `placement.json` conservé avant chaque tentative native et lié par SHA au
+  résultat ou au diagnostic d'échec. Aucun avertissement n'accorde un PASS local.
+- Documentation du montage cylindrique existant sur bras posé et de ses limites
+  pour une manche effilée. Patrons, seuils, circuit local/full et gates inchangés.
+- Fixture native : deux panneaux de manche effilés et coupons d'emmanchure
+  autour d'un bras incliné ; aucune robe réelle réparée ou validée revendiquée.
+
 ## 0.5.4 — 2026-10-01
 
 - `frame_view(component_id, object_name)` cadre un mesh visible appartenant au

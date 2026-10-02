@@ -1,5 +1,9 @@
 # Blender MCP externe
 
+Avant Cloth, `inspect_sewing_placement(component_id, recipe_path)` mesure le
+montage natif initial en lecture seule : coutures, supports, trajets droits dans
+les colliders et orientations. Voir [le protocole de prépositionnement](sewing-placement.md).
+
 Ne pas réimplémenter ni installer Blender MCP pendant une production. Découvrir ses outils disponibles et vérifier la scène avant d'agir. Le package fournit blender/operations.py à exécuter dans Blender via l'outil Python officiel ; ce fichier n'est pas un serveur MCP Blender.
 
 Pour une opération, appeler `studio_blender_operation` avec le projet, le nom d'opération et ses arguments. Transmettre le champ `code` exactement à `execute_blender_code`. Le hook reconnaît ce point d'entrée et le dispatcher répète l'admission dans Blender. Les opérations disponibles sont prepare, resume, inspect, frame_view, inspect_sewing_failure, verify_legacy_import, garment, simulate_sewn, freeze_sewn, assemble, run_script et restore_checkpoint. Le code direct de reconstruction est refusé dans un projet rattaché. Lire les [contrôles de progression et de récupération](lifecycle-guards.md).

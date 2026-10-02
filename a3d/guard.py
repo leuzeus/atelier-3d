@@ -24,11 +24,12 @@ def parse_code(code):
 
 def admit_operation(project, operation, arguments):
     state = project.state()
-    if operation not in ("prepare", "resume", "inspect", "frame_view", "inspect_sewing_failure", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn"):
+    if operation not in ("prepare", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_sewing_placement", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn"):
         raise StudioError("Unknown guarded Blender operation")
     required = {"prepare": set(), "resume": set(), "inspect": set(),
         "frame_view": {"component_id", "object_name"},
         "inspect_sewing_failure": {"component_id", "attempt_dir"},
+        "inspect_sewing_placement": {"component_id", "recipe_path"},
         "verify_legacy_import": {"package_dir", "checkpoint_receipt"}, "garment": {"package_dir"}, "assemble": {"plan_path"},
         "run_script": {"purpose", "path", "sha256", "component_ids"}, "restore_checkpoint": set(),
         "simulate_sewn": {"component_id", "recipe_path", "phase", "scope"},
@@ -91,16 +92,18 @@ def admit_operation(project, operation, arguments):
         # Inspection must remain possible after a failure or invalidated board.
         # Live scene, object and provenance checks occur inside Blender.
         return
-    if operation != "inspect":
+    if operation not in ("inspect", "inspect_sewing_placement"):
         no_pending_operation(state)
     if operation in ("prepare", "resume", "inspect"):
         if state["stage"] == "COMPLETE" and operation != "inspect":
             raise StudioError("Completed project is immutable")
         return
     require_board(project, state)
-    if operation in ("simulate_sewn", "freeze_sewn"):
+    if operation in ("simulate_sewn", "freeze_sewn", "inspect_sewing_placement"):
         if state["stage"] != "RECONSTRUCTING":
             raise StudioError("Native sewing requires RECONSTRUCTING")
+        if arguments['component_id'] not in state['components']:
+            raise StudioError('Unknown sewing component')
         _, component = project.ready(arguments["component_id"])
         if component["route"]["selected"] != "PATTERN_SEWN" or component["stage"] == "RECONSTRUCTED":
             raise StudioError("Native sewing requires an unaccepted sewn component")

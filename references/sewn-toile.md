@@ -24,15 +24,19 @@ résultat. Voir [la reprise et les panneaux legacy](blender-continuity.md).
 2. Appeler `garment` avec `package_dir` et `recipe_path`. Cette opération construit
    les panneaux dérivés, leur forme de repos à plat et les paires de couture.
    Elle contrôle le placement avant de démarrer le solveur.
-3. Appeler `simulate_sewn` avec `component_id`, `recipe_path`, `phase=mount`,
+3. Appeler `inspect_sewing_placement` avec `component_id`, `recipe_path` et suivre
+   [la revue mesurée de montage](sewing-placement.md). Examiner les écarts,
+   supports, trajets dans les colliders, orientations et un rendu avant Cloth.
+   Utiliser d'abord les placements natifs existants et conserver leurs paramètres.
+4. Appeler `simulate_sewn` avec `component_id`, `recipe_path`, `phase=mount`,
    `scope=local`. Trois petits essais isolent gravité, couture de deux bords et
    contact. Ensuite, le sous-ensemble réel choisi dans `trial_pieces` est testé
    avec la recette du projet : pour un vêtement à manches, choisir la manche et
    son emmanchure. Les essais synthétiques ne remplacent pas cet essai local.
-4. Après PASS technique local, appeler la même opération avec `scope=full`.
+5. Après PASS technique local, appeler la même opération avec `scope=full`.
    Examiner les rendus de face, profil et dos avec les originaux. Pour une phase
    de drapé complémentaire, passer à `phase=drape` et refaire local puis full.
-5. Appeler `freeze_sewn` avec `component_id` et `recipe_path`. Le runtime crée
+6. Appeler `freeze_sewn` avec `component_id` et `recipe_path`. Le runtime crée
    une copie de surface cousue et archive le maillage de simulation. Poursuivre
    les revues de reconstruction, d'assemblage et de silhouette existantes.
 

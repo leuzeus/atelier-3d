@@ -503,6 +503,12 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
         if not local_path.is_file() or read_json(local_path).get('binding')!=binding or read_json(local_path).get('simulation')!='PASS':
             raise StudioError('Run the current local sleeve/armhole trial before a full toile')
     attempt_dir=directory/('attempt-'+uuid.uuid4().hex);attempt_dir.mkdir()
+    # Record the measured mounting context before the first Cloth frame. It
+    # survives a failed run, but cannot grant a local PASS or revise the cut.
+    from blender.placement import placement_report
+    placement_path=attempt_dir/'placement.json'
+    atomic_json(placement_path,placement_report(obj,payload,recipe,context,trees,project.root))
+    placement_ref={'path':placement_path.relative_to(project.root).as_posix(),'sha256':sha(placement_path)}
     progress_path=attempt_dir/'progress.json'
     counter_path=directory/(component_id+'-attempts.json')
     counters=read_json(counter_path) if counter_path.exists() else {'full_failures':0}
@@ -515,7 +521,7 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
         data.update(schema_version=1,simulation='FAIL',accepted=False,visual_validation='NOT_EXECUTED',
             component_id=component_id,phase=phase,scope=scope,binding=binding,context=context,
             package_sha256=payload['package_sha256'],recipe_sha256=digest(recipe),recipe=recipe,
-            boundary_map_sha256=obj['a3d_sewing_mesh_sha256'],source_garment_sha256=payload['source_garment_sha256'],
+            boundary_map_sha256=obj['a3d_sewing_mesh_sha256'],source_garment_sha256=payload['source_garment_sha256'],placement=placement_ref,
             checkpoint=project.state().get('pending_blender_operation',{}).get('checkpoint'))
         path=attempt_dir/'diagnostic.json'
         from a3d.sewing_diagnostics import preview_svg
@@ -546,7 +552,7 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
         if context_colliders(recipe)[2]!=context['colliders']:
             raise StudioError('Auxiliary mannequin pose changed during simulation')
         report.update(binding=binding,scope=scope,component_id=component_id,recipe_path=recipe_path,recipe_sha256=digest(recipe),
-            context=context,package_sha256=payload['package_sha256'],trial_pieces=recipe['trial_pieces'])
+            context=context,package_sha256=payload['package_sha256'],trial_pieces=recipe['trial_pieces'],placement=placement_ref)
         if scope=='local':
             report['backend_probes']=probes
             report['local_result_cm']=coords
@@ -564,7 +570,7 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
     except BaseException as exc:
         if scope=='full':counters['full_failures']+=1;atomic_json(counter_path,counters)
         atomic_json(attempt_dir/'failure.json',{'error':str(exc),'scope':scope,'binding':binding,'simulation':'FAIL',
-            'diagnostic':diagnostic_ref,'notes':getattr(exc,'__notes__',[])})
+            'diagnostic':diagnostic_ref,'placement':placement_ref,'notes':getattr(exc,'__notes__',[])})
         raise
     finally:
         if scope=='local':

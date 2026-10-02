@@ -1,5 +1,22 @@
 # Validation d'Atelier 3D
 
+## État de la version 0.5.5
+
+| Vérification du correctif | Résultat | Portée |
+| --- | --- | --- |
+| Suite Python Windows | PASS : 187 tests | Mesures, admission, contrats et régressions |
+| Contrats JSON indépendants | PASS : 8 distribués + configuration locale privée | Aucun contrat de patrons ou seuil modifié |
+| Inspection native Blender 5.2.2 LTS | PASS : processus isolé | Deux panneaux effilés, coupons d'emmanchure, bras incliné ; état, fichiers, sélection et frame préservés |
+| Comparaison flat/cylinder | PASS du diagnostic | 22 segments traversants → 0 ; écart 24,4131 → 3,9345 cm dans la fixture ; aucun PASS de couture |
+| Refus natifs | PASS | Collider modifié et Cloth actif refusés |
+| Rapport initial après échec et restauration | PASS | `placement.json` conservé et lié par SHA au diagnostic, aucun déblocage full |
+| Régression native Cloth | PASS | Probes, local/full et freeze sur fixture antérieure |
+| Montage et fitting de la robe réelle | NOT_EXECUTED | Projet et Blender consommateur intacts ; retest après mise à jour |
+| Placement conique / coupon spatial découpé | NOT_IMPLEMENTED | Diagnostic et recette native existante d'abord ; pas de géométrie substituée au patron |
+
+Voir [le protocole](references/sewing-placement.md) et
+[les essais 0.5.5](references/validation-placement-0.5.5.md).
+
 ## État de la version 0.5.4
 
 | Vérification du correctif | Résultat | Portée |
