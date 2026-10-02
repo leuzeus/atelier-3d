@@ -1,5 +1,20 @@
 # Validation d'Atelier 3D
 
+## État de la version 0.5.7
+
+| Vérification du correctif | Résultat | Portée |
+| --- | --- | --- |
+| Suite Python Windows | PASS : 190 tests | Statuts probe/vêtement, intégrité des preuves et régressions |
+| Contrats indépendants | PASS : 8 distribués + configuration privée | Probes, seuils et patrons inchangés |
+| Échec natif du probe sewing | PASS du diagnostic | 24 images évaluées sur coupon ; recette vêtement 48 ; essai vêtement NOT_EXECUTED |
+| Nettoyage et restauration | PASS | Diagnostic, profil, supports, géométrie et preview conservés et vérifiés |
+| Qualification locale et full | PASS du refus | Projection PASS synthétique antérieure invalidée ; full refusé pour absence de PASS local actuel |
+| Échec local évalué du vêtement | PASS du diagnostic | Régression de conservation et restauration toujours valide |
+| Régression native physique | PASS | Probes, local/full et freeze sur fixture synthétique |
+| Vêtement réel / défaut Cloth | NOT_ESTABLISHED | Aucun projet consommateur modifié ; retest séparé |
+
+Voir [le protocole et les limites](references/probe-diagnostics.md).
+
 ## État de la version 0.5.6
 
 | Vérification du correctif | Résultat | Portée |

@@ -5,6 +5,8 @@ description: Assembler dans une copie Blender des reconstructions 3D indépendan
 
 # assemble-in-blender
 
+Après un échec de probe, suivre [le diagnostic des probes](../../references/probe-diagnostics.md) via `inspect_sewing_failure`. Distinguer backend_probe FAIL et vêtement NOT_EXECUTED ; les positions/pins/indices sont ceux des coupons synthétiques. Lire durée, profil et supports réels, restaurer puis corriger la recette séparément sans supprimer le probe ni relâcher ses seuils. Un ancien PASS local ne permet pas full après un nouveau FAIL.
+
 Après un rejet géométrique de `garment` avant mapping/reçu, utiliser [le diagnostic de rejet](../../references/garment-rejections.md) via `inspect_garment_failure(component_id, attempt_dir)`. Lire la couture/les tangentes ou les contacts initiaux mesurés sans accepter le candidat. Distinguer tangente locale et corde globale ; aucun faux positif ou bug Cloth ne découle du rejet. L'inspection ne libère pas pending : restaurer avant toute nouvelle mutation.
 
 Avant Cloth, appliquer [la revue mesurée de prépositionnement](../../references/sewing-placement.md) : appeler `inspect_sewing_placement`, examiner écarts, poids de maintien, trajets dans les colliders et orientations, puis un rendu autour du mannequin. Utiliser les placements flat/cylinder existants avec paramètres traçables avant toute extension. Ne pas confondre alignement et enfilage ni un avertissement de segment avec une impossibilité de draper. Garder le PASS local actuel comme condition du full.

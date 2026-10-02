@@ -1,8 +1,9 @@
 import copy
+from pathlib import Path
 
 from a3d.core import ROOT, StudioError, atomic_json, read_json, sha
 from a3d.guard import admit_operation
-from a3d.sewing_diagnostics import failure_geometry, inspect_failure
+from a3d.sewing_diagnostics import failure_geometry, inspect_failure, store_probe_failure
 from blender.operations import dispatch
 from blender.sewing import subset_mesh
 from tests.test_core import Case
@@ -55,6 +56,30 @@ class DiagnosticTests(Case):
         self.assertFalse(report['finite_matching_topology'])
         self.assertIsNone(report['evaluated_cm'][0][0])
         self.assertEqual(report['outlier_edges'],[])
+
+    def test_probe_status_native_integrity_and_preview_are_distinct_from_garment(self):
+        project=ready_project(self.root,True)
+        directory=project.data/'blender/sewing/attempt-probe';directory.mkdir(parents=True)
+        output=directory/'backend-probes';output.mkdir()
+        data={'component_id':'synthetic.probe.sewing','simulation':'FAIL','frame':24,'error':'open coupon',
+            'scope':'backend-probe','phase':'mount','execution_stage':'backend_probe','garment_simulation':'NOT_EXECUTED',
+            'backend_probe_simulation':'FAIL','probe':{'case':'sewing','configured_frames':24,'requested_phase_frames':48},
+            'geometry':failure_geometry(payload(),payload()['placed_cm'],payload()['placed_cm'],self.recipe)}
+        native_ref=store_probe_failure(output,data)
+        data.update(component_id='garment.coat',scope='local',binding='d'*64,package_sha256='a'*64,
+            recipe_sha256='b'*64,boundary_map_sha256='c'*64,
+            probe_diagnostic={'path':Path(native_ref['path']).relative_to(project.root).as_posix(),'sha256':native_ref['sha256']})
+        diagnostic=directory/'diagnostic.json';atomic_json(diagnostic,data)
+        atomic_json(directory/'failure.json',{'simulation':'FAIL','binding':'d'*64,'scope':'local',
+            'diagnostic':{'path':diagnostic.relative_to(project.root).as_posix(),'sha256':sha(diagnostic)}})
+        report=inspect_failure(project,'garment.coat',directory.relative_to(project.root).as_posix())
+        self.assertEqual(report['garment_simulation'],'NOT_EXECUTED')
+        self.assertEqual(report['backend_probe_simulation'],'FAIL')
+        image=Path(native_ref['path']).with_suffix('.svg')
+        self.assertIn('vêtement NON EXÉCUTÉ',image.read_text(encoding='utf-8'))
+        image.write_text('changed')
+        with self.assertRaisesRegex(StudioError,'probe preview changed'):
+            inspect_failure(project,'garment.coat',directory.relative_to(project.root).as_posix())
 
     def test_failure_inspection_preserves_pending_gates_and_refuses_tamper(self):
         project=ready_project(self.root,True)

@@ -1,5 +1,24 @@
 # Historique
 
+## 0.5.7 — 2026-10-01
+
+- Les probes ratés conservent un diagnostic natif dans un répertoire unique
+  avant suppression des coupons, ainsi qu'une projection SVG avec titre explicite.
+  Cas, profil, durée configurée et évaluée, positions, pins, qualité, coutures,
+  contexte et paramètres Cloth observés sont conservés.
+- `inspect_sewing_failure` vérifie les preuves et previews du probe, puis expose
+  le stade backend_probe, probe FAIL, vêtement NOT_EXECUTED et le domaine
+  géométrique synthetic_coupon. Les empreintes package/mapping/placement lient
+  la demande parente ; les indices du coupon ne deviennent pas ceux du vêtement.
+- Les échecs de contrôles après évaluation conservent aussi le dernier état
+  évalué. Les probes restent à 12/24 images avec leurs seuils existants.
+- La projection de qualification locale devient FAIL après un nouvel échec,
+  empêchant un ancien PASS de lancer full ; ses preuves historiques restent intactes.
+  Restauration obligatoire, patrons et validations humaines conservés.
+- Fixture native : échec réel de couture de coupon avant essai du vêtement,
+  24 images contre recette 48, preuve intacte après restauration et refus full.
+  Aucun défaut du solveur ni réparation du vêtement réel établi.
+
 ## 0.5.6 — 2026-10-01
 
 - Diagnostic conservé avant de relancer un rejet géométrique de `garment`,
