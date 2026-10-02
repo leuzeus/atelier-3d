@@ -164,6 +164,9 @@ def validate_recipe(data, recipe):
         for edge in prefit['fixed_edges']:
             if edge['piece'] not in active or edge['edge'] not in data['pieces'][edge['piece']]['edges']:
                 raise StudioError('Experimental prefit fixed edge must exist on an active source panel')
+    recovery=recipe.get('contact_recovery')
+    if recovery and recovery['max_displacement_cm']>recipe['limits']['max_displacement_cm']:
+        raise StudioError('Contact recovery cannot exceed the existing displacement budget')
     if set(recipe["trial_pieces"]) - data["pieces"].keys() or len(set(recipe["trial_pieces"])) < 2:
         raise StudioError("Local trial needs at least two declared panels")
     trial = [s for s in data["seams"] if s["piece_a"] in recipe["trial_pieces"] and s["piece_b"] in recipe["trial_pieces"]

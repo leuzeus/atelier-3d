@@ -47,7 +47,8 @@ recipe['limits']['max_displacement_cm']=100
 recipe['placements']['back']['position_cm'][1]=.2
 recipe['experimental_prefit']={'experimental':True,'source_ref':'test:small-native-seam-translation',
     'seam_ids':['body-side'],'reference_pieces':['front'],'fixed_edges':[],
-    'iterations':5,'clearance_cm':0,'max_displacement_cm':2,'min_fraction':.125,'max_backtracks':3}
+    'iterations':5,'clearance_cm':0,'max_displacement_cm':2,'min_fraction':.125,'max_backtracks':3,
+    'preserve_reference_positions':True}
 atomic_json(project.root/'recipe.json',recipe)
 component=project.state()['components']['garment.coat']
 extracted=project.data/'reconstruction/extracted';extract_package(project.root/component['package']['path'],extracted)
@@ -64,11 +65,13 @@ assert constructed['simulation']=='NOT_EXECUTED' and constructed['visual_validat
 assert report['before_gaps_cm']['body-side']>report['after_gaps_cm']['body-side']
 assert 0<report['max_displacement_cm']<=2 and report['fraction']>=.125
 for key in ('rest_cm','faces','panels','seams','pins'):assert digest(before[key])==digest(payload[key]),key
+assert all(payload['placed_cm'][i]==before['placed_cm'][i] for i in before['panels']['front']['indices'])
 assert payload['seams']['body-opening']['kind']=='closure'
 obj=bpy.data.objects[constructed['object']];preflight(obj,payload,recipe)
 assert sha(project.root/component['package']['path'])==package_sha and sha(root/'original.blend')==original_sha
 # An impossible fixed-reference pair is rejected and never archives the current mesh.
 recipe['experimental_prefit']['reference_pieces']=['front','back']
+recipe['experimental_prefit']['preserve_reference_positions']=False
 atomic_json(project.root/'recipe-conflict.json',recipe)
 previous=mesh_digest(obj)
 try:dispatch(str(project.root),'garment',{'package_dir':extracted.relative_to(project.root).as_posix(),'recipe_path':'recipe-conflict.json','rebuild':True})
