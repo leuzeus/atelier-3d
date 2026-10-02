@@ -9,6 +9,7 @@ function Test-Contract([string]$Instance, [string]$Schema) {
 }
 Test-Contract (Join-Path $projectRoot 'templates/config.json') (Join-Path $projectRoot 'schemas/config.schema.json')
 Test-Contract (Join-Path $projectRoot 'templates/sewing-recipe.json') (Join-Path $projectRoot 'schemas/sewing-recipe.schema.json')
+Test-Contract (Join-Path $projectRoot 'templates/fitting-plan.json') (Join-Path $projectRoot 'schemas/fitting-plan.schema.json')
 $localConfig = Join-Path $projectRoot 'config.local.json'
 if (Test-Path -LiteralPath $localConfig) {
     Test-Contract $localConfig (Join-Path $projectRoot 'schemas/config.schema.json')

@@ -24,13 +24,15 @@ def parse_code(code):
 
 def admit_operation(project, operation, arguments):
     state = project.state()
-    if operation not in ("prepare", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn"):
+    if operation not in ("prepare", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn"):
         raise StudioError("Unknown guarded Blender operation")
     required = {"prepare": set(), "resume": set(), "inspect": set(),
         "frame_view": {"component_id", "object_name"},
         "inspect_sewing_failure": {"component_id", "attempt_dir"},
         "inspect_garment_failure": {"component_id", "attempt_dir"},
         "inspect_sewing_placement": {"component_id", "recipe_path"},
+        "inspect_garment_fit": {"component_id", "recipe_path", "fit_path"},
+        "propose_pattern_adjustment": {"component_id", "recipe_path", "fit_path"},
         "verify_legacy_import": {"package_dir", "checkpoint_receipt"}, "garment": {"package_dir"}, "assemble": {"plan_path"},
         "run_script": {"purpose", "path", "sha256", "component_ids"}, "restore_checkpoint": set(),
         "simulate_sewn": {"component_id", "recipe_path", "phase", "scope"},
@@ -94,14 +96,14 @@ def admit_operation(project, operation, arguments):
         # Inspection must remain possible after a failure or invalidated board.
         # Live scene, object and provenance checks occur inside Blender.
         return
-    if operation not in ("inspect", "inspect_sewing_placement"):
+    if operation not in ("inspect", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment"):
         no_pending_operation(state)
     if operation in ("prepare", "resume", "inspect"):
         if state["stage"] == "COMPLETE" and operation != "inspect":
             raise StudioError("Completed project is immutable")
         return
     require_board(project, state)
-    if operation in ("simulate_sewn", "freeze_sewn", "inspect_sewing_placement"):
+    if operation in ("simulate_sewn", "freeze_sewn", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment"):
         if state["stage"] != "RECONSTRUCTING":
             raise StudioError("Native sewing requires RECONSTRUCTING")
         if arguments['component_id'] not in state['components']:
@@ -113,6 +115,14 @@ def admit_operation(project, operation, arguments):
         recipe = contract("sewing-recipe", read_json(inside(project.root, arguments["recipe_path"])))
         if recipe["component_id"] != arguments["component_id"]:
             raise StudioError("Sewing recipe identity mismatch")
+        if 'fit_path' in arguments:
+            plan=contract('fitting-plan',read_json(inside(project.root,arguments['fit_path'])))
+            if plan['component_id']!=arguments['component_id']:raise StudioError('Fitting plan component mismatch')
+        if recipe.get('fitting_plan'):
+            ref=recipe['fitting_plan']
+            if sha(inside(project.root,ref['path']))!=ref['sha256']:raise StudioError('Referenced fitting plan changed; update the recipe and requalify')
+        if operation in ('simulate_sewn','freeze_sewn') and recipe.get('fitting_tacks') and (operation=='freeze_sewn' or arguments['scope']=='full'):
+            raise StudioError('Temporary fitting tacks qualify a construction trial only; remove them and pass a new local before full/freeze')
         if operation == "simulate_sewn" and (arguments["phase"] not in ("mount", "drape") or arguments["scope"] not in ("local", "full")):
             raise StudioError("Unknown sewing phase or scope")
         return

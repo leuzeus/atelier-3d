@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "component_id": "garment.coat",
+  "measurements": [
+    {
+      "id": "chest",
+      "landmark_status": "assumed",
+      "source_ref": "Declare homologous body and source-pattern landmarks before use",
+      "target_kind": "minimum_required",
+      "uncertainty_cm": 0.2
+    }
+  ]
+}

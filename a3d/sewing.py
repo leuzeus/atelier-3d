@@ -163,7 +163,36 @@ def validate_recipe(data, recipe):
         raise StudioError("Duplicate collision object")
     if len({s['id'] for s in data['seams']}) != len(data['seams']):
         raise StudioError('Duplicate seam identifiers')
+    tacks=recipe.get('fitting_tacks',[])
+    if len({t['id'] for t in tacks})!=len(tacks) or len({(t['seam_id'],t['phase']) for t in tacks})!=len(tacks):
+        raise StudioError('Duplicate temporary fitting tack')
+    seams={s['id']:s for s in data['seams']}
+    for tack in tacks:
+        sid=tack['seam_id'];seam=seams.get(sid);profile=recipe['phases'][tack['phase']]
+        if seam is None or recipe['seams'][sid]['kind']!='closure':raise StudioError('Temporary fitting tack requires an existing closure')
+        if {seam['piece_a'],seam['piece_b']}-set(recipe['trial_pieces']):raise StudioError('Temporary closure must retain both panels in the local trial')
+        if tack['frame_end']!=profile['frames'] or tack['sewing_force_per_kg']!=profile['sewing_force_per_kg']:
+            raise StudioError('Native fitting tacks share the Cloth sewing force and span the entire declared local phase')
     return seam_report(data, recipe)
+
+
+def fitting_tack_payload(payload,recipe,phase):
+    """A construction-only copy; original closure kind and source pairs remain."""
+    import copy
+    result=copy.deepcopy(payload);selected=[]
+    for tack in recipe.get('fitting_tacks',[]):
+        if tack['phase']!=phase:continue
+        seam=result['seams'].get(tack['seam_id'])
+        if seam is None or seam['kind']!='closure':raise StudioError('Temporary closure absent from trial mapping')
+        selected.append({**tack,'pairs':copy.deepcopy(seam['pairs'])})
+    result['fitting_tacks']=selected
+    return result
+
+
+def active_sewing_pairs(payload):
+    permanent=[p for seam in payload['seams'].values() if seam['kind']=='permanent' for p in seam['pairs']]
+    temporary=[p for tack in payload.get('fitting_tacks',[]) for p in tack['pairs']]
+    return permanent+temporary
 
 
 def prepare_boundaries(data, recipe):
