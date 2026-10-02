@@ -68,6 +68,32 @@
           "type": "number",
           "minimum": 1,
           "maximum": 3
+        },
+        "quality_refinement": {
+          "type": "object",
+          "properties": {
+            "target_min_angle_degrees": {
+              "type": "number",
+              "minimum": 3,
+              "maximum": 30
+            },
+            "max_passes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 32
+            },
+            "max_added_vertices": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4000
+            }
+          },
+          "required": [
+            "target_min_angle_degrees",
+            "max_passes",
+            "max_added_vertices"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
@@ -598,6 +624,102 @@
       },
       "minItems": 0,
       "maxItems": 16
+    },
+    "experimental_prefit": {
+      "type": "object",
+      "properties": {
+        "experimental": {
+          "const": true
+        },
+        "source_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seam_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true
+        },
+        "reference_pieces": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true
+        },
+        "fixed_edges": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "properties": {
+              "piece": {
+                "type": "string",
+                "minLength": 1
+              },
+              "edge": {
+                "type": "string",
+                "minLength": 1
+              },
+              "exclude_joined_vertices": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "piece",
+              "edge",
+              "exclude_joined_vertices"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "iterations": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60
+        },
+        "clearance_cm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "max_displacement_cm": {
+          "type": "number",
+          "maximum": 100,
+          "minimum": 0.001
+        },
+        "min_fraction": {
+          "type": "number",
+          "maximum": 1,
+          "minimum": 1e-06
+        },
+        "max_backtracks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8
+        }
+      },
+      "required": [
+        "experimental",
+        "source_ref",
+        "seam_ids",
+        "reference_pieces",
+        "fixed_edges",
+        "iterations",
+        "clearance_cm",
+        "max_displacement_cm",
+        "min_fraction",
+        "max_backtracks"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [

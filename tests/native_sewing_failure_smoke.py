@@ -61,6 +61,10 @@ diagnostic=read_json(attempt/'diagnostic.json')
 assert diagnostic['frame']==32 and len(diagnostic['frames'])==32
 assert diagnostic['geometry']['evaluated_cm']!=diagnostic['geometry']['start_cm']
 assert diagnostic['geometry']['outlier_edges'] and diagnostic['geometry']['seam_gaps']
+assert diagnostic['final_quality'] and diagnostic['final_checks']['quality']['status']=='FAIL'
+assert diagnostic['final_checks']['quality']['violations']
+assert diagnostic['final_checks']['seams']['status']=='FAIL'
+assert diagnostic['final_checks']['penetration']['status']=='PASS'
 assert diagnostic['geometry']['source_vertex_indices'] and diagnostic['geometry']['source_face_indices']
 assert diagnostic['checkpoint']==project.state()['pending_blender_operation']['checkpoint']
 assert failure['diagnostic']['sha256']==sha(attempt/'diagnostic.json')

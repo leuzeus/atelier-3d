@@ -14,7 +14,9 @@ from a3d.sewing import (distance, mass_settings, mesh_quality, point_inside,
 
 
 def mesh_recipe_digest(recipe):
-    return digest({k:recipe[k] for k in ("component_id","mesh","placements","seams","pins")})
+    fields={k:recipe[k] for k in ("component_id","mesh","placements","seams","pins")}
+    if 'experimental_prefit' in recipe:fields['experimental_prefit']=recipe['experimental_prefit']
+    return digest(fields)
 
 
 def triangulate(boundary, recipe):
@@ -35,7 +37,48 @@ def triangulate(boundary, recipe):
                 points.append(Vector(p))
     ids=list(range(len(polygon)))
     if signed_area(polygon)<0:ids.reverse()
-    verts,edges,faces,orig,_,_=delaunay_2d_cdt(points,[],[ids],1,1e-6,True)
+    refinement=recipe['mesh'].get('quality_refinement');added=0;passes=0
+    def angle(face):
+        lengths=[distance(verts[a],verts[b]) for a,b in zip(face,face[1:]+face[:1])]
+        if min(lengths)<1e-10:return 0.
+        return min(math.degrees(math.acos(max(-1.,min(1.,(x*x+y*y-z*z)/(2*x*y)))))
+            for x,y,z in ((lengths[0],lengths[1],lengths[2]),(lengths[1],lengths[2],lengths[0]),(lengths[2],lengths[0],lengths[1])))
+    while True:
+        verts,edges,faces,orig,_,_=delaunay_2d_cdt(points,[],[ids],1,1e-6,True)
+        if not refinement:break
+        bad=[f for f in faces if angle(f)<refinement['target_min_angle_degrees']]
+        if not bad:break
+        if passes>=refinement['max_passes']:
+            error=StudioError('Derived mesh refinement did not reach the declared angle target within its pass budget')
+            error.refinement_metrics={'min_angle_degrees':min(angle(f) for f in faces),'bad_faces':len(bad),
+                'added_vertices':added,'source_polygon':boundary['source'],
+                'examples':[[list(verts[i]) for i in f] for f in bad[:5]]}
+            raise error
+        existing={(round(v.x,6),round(v.y,6)) for v in points};insert=[]
+        for face in bad:
+            a,b=min(((verts[a],verts[b]) for a,b in zip(face,face[1:]+face[:1])),key=lambda p:distance(*p))
+            d=b-a;mid=(a+b)*.5;normal=Vector((-d.y,d.x))
+            opposite=next(verts[i] for i in face if verts[i]!=a and verts[i]!=b)
+            if normal.dot(opposite-mid)<0:normal=-normal
+            value=mid+normal*math.sqrt(3)/2
+            tri=[verts[i] for i in face]
+            x,y,z=tri
+            det=2*(x.x*(y.y-z.y)+y.x*(z.y-x.y)+z.x*(x.y-y.y))
+            if abs(det)>1e-12:
+                xx,yy,zz=x.length_squared,y.length_squared,z.length_squared
+                center=Vector(((xx*(y.y-z.y)+yy*(z.y-x.y)+zz*(x.y-y.y))/det,
+                    (xx*(z.x-y.x)+yy*(x.x-z.x)+zz*(y.x-x.x))/det))
+                if point_inside(center,polygon):value=center
+            inside_face=all((v.x-u.x)*(value.y-u.y)-(v.y-u.y)*(value.x-u.x)>=-1e-9
+                for u,v in zip(tri,tri[1:]+tri[:1]))
+            if not inside_face and not point_inside(value,polygon):value=sum(tri,Vector((0.,0.)))/3
+            key=(round(value.x,6),round(value.y,6))
+            if key not in existing and point_inside(value,polygon):
+                existing.add(key);insert.append(value)
+        if not insert:raise StudioError('Derived refinement stalled; source boundary anchors remain unchanged')
+        if added+len(insert)>refinement['max_added_vertices'] or len(points)+len(insert)>recipe['mesh']['max_vertices']:
+            raise StudioError('Derived mesh refinement exceeds the declared vertex budget')
+        points.extend(insert);added+=len(insert);passes+=1
     mapping={j:i for i,inputs in enumerate(orig) for j in inputs}
     if any(i not in mapping for i in range(len(polygon))) or len({mapping[i] for i in range(len(polygon))})!=len(polygon):
         raise StudioError("Triangulator collapsed a boundary anchor")
@@ -351,7 +394,7 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
     pairs=active_sewing_pairs(payload)
     initial_gap=max((distance(start[a],start[b]) for a,b in pairs),default=0.)
     history=[];maximum_displacement=0.;coords=start;frame=0;final_quality=None
-    previous=None;previous_frame=None;evaluated_frame=0;motion=None
+    previous=None;previous_frame=None;evaluated_frame=0;motion=None;final_checks=None
     try:
         for frame in range(1,recipe["phases"][phase]["frames"]+1):
             previous=coords;previous_frame=evaluated_frame
@@ -373,16 +416,27 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
             if save_progress:save_progress(history)
             if maximum_displacement>recipe["limits"]["max_displacement_cm"]:raise StudioError("Cloth displacement budget exceeded; diagnose the local case")
         verify_physics(obj,expected)
-        final_quality=mesh_quality(payload['rest_cm'],coords,payload['faces'],recipe['mesh'])
+        quality_error=None
+        try:final_quality=mesh_quality(payload['rest_cm'],coords,payload['faces'],recipe['mesh'])
+        except StudioError as exc:
+            final_quality=getattr(exc,'quality_metrics',None);quality_error=exc
+        penetration=penetration_cm(coords,trees)
+        final_gap=history[-1]['max_seam_gap_cm']
+        final_checks={'quality':{'status':'FAIL' if quality_error else 'PASS','metrics':final_quality,
+                'violations':getattr(quality_error,'quality_violations',[])},
+            'penetration':{'measured_cm':penetration,'limit_cm':recipe['limits']['max_penetration_cm'],
+                'status':'FAIL' if penetration>recipe['limits']['max_penetration_cm'] else 'PASS'},
+            'seams':{'measured_max_gap_cm':final_gap,'limit_cm':recipe['limits']['max_seam_gap_cm'],
+                'status':'FAIL' if pairs and final_gap>recipe['limits']['max_seam_gap_cm'] else 'PASS'}}
+        if quality_error:raise quality_error
         if maximum_displacement<recipe["limits"]["min_movement_cm"]:
             raise StudioError("No measured cloth response; a successful API call is not a simulation")
-        penetration=penetration_cm(coords,trees)
         if penetration>recipe["limits"]["max_penetration_cm"]:raise StudioError("Final cloth penetrates its declared collider")
         final_gap=history[-1]["max_seam_gap_cm"]
         if pairs and final_gap>recipe["limits"]["max_seam_gap_cm"]:raise StudioError("Seams did not settle within the declared tolerance")
         if pairs and initial_gap>recipe["limits"]["max_seam_gap_cm"] and final_gap>=initial_gap*.95:
             raise StudioError("No measured sewing improvement")
-        return coords,{"simulation":"PASS","phase":phase,"mass":mass,"executed":expected,"frames":history,"final_quality":final_quality,
+        return coords,{"simulation":"PASS","phase":phase,"mass":mass,"executed":expected,"frames":history,"final_quality":final_quality,"final_checks":final_checks,
             "max_penetration_cm":penetration,"initial_gap_cm":initial_gap,"final_gap_cm":final_gap,
             "centroid_start_cm":[sum(p[k] for p in start)/len(start) for k in range(3)],
             "centroid_end_cm":[sum(p[k] for p in coords)/len(coords) for k in range(3)],
@@ -408,7 +462,7 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
                 geometry=failure_geometry(payload,coords,start,recipe,penetrations)
                 geometry['motion']=motion_metrics(payload,coords,start,evaluated_frame,previous,previous_frame,
                     recipe['limits']['max_displacement_cm'])
-                save_diagnostic({'error':str(exc),'frame':frame,'expected_execution':expected,'executed':observed,'frames':history,'final_quality':final_quality,
+                save_diagnostic({'error':str(exc),'frame':frame,'expected_execution':expected,'executed':observed,'frames':history,'final_quality':final_quality,'final_checks':final_checks,
                     'geometry':geometry})
             except Exception as diagnostic_error:
                 exc.add_note('Failure diagnostic unavailable: '+repr(diagnostic_error))

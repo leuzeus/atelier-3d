@@ -148,6 +148,22 @@ def validate_recipe(data, recipe):
         raise StudioError('mirror_u is supported only for cylindrical placement')
     if recipe["mesh"]["min_stretch"] >= recipe["mesh"]["max_stretch"]:
         raise StudioError("Invalid placement strain bounds")
+    refinement=recipe['mesh'].get('quality_refinement')
+    if refinement and refinement['target_min_angle_degrees']<=recipe['mesh']['min_angle_degrees']:
+        raise StudioError('Refinement target must exceed the unchanged mesh angle gate')
+    prefit=recipe.get('experimental_prefit')
+    if prefit:
+        if prefit['max_displacement_cm']>recipe['limits']['max_displacement_cm']:
+            raise StudioError('Experimental prefit cannot exceed the existing displacement budget')
+        selected=set(prefit['seam_ids']);source_seams={s['id']:s for s in data['seams']}
+        if not selected<=source_seams.keys() or any(recipe['seams'][sid]['kind']!='permanent' for sid in selected):
+            raise StudioError('Experimental prefit selects only existing permanent seams')
+        active={source_seams[sid]['piece_'+side] for sid in selected for side in ('a','b')}
+        if not set(prefit['reference_pieces'])<=active:
+            raise StudioError('Experimental prefit reference pieces must belong to selected seams')
+        for edge in prefit['fixed_edges']:
+            if edge['piece'] not in active or edge['edge'] not in data['pieces'][edge['piece']]['edges']:
+                raise StudioError('Experimental prefit fixed edge must exist on an active source panel')
     if set(recipe["trial_pieces"]) - data["pieces"].keys() or len(set(recipe["trial_pieces"])) < 2:
         raise StudioError("Local trial needs at least two declared panels")
     trial = [s for s in data["seams"] if s["piece_a"] in recipe["trial_pieces"] and s["piece_b"] in recipe["trial_pieces"]
@@ -306,10 +322,20 @@ def mesh_quality(rest, placed, faces, limits):
         a,b,c=lengths;sem=(a+b+c)/2;total_area+=math.sqrt(max(0,sem*(sem-a)*(sem-b)*(sem-c)))
     result={"min_angle_degrees":minimum_angle,"min_area_cm2":minimum_area,"min_edge_cm":minimum_edge,
         "min_stretch":low,"max_stretch":high,"rest_area_cm2":total_area}
+    violations=[]
+    if not faces or minimum_area<1e-8 or minimum_angle<limits['min_angle_degrees']:
+        violations.append('degenerate_or_sliver')
+    if minimum_edge<limits['min_edge_cm']:violations.append('short_edge')
+    if low<limits['min_stretch']:violations.append('compression')
+    if high>limits['max_stretch']:violations.append('stretch')
     if not faces or minimum_area<1e-8 or minimum_angle<limits["min_angle_degrees"]:
-        raise StudioError("Degenerate/sliver simulation triangles: " + str(result))
+        error=StudioError("Degenerate/sliver simulation triangles: " + str(result))
+        error.quality_metrics=result;error.quality_violations=violations
+        raise error
     if minimum_edge<limits["min_edge_cm"] or low<limits["min_stretch"] or high>limits["max_stretch"]:
-        raise StudioError("Collapsed or distorted placement: " + str(result))
+        error=StudioError("Collapsed or distorted placement: " + str(result))
+        error.quality_metrics=result;error.quality_violations=violations
+        raise error
     return result
 
 

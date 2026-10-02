@@ -44,3 +44,11 @@ Lire [le protocole Blender](../../references/blender.md). Utiliser le MCP Blende
 Enregistrer et faire approuver assembly-plan, avec tous les composants, leurs sorties acceptées et les hashes du fichier de travail/checkpoint. Utiliser mode=existing pour les panneaux cousus déjà construits, mode=import pour les fichiers de parties. L’opération produit assembly-result nécessaire à REFINING. Après erreur, utiliser restore_checkpoint avant une nouvelle mutation. Voir les [contrôles des étapes](../../references/lifecycle-guards.md).
 
 Pour PATTERN_SEWN, suivre [la recette native de toile](../../references/sewn-toile.md) après approbation du board : contours source conservés, maillage dérivé, mannequin auxiliaire vérifié, essais gravité/couture/contact puis sous-ensemble local, simulation complète bornée et consolidation des seules coutures permanentes. Préparer les données techniques pour l’utilisateur ; ne pas lui imposer un nouveau formulaire ni faire réapprouver un board inchangé pour ajuster la physique. Après deux échecs complets, diagnostiquer le petit cas et refaire l’essai local. Examiner les rendus avant toute conclusion artistique.
+
+Si l'utilisateur demande de tester le prépositionnement expérimental, suivre
+[son contrat borné](../../references/experimental-prefit.md) : copie de recette,
+coutures permanentes et repères source explicites, `garment`/rebuild guardé,
+inspection du reçu et des pixels, puis essai local. L'option est désactivée par
+défaut. `PREPOSITIONED_NOT_SIMULATED` ne vaut ni fitting accepté ni PASS Cloth.
+Conserver le contrôle dimensionnel et les règles local/full/freeze ; ne pas
+substituer ce solveur à la validation du découpage ou modifier le corps pour passer.

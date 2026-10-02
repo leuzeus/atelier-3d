@@ -7,11 +7,17 @@ Plugin Codex pour préparer et produire des assets 3D à partir d'images de réf
 avec un choix de méthode par composant, des données de construction explicites et
 une validation humaine aux étapes déterminantes.
 
-**Version 0.5.9 — socle de développement.** Le runtime et ses contrats sont testés.
+**Version 0.6.0 — socle de développement, prépositionnement expérimental.** Le runtime et ses contrats sont testés.
 Le profil d'installation Windows est testé, avec découverte MCP et diagnostic
 compatibles avec le manifeste Codex. Une
 production complète sur un vrai vêtement ou un asset articulé reste à qualifier.
-Voir [les résultats et limites](VALIDATION.md) et la [release 0.5.9](https://github.com/leuzeus/atelier-3d/releases/tag/v0.5.9).
+Voir [les résultats et limites](VALIDATION.md) et la [release 0.6.0](https://github.com/leuzeus/atelier-3d/releases/tag/v0.6.0).
+
+La version 0.6.0 permet de tester un [prépositionnement borné des panneaux](references/experimental-prefit.md)
+dans l'opération `garment`, sur demande explicite et sans modifier les patrons.
+Elle ajoute un raffinement optionnel de la triangulation et conserve les contrôles
+finaux mesurés même après refus de qualité. Le cas réel échoue encore pendant Cloth :
+le prépositionnement expérimental ne qualifie pas le vêtement et reste désactivé par défaut.
 
 La version 0.5.9 précise le [diagnostic des déplacements Cloth](references/cloth-motion.md) :
 excursion depuis le début de phase et incrément entre images évaluées, avec

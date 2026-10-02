@@ -1,5 +1,21 @@
 # Historique
 
+## 0.6.0 — 2026-10-02
+
+- Prépositionnement expérimental opt-in via `experimental_prefit` dans la recette
+  `garment`/rebuild : coutures permanentes source, références et bords fixes
+  explicites, solveur géométrique local/global et fractions bornées. Les mêmes
+  contrôles natifs qualifient le placement initial et chaque candidat. Le reçu
+  expose les mouvements et écarts ; aucune soudure ni qualification Cloth.
+- Raffinement optionnel `mesh.quality_refinement`, borné en passes et sommets,
+  conservant les ancrages du contour et la coupe ; refus si cible inaccessible.
+- `final_quality` et `final_checks` conservés lors d'un refus final de qualité,
+  avec toutes les violations mesurables et les contrôles contacts/coutures.
+- Fixtures natives : placement amélioré sans mutation du package/rest,
+  repères contradictoires refusés, budgets de raffinement et récupération des
+  diagnostics. Cas réel isolé : contrôle initial PASS, Cloth toujours FAIL.
+  Fonction expérimentale livrée pour essai, sans changement des seuils physiques.
+
 ## 0.5.9 — 2026-10-02
 
 - Les mesures Cloth séparent excursion depuis le départ de phase et incrément
