@@ -1,0 +1,328 @@
+{
+  "type": "object",
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "component_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "body": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "geometry_sha256": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "role": {
+          "enum": [
+            "target",
+            "proxy"
+          ]
+        }
+      },
+      "required": [
+        "object",
+        "geometry_sha256",
+        "role"
+      ],
+      "additionalProperties": false
+    },
+    "envelope": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "geometry_sha256": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "role": {
+          "enum": [
+            "target",
+            "proxy"
+          ]
+        }
+      },
+      "required": [
+        "object",
+        "geometry_sha256",
+        "role"
+      ],
+      "additionalProperties": false
+    },
+    "measurements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "landmark_status": {
+            "enum": [
+              "assumed",
+              "validated"
+            ]
+          },
+          "source_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target_kind": {
+            "enum": [
+              "minimum_required",
+              "style_only"
+            ]
+          },
+          "uncertainty_cm": {
+            "type": "number",
+            "minimum": 0.0001,
+            "maximum": 10
+          },
+          "body_section": {
+            "type": "object",
+            "properties": {
+              "height_cm": {
+                "type": "number",
+                "minimum": -1000,
+                "maximum": 1000
+              },
+              "seed_xy_cm": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": -10000,
+                  "maximum": 10000
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "required": [
+              "height_cm",
+              "seed_xy_cm"
+            ],
+            "additionalProperties": false
+          },
+          "envelope_section": {
+            "type": "object",
+            "properties": {
+              "height_cm": {
+                "type": "number",
+                "minimum": -1000,
+                "maximum": 1000
+              },
+              "seed_xy_cm": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": -10000,
+                  "maximum": 10000
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "required": [
+              "height_cm",
+              "seed_xy_cm"
+            ],
+            "additionalProperties": false
+          },
+          "pattern_path": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "piece": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "from": {
+                  "type": "object",
+                  "properties": {
+                    "edge": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "t": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "required": [
+                    "edge",
+                    "t"
+                  ],
+                  "additionalProperties": false
+                },
+                "to": {
+                  "type": "object",
+                  "properties": {
+                    "edge": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "t": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "required": [
+                    "edge",
+                    "t"
+                  ],
+                  "additionalProperties": false
+                },
+                "via_cm": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number",
+                      "minimum": -10000,
+                      "maximum": 10000
+                    },
+                    "minItems": 2,
+                    "maxItems": 2
+                  },
+                  "minItems": 0,
+                  "maxItems": 32
+                }
+              },
+              "required": [
+                "piece",
+                "from",
+                "to"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 0,
+            "maxItems": 64
+          },
+          "joins": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0,
+            "maxItems": 64
+          },
+          "takeup": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "amount_cm": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "source_ref": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "amount_cm",
+                "reason",
+                "source_ref"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 0,
+            "maxItems": 64
+          },
+          "ease_cm": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "envelope_clearance_girth_cm": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "adjustment_sites": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "piece": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "edge": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "share": {
+                  "type": "number",
+                  "minimum": 1e-05,
+                  "maximum": 1
+                },
+                "max_capacity_increment_cm": {
+                  "type": "number",
+                  "minimum": 0.001,
+                  "maximum": 30
+                },
+                "source_ref": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "piece",
+                "edge",
+                "share",
+                "max_capacity_increment_cm",
+                "source_ref"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 0,
+            "maxItems": 32
+          }
+        },
+        "required": [
+          "id",
+          "landmark_status",
+          "source_ref",
+          "target_kind",
+          "uncertainty_cm"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "maxItems": 32
+    }
+  },
+  "required": [
+    "version",
+    "component_id",
+    "measurements"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Atelier 3D explicit fitting landmarks and seam-line paths"
+}

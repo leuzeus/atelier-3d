@@ -1,5 +1,25 @@
 # Historique
 
+## 0.5.8 — 2026-10-01
+
+- Nouveau contrat fitting-plan et opérations gardées en lecture seule
+  inspect_garment_fit / propose_pattern_adjustment : identité/pose corps et
+  enveloppe, sections fermées excluant les bras séparés, chemins homologues
+  à la ligne de couture, aisance, reprises/chevauchements et incertitude.
+- Mesure manquante, proxy ou repère supposé : NOT_QUALIFIED. Déficit minimum
+  démontré : INCOMPATIBLE et full bloqué si la recette référence cette fiche.
+  Cible de style distinguée. Marge de coupe jamais comptée comme aisance.
+- Propositions limitées aux allocations chiffrées de capacité et dépendances
+  des coutures ; aucun contour/courbe/droit-fil/package édité automatiquement.
+- fitting_tacks tient les paires de closure source sur le seul mesh local
+  jetable, avec provenance, durée et force native commune déclarées. Les gaps
+  sont contrôlés, la qualification demeure CONSTRUCTION_FITTING_ONLY ;
+  full/freeze refusent les tacks. Aucun retypage ni soudure de closure/detachable.
+- Fiche, corps et recette lient les qualifications ; preuve périmée refusée.
+  Actualisation du binding de trial : refaire local avant full après mise à jour.
+- Fixtures Blender natives et régressions testées. Aucun PASS de fitting ou
+  de montage complet du vêtement consommateur revendiqué.
+
 ## 0.5.7 — 2026-10-01
 
 - Les probes ratés conservent un diagnostic natif dans un répertoire unique

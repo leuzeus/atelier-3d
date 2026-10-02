@@ -9,7 +9,8 @@ import uuid
 from pathlib import Path
 from a3d.core import StudioError, atomic_json, contract, digest, inside, read_json, sha
 from a3d.sewing import (distance, mass_settings, mesh_quality, point_inside,
-    prepare_boundaries, segment_distance, signed_area, validate_recipe, weld_permanent)
+    prepare_boundaries, segment_distance, signed_area, validate_recipe, weld_permanent,
+    active_sewing_pairs, fitting_tack_payload)
 
 
 def mesh_recipe_digest(recipe):
@@ -118,7 +119,7 @@ def subset_mesh(payload, piece_ids):
 
 def make_object(payload, name):
     import bpy
-    edges=sorted({tuple(sorted(p)) for s in payload["seams"].values() if s["kind"]=="permanent" for p in s["pairs"]})
+    edges=sorted({tuple(sorted(p)) for p in active_sewing_pairs(payload)})
     mesh=bpy.data.meshes.new(name)
     mesh.from_pydata([[v/100 for v in p] for p in payload["placed_cm"]],edges,payload["faces"]);mesh.update()
     obj=bpy.data.objects.new(name,mesh);bpy.context.scene.collection.objects.link(obj)
@@ -129,6 +130,9 @@ def make_object(payload, name):
     group=obj.vertex_groups.new(name="A3D.Pins")
     for i,w in payload["pins"].items():group.add([int(i)],w,"REPLACE")
     obj["a3d_role"]="simulation"
+    if payload.get('fitting_tacks'):
+        import json
+        obj['a3d_fitting_tacks']=json.dumps(payload['fitting_tacks'],sort_keys=True)
     return obj
 
 
@@ -274,7 +278,7 @@ def apply_physics(obj,payload,recipe,phase,colliders):
     if mass["basis"]=="total_kg":mass["value"]*=area/payload["full_rest_area_cm2"]
     calculated=mass_settings(mass,area,len(payload["rest_cm"]),profile["sewing_force_per_kg"])
     settings.mass=calculated["mass_per_vertex_kg"];settings.sewing_force_max=calculated["sewing_force_max"]
-    settings.use_sewing_springs=any(s["kind"]=="permanent" for s in payload["seams"].values())
+    settings.use_sewing_springs=bool(active_sewing_pairs(payload))
     settings.rest_shape_key=obj.data.shape_keys.key_blocks["A3D.FlatRest"];settings.use_dynamic_mesh=False
     settings.vertex_group_mass="A3D.Pins";settings.pin_stiffness=1.;settings.quality=profile["quality"];settings.time_scale=1.
     damping_scale=calculated["mass_per_vertex_kg"]/profile["damping_reference_mass_kg"]
@@ -295,7 +299,7 @@ def apply_physics(obj,payload,recipe,phase,colliders):
     # deliberately describe that meaning; do not use an "interior inclusion" group.
     group=obj.vertex_groups.get("A3D.SeamSelfExclusion") or obj.vertex_groups.new(name="A3D.SeamSelfExclusion")
     group.remove(list(range(len(obj.data.vertices))))
-    seam_ids={i for seam in payload["seams"].values() if seam["kind"]=="permanent" for pair in seam["pairs"] for i in pair}
+    seam_ids={i for pair in active_sewing_pairs(payload) for i in pair}
     ids=sorted(seam_ids | {i for face in payload['faces'] if seam_ids.intersection(face) for i in face})
     if ids:group.add(ids,1.,"REPLACE")
     collision.vertex_group_self_collisions=group.name;collision.vertex_group_object_collisions=""
@@ -324,6 +328,8 @@ def physical_snapshot(obj):
     weights={name:[(v.index,round(w.weight,7)) for v in obj.data.vertices for w in v.groups if w.group==index]
         for name,index in groups.items() if name in (s.vertex_group_mass,c.vertex_group_self_collisions,c.vertex_group_object_collisions)}
     return {"settings":{k:getattr(s,k) for k in fields},"rest_shape_key":s.rest_shape_key.name if s.rest_shape_key else None,
+        "sewing_edges_sha256":digest(sorted(sorted(e.vertices) for e in obj.data.edges if e.is_loose)),
+        "fitting_tacks":obj.get('a3d_fitting_tacks'),
         "group_weights_sha256":digest(weights),
         "gravity_weight":s.effector_weights.gravity,"cache":[m.point_cache.frame_start,m.point_cache.frame_end,m.point_cache.use_disk_cache],
         "collisions":{k:getattr(c,k) for k in ("use_collision","use_self_collision","distance_min","self_distance_min","collision_quality","vertex_group_self_collisions","vertex_group_object_collisions")},
@@ -341,7 +347,7 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
     cloth,mass,collection=apply_physics(obj,payload,recipe,phase,colliders)
     expected=physical_snapshot(obj)
     start=[[x*100 for x in p] for p in object_mesh(obj)[0]]
-    pairs=[p for seam in payload["seams"].values() if seam["kind"]=="permanent" for p in seam["pairs"]]
+    pairs=active_sewing_pairs(payload)
     initial_gap=max((distance(start[a],start[b]) for a,b in pairs),default=0.)
     history=[];maximum_displacement=0.;coords=start;frame=0;final_quality=None
     try:
@@ -539,7 +545,7 @@ def managed_inputs(project,component_id,recipe_path):
 def trial_binding(obj,payload,recipe,phase,context):
     import bpy
     return digest({'recipe':recipe,'phase':phase,'mesh':mesh_digest(obj),'map':obj['a3d_sewing_mesh_sha256'],
-        'blender':bpy.app.version_string,'colliders':context['colliders']})
+        'blender':bpy.app.version_string,'colliders':context['colliders'],'fit_binding':context.get('fit_binding')})
 
 
 def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
@@ -548,6 +554,11 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
     project,session=working(project_root)
     obj,payload,recipe=managed_inputs(project,component_id,recipe_path)
     context,colliders,trees=preflight(obj,payload,recipe)
+    from blender.fitting import recipe_fit
+    fitting=recipe_fit(project,obj,payload,recipe)
+    if fitting:context['fit_binding']=fitting['fit_binding']
+    if scope=='full' and fitting and fitting['fit_status']=='INCOMPATIBLE':
+        raise StudioError('Measured fitting deficit blocks full; propose a reviewed pattern variant before retrying')
     # Bind the trial to current geometry, rest, support weights, body pose and
     # physical recipe. Parameter tuning invalidates a TECHNICAL trial, not the
     # human approval of unmodified patterns.
@@ -583,7 +594,7 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
             component_id=component_id,phase=phase,scope=scope,binding=binding,context=context,
             package_sha256=payload['package_sha256'],recipe_sha256=digest(recipe),recipe=recipe,
             boundary_map_sha256=obj['a3d_sewing_mesh_sha256'],source_garment_sha256=payload['source_garment_sha256'],placement=placement_ref,
-            checkpoint=project.state().get('pending_blender_operation',{}).get('checkpoint'))
+            checkpoint=project.state().get('pending_blender_operation',{}).get('checkpoint'),fitting=fitting)
         path=attempt_dir/'diagnostic.json'
         from a3d.sewing_diagnostics import preview_svg
         preview=preview_svg(data)
@@ -607,6 +618,7 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
             local_payload=copy.deepcopy(payload)
             local_payload['placed_cm']=[[x*100 for x in p] for p in object_mesh(obj)[0]]
             local_payload=subset_mesh(local_payload,recipe['trial_pieces'])
+            local_payload=fitting_tack_payload(local_payload,recipe,phase)
             # Disable original cloth collision: only the explicit collision
             # collection is used; the project mesh is preserved and not simulated.
             target=make_object(local_payload,'A3D.LocalTrial.'+uuid.uuid4().hex[:8])
@@ -617,7 +629,9 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
         if context_colliders(recipe)[2]!=context['colliders']:
             raise StudioError('Auxiliary mannequin pose changed during simulation')
         report.update(binding=binding,scope=scope,component_id=component_id,recipe_path=recipe_path,recipe_sha256=digest(recipe),
-            context=context,package_sha256=payload['package_sha256'],trial_pieces=recipe['trial_pieces'],placement=placement_ref)
+            context=context,package_sha256=payload['package_sha256'],trial_pieces=recipe['trial_pieces'],placement=placement_ref,
+            fitting=fitting,fitting_tacks=payload_for_run.get('fitting_tacks',[]),
+            qualification='CONSTRUCTION_FITTING_ONLY' if payload_for_run.get('fitting_tacks') else 'PHYSICS_ONLY')
         if scope=='local':
             report['backend_probes']=probes
             report['local_result_cm']=coords
@@ -659,6 +673,10 @@ def freeze_sewn(project_root,component_id,recipe_path):
     report_path=project.data/'blender/sewing'/(component_id+'-full.json')
     if not report_path.exists():raise StudioError('No completed full toile to freeze')
     report=read_json(report_path)
+    from blender.fitting import recipe_fit
+    fitting=recipe_fit(project,obj,payload,recipe)
+    if fitting and (fitting['fit_status']=='INCOMPATIBLE' or (report.get('fitting') or {}).get('fit_binding')!=fitting['fit_binding']):
+        raise StudioError('Fitting evidence changed or is incompatible; requalify before freeze')
     if report.get('simulation')!='PASS' or report.get('result_mesh_sha256')!=mesh_digest(obj) or report['recipe_sha256']!=digest(recipe) or report.get('boundary_map_sha256')!=obj['a3d_sewing_mesh_sha256']:
         raise StudioError('Full simulation evidence is stale')
     coords,faces=object_mesh(obj)

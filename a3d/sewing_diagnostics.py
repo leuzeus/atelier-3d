@@ -16,6 +16,7 @@ def failure_geometry(payload, coords, start, recipe, penetrations=()):
         'start_cm': start, 'rest_cm': payload['rest_cm'], 'faces': payload['faces'],
         'source_vertex_indices': source, 'source_face_indices': payload.get('source_face_indices', list(range(len(payload['faces'])))),
         'panels': payload.get('panels', {}), 'pins': payload['pins'], 'seams': payload['seams'],
+        'fitting_tacks':payload.get('fitting_tacks',[]),
         'finite_matching_topology': valid, 'penetrations': list(penetrations), 'outlier_edges': [], 'outlier_faces': [], 'seam_gaps': {}}
     if not valid:
         return base
@@ -52,8 +53,9 @@ def failure_geometry(payload, coords, start, recipe, penetrations=()):
             'evaluated_cm':distance(coords[a],coords[b])} for a,b in seam['pairs']]
         base['seam_gaps'][sid] = {'kind':seam['kind'], 'pieces':[seam.get('piece_a'),seam.get('piece_b')],
             'max_gap_cm':max((p['evaluated_cm'] for p in pairs), default=0.),
+            'temporary_fitting_tack':any(t['seam_id']==sid for t in payload.get('fitting_tacks',[])),
             'outside_tolerance':sum(p['evaluated_cm'] > recipe['limits']['max_seam_gap_cm'] for p in pairs)
-                if seam['kind'] == 'permanent' else None, 'pairs':pairs}
+                if seam['kind'] == 'permanent' or any(t['seam_id']==sid for t in payload.get('fitting_tacks',[])) else None, 'pairs':pairs}
     base['piece_extents_cm'] = {pid: {'min':[min(coords[i][k] for i in panel['indices']) for k in range(3)],
         'max':[max(coords[i][k] for i in panel['indices']) for k in range(3)], 'vertices':len(panel['indices'])}
         for pid,panel in payload.get('panels', {}).items() if panel['indices']}
@@ -116,6 +118,7 @@ def inspect_failure(project, component_id, attempt_dir):
         'execution_stage':data.get('execution_stage','garment'), 'probe':data.get('probe'), 'probe_diagnostic':probe_ref,
         'backend_probe_simulation':data.get('backend_probe_simulation','NOT_RECORDED'),
         'final_quality':data.get('final_quality'),
+        'fitting':data.get('fitting'),'fitting_tacks':geometry.get('fitting_tacks',[]),
         'garment_simulation':data.get('garment_simulation','FAIL'), 'mapping_domain':geometry.get('mapping_domain','pattern-pieces'),
         'omitted_seams':geometry.get('omitted_seams', []), 'visual_validation':'NOT_EXECUTED',
         'note':'Historical failed state. For backend_probe, geometry belongs to synthetic coupons; package, boundary map and placement bind the parent request, not coupon vertices. No full simulation or acceptance is authorized.'}

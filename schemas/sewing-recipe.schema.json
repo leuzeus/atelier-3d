@@ -524,6 +524,80 @@
         "max_penetration_cm"
       ],
       "additionalProperties": false
+    },
+    "fitting_plan": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "fitting_tacks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "seam_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "phase": {
+            "enum": [
+              "mount",
+              "drape"
+            ]
+          },
+          "source_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "force_mode": {
+            "const": "shared_native_sewing"
+          },
+          "sewing_force_per_kg": {
+            "type": "number",
+            "minimum": 0.001,
+            "maximum": 1000000
+          },
+          "frame_start": {
+            "const": 1
+          },
+          "frame_end": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 240
+          }
+        },
+        "required": [
+          "id",
+          "seam_id",
+          "phase",
+          "source_ref",
+          "force_mode",
+          "sewing_force_per_kg",
+          "frame_start",
+          "frame_end"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "maxItems": 16
     }
   },
   "required": [

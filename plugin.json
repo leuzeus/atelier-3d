@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "atelier-3d",
-  "version": "0.5.7",
+  "version": "0.5.8",
   "description": "Local 3D production orchestration with component routing, ComfyUI jobs, reconstruction packages and Blender workflows.",
   "author": {
     "name": "Atelier 3D project"

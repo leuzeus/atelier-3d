@@ -155,3 +155,5 @@ Les profils matière, les placements complexes, le bake d'animation, les UV, la
 retopologie de jeu et l'import Unreal restent à qualifier sur l'asset réel.
 Ne pas relancer automatiquement de longues variantes ou changer de pipeline
 après un refus technique : diagnostiquer le petit cas concerné.
+
+Avant de varier les profils, suivre [le fitting mesuré](measured-fitting.md). Une fermeture provisoire est un maintien local jetable, pas une couture permanente. Retirer les attaches et refaire local avant full/freeze.
