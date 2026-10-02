@@ -1,5 +1,27 @@
 # Validation d'Atelier 3D
 
+## État de la version 0.5.9
+
+| Vérification | Résultat | Portée |
+| --- | --- | --- |
+| Suite Python Windows | PASS : 201 tests | Maxima distincts, mapping local/source, historique sans incrément, non-mutation et régressions |
+| Contrats indépendants | PASS : 9 distribués + config privée | Aucun contrat ou seuil physique assoupli |
+| Arrêt natif de déplacement | PASS du diagnostic | Image d'arrêt conservée, excursion/incrément source mesurés ; coupon FAIL demeure FAIL |
+| Conservation/restauration native | PASS | Inspection historique intacte après nettoyage/restauration ; aucun full accordé |
+| Régression native physique | PASS sur fixture | Probes, local/full/freeze et contrôles de copie inchangés |
+| Reproduction isolée du cas réel | FAIL du vêtement, télémétrie mesurée | Arrêt reproduit à l'image 44 ; excursion 30,0746 cm, incrément maximal 2,3367 cm, sommets différents |
+| Retrait des deux appuis faibles du dos | Hypothèse rejetée | FAIL à l'image 18 ; pas de recommandation de retrait des appuis |
+| Translation initiale de 3 cm | Refus natif | Pénétration initiale ; aucun Cloth lancé |
+| Proposition bornée par contacts | Précontrôle PASS, Cloth NOT_EXECUTED | Translation 0,5600 cm ; légère baisse d'écarts au col/épaules, hausse d'un écart latéral ; aucun fitting accepté |
+| Fitting, cause physique, production consommateur | NOT_QUALIFIED / NOT_ESTABLISHED / NOT_EXECUTED | Proxy et homologues supposés ; pas de déficit de coupe certifié ni modèle de production modifié |
+
+Voir [les mesures et leurs limites](references/cloth-motion.md).
+Les expériences réelles sont des fixtures isolées de diagnostic, pas une
+qualification via le dispatcher du consommateur. La continuité obtenue par
+une union géométrique de partenaires éloignés ne se transfère pas à une preuve
+de convergence Cloth. Aucun mode d'assemblage assisté, préformage anatomique
+ou montage progressif nouveau n'est livré par ce correctif.
+
 ## État de la version 0.5.8
 
 | Vérification | Résultat | Portée |

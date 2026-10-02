@@ -36,6 +36,10 @@ Les rendus écrits sur disque suivent les contrats de preuves du projet.
 
 ## Conserver un échec réellement évalué
 
+Depuis 0.5.9, lire aussi [les mesures de déplacement](cloth-motion.md) : sommet
+source/pièce responsable, excursion depuis le départ et incrément réellement
+évalué. Le dépassement de budget demeure un FAIL et ne prouve pas seul une instabilité.
+
 Quand `simulate_object` échoue après évaluation, avant retrait de Cloth et du
 mesh temporaire, la tentative conserve `diagnostic.json` et, si les coordonnées
 sont finies et correspondent à la topologie, `diagnostic.svg`. `failure.json`

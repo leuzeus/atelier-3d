@@ -8,6 +8,54 @@ from .core import StudioError, atomic_json, inside, read_json, sha
 from .sewing import distance
 
 
+def motion_metrics(payload, coords, start, frame, previous=None, previous_frame=None,
+                   budget_cm=None, include_pieces=True):
+    """Bounded source localization, not velocity or an instability classifier.
+
+    Historical evidence may lack the previous evaluated positions. Never infer
+    an increment by subtracting two scalar maxima (often different vertices).
+    """
+    n = len(payload['rest_cm'])
+    def valid(points):
+        return points is not None and len(points) == n and n > 0 and all(
+            len(p) == 3 and all(isinstance(x, (int, float)) and math.isfinite(x) for x in p) for p in points)
+    result = {'frame': frame, 'excursion_status': 'UNAVAILABLE',
+        'increment_status': 'NOT_RECORDED', 'previous_frame': None,
+        'max_excursion': None, 'max_increment': None, 'pieces': {},
+        'budget_cm': budget_cm, 'budget_exceeded': None,
+        'interpretation': 'Excursion is distance from phase start; increment is distance from the preceding evaluated frame, not solver substep velocity. Neither alone proves instability. No budget adjustment or acceptance.'}
+    if not valid(coords) or not valid(start):
+        return result
+    source = payload.get('source_vertex_indices', list(range(n)))
+    owners = {i: pid for pid, panel in payload.get('panels', {}).items() for i in panel['indices']}
+    def record(index, origin):
+        pid = owners.get(index)
+        panel = payload.get('panels', {}).get(pid, {})
+        return {'index': index, 'source_vertex_index': source[index], 'piece': pid,
+            'distance_cm': distance(origin[index], coords[index]),
+            'from_cm': origin[index], 'to_cm': coords[index],
+            'delta_cm': [coords[index][k]-origin[index][k] for k in range(3)],
+            'rest_uv_cm': payload['rest_cm'][index][:2],
+            'named_edges': [name for name, ids in panel.get('edges', {}).items() if index in ids],
+            'pin_weight': payload.get('pins', {}).get(str(index), 0.)}
+    excursions = [distance(a, b) for a, b in zip(start, coords)]
+    result.update(excursion_status='MEASURED', max_excursion=record(max(range(n), key=excursions.__getitem__), start))
+    if budget_cm is not None:
+        result['budget_exceeded'] = result['max_excursion']['distance_cm'] > budget_cm
+    increment_valid = (valid(previous) and previous_frame is not None and frame > previous_frame)
+    increments = [distance(a, b) for a, b in zip(previous, coords)] if increment_valid else None
+    if increment_valid:
+        result.update(increment_status='MEASURED', previous_frame=previous_frame,
+            max_increment=record(max(range(n), key=increments.__getitem__), previous))
+    if include_pieces:
+        for pid, panel in payload.get('panels', {}).items():
+            ids = panel['indices']
+            if ids:
+                result['pieces'][pid] = {'max_excursion': record(max(ids, key=excursions.__getitem__), start),
+                    'max_increment': record(max(ids, key=increments.__getitem__), previous) if increment_valid else None}
+    return result
+
+
 def failure_geometry(payload, coords, start, recipe, penetrations=()):
     source = payload.get('source_vertex_indices', list(range(len(payload['rest_cm']))))
     owners = {i: pid for pid, panel in payload.get('panels', {}).items() for i in panel['indices']}
@@ -107,6 +155,11 @@ def inspect_failure(project, component_id, attempt_dir):
             native_image=inside(project.root,(probe_path.parent.relative_to(project.root)/native_preview['name']).as_posix())
             if native_image.parent!=probe_path.parent or sha(native_image)!=native_preview['sha256']:
                 raise StudioError('Backend probe preview changed')
+    motion = geometry.get('motion')
+    if motion is None:
+        # Read old evidence without rewriting its bytes/SHA or inventing a step.
+        motion = motion_metrics(geometry, geometry['evaluated_cm'], geometry['start_cm'], data['frame'],
+            budget_cm=data.get('recipe', {}).get('limits', {}).get('max_displacement_cm'))
     return {'simulation':'FAIL', 'accepted':False, 'diagnostic':ref, 'component_id':component_id,
         'preview':preview, 'placement':placement, 'frame':data['frame'], 'error':data['error'], 'scope':data['scope'], 'phase':data['phase'],
         'package_sha256':data['package_sha256'], 'recipe_sha256':data['recipe_sha256'],
@@ -119,6 +172,7 @@ def inspect_failure(project, component_id, attempt_dir):
         'backend_probe_simulation':data.get('backend_probe_simulation','NOT_RECORDED'),
         'final_quality':data.get('final_quality'),
         'fitting':data.get('fitting'),'fitting_tacks':geometry.get('fitting_tacks',[]),
+        'motion':motion, 'frames':data.get('frames', []),
         'garment_simulation':data.get('garment_simulation','FAIL'), 'mapping_domain':geometry.get('mapping_domain','pattern-pieces'),
         'omitted_seams':geometry.get('omitted_seams', []), 'visual_validation':'NOT_EXECUTED',
         'note':'Historical failed state. For backend_probe, geometry belongs to synthetic coupons; package, boundary map and placement bind the parent request, not coupon vertices. No full simulation or acceptance is authorized.'}
