@@ -102,6 +102,23 @@ class BoundaryTests(unittest.TestCase):
 
 
 class PhysicsTests(unittest.TestCase):
+    def test_contact_recovery_and_reference_mode_remain_bounded(self):
+        from a3d.core import contract
+        data,recipe=sources()
+        recipe['contact_recovery']={'source_ref':'test:contact','clearance_cm':.1,
+            'max_displacement_cm':.5,'max_passes':2}
+        validate_recipe(data,recipe)
+        recipe['contact_recovery']['max_displacement_cm']=recipe['limits']['max_displacement_cm']+1
+        with self.assertRaisesRegex(StudioError,'existing displacement budget'):validate_recipe(data,recipe)
+        recipe.pop('contact_recovery')
+        recipe['experimental_prefit']={'experimental':True,'source_ref':'test:fixed-reference',
+            'seam_ids':['torso-right'],'reference_pieces':['front'],'fixed_edges':[],
+            'iterations':5,'clearance_cm':0,'max_displacement_cm':1,'min_fraction':.125,
+            'max_backtracks':3,'preserve_reference_positions':True}
+        validate_recipe(data,recipe)
+        recipe['experimental_prefit']['preserve_reference_positions']='true'
+        with self.assertRaises(StudioError):contract('sewing-recipe',recipe)
+
     def test_experimental_prefit_is_opt_in_bound_and_permanent_only(self):
         from blender.sewing import mesh_recipe_digest
         data,recipe=sources();baseline=mesh_recipe_digest(recipe)
@@ -189,6 +206,29 @@ class FreezeTests(unittest.TestCase):
 
 
 class SewingAdmissionTests(Case):
+    def test_free_assembly_is_explicit_and_does_not_allow_colliders(self):
+        p=ready_project(self.root,True);_,r=sources();atomic_json(p.root/'recipe.json',r)
+        before=p.state()
+        args={'component_id':'garment.coat','recipe_path':'recipe.json','phase':'mount','scope':'full','purpose':'assembly'}
+        admit_operation(p,'simulate_sewn',args)
+        admit_operation(p,'prepare_sewn_stage',{'component_id':'garment.coat','recipe_path':'recipe.json','stage':'assembly'})
+        r['no_collision_reason']='';atomic_json(p.root/'recipe.json',r)
+        with self.assertRaisesRegex(StudioError,'explicit collider-free'):admit_operation(p,'simulate_sewn',args)
+        r['no_collision_reason']='test';r['colliders']=[{'object':'body','role':'mannequin',
+            'geometry_sha256':'0'*64,'dimensions_cm':[20,20,180],'tolerance_cm':.1,
+            'outer_thickness_cm':.1,'inner_thickness_cm':.1}]
+        atomic_json(p.root/'recipe.json',r)
+        with self.assertRaisesRegex(StudioError,'explicit collider-free'):admit_operation(p,'simulate_sewn',args)
+        self.assertEqual(p.state(),before)
+
+    def test_new_stages_cannot_bypass_board_or_unknown_purpose(self):
+        p=ready_project(self.root,True,False);_,r=sources();atomic_json(p.root/'recipe.json',r)
+        with self.assertRaisesRegex(StudioError,'construction'):
+            admit_operation(p,'prepare_sewn_stage',{'component_id':'garment.coat','recipe_path':'recipe.json','stage':'assembly'})
+        with self.assertRaisesRegex(StudioError,'purpose'):
+            admit_operation(p,'simulate_sewn',{'component_id':'garment.coat','recipe_path':'recipe.json',
+                'phase':'mount','scope':'local','purpose':'unknown'})
+
     def test_rebuild_cannot_replace_accepted_component(self):
         from a3d.packages import extract_package
         p=ready_project(self.root,True);_,r=sources();atomic_json(p.root/'recipe.json',r)

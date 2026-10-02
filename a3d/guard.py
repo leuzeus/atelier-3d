@@ -24,7 +24,7 @@ def parse_code(code):
 
 def admit_operation(project, operation, arguments):
     state = project.state()
-    if operation not in ("prepare", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn"):
+    if operation not in ("prepare", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn", "apply_sewn_result", "prepare_sewn_stage"):
         raise StudioError("Unknown guarded Blender operation")
     required = {"prepare": set(), "resume": set(), "inspect": set(),
         "frame_view": {"component_id", "object_name"},
@@ -36,7 +36,14 @@ def admit_operation(project, operation, arguments):
         "verify_legacy_import": {"package_dir", "checkpoint_receipt"}, "garment": {"package_dir"}, "assemble": {"plan_path"},
         "run_script": {"purpose", "path", "sha256", "component_ids"}, "restore_checkpoint": set(),
         "simulate_sewn": {"component_id", "recipe_path", "phase", "scope"},
+        "apply_sewn_result": {"component_id", "recipe_path", "result_path", "result_sha256"},
+        "prepare_sewn_stage": {"component_id", "recipe_path", "stage"},
         "freeze_sewn": {"component_id", "recipe_path"}}[operation]
+    if operation=='simulate_sewn' and 'purpose' in arguments:
+        required|={'purpose'}
+        if arguments['purpose'] not in ('assembly','fitting'):raise StudioError('Unknown sewing purpose')
+    if operation=='prepare_sewn_stage' and arguments.get('stage') not in ('assembly','fitting'):
+        raise StudioError('Unknown sewing construction stage')
     if operation == "garment" and "recipe_path" in arguments:
         required = required | {"recipe_path"}
     if operation == "garment" and "rebuild" in arguments:
@@ -103,7 +110,7 @@ def admit_operation(project, operation, arguments):
             raise StudioError("Completed project is immutable")
         return
     require_board(project, state)
-    if operation in ("simulate_sewn", "freeze_sewn", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment"):
+    if operation in ("simulate_sewn", "freeze_sewn", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "apply_sewn_result", "prepare_sewn_stage"):
         if state["stage"] != "RECONSTRUCTING":
             raise StudioError("Native sewing requires RECONSTRUCTING")
         if arguments['component_id'] not in state['components']:
@@ -115,6 +122,14 @@ def admit_operation(project, operation, arguments):
         recipe = contract("sewing-recipe", read_json(inside(project.root, arguments["recipe_path"])))
         if recipe["component_id"] != arguments["component_id"]:
             raise StudioError("Sewing recipe identity mismatch")
+        if operation=='apply_sewn_result':
+            fingerprint=arguments['result_sha256']
+            if not isinstance(fingerprint,str) or len(fingerprint)!=64 or sha(inside(project.root,arguments['result_path']))!=fingerprint:
+                raise StudioError('Sewing result identity changed')
+        if (operation=='apply_sewn_result' or operation=='prepare_sewn_stage' and arguments['stage']=='assembly'
+            or operation=='simulate_sewn' and arguments.get('purpose')=='assembly'):
+            if recipe['colliders'] or recipe.get('fitting_plan') or recipe.get('fitting_tacks') or not recipe['no_collision_reason'].strip():
+                raise StudioError('Free assembly requires an explicit collider-free recipe without fitting/tacks')
         if 'fit_path' in arguments:
             plan=contract('fitting-plan',read_json(inside(project.root,arguments['fit_path'])))
             if plan['component_id']!=arguments['component_id']:raise StudioError('Fitting plan component mismatch')

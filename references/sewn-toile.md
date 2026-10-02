@@ -1,5 +1,10 @@
 # Du board approuvé à une toile cousue
 
+Pour réutiliser les coordonnées d'un PASS local sans collider et introduire
+le corps seulement après le montage complet, suivre [la reprise par étapes](sewn-stages.md).
+Le parcours historique ci-dessous reste compatible ; un montage libre full
+ne remplace pas sa qualification de fitting avant freeze.
+
 Le board approuve le découpage et les données de fabrication. L'exécution Cloth
 emploie une **recette technique séparée**, préparée par l'agent à partir de ces
 données et de la scène réelle. Aucun formulaire humain supplémentaire n'est

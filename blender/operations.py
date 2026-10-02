@@ -302,6 +302,7 @@ def inspect(project_root):
 def _perform(project_root, operation, arguments):
     if operation != "run_script":
         from blender.sewing import simulate_sewn, freeze_sewn
+        from blender.sewn_stages import apply_sewn_result, prepare_sewn_stage
         from blender.viewport import frame_view
         from blender.placement import inspect_sewing_placement
         from blender.fitting import inspect_garment_fit, propose_pattern_adjustment
@@ -315,7 +316,8 @@ def _perform(project_root, operation, arguments):
             "garment": garment, "assemble": assemble,
             "inspect_sewing_placement": inspect_sewing_placement,
             "inspect_garment_fit": inspect_garment_fit, "propose_pattern_adjustment": propose_pattern_adjustment,
-            "simulate_sewn": simulate_sewn, "freeze_sewn": freeze_sewn}[operation](project_root, **arguments)
+            "simulate_sewn": simulate_sewn, "freeze_sewn": freeze_sewn,
+            "apply_sewn_result": apply_sewn_result, "prepare_sewn_stage": prepare_sewn_stage}[operation](project_root, **arguments)
     import bpy
     import runpy
     project, rec = working(project_root)

@@ -1,5 +1,11 @@
 # Prépositionnement expérimental — 0.6.0
 
+Depuis 0.6.1, `prepare_sewn_stage(stage=assembly)` peut aussi l'appliquer aux
+coordonnées cousues actuelles. `preserve_reference_positions: true` conserve
+exactement les positions des panneaux de référence au lieu de réduire leurs
+partenaires dans le même degré de liberté. L'option reste facultative, liée à la
+recette et aux mêmes contrôles. Voir [le montage par étapes](sewn-stages.md).
+
 Cette option sert à tester un rapprochement initial de panneaux avant Cloth.
 Elle est désactivée par défaut et s'exécute dans `garment` / `rebuild`, sur la
 copie de travail, après les contrôles du package et du board approuvé.

@@ -7,6 +7,8 @@ def solve_prefit(payload,recipe,trees):
     options=recipe['experimental_prefit'];iterations=options['iterations']
     selected=options['seam_ids']
     n=len(payload['rest_cm']);rest=np.array(payload['rest_cm']);start=np.array(payload['placed_cm']);points=start.copy()
+    reference={i for pid in options['reference_pieces'] for i in payload['panels'][pid]['indices']}
+    preserve=options.get('preserve_reference_positions',False)
     parent=list(range(n))
     def root(i):
         while parent[i]!=i:parent[i]=parent[parent[i]];i=parent[i]
@@ -15,7 +17,9 @@ def solve_prefit(payload,recipe,trees):
     for sid in selected:
         seam=payload['seams'][sid]
         for side in ('a','b'):active.update(payload['panels'][seam['piece_'+side]]['indices'])
-        for a,b in seam['pairs']:parent[root(b)]=root(a);members.update((a,b))
+        for a,b in seam['pairs']:
+            if not preserve or not reference.intersection((a,b)):parent[root(b)]=root(a)
+            members.update((a,b))
     roots=sorted({root(i) for i in active});lookup={r:j for j,r in enumerate(roots)}
     node=np.array([lookup.get(root(i),-1) for i in range(n)]);m=len(roots)
     def project(value):
@@ -24,7 +28,6 @@ def solve_prefit(payload,recipe,trees):
             hit,normal,_,_=tree.find_nearest(p)
             if hit is not None and (p-hit).dot(normal)*100<options['clearance_cm']:p=hit+normal*(options['clearance_cm']/100)
         return np.array(p)*100
-    reference={i for pid in options['reference_pieces'] for i in payload['panels'][pid]['indices']}
     fixed=set(reference)
     for declaration in options['fixed_edges']:
         indices=payload['panels'][declaration['piece']]['edges'][declaration['edge']]
@@ -32,11 +35,23 @@ def solve_prefit(payload,recipe,trees):
     if not fixed <= active:raise StudioError('Prefit landmarks must belong to its active seam component')
     fixed_nodes={}
     for i in sorted(fixed):
-        value=project(start[i]) if i in reference else start[i]
+        value=project(start[i]) if i in reference and not preserve else start[i]
         j=node[i]
         if j in fixed_nodes and np.linalg.norm(fixed_nodes[j]-value)>1e-4:
             raise StudioError('Conflicting fixed landmarks on a selected seam; declare exclusions explicitly')
         fixed_nodes[j]=value
+    if preserve:
+        targets={}
+        for sid in selected:
+            for a,b in payload['seams'][sid]['pairs']:
+                for fixed_index,moving in ((a,b),(b,a)):
+                    if fixed_index in reference and moving not in reference:
+                        targets.setdefault(node[moving],[]).append(start[fixed_index])
+        for j,values in targets.items():
+            target=np.mean(values,axis=0)
+            if j in fixed_nodes and np.linalg.norm(fixed_nodes[j]-target)>1e-4:
+                raise StudioError('Conflicting fixed edge and reference-driven seam target')
+            fixed_nodes[j]=target
     # Every connected active panel group needs a declared reference. Otherwise
     # the reduced Laplacian has unconstrained rigid translation modes.
     panel_parent={pid:pid for pid,p in payload['panels'].items() if set(p['indices']) & active}
@@ -124,6 +139,7 @@ def apply_prefit(obj,payload,recipe,trees):
         'simulation':'NOT_EXECUTED','visual_validation':'NOT_EXECUTED',
         'source_ref':options['source_ref'],'recipe_mesh_sha256':payload['recipe_mesh_sha256'],
         'seam_ids':options['seam_ids'],'reference_pieces':options['reference_pieces'],
+        'preserve_reference_positions':options.get('preserve_reference_positions',False),
         'fixed_edges':options['fixed_edges'],'before_gaps_cm':gaps(original),'rejections':[]}
     payload['experimental_prefit']=report
     try:

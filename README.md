@@ -7,11 +7,22 @@ Plugin Codex pour préparer et produire des assets 3D à partir d'images de réf
 avec un choix de méthode par composant, des données de construction explicites et
 une validation humaine aux étapes déterminantes.
 
-**Version 0.6.0 — socle de développement, prépositionnement expérimental.** Le runtime et ses contrats sont testés.
+**Version 0.6.1 — reprise cousue et fitting séparé.** Le runtime et ses contrats sont testés.
 Le profil d'installation Windows est testé, avec découverte MCP et diagnostic
 compatibles avec le manifeste Codex. Une
 production complète sur un vrai vêtement ou un asset articulé reste à qualifier.
-Voir [les résultats et limites](VALIDATION.md) et la [release 0.6.0](https://github.com/leuzeus/atelier-3d/releases/tag/v0.6.0).
+Voir [les résultats et limites](VALIDATION.md) et la [release 0.6.1](https://github.com/leuzeus/atelier-3d/releases/tag/v0.6.1).
+
+La version 0.6.1 ajoute le [montage par étapes](references/sewn-stages.md) :
+`apply_sewn_result` reprend un résultat local PASS sans collider dans une copie
+native, avec ses indices et reçus ; `simulate_sewn(purpose=assembly)` permet
+l'assemblage complet libre ; `prepare_sewn_stage` conserve les coordonnées
+cousues pour préparer les interfaces restantes puis introduire le mannequin
+identifié pour un fitting distinct. Le parcours complet passe sur fixture.
+Le transfert réel de 5 455 sommets passe aussi ; l'assemblage réel de 17 panneaux
+reste refusé avant Cloth pour orientation d'emmanchure. Les essais bornés de
+prépositionnement n'ont pas produit de candidat admissible. Cette version
+livre la continuité native sans qualifier le vêtement réel ou son fitting.
 
 La version 0.6.0 permet de tester un [prépositionnement borné des panneaux](references/experimental-prefit.md)
 dans l'opération `garment`, sur demande explicite et sans modifier les patrons.

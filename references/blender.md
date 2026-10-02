@@ -1,5 +1,10 @@
 # Blender MCP externe
 
+`apply_sewn_result` et `prepare_sewn_stage` ajoutent la
+[reprise d'un résultat local et le fitting séparé](sewn-stages.md).
+Ces opérations passent par le même outil et le dispatcher installé ; garder
+les chemins/SHA retournés, sans reconstruire le vêtement dans un script externe.
+
 Avant Cloth, `inspect_sewing_placement(component_id, recipe_path)` mesure le
 montage natif initial en lecture seule : coutures, supports, trajets droits dans
 les colliders et orientations. Voir [le protocole de prépositionnement](sewing-placement.md).

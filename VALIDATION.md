@@ -1,5 +1,27 @@
 # Validation d'Atelier 3D
 
+## État de la version 0.6.1
+
+| Vérification | Résultat | Portée |
+| --- | --- | --- |
+| Suite Python Windows | PASS : 213 tests | Transfert exact, bindings de stages, refus des preuves périmées, contrats et régressions |
+| Contrats indépendants | PASS : 9 distribués + config privée | Options bornées ; recettes historiques compatibles |
+| Parcours natif complet | PASS sur fixture | Local libre → copie/transfert → full assembly → entrée fitting → nouveau local/full avec collider |
+| Réparation initiale bornée | PASS de placement sur fixture | Contact auxiliaire minuscule réparé ; rest/topologie/pins/coutures conservés, Cloth non qualifié par cette réparation |
+| Refus natifs | PASS du refus | SHA/recette périmés, full sans mannequin, pénétration/budget insuffisant, full fitting sans nouveau local, freeze après assembly |
+| Références cousues fixes | PASS sur fixture | Positions de référence conservées, ancien mode de conflit encore refusé |
+| Régression physique native | PASS sur fixture | Probes, local/full/freeze historiques |
+| Transfert réel isolé | PASS | 5 455 coordonnées locales appliquées ; 1 194 sommets actuels inchangés ; sources/rest/mapping sémantique/coupe conservés |
+| Assemblage réel de 17 panneaux | REJECTED avant Cloth | Emmanchure devant gauche, segment 17, cosinus −0,956446 < −0,5 |
+| Prépositionnements réels supplémentaires | REJECTED | Torse fixe puis col fixe : aucun candidat dans les contrôles de qualité et budgets existants |
+| Fitting réel, long mouvement, export Unreal, acceptation humaine | NOT_EXECUTED / NOT_QUALIFIED | Aucune scène de production modifiée ; aucun résultat de fixture transféré comme validation artistique |
+
+Voir [le protocole de reprise et fitting](references/sewn-stages.md). Les essais
+réels ont lieu sur une copie isolée de l'état consommateur. Le PASS local de
+18 images ne qualifie pas 48 images ou les manches omises. Le collider du
+parcours positif est un corps synthétique distinct, explicitement déclaré ;
+le corps incompatible n'a pas été redimensionné pour faire passer le test.
+
 ## État de la version 0.6.0
 
 | Vérification | Résultat | Portée |

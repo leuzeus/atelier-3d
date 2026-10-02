@@ -586,7 +586,7 @@ def backend_probes(recipe,phase,output_dir,proof_callback=None,failure_callback=
         bpy.data.scenes.remove(scene)
 
 
-def managed_inputs(project,component_id,recipe_path):
+def managed_inputs(project,component_id,recipe_path,check_placement=True):
     import bpy
     state,component=project.ready(component_id)
     if component['stage']=='RECONSTRUCTED':raise StudioError('Accepted sewing geometry is immutable')
@@ -602,7 +602,7 @@ def managed_inputs(project,component_id,recipe_path):
     data=read_json(source)
     if digest(data)!=payload['source_garment_sha256']:raise StudioError('Extracted source contours changed')
     recipe=read_json(inside(project.root,recipe_path));validate_recipe(data,recipe)
-    preflight(obj,payload,recipe)
+    if check_placement:preflight(obj,payload,recipe)
     return obj,payload,recipe
 
 
@@ -612,7 +612,7 @@ def trial_binding(obj,payload,recipe,phase,context):
         'blender':bpy.app.version_string,'colliders':context['colliders'],'fit_binding':context.get('fit_binding')})
 
 
-def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
+def simulate_sewn(project_root,component_id,recipe_path,phase,scope,purpose='fitting'):
     import bpy
     from blender.operations import working
     project,session=working(project_root)
@@ -630,9 +630,16 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
     directory=project.data/'blender/sewing';directory.mkdir(parents=True,exist_ok=True)
     local_path=directory/(component_id+'-local.json')
     if scope=='full':
-        if not any(c['role']=='mannequin' for c in recipe['colliders']):
+        if purpose!='assembly' and not any(c['role']=='mannequin' for c in recipe['colliders']):
             raise StudioError('Full garment trial needs the identified, measured auxiliary mannequin')
-        if not local_path.is_file() or read_json(local_path).get('binding')!=binding or read_json(local_path).get('simulation')!='PASS':
+        from a3d.sewn_continuity import local_status
+        latest=local_status(read_json(local_path) if local_path.is_file() else None,binding)
+        current_local=latest=='PASS'
+        current_failed=latest=='FAIL'
+        if purpose=='assembly' and not current_local and not current_failed:
+            from blender.sewn_stages import assembly_resume
+            current_local=assembly_resume(project,obj,payload,recipe,phase)
+        if not current_local:
             raise StudioError('Run the current local sleeve/armhole trial before a full toile')
     attempt_dir=directory/('attempt-'+uuid.uuid4().hex);attempt_dir.mkdir()
     # Record the measured mounting context before the first Cloth frame. It
@@ -696,6 +703,9 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
             context=context,package_sha256=payload['package_sha256'],trial_pieces=recipe['trial_pieces'],placement=placement_ref,
             fitting=fitting,fitting_tacks=payload_for_run.get('fitting_tacks',[]),
             qualification='CONSTRUCTION_FITTING_ONLY' if payload_for_run.get('fitting_tacks') else 'PHYSICS_ONLY')
+        report.update(purpose=purpose,units='cm',boundary_map_sha256=obj['a3d_sewing_mesh_sha256'],
+            source_vertex_indices=payload_for_run.get('source_vertex_indices',list(range(len(payload['rest_cm'])))),
+            source_garment_sha256=payload['source_garment_sha256'])
         if scope=='local':
             report['backend_probes']=probes
             report['local_result_cm']=coords
@@ -704,9 +714,14 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
         else:
             commit_positions(obj,coords)
             report['result_mesh_sha256']=mesh_digest(obj)
+            report['result_cm']=coords
+            if purpose=='assembly':report['qualification']='ASSEMBLY_PHYSICS_ONLY'
             report['boundary_map_sha256']=obj['a3d_sewing_mesh_sha256']
             atomic_json(directory/(component_id+'-full.json'),report)
         atomic_json(counter_path,counters);atomic_json(attempt_dir/'result.json',report)
+        if scope=='full':
+            obj['a3d_sewn_stage_result']=(attempt_dir/'result.json').relative_to(project.root).as_posix()
+            obj['a3d_sewn_stage_result_sha256']=sha(attempt_dir/'result.json')
         if scope=='full':bpy.ops.wm.save_as_mainfile(filepath=session['working'],check_existing=False)
         return {'simulation':'PASS','scope':scope,'phase':phase,'report':(attempt_dir/'result.json').relative_to(project.root).as_posix(),
             'mass':report['mass'],'final_gap_cm':report['final_gap_cm'],'visual_validation':'NOT_EXECUTED'}
@@ -737,6 +752,7 @@ def freeze_sewn(project_root,component_id,recipe_path):
     report_path=project.data/'blender/sewing'/(component_id+'-full.json')
     if not report_path.exists():raise StudioError('No completed full toile to freeze')
     report=read_json(report_path)
+    if report.get('purpose')=='assembly':raise StudioError('Free assembly is not a fitting qualification; fit before freeze')
     from blender.fitting import recipe_fit
     fitting=recipe_fit(project,obj,payload,recipe)
     if fitting and (fitting['fit_status']=='INCOMPATIBLE' or (report.get('fitting') or {}).get('fit_binding')!=fitting['fit_binding']):
