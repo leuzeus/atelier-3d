@@ -205,15 +205,23 @@ def garment(project_root, package_dir, recipe_path=None, rebuild=False, migrate_
         raise StudioError("A derived sewing recipe is required; use templates/sewing-recipe.json without modifying approved contours")
     from blender.sewing import build_mesh, make_object, preflight
     recipe = read_json(inside(project.root, recipe_path))
-    payload = build_mesh(data, recipe)
-    payload.update(package_sha256=component["package"]["sha256"],
-        source_garment=(data_dir / "garment.json").relative_to(project.root).as_posix())
-    obj = make_object(payload, "A3D." + data["component_id"])
-    obj["a3d_component_id"] = data["component_id"]
-    obj["a3d_package_sha256"] = component["package"]["sha256"]
-    bpy.context.scene.unit_settings.system = "METRIC"
-    # Never change a non-metric scene scale to make an invalid placement pass.
-    context, _, _ = preflight(obj, payload, recipe)
+    payload = None
+    try:
+        payload = build_mesh(data, recipe)
+        payload.update(package_sha256=component["package"]["sha256"],
+            source_garment=(data_dir / "garment.json").relative_to(project.root).as_posix())
+        obj = make_object(payload, "A3D." + data["component_id"])
+        obj["a3d_component_id"] = data["component_id"]
+        obj["a3d_package_sha256"] = component["package"]["sha256"]
+        bpy.context.scene.unit_settings.system = "METRIC"
+        # Never change a non-metric scene scale to make an invalid placement pass.
+        context, _, _ = preflight(obj, payload, recipe)
+    except StudioError as exc:
+        from a3d.garment_rejections import save_rejection
+        ref = save_rejection(project, data, recipe, payload or getattr(exc, 'garment_payload', None), exc, saved)
+        error = StudioError(str(exc)+'; garment diagnostic='+ref['path']+' sha256='+ref['sha256'])
+        error.garment_diagnostic = ref
+        raise error from exc
     path = project.data / ("blender/sewing-mesh-" + uuid.uuid4().hex + ".json")
     atomic_json(path, payload)
     obj["a3d_sewing_mesh"] = path.relative_to(project.root).as_posix()
@@ -293,6 +301,9 @@ def _perform(project_root, operation, arguments):
         from blender.viewport import frame_view
         from blender.placement import inspect_sewing_placement
         from a3d.sewing_diagnostics import inspect_failure
+        from a3d.garment_rejections import inspect_rejection
+        if operation == 'inspect_garment_failure':
+            return inspect_rejection(Project(project_root), **arguments)
         if operation == 'inspect_sewing_failure':
             return inspect_failure(Project(project_root), **arguments)
         return {"prepare": prepare, "resume": resume, "inspect": inspect, "frame_view": frame_view, "verify_legacy_import": verify_legacy_import,
@@ -389,7 +400,7 @@ def dispatch(project_root, operation, arguments):
     admit_operation(project, operation, arguments)
     if operation == "restore_checkpoint":
         return restore_checkpoint(project_root)
-    if operation in ("prepare", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_sewing_placement", "verify_legacy_import"):
+    if operation in ("prepare", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "verify_legacy_import"):
         return _perform(project_root, operation, arguments)
     import bpy
     saved = checkpoint(project_root)
@@ -420,5 +431,7 @@ def dispatch(project_root, operation, arguments):
         with project.transaction() as db:
             state = project.state(db)
             state["pending_blender_operation"].update(status="failed", error=str(exc))
+            if getattr(exc, 'garment_diagnostic', None):
+                state['pending_blender_operation']['diagnostic'] = exc.garment_diagnostic
             project.save(db, state, "blender_failed", {"operation": operation, "error": str(exc)})
         raise
