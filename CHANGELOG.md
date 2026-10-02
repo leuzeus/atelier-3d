@@ -1,5 +1,26 @@
 # Historique
 
+## 0.6.1 — 2026-10-02
+
+- `apply_sewn_result` transfère les coordonnées cm d'un PASS local libre vers
+  une copie native, avec vérification package/recette/binding/indices, rest,
+  limites source, topologie, pins et coutures conservés. Résultats 0.6.0 admis
+  avec leur mapping implicite vérifié ; nouveau reçu PARTIAL_ASSEMBLY.
+- `simulate_sewn(purpose=assembly)` évalue le composant complet sans collider
+  avec qualification ASSEMBLY_PHYSICS_ONLY. Un nouveau FAIL local actuel bloque
+  la reprise d'un ancien PASS ; freeze exige le fitting distinct.
+- `prepare_sewn_stage` reprend les coordonnées actuelles pour assembly ou
+  fitting. L'entrée fitting exige full assembly PASS lié au mesh/map/recette,
+  colliders identifiés et mêmes contrôles. Réparation optionnelle des contacts
+  initialement pénétrants, avec budget déclaré, pins fixes et requalification.
+- Le prépositionnement peut garder les références à leurs positions cousues.
+  Refus de placement conservés avec diagnostic de transition et checkpoint ;
+  aucune reconstruction à plat ou modification automatique de coupe/corps.
+- Parcours complet et refus vérifiés dans Blender sur fixture synthétique.
+  Transfert du cas réel PASS (5 455 sommets, 1 194 inchangés) ; full réel et
+  prépositionnements supplémentaires refusés par les contrôles existants.
+  Aucun PASS d'assemblage complet/fitting du vêtement réel n'est revendiqué.
+
 ## 0.6.0 — 2026-10-02
 
 - Prépositionnement expérimental opt-in via `experimental_prefit` dans la recette
