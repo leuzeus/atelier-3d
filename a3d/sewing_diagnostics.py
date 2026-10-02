@@ -1,8 +1,10 @@
 """Measured failed Cloth states, never acceptance or replacement geometry."""
 import math
+import uuid
+from pathlib import Path
 from xml.sax.saxutils import escape
 
-from .core import StudioError, inside, read_json, sha
+from .core import StudioError, atomic_json, inside, read_json, sha
 from .sewing import distance
 
 
@@ -89,6 +91,20 @@ def inspect_failure(project, component_id, attempt_dir):
         initial = read_json(placement_path)
         if any(initial.get(k) != data[k] for k in ('component_id', 'package_sha256', 'recipe_sha256', 'boundary_map_sha256')):
             raise StudioError('Initial placement diagnostic identity mismatch')
+    probe_ref = data.get('probe_diagnostic')
+    if probe_ref:
+        probe_path = inside(project.root, probe_ref['path'])
+        if (probe_path.parent.parent != directory/'backend-probes' or not probe_path.parent.name.startswith('failed-')
+            or sha(probe_path) != probe_ref['sha256']):
+            raise StudioError('Backend probe diagnostic changed or targets another attempt')
+        native = read_json(probe_path)
+        if native.get('execution_stage') != 'backend_probe' or native.get('probe') != data.get('probe'):
+            raise StudioError('Backend probe diagnostic identity mismatch')
+        native_preview=native.get('native_preview')
+        if native_preview:
+            native_image=inside(project.root,(probe_path.parent.relative_to(project.root)/native_preview['name']).as_posix())
+            if native_image.parent!=probe_path.parent or sha(native_image)!=native_preview['sha256']:
+                raise StudioError('Backend probe preview changed')
     return {'simulation':'FAIL', 'accepted':False, 'diagnostic':ref, 'component_id':component_id,
         'preview':preview, 'placement':placement, 'frame':data['frame'], 'error':data['error'], 'scope':data['scope'], 'phase':data['phase'],
         'package_sha256':data['package_sha256'], 'recipe_sha256':data['recipe_sha256'],
@@ -97,8 +113,27 @@ def inspect_failure(project, component_id, attempt_dir):
         'outlier_edges':geometry['outlier_edges'], 'outlier_faces':geometry['outlier_faces'],
         'seam_gaps':geometry['seam_gaps'], 'penetrations':geometry['penetrations'],
         'piece_extents_cm':geometry.get('piece_extents_cm', {}), 'subset_kind':geometry.get('subset_kind'),
+        'execution_stage':data.get('execution_stage','garment'), 'probe':data.get('probe'), 'probe_diagnostic':probe_ref,
+        'backend_probe_simulation':data.get('backend_probe_simulation','NOT_RECORDED'),
+        'final_quality':data.get('final_quality'),
+        'garment_simulation':data.get('garment_simulation','FAIL'), 'mapping_domain':geometry.get('mapping_domain','pattern-pieces'),
         'omitted_seams':geometry.get('omitted_seams', []), 'visual_validation':'NOT_EXECUTED',
-        'note':'Historical failed state; full positions, mappings, recipe and executed context are in the diagnostic file. This does not authorize full simulation or acceptance.'}
+        'note':'Historical failed state. For backend_probe, geometry belongs to synthetic coupons; package, boundary map and placement bind the parent request, not coupon vertices. No full simulation or acceptance is authorized.'}
+
+
+def store_probe_failure(output_dir, data):
+    """Unique native evidence before coupon cleanup, also for standalone probes."""
+    directory=Path(output_dir)/('failed-'+data['probe']['case']+'-'+uuid.uuid4().hex)
+    directory.mkdir(exist_ok=False)
+    preview=preview_svg(data)
+    if preview:
+        (directory/'diagnostic.svg').write_text(preview,encoding='utf-8')
+        data['native_preview']={'name':'diagnostic.svg','sha256':sha(directory/'diagnostic.svg')}
+    path=directory/'diagnostic.json';atomic_json(path,data)
+    ref={'path':str(path.resolve()),'sha256':sha(path)}
+    atomic_json(directory/'failure.json',{'simulation':'FAIL','execution_stage':'backend_probe',
+        'garment_simulation':'NOT_EXECUTED','case':data['probe']['case'],'diagnostic':ref})
+    return ref
 
 
 def preview_svg(data):
@@ -107,13 +142,16 @@ def preview_svg(data):
     if not geometry['finite_matching_topology']:
         return None
     coords = geometry['evaluated_cm']
+    is_probe=data.get('execution_stage')=='backend_probe'
+    title=('PROBE '+data['probe']['case'].upper()+' FAIL — vêtement NON EXÉCUTÉ') if is_probe else 'CLOTH FAIL — diagnostic mesuré, non accepté'
+    subtitle=(f"Coupons synthétiques · {escape(data['phase'])} · frame {data['frame']} / {data['probe']['configured_frames']} · recette vêtement : {data['probe']['requested_phase_frames']} frames") if is_probe else f"{escape(data['component_id'])} · {escape(data['phase'])} / {escape(data['scope'])} · frame {data['frame']}"
     bad = {tuple(e['indices']) for e in geometry['outlier_edges']}
     edges = sorted({tuple(sorted((a,b))) for face in geometry['faces'] for a,b in zip(face,face[1:]+face[:1])})
     svg = ['<svg xmlns="http://www.w3.org/2000/svg" width="1380" height="720" viewBox="0 0 1380 720">',
         '<rect width="1380" height="720" fill="#f8fafc"/>',
         '<g font-family="sans-serif" fill="#172033">',
-        '<text x="25" y="32" font-size="21">CLOTH FAIL — diagnostic mesuré, non accepté</text>',
-        f'<text x="25" y="57">{escape(data["component_id"])} · {escape(data["phase"])} / {escape(data["scope"])} · frame {data["frame"]}</text>',
+        f'<text x="25" y="32" font-size="21">{escape(title)}</text>',
+        f'<text x="25" y="57">{subtitle}</text>',
         '<text x="25" y="79">Gris : arêtes · rouge : arêtes hors limites · violet : pénétrations. Projections du dernier état évalué.</text>']
     for column,(label,x,y) in enumerate((('XY',0,1),('XZ',0,2),('YZ',1,2))):
         left = 25+column*455

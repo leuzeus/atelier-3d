@@ -343,7 +343,7 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
     start=[[x*100 for x in p] for p in object_mesh(obj)[0]]
     pairs=[p for seam in payload["seams"].values() if seam["kind"]=="permanent" for p in seam["pairs"]]
     initial_gap=max((distance(start[a],start[b]) for a,b in pairs),default=0.)
-    history=[];maximum_displacement=0.;coords=start;frame=0
+    history=[];maximum_displacement=0.;coords=start;frame=0;final_quality=None
     try:
         for frame in range(1,recipe["phases"][phase]["frames"]+1):
             bpy.context.scene.frame_set(frame)
@@ -392,7 +392,7 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
                                 'collider':colliders[ti].name,'depth_cm':depth})
                 try:observed=physical_snapshot(obj)
                 except Exception as snapshot_error:observed={'unavailable':repr(snapshot_error)}
-                save_diagnostic({'error':str(exc),'frame':frame,'expected_execution':expected,'executed':observed,'frames':history,
+                save_diagnostic({'error':str(exc),'frame':frame,'expected_execution':expected,'executed':observed,'frames':history,'final_quality':final_quality,
                     'geometry':failure_geometry(payload,coords,start,recipe,penetrations)})
             except Exception as diagnostic_error:
                 exc.add_note('Failure diagnostic unavailable: '+repr(diagnostic_error))
@@ -431,7 +431,7 @@ def grid_probe(spacing, two=False, height=6.):
     return {'rest_cm':rest,'placed_cm':placed,'faces':faces,'pins':pins,'seams':seams,'full_rest_area_cm2':100*(2 if two else 1)}
 
 
-def backend_probes(recipe,phase,output_dir,proof_callback=None):
+def backend_probes(recipe,phase,output_dir,proof_callback=None,failure_callback=None):
     """Three tiny physical tests in a separate scene; zero user-scene mutations."""
     import bpy
     from mathutils.bvhtree import BVHTree
@@ -465,16 +465,45 @@ def backend_probes(recipe,phase,output_dir,proof_callback=None):
                 v,f=object_mesh(body)
                 trees=[BVHTree.FromPolygons([Vector(p) for p in v],f)];colliders=[body]
             if proof_callback:proof_callback(case,'before',obj)
-            coords,report=simulate_object(obj,payload,local,phase,colliders,trees)
-            if case=='gravity' and sum(p[2] for p in coords)/len(coords)>=5.:
-                raise StudioError('Gravity probe did not fall at least 1 cm')
-            if case=='contact' and (min(p[2] for p in coords)<-.1 or max(p[2] for p in coords)>2.):
-                raise StudioError('Contact probe did not settle above its support')
-            if case=='contact':
-                free_fall=results['gravity']['centroid_end_cm'][2]-results['gravity']['centroid_start_cm'][2]
-                if 2.+free_fall>=-.1:
-                    raise StudioError('Contact probe never challenged the support; free-fall control did not reach it')
-                report['unopposed_contact_centroid_z_cm']=2.+free_fall
+            saved=False;coords=payload['placed_cm'];report=None
+            def preserve(data):
+                nonlocal saved
+                from a3d.sewing_diagnostics import store_probe_failure
+                data['geometry']['mapping_domain']='synthetic_coupon'
+                data.update(component_id='synthetic.probe.'+case,phase=phase,scope='backend-probe',
+                    schema_version=1,simulation='FAIL',accepted=False,synthetic=True,visual_validation='NOT_EXECUTED',
+                    execution_stage='backend_probe',backend_probe_simulation='FAIL',garment_simulation='NOT_EXECUTED',
+                    probe={'case':case,'requested_phase_frames':recipe['phases'][phase]['frames'],
+                        'configured_frames':profile['frames'],'profile':copy.deepcopy(profile),
+                        'mass_input':local['mass'],'mesh_limits':local['mesh'],'limits':local['limits'],
+                        'colliders':[collider_info(c) for c in colliders],
+                        'supports':[{'index':int(i),'weight':w,'position_cm':payload['placed_cm'][int(i)]}
+                            for i,w in payload['pins'].items()],
+                        'completed_cases':list(results)})
+                ref=store_probe_failure(output_dir,data);saved=True
+                if failure_callback:failure_callback(data,ref)
+            try:
+                coords,report=simulate_object(obj,payload,local,phase,colliders,trees,save_diagnostic=preserve)
+                if case=='gravity' and sum(p[2] for p in coords)/len(coords)>=5.:
+                    raise StudioError('Gravity probe did not fall at least 1 cm')
+                if case=='contact' and (min(p[2] for p in coords)<-.1 or max(p[2] for p in coords)>2.):
+                    raise StudioError('Contact probe did not settle above its support')
+                if case=='contact':
+                    free_fall=results['gravity']['centroid_end_cm'][2]-results['gravity']['centroid_start_cm'][2]
+                    if 2.+free_fall>=-.1:
+                        raise StudioError('Contact probe never challenged the support; free-fall control did not reach it')
+                    report['unopposed_contact_centroid_z_cm']=2.+free_fall
+            except BaseException as exc:
+                if not saved:
+                    from a3d.sewing_diagnostics import failure_geometry
+                    try:observed=physical_snapshot(obj)
+                    except Exception as error:observed={'unavailable':repr(error)}
+                    preserve({'error':str(exc),'frame':report['frames'][-1]['frame'] if report else 0,
+                        'frames':report['frames'] if report else [],
+                        'expected_execution':report['executed'] if report else None,
+                        'executed':report['executed'] if report else observed,'final_quality':report['final_quality'] if report else None,
+                        'geometry':failure_geometry(payload,coords,payload['placed_cm'],local)})
+                raise
             commit_positions(obj,coords)
             if proof_callback:proof_callback(case,'after',obj)
             report['case']=case;report['synthetic']=True;results[case]=report
@@ -544,8 +573,12 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
         raise StudioError('Two full attempts failed: diagnose and pass the local trial before another full run')
     target=obj
     diagnostic_ref=None
+    execution_stage='backend_probe' if scope=='local' else 'garment'
     def save_diagnostic(data):
         nonlocal diagnostic_ref
+        data.setdefault('execution_stage','garment')
+        data.setdefault('garment_simulation','FAIL')
+        data.setdefault('backend_probe_simulation','PASS' if scope=='local' else 'NOT_EXECUTED')
         data.update(schema_version=1,simulation='FAIL',accepted=False,visual_validation='NOT_EXECUTED',
             component_id=component_id,phase=phase,scope=scope,binding=binding,context=context,
             package_sha256=payload['package_sha256'],recipe_sha256=digest(recipe),recipe=recipe,
@@ -560,13 +593,17 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
             data['preview']={'path':preview_path.relative_to(project.root).as_posix(),'sha256':sha(preview_path)}
         atomic_json(path,data)
         diagnostic_ref={'path':path.relative_to(project.root).as_posix(),'sha256':sha(path)}
+    def save_probe_diagnostic(data,ref):
+        data['probe_diagnostic']={'path':Path(ref['path']).relative_to(project.root).as_posix(),'sha256':ref['sha256']}
+        save_diagnostic(data)
     original_scene_settings=(bpy.context.scene.frame_current,bpy.context.scene.frame_start,bpy.context.scene.frame_end,
         bpy.context.scene.render.fps,bpy.context.scene.render.fps_base,list(bpy.context.scene.gravity),bpy.context.scene.use_gravity)
     try:
         if scope=='local':
             probe_recipe=copy.deepcopy(recipe)
             if recipe['mass']['basis']=='total_kg':probe_recipe['mass']={'basis':'areal_density_kg_m2','value':recipe['mass']['value']/(payload['full_rest_area_cm2']/10000)}
-            probes=backend_probes(probe_recipe,phase,attempt_dir/'backend-probes')
+            probes=backend_probes(probe_recipe,phase,attempt_dir/'backend-probes',failure_callback=save_probe_diagnostic)
+            execution_stage='garment'
             local_payload=copy.deepcopy(payload)
             local_payload['placed_cm']=[[x*100 for x in p] for p in object_mesh(obj)[0]]
             local_payload=subset_mesh(local_payload,recipe['trial_pieces'])
@@ -598,7 +635,14 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope):
     except BaseException as exc:
         if scope=='full':counters['full_failures']+=1;atomic_json(counter_path,counters)
         atomic_json(attempt_dir/'failure.json',{'error':str(exc),'scope':scope,'binding':binding,'simulation':'FAIL',
+            'execution_stage':execution_stage,'backend_probe_simulation':'FAIL' if execution_stage=='backend_probe' else 'PASS' if scope=='local' else 'NOT_EXECUTED',
+            'garment_simulation':'NOT_EXECUTED' if execution_stage=='backend_probe' else 'FAIL',
             'diagnostic':diagnostic_ref,'placement':placement_ref,'notes':getattr(exc,'__notes__',[])})
+        if scope=='local':
+            # Latest qualification is a projection; immutable prior attempt
+            # results remain on disk, but a newer failed local cannot admit full.
+            atomic_json(local_path,{'binding':binding,'simulation':'FAIL','execution_stage':execution_stage,
+                'diagnostic':diagnostic_ref,'garment_simulation':'NOT_EXECUTED' if execution_stage=='backend_probe' else 'FAIL'})
         raise
     finally:
         if scope=='local':

@@ -69,7 +69,7 @@ placement=read_json(attempt/'placement.json')
 assert placement['accepted'] is False and placement['simulation']=='NOT_EXECUTED'
 assert placement['seams']['armhole-front']['max_gap_cm']>29
 assert diagnostic['simulation']=='FAIL' and diagnostic['accepted'] is False
-assert not (project.data/'blender/sewing/garment.coat-local.json').exists()
+assert read_json(project.data/'blender/sewing/garment.coat-local.json')['simulation']=='FAIL'
 assert not any(o.name.startswith('A3D.LocalTrial.') for o in bpy.data.objects)
 assert mesh_digest(obj)==before_mesh and project.state()['gates']==gates
 inspect_args={'component_id':'garment.coat','attempt_dir':attempt.relative_to(project.root).as_posix()}
