@@ -165,6 +165,36 @@ def validate_recipe(data, recipe):
             if edge['piece'] not in active or edge['edge'] not in data['pieces'][edge['piece']]['edges']:
                 raise StudioError('Experimental prefit fixed edge must exist on an active source panel')
     recovery=recipe.get('contact_recovery')
+    mount=recipe.get('panel_mount')
+    if mount:
+        if recipe['colliders'] or recipe.get('experimental_prefit') or recipe.get('fitting_tacks'):
+            raise StudioError('Scoped panel mount requires free assembly without global prefit or tacks')
+        if mount['max_displacement_cm']>recipe['limits']['max_displacement_cm']:
+            raise StudioError('Scoped panel mount cannot exceed the existing displacement budget')
+        if recipe['mesh']['min_stretch']+2*mount['strain_margin']>=recipe['mesh']['max_stretch']:
+            raise StudioError('Scoped panel strain margin must remain inside the existing bounds')
+        moving=set(mount['moving_pieces']);source={s['id']:s for s in data['seams']}
+        if not moving<=data['pieces'].keys():raise StudioError('Scoped mount panels must exist in the source')
+        for sid in mount['seam_ids']:
+            if sid not in source or recipe['seams'][sid]['kind']!='permanent':
+                raise StudioError('Scoped mount selects only existing permanent source seams')
+            if not {source[sid]['piece_a'],source[sid]['piece_b']} & moving:
+                raise StudioError('Scoped mount cannot select a seam outside its moving panels')
+    preparation=recipe.get('interface_preparation')
+    if preparation:
+        if recipe['colliders'] or recipe.get('fitting_tacks') or recipe.get('experimental_prefit'):
+            raise StudioError('Local interfaces require free assembly without global prefit or tacks')
+        if preparation['max_displacement_cm']>recipe['limits']['max_displacement_cm']:
+            raise StudioError('Local interface preparation cannot exceed the existing displacement budget')
+        sources={s['id']:s for s in data['seams']};moving=set();references=set()
+        for item in preparation['interfaces']:
+            sid=item['seam_id'];side=item['moving_side']
+            if sid not in sources or recipe['seams'][sid]['kind']!='permanent':
+                raise StudioError('Local interfaces must select existing permanent source seams')
+            moving.add(sources[sid]['piece_'+side]);references.add(sources[sid]['piece_'+('b' if side=='a' else 'a')])
+        if moving & references:raise StudioError('Local moving panels cannot also be reference panels')
+        if len({i['seam_id'] for i in preparation['interfaces']})!=len(preparation['interfaces']):
+            raise StudioError('Local interface declarations must be unique')
     if recovery and recovery['max_displacement_cm']>recipe['limits']['max_displacement_cm']:
         raise StudioError('Contact recovery cannot exceed the existing displacement budget')
     if set(recipe["trial_pieces"]) - data["pieces"].keys() or len(set(recipe["trial_pieces"])) < 2:

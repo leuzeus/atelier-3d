@@ -102,6 +102,41 @@ class BoundaryTests(unittest.TestCase):
 
 
 class PhysicsTests(unittest.TestCase):
+    def test_scoped_mount_cannot_retype_seams_change_budget_or_select_unknown_panels(self):
+        data,recipe=sources()
+        recipe['panel_mount']={'source_ref':'test:mount','moving_pieces':['back'],'seam_ids':['torso-right'],
+            'max_displacement_cm':2,'iterations':30,'settle_iterations':20,'strain_margin':.01}
+        validate_recipe(data,recipe)
+        recipe['panel_mount']['moving_pieces']=['missing']
+        with self.assertRaises(StudioError):validate_recipe(data,recipe)
+        recipe['panel_mount']['moving_pieces']=['back'];recipe['seams']['torso-right']['kind']='closure'
+        with self.assertRaises(StudioError):validate_recipe(data,recipe)
+        recipe['seams']['torso-right']['kind']='permanent'
+        recipe['panel_mount']['max_displacement_cm']=recipe['limits']['max_displacement_cm']+1
+        with self.assertRaises(StudioError):validate_recipe(data,recipe)
+
+    def test_local_interface_contract_keeps_threshold_and_source_selection(self):
+        from a3d.core import contract
+        data,recipe=sources()
+        recipe['interface_preparation']={'source_ref':'test:local','interfaces':[{'seam_id':'torso-right','moving_side':'b'}],
+            'radius_cm':5,'max_displacement_cm':2,'target_cosine':-.4,'max_passes':4}
+        validate_recipe(data,recipe)
+        recipe['interface_preparation']['target_cosine']=-.5
+        with self.assertRaises(StudioError):contract('sewing-recipe',recipe)
+        recipe['interface_preparation']['target_cosine']=-.4
+        recipe['seams']['torso-right']['kind']='closure'
+        with self.assertRaises(StudioError):validate_recipe(data,recipe)
+
+    def test_local_interface_budget_and_reference_panels_are_bound(self):
+        data,recipe=sources()
+        recipe['interface_preparation']={'source_ref':'test:local','interfaces':[{'seam_id':'torso-right','moving_side':'b'}],
+            'radius_cm':5,'max_displacement_cm':2,'target_cosine':-.4,'max_passes':4}
+        recipe['interface_preparation']['max_displacement_cm']=recipe['limits']['max_displacement_cm']+1
+        with self.assertRaises(StudioError):validate_recipe(data,recipe)
+        recipe['interface_preparation']['max_displacement_cm']=2
+        recipe['interface_preparation']['interfaces'].append({'seam_id':'torso-right','moving_side':'a'})
+        with self.assertRaisesRegex(StudioError,'reference panels'):validate_recipe(data,recipe)
+
     def test_contact_recovery_and_reference_mode_remain_bounded(self):
         from a3d.core import contract
         data,recipe=sources()

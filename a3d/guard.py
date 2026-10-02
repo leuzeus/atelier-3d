@@ -166,7 +166,10 @@ def admit_operation(project, operation, arguments):
         if "recipe_path" not in arguments:
             raise StudioError("garment requires recipe_path for its derived simulation mesh; keep approved packages unchanged")
         from .sewing import validate_recipe
-        validate_recipe(data, read_json(inside(project.root, arguments["recipe_path"])))
+        garment_recipe=read_json(inside(project.root, arguments["recipe_path"]))
+        if garment_recipe.get('interface_preparation') or garment_recipe.get('panel_mount'):
+            raise StudioError('Use prepare_sewn_stage on existing sewn geometry for local interfaces/panel mount')
+        validate_recipe(data, garment_recipe)
     elif operation == "assemble":
         if state["stage"] != "ASSEMBLING":
             raise StudioError("Assembly requires ASSEMBLING")

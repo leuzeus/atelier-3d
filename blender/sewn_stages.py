@@ -5,7 +5,7 @@ from a3d.core import StudioError,atomic_json,digest,inside,read_json,sha
 from a3d.sewn_continuity import transfer_coordinates
 from a3d.sewing import distance,mesh_quality
 from blender.sewing import (managed_inputs,preflight,context_colliders,mesh_digest,
-    mesh_recipe_digest,object_mesh,make_object,commit_positions,trial_binding)
+    mesh_recipe_digest,object_mesh,make_object,commit_positions,trial_binding,structural_inputs)
 
 
 def snapshot_ref(project,path):
@@ -99,6 +99,7 @@ def prepare_sewn_stage(project_root,component_id,recipe_path,stage):
     project,session=working(project_root)
     obj,payload,recipe=managed_inputs(project,component_id,recipe_path,check_placement=False)
     previous,previous_ref=stage_receipt(project,obj,payload,allow_completed=True)
+    structural_inputs(obj,payload,previous['recipe'])
     for key in ('mesh','placements','seams','pins'):
         if previous['recipe'][key]!=recipe[key]:raise StudioError('Stage transition cannot change the approved derived rest, source placement, seams or pins')
     source=previous.get('source_result')
@@ -121,6 +122,16 @@ def prepare_sewn_stage(project_root,component_id,recipe_path,stage):
         'source_result':source,'colliders':snapshots,'phase':previous.get('phase'),
         'resume_local_recipe_sha256':None,'contact_recovery':None}
     try:
+        if recipe.get('panel_mount'):
+            if stage!='assembly':raise StudioError('Scoped panel mount belongs to free assembly')
+            from blender.panel_mount import mount_panels
+            mount_panels(temporary,candidate,recipe)
+            record['panel_mount']=candidate['panel_mount']
+        if recipe.get('interface_preparation'):
+            if stage!='assembly':raise StudioError('Local interface preparation belongs to free assembly')
+            from blender.interfaces import prepare_interfaces
+            prepare_interfaces(temporary,candidate,recipe)
+            record['interface_preparation']=candidate['interface_preparation']
         if stage=='assembly' and recipe.get('experimental_prefit'):
             from blender.prefit import apply_prefit
             apply_prefit(temporary,candidate,recipe,trees)

@@ -39,6 +39,8 @@ def placement_report(obj, payload, recipe, context, trees, project_root):
     mapped = {**payload, 'seams': {sid: {**seam, 'edge_a': source_seams[sid]['edge_a'],
         'edge_b': source_seams[sid]['edge_b']} for sid, seam in payload['seams'].items()}}
     report = placement_geometry(mapped, coords, recipe, nearest, crossings)
+    from a3d.garment_rejections import seam_directions
+    report['directions']=seam_directions(payload,coords,data)
     report.update(schema_version=1, component_id=recipe['component_id'], blender_version=bpy.app.version_string,
         object=obj.name, package_sha256=payload['package_sha256'], recipe_sha256=digest(recipe),
         boundary_map_sha256=obj['a3d_sewing_mesh_sha256'], source_garment_sha256=payload['source_garment_sha256'],
@@ -48,10 +50,24 @@ def placement_report(obj, payload, recipe, context, trees, project_root):
 
 def inspect_sewing_placement(project_root, component_id, recipe_path):
     from blender.operations import working
-    from blender.sewing import managed_inputs, preflight
+    from blender.sewing import managed_inputs, structural_inputs, context_colliders, penetration_cm
+    from a3d.sewing import mesh_quality
+    from a3d.garment_rejections import seam_directions
     project, _ = working(project_root)
-    obj, payload, recipe = managed_inputs(project, component_id, recipe_path)
+    obj, payload, recipe = managed_inputs(project, component_id, recipe_path,check_placement=False)
     if any(m.type == 'CLOTH' for m in obj.modifiers):
         raise StudioError('Inspect initial placement before Cloth; restore the checkpoint after a failed simulation')
-    context, _, trees = preflight(obj, payload, recipe)
+    coords,faces=structural_inputs(obj,payload,recipe)
+    _,trees,snapshots=context_colliders(recipe)
+    errors=[]
+    try:quality=mesh_quality(payload['rest_cm'],coords,faces,recipe['mesh'])
+    except StudioError as exc:
+        quality=getattr(exc,'quality_metrics',None);errors.append(str(exc))
+    directions=seam_directions(payload,coords)
+    if directions['violations']:errors.append('Opposed/undefined permanent seam tangents')
+    penetration=penetration_cm(coords,trees)
+    if penetration>recipe['limits']['max_penetration_cm']:errors.append('Initial penetration exceeds the unchanged limit')
+    context={'quality':quality,'colliders':snapshots,'max_penetration_cm':penetration,
+        'status':'REJECTED' if errors else 'PASS','errors':errors,
+        'qualification':'MEASUREMENTS_ONLY','accepted':False}
     return placement_report(obj, payload, recipe, context, trees, project.root)

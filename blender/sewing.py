@@ -244,7 +244,8 @@ def penetration_cm(coords, trees):
     return maximum
 
 
-def preflight(obj,payload,recipe):
+def structural_inputs(obj,payload,recipe):
+    """Identity/rest/topology/pins checks remain mandatory even for diagnostics."""
     import bpy
     from mathutils import Matrix
     if mesh_recipe_digest(recipe)!=payload["recipe_mesh_sha256"]:
@@ -255,19 +256,8 @@ def preflight(obj,payload,recipe):
     if any(m.type not in ("CLOTH",) for m in obj.modifiers):raise StudioError("Keep render/armature modifiers off the simulation mesh")
     coords,faces=object_mesh(obj)
     coords=[[x*100 for x in p] for p in coords]
+    if any(not math.isfinite(x) for p in coords for x in p):raise StudioError('Non-finite simulation coordinates')
     if faces!=payload["faces"]:raise StudioError("Simulation topology differs from its boundary map")
-    try:quality=mesh_quality(payload["rest_cm"],coords,faces,recipe["mesh"])
-    except StudioError as exc:
-        exc.initial_coords_cm=coords
-        raise
-    from a3d.garment_rejections import seam_directions
-    directions=seam_directions(payload,coords)
-    if directions['violations']:
-        bad=directions['violations'][0]
-        error=StudioError('Placed seam directions oppose each other; seam=%s pieces=%s/%s segment=%d cosine=%s threshold=%s; inspect orientation before sewing'
-            %(bad['seam_id'],bad['piece_a'],bad['piece_b'],bad['segment'],bad['cosine'],bad['threshold']))
-        error.initial_coords_cm=coords
-        raise error
     keys=obj.data.shape_keys
     if keys is None or "A3D.FlatRest" not in keys.key_blocks:raise StudioError("Missing flat rest shape key")
     if any(distance([x*100 for x in v.co],p)>1e-3 for v,p in zip(keys.key_blocks["A3D.FlatRest"].data,payload["rest_cm"],strict=True)):
@@ -281,6 +271,23 @@ def preflight(obj,payload,recipe):
             if g.group==group.index and g.weight>0:actual[str(v.index)]=g.weight
     if set(actual)!=set(payload["pins"]) or any(abs(w-payload["pins"][i])>1e-6 for i,w in actual.items()):
         raise StudioError("Construction pin weights differ from the recipe")
+    return coords,faces
+
+
+def preflight(obj,payload,recipe):
+    coords,faces=structural_inputs(obj,payload,recipe)
+    try:quality=mesh_quality(payload["rest_cm"],coords,faces,recipe["mesh"])
+    except StudioError as exc:
+        exc.initial_coords_cm=coords
+        raise
+    from a3d.garment_rejections import seam_directions
+    directions=seam_directions(payload,coords)
+    if directions['violations']:
+        bad=directions['violations'][0]
+        error=StudioError('Placed seam directions oppose each other; seam=%s pieces=%s/%s segment=%d cosine=%s threshold=%s; inspect orientation before sewing'
+            %(bad['seam_id'],bad['piece_a'],bad['piece_b'],bad['segment'],bad['cosine'],bad['threshold']))
+        error.initial_coords_cm=coords
+        raise error
     colliders,trees,snapshots=context_colliders(recipe)
     penetration=penetration_cm(coords,trees)
     if penetration>recipe["limits"]["max_penetration_cm"]:
