@@ -84,11 +84,15 @@ def build_mesh(data, recipe):
     for pin in recipe["pins"]:
         for i in panels[pin["piece"]]["edges"][pin["edge"]]:pins[str(i)]=max(pins.get(str(i),0),pin["weight"])
     if pins and all(pins.get(str(i),0)>=1 for i in range(len(rest))):raise StudioError("Every simulation vertex is pinned")
-    quality=mesh_quality(rest,placed,faces,recipe["mesh"])
-    return {"version":1,"component_id":data["component_id"],"recipe_mesh_sha256":mesh_recipe_digest(recipe),
+    payload={"version":1,"component_id":data["component_id"],"recipe_mesh_sha256":mesh_recipe_digest(recipe),
         "source_garment_sha256":digest(data),"rest_cm":rest,"placed_cm":placed,"faces":faces,"panels":panels,
-        "seams":seams,"pins":pins,"quality":quality,"seam_lengths":reports,
-        "full_rest_area_cm2":quality["rest_area_cm2"]}
+        "seams":seams,"pins":pins,"seam_lengths":reports}
+    try:quality=mesh_quality(rest,placed,faces,recipe["mesh"])
+    except StudioError as exc:
+        exc.garment_payload=payload
+        raise
+    payload.update(quality=quality,full_rest_area_cm2=quality['rest_area_cm2'])
+    return payload
 
 
 def subset_mesh(payload, piece_ids):
@@ -205,14 +209,18 @@ def preflight(obj,payload,recipe):
     coords,faces=object_mesh(obj)
     coords=[[x*100 for x in p] for p in coords]
     if faces!=payload["faces"]:raise StudioError("Simulation topology differs from its boundary map")
-    quality=mesh_quality(payload["rest_cm"],coords,faces,recipe["mesh"])
-    for seam in payload['seams'].values():
-        if seam['kind']!='permanent':continue
-        for (a,b),(c,d) in zip(seam['pairs'],seam['pairs'][1:]):
-            x=[coords[c][i]-coords[a][i] for i in range(3)]
-            y=[coords[d][i]-coords[b][i] for i in range(3)]
-            cosine=sum(u*v for u,v in zip(x,y))/(math.sqrt(sum(v*v for v in x))*math.sqrt(sum(v*v for v in y)))
-            if cosine<-.5:raise StudioError('Placed seam directions oppose each other; inspect orientation before sewing')
+    try:quality=mesh_quality(payload["rest_cm"],coords,faces,recipe["mesh"])
+    except StudioError as exc:
+        exc.initial_coords_cm=coords
+        raise
+    from a3d.garment_rejections import seam_directions
+    directions=seam_directions(payload,coords)
+    if directions['violations']:
+        bad=directions['violations'][0]
+        error=StudioError('Placed seam directions oppose each other; seam=%s pieces=%s/%s segment=%d cosine=%s threshold=%s; inspect orientation before sewing'
+            %(bad['seam_id'],bad['piece_a'],bad['piece_b'],bad['segment'],bad['cosine'],bad['threshold']))
+        error.initial_coords_cm=coords
+        raise error
     keys=obj.data.shape_keys
     if keys is None or "A3D.FlatRest" not in keys.key_blocks:raise StudioError("Missing flat rest shape key")
     if any(distance([x*100 for x in v.co],p)>1e-3 for v,p in zip(keys.key_blocks["A3D.FlatRest"].data,payload["rest_cm"],strict=True)):
@@ -229,7 +237,27 @@ def preflight(obj,payload,recipe):
     colliders,trees,snapshots=context_colliders(recipe)
     penetration=penetration_cm(coords,trees)
     if penetration>recipe["limits"]["max_penetration_cm"]:
-        raise StudioError("Cloth starts inside a collider: %.4f cm"%penetration)
+        from mathutils import Vector
+        owners={i:pid for pid,panel in payload['panels'].items() for i in panel['indices']}
+        contacts=[]
+        for index,point in enumerate(coords):
+            p=Vector([x/100 for x in point])
+            for tree,snapshot in zip(trees,snapshots,strict=True):
+                hit,normal,face,_=tree.find_nearest(p)
+                if hit is None:continue
+                depth=-(p-hit).dot(normal)*100
+                if depth>recipe['limits']['max_penetration_cm']:
+                    pid=owners[index];panel=payload['panels'][pid]
+                    contacts.append({'index':index,'piece':pid,'rest_uv_cm':payload['rest_cm'][index][:2],
+                        'position_cm':point,'named_edges':[name for name,ids in panel['edges'].items() if index in ids],
+                        'pin_weight':payload['pins'].get(str(index),0.),'collider':snapshot['object'],'surface_face':face,
+                        'surface_cm':[x*100 for x in hit],'surface_normal':list(normal),'depth_cm':depth,
+                        'threshold_cm':recipe['limits']['max_penetration_cm']})
+        worst=max(contacts,key=lambda c:c['depth_cm'])
+        error=StudioError("Cloth starts inside a collider: %.4f cm; piece=%s vertex=%d collider=%s threshold=%.4f cm"
+            %(penetration,worst['piece'],worst['index'],worst['collider'],worst['threshold_cm']))
+        error.initial_contacts=contacts;error.collider_snapshots=snapshots;error.initial_coords_cm=coords
+        raise error
     return {"quality":quality,"colliders":snapshots,"max_penetration_cm":penetration},colliders,trees
 
 

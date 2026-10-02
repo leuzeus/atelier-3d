@@ -24,11 +24,12 @@ def parse_code(code):
 
 def admit_operation(project, operation, arguments):
     state = project.state()
-    if operation not in ("prepare", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_sewing_placement", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn"):
+    if operation not in ("prepare", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn"):
         raise StudioError("Unknown guarded Blender operation")
     required = {"prepare": set(), "resume": set(), "inspect": set(),
         "frame_view": {"component_id", "object_name"},
         "inspect_sewing_failure": {"component_id", "attempt_dir"},
+        "inspect_garment_failure": {"component_id", "attempt_dir"},
         "inspect_sewing_placement": {"component_id", "recipe_path"},
         "verify_legacy_import": {"package_dir", "checkpoint_receipt"}, "garment": {"package_dir"}, "assemble": {"plan_path"},
         "run_script": {"purpose", "path", "sha256", "component_ids"}, "restore_checkpoint": set(),
@@ -68,11 +69,12 @@ def admit_operation(project, operation, arguments):
     if set(arguments) != required:
         raise StudioError("Unexpected/missing operation arguments")
     from .lifecycle import no_pending_operation
-    if operation == 'inspect_sewing_failure':
+    if operation in ('inspect_sewing_failure', 'inspect_garment_failure'):
         from .sewing_diagnostics import inspect_failure
+        from .garment_rejections import inspect_rejection
         if arguments['component_id'] not in state['components']:
             raise StudioError('Unknown diagnostic component')
-        inspect_failure(project, **arguments)
+        (inspect_rejection if operation == 'inspect_garment_failure' else inspect_failure)(project, **arguments)
         return
     if operation == "restore_checkpoint":
         pending = state.get("pending_blender_operation")

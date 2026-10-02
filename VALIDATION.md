@@ -1,5 +1,20 @@
 # Validation d'Atelier 3D
 
+## État de la version 0.5.6
+
+| Vérification du correctif | Résultat | Portée |
+| --- | --- | --- |
+| Suite Python Windows | PASS : 189 tests | Tangente locale/chorde globale, historique, intégrité et régressions |
+| Contrats JSON indépendants | PASS : 8 distribués + configuration locale privée | Aucun seuil ni contrat de patrons assoupli |
+| Rejet natif d'orientation | PASS du diagnostic | Couture/bords, paires, indices, rest UV, positions et cosinus -0,5 localisés |
+| Rejet natif de qualité | PASS du diagnostic | Maillage dérivé rejeté avant objet/reçu ; arêtes hors limites conservées |
+| Rejet natif de contact initial | PASS du diagnostic | Pièce/sommet/collider, surface et profondeur mesurée conservés |
+| Restauration obligatoire / lecture historique | PASS | Diagnostic intact avant/après restauration ; inspection ne libère pas pending |
+| Régression native Cloth | PASS | Probes, local/full et freeze sur fixture synthétique |
+| Robe de production, faux positif d'orientation ou bug Cloth | NOT_ESTABLISHED | Projet consommateur laissé intact ; aucun fitting qualifié |
+
+Voir [le protocole et la reproduction](references/garment-rejections.md).
+
 ## État de la version 0.5.5
 
 | Vérification du correctif | Résultat | Portée |
