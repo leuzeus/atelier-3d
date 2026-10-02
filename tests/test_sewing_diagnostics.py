@@ -3,7 +3,7 @@ from pathlib import Path
 
 from a3d.core import ROOT, StudioError, atomic_json, read_json, sha
 from a3d.guard import admit_operation
-from a3d.sewing_diagnostics import failure_geometry, inspect_failure, store_probe_failure
+from a3d.sewing_diagnostics import failure_geometry, inspect_failure, store_probe_failure, motion_metrics
 from blender.operations import dispatch
 from blender.sewing import subset_mesh
 from tests.test_core import Case
@@ -23,6 +23,32 @@ class DiagnosticTests(Case):
     def setUp(self):
         super().setUp()
         self.recipe = read_json(ROOT / 'templates/sewing-recipe.json')
+
+    def test_motion_tracks_source_and_distinct_increment_maxima_without_mutation(self):
+        data=subset_mesh(payload(),['sleeve']);before=copy.deepcopy(data)
+        start=data['placed_cm'];previous=copy.deepcopy(start);coords=copy.deepcopy(start)
+        previous[0][0]+=9;coords[0][0]+=10;coords[1][1]+=4
+        report=motion_metrics(data,coords,start,2,previous,1,budget_cm=9)
+        self.assertEqual(report['max_excursion']['source_vertex_index'],3)
+        self.assertEqual(report['max_excursion']['piece'],'sleeve')
+        self.assertEqual(report['max_excursion']['distance_cm'],10)
+        self.assertEqual(report['max_increment']['source_vertex_index'],4)
+        self.assertEqual(report['max_increment']['distance_cm'],4)
+        self.assertEqual(report['max_increment']['pin_weight'],.5)
+        self.assertEqual(report['max_increment']['delta_cm'],[0,4,0])
+        self.assertEqual(report['pieces']['sleeve']['max_increment'],report['max_increment'])
+        self.assertTrue(report['budget_exceeded']);self.assertEqual(data,before)
+
+    def test_historical_motion_never_invents_increment_and_bad_geometry_is_unavailable(self):
+        data=payload();start=data['placed_cm'];coords=copy.deepcopy(start);coords[1][0]+=5
+        report=motion_metrics(data,coords,start,24,budget_cm=5)
+        self.assertEqual(report['increment_status'],'NOT_RECORDED')
+        self.assertIsNone(report['max_increment']);self.assertFalse(report['budget_exceeded'])
+        self.assertEqual(report['max_excursion']['named_edges'],['edge'])
+        self.assertEqual(motion_metrics(data,coords,start,1,start,1)['increment_status'],'NOT_RECORDED')
+        coords[0][0]=None
+        self.assertEqual(motion_metrics(data,coords,start,2)['excursion_status'],'UNAVAILABLE')
+        self.assertIsNone(motion_metrics(data,coords[:-1],start,2)['budget_exceeded'])
 
     def test_localizes_compression_stretch_faces_seams_and_sources(self):
         data=payload(); before=copy.deepcopy(data)
@@ -99,6 +125,8 @@ class DiagnosticTests(Case):
         admit_operation(project,'inspect_sewing_failure',args)
         result=dispatch(str(project.root),'inspect_sewing_failure',args)
         self.assertEqual(result['simulation'],'FAIL');self.assertFalse(result['accepted'])
+        self.assertEqual(result['motion']['excursion_status'],'MEASURED')
+        self.assertEqual(result['motion']['increment_status'],'NOT_RECORDED')
         self.assertEqual(sha(project.db),before)
         with self.assertRaises(StudioError):inspect_failure(project,'foreign.mesh',args['attempt_dir'])
         with self.assertRaises(StudioError):inspect_failure(project,'garment.coat','.a3d/evidence')

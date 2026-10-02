@@ -344,27 +344,34 @@ def verify_physics(obj, expected):
 
 def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,save_diagnostic=None):
     import bpy
+    from a3d.sewing_diagnostics import motion_metrics
     cloth,mass,collection=apply_physics(obj,payload,recipe,phase,colliders)
     expected=physical_snapshot(obj)
     start=[[x*100 for x in p] for p in object_mesh(obj)[0]]
     pairs=active_sewing_pairs(payload)
     initial_gap=max((distance(start[a],start[b]) for a,b in pairs),default=0.)
     history=[];maximum_displacement=0.;coords=start;frame=0;final_quality=None
+    previous=None;previous_frame=None;evaluated_frame=0;motion=None
     try:
         for frame in range(1,recipe["phases"][phase]["frames"]+1):
+            previous=coords;previous_frame=evaluated_frame
             bpy.context.scene.frame_set(frame)
             # Explicit depsgraph evaluation on EVERY frame, not just frame_set or
             # an API return code; otherwise a background cloth may never advance.
             coords=[[x*100 for x in p] for p in object_mesh(obj,True)[0]]
             if len(coords)!=len(start) or any(not math.isfinite(x) for p in coords for x in p):raise StudioError("Nonfinite cloth or changed evaluated topology")
-            movement=max(distance(a,b) for a,b in zip(start,coords))
+            evaluated_frame=frame
+            motion=motion_metrics(payload,coords,start,frame,previous,previous_frame,
+                recipe['limits']['max_displacement_cm'],include_pieces=False)
+            movement=motion['max_excursion']['distance_cm']
             maximum_displacement=max(maximum_displacement,movement)
-            if maximum_displacement>recipe["limits"]["max_displacement_cm"]:raise StudioError("Cloth displacement budget exceeded; diagnose the local case")
             gap=max((distance(coords[a],coords[b]) for a,b in pairs),default=0.)
             solver=cloth.solver_result
             history.append({"frame":frame,"max_movement_cm":movement,"max_seam_gap_cm":gap,
+                "motion":motion,
                 "solver_max_iterations":solver.max_iterations if solver else None})
             if save_progress:save_progress(history)
+            if maximum_displacement>recipe["limits"]["max_displacement_cm"]:raise StudioError("Cloth displacement budget exceeded; diagnose the local case")
         verify_physics(obj,expected)
         final_quality=mesh_quality(payload['rest_cm'],coords,payload['faces'],recipe['mesh'])
         if maximum_displacement<recipe["limits"]["min_movement_cm"]:
@@ -398,8 +405,11 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
                                 'collider':colliders[ti].name,'depth_cm':depth})
                 try:observed=physical_snapshot(obj)
                 except Exception as snapshot_error:observed={'unavailable':repr(snapshot_error)}
+                geometry=failure_geometry(payload,coords,start,recipe,penetrations)
+                geometry['motion']=motion_metrics(payload,coords,start,evaluated_frame,previous,previous_frame,
+                    recipe['limits']['max_displacement_cm'])
                 save_diagnostic({'error':str(exc),'frame':frame,'expected_execution':expected,'executed':observed,'frames':history,'final_quality':final_quality,
-                    'geometry':failure_geometry(payload,coords,start,recipe,penetrations)})
+                    'geometry':geometry})
             except Exception as diagnostic_error:
                 exc.add_note('Failure diagnostic unavailable: '+repr(diagnostic_error))
         raise
