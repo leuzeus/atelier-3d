@@ -170,7 +170,7 @@ def inspect_failure(project, component_id, attempt_dir):
         'piece_extents_cm':geometry.get('piece_extents_cm', {}), 'subset_kind':geometry.get('subset_kind'),
         'execution_stage':data.get('execution_stage','garment'), 'probe':data.get('probe'), 'probe_diagnostic':probe_ref,
         'backend_probe_simulation':data.get('backend_probe_simulation','NOT_RECORDED'),
-        'final_quality':data.get('final_quality'),
+        'final_quality':data.get('final_quality'),'final_checks':data.get('final_checks'),
         'fitting':data.get('fitting'),'fitting_tacks':geometry.get('fitting_tacks',[]),
         'motion':motion, 'frames':data.get('frames', []),
         'garment_simulation':data.get('garment_simulation','FAIL'), 'mapping_domain':geometry.get('mapping_domain','pattern-pieces'),

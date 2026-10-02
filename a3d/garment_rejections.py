@@ -56,6 +56,7 @@ def save_rejection(project, data, recipe, payload, error, checkpoint):
         'initial_contacts': getattr(error, 'initial_contacts', []), 'colliders': getattr(error, 'collider_snapshots', []),
         'contact_interpretation': 'Nearest-surface signed vertex samples; not exhaustive triangle intersection or a Cloth result.'}
     if payload:
+        report['experimental_prefit']=payload.get('experimental_prefit')
         coords=getattr(error, 'initial_coords_cm', payload['placed_cm'])
         report['candidate_boundary_map_sha256'] = digest(payload)
         report['vertex_count'] = len(payload['rest_cm'])

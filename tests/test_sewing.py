@@ -102,6 +102,24 @@ class BoundaryTests(unittest.TestCase):
 
 
 class PhysicsTests(unittest.TestCase):
+    def test_experimental_prefit_is_opt_in_bound_and_permanent_only(self):
+        from blender.sewing import mesh_recipe_digest
+        data,recipe=sources();baseline=mesh_recipe_digest(recipe)
+        options={'experimental':True,'source_ref':'test:bounded-placement','seam_ids':['torso-right'],
+            'reference_pieces':['front'],'fixed_edges':[],'iterations':5,'clearance_cm':0,
+            'max_displacement_cm':1,'min_fraction':.125,'max_backtracks':3}
+        recipe['experimental_prefit']=options
+        validate_recipe(data,recipe)
+        self.assertNotEqual(mesh_recipe_digest(recipe),baseline)
+        options['max_displacement_cm']=recipe['limits']['max_displacement_cm']+1
+        with self.assertRaisesRegex(StudioError,'budget'):validate_recipe(data,recipe)
+        options['max_displacement_cm']=1;recipe['seams']['torso-right']['kind']='closure'
+        with self.assertRaisesRegex(StudioError,'permanent'):validate_recipe(data,recipe)
+        recipe['seams']['torso-right']['kind']='permanent';options['reference_pieces']=['sleeve-left']
+        with self.assertRaisesRegex(StudioError,'reference'):validate_recipe(data,recipe)
+        options['reference_pieces']=['front'];options['fixed_edges']=[{'piece':'front','edge':'missing','exclude_joined_vertices':True}]
+        with self.assertRaisesRegex(StudioError,'fixed edge'):validate_recipe(data,recipe)
+
     def test_area_mass_is_constant_across_resolution(self):
         coarse=mass_settings({'basis':'areal_density_kg_m2','value':.4},20000,1000,20000)
         fine=mass_settings({'basis':'areal_density_kg_m2','value':.4},20000,4000,20000)
@@ -123,6 +141,25 @@ class PhysicsTests(unittest.TestCase):
         _,r=sources()
         for pts in ([[0,0,0],[1,0,0],[2,.0001,0]],[[0,0,0],[1,0,0],[0,math.nan,0]]):
             with self.subTest(points=pts),self.assertRaises(StudioError):mesh_quality(pts,pts,[[0,1,2]],r['mesh'])
+
+    def test_quality_refusal_retains_all_measurable_violations(self):
+        _,r=sources();rest=[[0,0,0],[1,0,0],[0,1,0]]
+        placed=[[0,0,0],[4,0,0],[2,.01,0]]
+        with self.assertRaises(StudioError) as raised:mesh_quality(rest,placed,[[0,1,2]],r['mesh'])
+        error=raised.exception
+        self.assertIn('degenerate_or_sliver',error.quality_violations)
+        self.assertIn('stretch',error.quality_violations)
+        self.assertLess(error.quality_metrics['min_angle_degrees'],r['mesh']['min_angle_degrees'])
+        self.assertGreater(error.quality_metrics['max_stretch'],r['mesh']['max_stretch'])
+
+    def test_refinement_cannot_lower_the_angle_gate_or_exceed_contract_budgets(self):
+        data,recipe=sources()
+        recipe['mesh']['quality_refinement']={'target_min_angle_degrees':3,'max_passes':16,'max_added_vertices':2000}
+        validate_recipe(data,recipe)
+        recipe['mesh']['min_angle_degrees']=4
+        with self.assertRaisesRegex(StudioError,'exceed'):validate_recipe(data,recipe)
+        recipe['mesh']['min_angle_degrees']=2;recipe['mesh']['quality_refinement']['max_passes']=100
+        with self.assertRaises(StudioError):validate_recipe(data,recipe)
 
 
 class FreezeTests(unittest.TestCase):

@@ -215,7 +215,10 @@ def garment(project_root, package_dir, recipe_path=None, rebuild=False, migrate_
         obj["a3d_package_sha256"] = component["package"]["sha256"]
         bpy.context.scene.unit_settings.system = "METRIC"
         # Never change a non-metric scene scale to make an invalid placement pass.
-        context, _, _ = preflight(obj, payload, recipe)
+        context, _, trees = preflight(obj, payload, recipe)
+        if recipe.get('experimental_prefit'):
+            from blender.prefit import apply_prefit
+            context = apply_prefit(obj, payload, recipe, trees)
     except StudioError as exc:
         from a3d.garment_rejections import save_rejection
         ref = save_rejection(project, data, recipe, payload or getattr(exc, 'garment_payload', None), exc, saved)
@@ -240,7 +243,8 @@ def garment(project_root, package_dir, recipe_path=None, rebuild=False, migrate_
         "legacy_archive": legacy_proof,
         "sewing_edges": sum(len(s["pairs"]) for s in payload["seams"].values() if s["kind"] == "permanent"),
         "derived_mesh": obj["a3d_sewing_mesh"], "derived_mesh_sha256": sha(path), "context": context,
-        "simulation": "NOT_EXECUTED", "visual_validation": "NOT_EXECUTED"}
+        "simulation": "NOT_EXECUTED", "visual_validation": "NOT_EXECUTED",
+        "experimental_prefit": payload.get('experimental_prefit')}
     from a3d.garment_receipts import write_receipt
     stored = write_receipt(project, data['component_id'], component['package']['sha256'], receipt)
     obj['a3d_garment_receipt'] = stored['path']
