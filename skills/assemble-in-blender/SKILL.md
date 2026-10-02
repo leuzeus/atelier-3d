@@ -5,6 +5,8 @@ description: Assembler dans une copie Blender des reconstructions 3D indépendan
 
 # assemble-in-blender
 
+Avant Cloth, appliquer [la revue mesurée de prépositionnement](../../references/sewing-placement.md) : appeler `inspect_sewing_placement`, examiner écarts, poids de maintien, trajets dans les colliders et orientations, puis un rendu autour du mannequin. Utiliser les placements flat/cylinder existants avec paramètres traçables avant toute extension. Ne pas confondre alignement et enfilage ni un avertissement de segment avec une impossibilité de draper. Garder le PASS local actuel comme condition du full.
+
 Pour examiner les pixels d'un candidat, utiliser `frame_view` avec component_id
 et object_name exact dans `studio_blender_operation`, puis capturer VIEW_3D.
 Après un échec Cloth, lire `inspect_sewing_failure(component_id, attempt_dir)`

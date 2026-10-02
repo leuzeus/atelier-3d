@@ -5,6 +5,8 @@ description: Orchestrer un projet de production 3D local reprenable à partir de
 
 # 3d-project
 
+Avant Cloth pour PATTERN_SEWN, suivre [la revue de prépositionnement](../../references/sewing-placement.md) : appeler `inspect_sewing_placement`, examiner coutures, supports, trajets dans les colliders et orientations, puis ouvrir un rendu du montage initial. Une manche alignée sur un bras n'est pas forcément enfilée. Utiliser d'abord flat/cylinder avec paramètres mesurés ; leurs limites restent explicites. Le rapport automatique de tentative ne remplace pas cette revue et n'accorde aucun PASS local ni validation de silhouette.
+
 Commencer par le brief : destination render/game/animation/3d_print, hauteur réelle, composants, relations et fichiers sources. Lire [le déroulement](../../references/production.md). Utiliser studio_create_project puis studio_project_status pour reprendre la base SQLite canonique. Chaque composant garde son propre routage et son package. N'utiliser un état COMPLETE qu'après rapport profilé, fichiers vérifiés et acceptation humaine. Le plugin n'installe pas ComfyUI, comfy-mcp, comfy-cli ou Blender. Un backend absent est UNAVAILABLE, pas un échec de l'asset. Respecter le dossier de production choisi par l'utilisateur.
 
 À chaque invocation, sélectionner explicitement le projet avec `studio_project_status(project_root)` (ou le créer), même dans un chat dont le cwd est ailleurs. Cette étape permet au hook de rattacher les appels suivants à ce projet lorsque l'hôte fournit son identifiant de session.
