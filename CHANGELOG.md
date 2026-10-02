@@ -1,5 +1,20 @@
 # Historique
 
+## 0.5.9 — 2026-10-02
+
+- Les mesures Cloth séparent excursion depuis le départ de phase et incrément
+  entre images réellement évaluées. Chaque maximum expose index local/source,
+  pièce, positions, delta, UV, bords et poids de maintien ; l'échec expose aussi
+  les maxima par pièce. Pas de vitesse de sous-pas ni classification d'instabilité.
+- L'image qui dépasse max_displacement_cm est enregistrée avant le même refus.
+  Aucun budget, durée, profil, couture ou règle de qualification n'est assoupli.
+- inspect_sewing_failure expose motion et l'historique ; les preuves anciennes
+  donnent une excursion calculée en lecture seule et un incrément NOT_RECORDED,
+  sans réécriture ni soustraction trompeuse des maxima scalaires.
+- Documentation et instructions de montage : choisir une hypothèse mesurée et
+  bornée, conserver les contours et seuils, requalifier après retrait des attaches.
+  mount/drape existent déjà ; aucun mécanisme ou outil MCP redondant ajouté.
+
 ## 0.5.8 — 2026-10-01
 
 - Nouveau contrat fitting-plan et opérations gardées en lecture seule
