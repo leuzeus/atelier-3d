@@ -1,5 +1,21 @@
 # Validation d'Atelier 3D
 
+## État de la version 0.5.8
+
+| Vérification | Résultat | Portée |
+| --- | --- | --- |
+| Suite Python Windows | PASS : 199 tests | Chemins fermés homologues, marge/aisance, incertitude, sections séparées et attaches |
+| Contrats indépendants | PASS : 9 distribués + config privée | fitting-plan ajouté ; recette historique compatible |
+| Mesure native et déficit connu | PASS sur fixture | Corps cible distinct du collider, 32 cm mesurés, déficit 4 cm, full refusé |
+| Proposition bornée | PASS sans mutation | Allocation de capacité en cm et coutures liées ; pas de dessin ou application automatique |
+| Bâti closure natif | PASS | Écart contrôlé, durée/force observées, lien closure préservé et freeze sans permanent refusé |
+| Essai local avec bâti | PASS sur fixture | Mesh jetable nettoyé, principal/rest/package intacts ; construction seulement, full refusé |
+| Corps/fiche périmés | PASS du refus | Pose/géométrie target et SHA fiche vérifiés ; binding des essais actualisé |
+| Régression physique | PASS sur fixture | Probes, local/full/freeze inchangés sans bâti |
+| Montage/fitting manteau réel | NOT_QUALIFIED | Capacité homologuée, corps cible et assemblage consommateur non acceptés |
+
+Voir [le contrat et les limites du fitting](references/measured-fitting.md).
+
 ## État de la version 0.5.7
 
 | Vérification du correctif | Résultat | Portée |
