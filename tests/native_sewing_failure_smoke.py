@@ -64,6 +64,10 @@ assert diagnostic['geometry']['outlier_edges'] and diagnostic['geometry']['seam_
 assert diagnostic['geometry']['source_vertex_indices'] and diagnostic['geometry']['source_face_indices']
 assert diagnostic['checkpoint']==project.state()['pending_blender_operation']['checkpoint']
 assert failure['diagnostic']['sha256']==sha(attempt/'diagnostic.json')
+assert diagnostic['placement']['sha256']==sha(attempt/'placement.json')
+placement=read_json(attempt/'placement.json')
+assert placement['accepted'] is False and placement['simulation']=='NOT_EXECUTED'
+assert placement['seams']['armhole-front']['max_gap_cm']>29
 assert diagnostic['simulation']=='FAIL' and diagnostic['accepted'] is False
 assert not (project.data/'blender/sewing/garment.coat-local.json').exists()
 assert not any(o.name.startswith('A3D.LocalTrial.') for o in bpy.data.objects)
@@ -79,6 +83,7 @@ restored=dispatch(str(project.root),'restore_checkpoint',{})
 obj=bpy.data.objects[constructed['object']]
 assert mesh_digest(obj)==before_mesh and project.state()['gates']==gates
 assert sha(attempt/'diagnostic.json')==diagnostic_sha
+assert diagnostic['placement']['sha256']==sha(attempt/'placement.json')
 assert not project.state().get('pending_blender_operation')
 after=dispatch(str(project.root),'inspect_sewing_failure',inspect_args)
 assert after==inspection

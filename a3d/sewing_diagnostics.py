@@ -81,8 +81,16 @@ def inspect_failure(project, component_id, attempt_dir):
         preview_path = inside(project.root, preview['path'])
         if preview_path.parent != directory or sha(preview_path) != preview['sha256']:
             raise StudioError('Failure diagnostic preview changed')
+    placement = data.get('placement')
+    if placement is not None:
+        placement_path = inside(project.root, placement['path'])
+        if placement_path.parent != directory or sha(placement_path) != placement['sha256']:
+            raise StudioError('Initial placement diagnostic changed')
+        initial = read_json(placement_path)
+        if any(initial.get(k) != data[k] for k in ('component_id', 'package_sha256', 'recipe_sha256', 'boundary_map_sha256')):
+            raise StudioError('Initial placement diagnostic identity mismatch')
     return {'simulation':'FAIL', 'accepted':False, 'diagnostic':ref, 'component_id':component_id,
-        'preview':preview, 'frame':data['frame'], 'error':data['error'], 'scope':data['scope'], 'phase':data['phase'],
+        'preview':preview, 'placement':placement, 'frame':data['frame'], 'error':data['error'], 'scope':data['scope'], 'phase':data['phase'],
         'package_sha256':data['package_sha256'], 'recipe_sha256':data['recipe_sha256'],
         'boundary_map_sha256':data['boundary_map_sha256'], 'binding':data['binding'],
         'evaluated_vertices':len(geometry['evaluated_cm']), 'finite_matching_topology':geometry['finite_matching_topology'],

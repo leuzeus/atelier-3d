@@ -79,3 +79,13 @@ class DiagnosticTests(Case):
         with self.assertRaises(StudioError):inspect_failure(project,'garment.coat','.a3d/evidence')
         atomic_json(diagnostic,{**data,'frame':25})
         with self.assertRaisesRegex(StudioError,'changed'):admit_operation(project,'inspect_sewing_failure',args)
+        initial=directory/'placement.json'
+        atomic_json(initial,{k:data[k] for k in ('component_id','package_sha256','recipe_sha256','boundary_map_sha256')})
+        data['placement']={'path':initial.relative_to(project.root).as_posix(),'sha256':sha(initial)}
+        atomic_json(diagnostic,data)
+        ref['sha256']=sha(diagnostic)
+        atomic_json(directory/'failure.json',{'simulation':'FAIL','diagnostic':ref,'binding':'d'*64,'scope':'local'})
+        self.assertEqual(inspect_failure(project,'garment.coat',args['attempt_dir'])['placement'],data['placement'])
+        atomic_json(initial,{'component_id':'foreign'})
+        with self.assertRaisesRegex(StudioError,'placement diagnostic changed'):
+            inspect_failure(project,'garment.coat',args['attempt_dir'])
