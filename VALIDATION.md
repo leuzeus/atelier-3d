@@ -1,5 +1,29 @@
 # Validation d'Atelier 3D
 
+## État de la version 0.6.2
+
+| Vérification | Résultat | Portée |
+| --- | --- | --- |
+| Suite Python Windows | PASS : 216 tests | Sources permanentes, référence immobile, budgets et contrat d'orientation inchangé |
+| Inspection réelle refusée | PASS du diagnostic | Quatre tangentes lues, 672 segments mesurés ; aucun PASS ni mutation |
+| Inspection native sur fixture | PASS / refus de structure | Géométrie rejetée mesurée ; rest et pins édités refusés ; scène/fichier/DB inchangés |
+| Préparation locale réelle | Précontrôle PASS | Quatre violations supprimées, déplacement maximal 1,4345 cm ; torse/source/topologie/pins conservés |
+| Premier Cloth après correction locale | FAIL à l'image 9 | Poignet droit dépasse 30 cm ; full non lancé |
+| Montage des manches avec réserve initiale | Précontrôle PASS, Cloth FAIL | Coutures 0,1875 cm mais étirement 1,2533 > 1,25 ; aucun seuil relevé |
+| Montage des manches avec réserve renforcée | Précontrôle PASS | Déplacement 15,6002 cm, écart résiduel 1,7177 cm ; torse fixe avant Cloth |
+| Local réel sur les 17 panneaux | PASS / PHYSICS_ONLY | 6 649 sommets, 18 images ; nouvel essai actuel requis |
+| Full réel libre | PASS / ASSEMBLY_PHYSICS_ONLY | Écart 0,175213 cm ; étirement 0,818375–1,237923 ; excursion 8,432986 cm < 30 ; angle min. 4,0195° |
+| Préparation synthétique et refus | PASS | Références fixes, petit budget et pin fixe refusés ; ni source/rest ni poids édités |
+| Parcours historique assembly/fitting | PASS sur fixture | Transfert, full libre, entrée fitting et nouveau local/full ; ancienne qualification conservée |
+| Fitting réel, mouvement long, export Unreal, acceptation humaine | NOT_EXECUTED / NOT_QUALIFIED | Aucune mutation du Blender de production dans ces tests |
+
+La fixture réelle part de l'objet consommateur .010 après transfert 0.6.1,
+avec copie isolée de l'état et lecture du seul datablock source. Le torse reste
+exactement fixe pendant les préparations, puis participe au Cloth complet.
+Le package, rest, indices, bords source, coutures et pins restent inchangés.
+Le PASS de 18 images ne qualifie pas 48 images ni un corps non mesuré. Voir
+[les opérations et leurs limites](references/local-interfaces.md).
+
 ## État de la version 0.6.1
 
 | Vérification | Résultat | Portée |

@@ -1,5 +1,23 @@
 # Historique
 
+## 0.6.2 — 2026-10-02
+
+- L'inspection de placement mesure les candidats refusés pour qualité,
+  orientation ou contact sans accorder de PASS physique ni muter scène/état.
+  Identité/source/map, rest, topologie et pins restent des contrôles stricts.
+- `interface_preparation` prépare des tangentes dans un voisinage borné des
+  coutures permanentes source ; références et poids fixes sont conservés.
+  Les sommets partagés sont traités conjointement ; mêmes contrôles finaux.
+- `panel_mount` rapproche un groupe explicite de panneaux sur les seules
+  coutures source sélectionnées, avec extérieur fixe, budget, réserve de
+  déformation et relaxation finale. Aucune soudure ou qualification implicite.
+- Copie réelle : quatre tangentes corrigées ; préparation des huit panneaux
+  de manches sans déplacement du torse ; local/full libre des 17 panneaux PASS
+  à 18 images. Les premiers refus de déplacement et de qualité sont conservés.
+  Limites 30 cm / étirement 0,8–1,25 / couture 0,5 cm inchangées.
+- Le fitting exige un full actuel et une recette séparée sans options de montage.
+  Documentation et tests de budgets, source, références et inspection non mutante.
+
 ## 0.6.1 — 2026-10-02
 
 - `apply_sewn_result` transfère les coordonnées cm d'un PASS local libre vers

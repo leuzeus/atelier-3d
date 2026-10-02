@@ -1,5 +1,10 @@
 # Reprise cousue et fitting séparé — 0.6.1
 
+Depuis 0.6.2, [l'inspection et la préparation locale des interfaces](local-interfaces.md)
+permettent de lire un candidat refusé et de préparer un groupe de panneaux sans
+réinitialiser le torse cousu. Retirer les options `interface_preparation` et
+`panel_mount` dans la recette de fitting ; conserver le full et ses coordonnées.
+
 Un essai local PASS est un résultat physique sur les seuls panneaux déclarés.
 La copie principale conserve auparavant leur placement initial. Pour reprendre
 ces coordonnées, utiliser les opérations natives suivantes dans
