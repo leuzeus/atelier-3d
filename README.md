@@ -7,11 +7,17 @@ Plugin Codex pour préparer et produire des assets 3D à partir d'images de réf
 avec un choix de méthode par composant, des données de construction explicites et
 une validation humaine aux étapes déterminantes.
 
-**Version 0.5.6 — socle de développement.** Le runtime et ses contrats sont testés.
+**Version 0.5.7 — socle de développement.** Le runtime et ses contrats sont testés.
 Le profil d'installation Windows est testé, avec découverte MCP et diagnostic
 compatibles avec le manifeste Codex. Une
 production complète sur un vrai vêtement ou un asset articulé reste à qualifier.
-Voir [les résultats et limites](VALIDATION.md) et la [release 0.5.6](https://github.com/leuzeus/atelier-3d/releases/tag/v0.5.6).
+Voir [les résultats et limites](VALIDATION.md) et la [release 0.5.7](https://github.com/leuzeus/atelier-3d/releases/tag/v0.5.7).
+
+La version 0.5.7 conserve les diagnostics des probes physiques avant nettoyage :
+profil exécuté, durée, coupons, supports, qualité et écarts. `inspect_sewing_failure`
+distingue `backend_probe_simulation=FAIL` et `garment_simulation=NOT_EXECUTED`.
+Un nouvel échec local invalide la qualification courante pour le lancement full,
+en conservant les preuves historiques. Voir [le diagnostic des probes](references/probe-diagnostics.md).
 
 La version 0.5.6 conserve un diagnostic lorsqu'un candidat `garment` est rejeté
 avant Cloth : coutures et segments d'orientation, coordonnées source/3D,

@@ -111,6 +111,11 @@ un nouvel essai technique. Il ne révoque pas le board si ses données restent
 identiques. Après deux échecs complets, un nouvel essai local réussi est requis.
 Les échecs et progrès restent dans `.a3d/blender/sewing/attempt-*`.
 
+Pour un échec avant l'essai du vêtement, suivre [le diagnostic des probes](probe-diagnostics.md).
+Lire le stade d'exécution : probe FAIL ne signifie pas vêtement exécuté.
+Un nouveau FAIL local invalide la qualification courante pour full ; les preuves
+historiques restent conservées et un nouvel essai local PASS est requis.
+
 Après une erreur, utiliser `restore_checkpoint` avant de poursuivre. Si la
 recette de maillage, de placement ou de coutures a changé, reconstruire un
 nouveau mesh dérivé avec `garment(..., rebuild=true)`. Le précédent est archivé
