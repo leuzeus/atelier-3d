@@ -14,6 +14,11 @@ Le précontrôle de qualité et de pénétration reste actif. Restaurer le check
 après un échec si Cloth est encore actif. Aucun fichier ni état n'est écrit par
 cette inspection ; elle ne crée pas de pending et ne libère pas un pending existant.
 
+Si `garment` a été rejeté avant son mapping/reçu, utiliser
+[`inspect_garment_failure`](garment-rejections.md) pour le nouveau candidat.
+Ne pas l'inspecter à travers le mesh de la toile précédente. Restaurer avant
+la prochaine mutation ; conserver le diagnostic historique pour comparer les recettes.
+
 ## Lire les mesures
 
 - `seams` : chaque paire présente positions en cm, écart, IDs de panneaux et

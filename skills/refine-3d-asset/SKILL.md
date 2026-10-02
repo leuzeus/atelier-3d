@@ -5,6 +5,8 @@ description: Corriger un asset Blender reconstruit en topologie, raccords, silho
 
 # refine-3d-asset
 
+Un `garment` rejeté avant son reçu se diagnostique par [inspect_garment_failure](../../references/garment-rejections.md), même pendant pending et après restauration. Lire les segments/positions/cosinus ou les contacts initiaux par pièce/sommet/collider ; conserver les seuils et corriger la recette indépendamment des patrons approuvés. Ne pas déclarer un bug Cloth, un faux positif ou une silhouette réparée à partir de ces seuls diagnostics.
+
 Pour un échec de montage textile, restaurer puis utiliser [le diagnostic de prépositionnement](../../references/sewing-placement.md) avant un nouvel essai Cloth. Ajuster localement la recette de placement/support sans réécrire les patrons approuvés ni relâcher les seuils ; rebuild conserve l'ancien mesh. Ne pas annoncer un fitting réparé à partir d'une fixture ou d'un rapport sans avertissement.
 
 Pour cadrer un mesh existant, utiliser le parcours contrôlé `frame_view` puis

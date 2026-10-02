@@ -1,5 +1,21 @@
 # Historique
 
+## 0.5.6 — 2026-10-01
+
+- Diagnostic conservé avant de relancer un rejet géométrique de `garment`,
+  notamment orientation, déformation du maillage dérivé et pénétration initiale.
+  Répertoire unique, SHA, package/source/recette/checkpoint liés, aucun reçu accepté.
+- Orientation : couture, pièces/bords source, segments successifs, indices,
+  UV repos et positions natives, cosinus local et seuil -0,5 inchangé. Les cordes
+  entre extrémités sont des mesures de contexte, sans décider d'un faux positif.
+- Contact : pièce/sommet/bords/support, collider/face/normale, profondeur mesurée
+  et seuil conservés. Test signé au sommet, pas une intersection exhaustive.
+- `inspect_garment_failure` lit le diagnostic historique en lecture seule,
+  pendant le pending et après restauration ; aucune mutation ni libération d'échec.
+- Fixture Blender isolée : rejets orientation/qualité/contact, source/package/
+  mesh antérieur/reçu/board conservés, restauration obligatoire et diagnostics intacts.
+  Aucun défaut Cloth ni réparation de la robe réelle établi.
+
 ## 0.5.5 — 2026-10-01
 
 - Ajout de `inspect_sewing_placement(component_id, recipe_path)` en lecture seule
