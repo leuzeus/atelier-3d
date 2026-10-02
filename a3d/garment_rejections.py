@@ -58,6 +58,8 @@ def save_rejection(project, data, recipe, payload, error, checkpoint):
     if payload:
         report['experimental_prefit']=payload.get('experimental_prefit')
         report['stage_transition']=payload.get('stage_transition')
+        report['interface_preparation']=payload.get('interface_preparation')
+        report['panel_mount']=payload.get('panel_mount')
         coords=getattr(error, 'initial_coords_cm', payload['placed_cm'])
         report['candidate_boundary_map_sha256'] = digest(payload)
         report['vertex_count'] = len(payload['rest_cm'])
