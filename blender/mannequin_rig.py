@@ -5,8 +5,12 @@ from a3d.core import StudioError, digest
 def create_derived_rig(source, collection, specification):
     import bpy
     from mathutils import Vector
+    if bpy.context.mode != 'OBJECT':
+        raise StudioError('Derived rig preparation requires an object-mode working context')
     if source.type != 'MESH' or specification['status'] != 'RIG_PREPARED_NOT_QUALIFIED':
         raise StudioError('Derived rig requires a mesh and a prepared source-bound specification')
+    if digest({key: value for key, value in specification.items() if key != 'cache_key'}) != specification['cache_key']:
+        raise StudioError('Prepared rig specification changed after measurement')
     points = [[float(x)*100 for x in source.matrix_world@v.co] for v in source.data.vertices]
     faces = [list(p.vertices) for p in source.data.polygons]
     labels = [v.value for v in source.data.attributes['.sculpt_face_set'].data]
@@ -19,6 +23,7 @@ def create_derived_rig(source, collection, specification):
     collection.objects.link(body)
     data = bpy.data.armatures.new(body.name+'.Rig')
     rig = bpy.data.objects.new(body.name+'.Rig', data); collection.objects.link(rig)
+    rig_name = rig.name
     previous = bpy.context.view_layer.objects.active
     selected = list(bpy.context.selected_objects)
     try:
@@ -44,7 +49,8 @@ def create_derived_rig(source, collection, specification):
         bpy.data.objects.remove(body, do_unlink=True); bpy.data.objects.remove(rig, do_unlink=True)
         raise
     finally:
-        rig.select_set(False) if rig.name in bpy.data.objects else None
+        remaining = bpy.data.objects.get(rig_name)
+        if remaining is not None: remaining.select_set(False)
         for obj in selected: obj.select_set(True)
         bpy.context.view_layer.objects.active = previous
     return body, rig
