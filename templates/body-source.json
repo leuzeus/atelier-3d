@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "source_blend": "sources/body.blend",
+  "source_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "source_ref": "Replace with the user's body choice and the exact frame/units inspection",
+  "frame": 1,
+  "unit_scale_m": 1,
+  "meshes": ["BODY"],
+  "dependencies": ["RIG"],
+  "reference_object": "A3D.BodyReference"
+}

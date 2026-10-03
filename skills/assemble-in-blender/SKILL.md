@@ -5,6 +5,16 @@ description: Assembler dans une copie Blender des reconstructions 3D indépendan
 
 # assemble-in-blender
 
+Pour un corps cible choisi dans un .blend existant, suivre [la sélection native
+et sa pose évaluée](../../references/body-source.md). Utiliser
+inspect_body_source/prepare_body_reference via studio_blender_operation, avec
+SHA, image, unités, meshes et dépendances explicites. Ne pas ouvrir le fichier
+complet dans le Blender consommateur ni importer l'ancien vêtement. Le snapshot
+ne crée pas de collider et ses points d'os ne valident pas les repères homologues.
+Conserver le garde MCP et le journal de reprise ; recover_clean_construction
+exige ROLLBACK_REQUIRED, jamais un pending inventé ou une réinitialisation des
+préférences pour contourner le MCP.
+
 Pour une reprise de construction explicitement demandée, suivre [la scène vide et le fitting distinct](../../references/clean-construction-fitting.md). start_clean_construction conserve le fichier courant comme témoin et ses reçus, refuse dirty/pending/identité périmée, puis ouvre une scène vide versionnée. Repartir du même package/board approuvé et obtenir de nouveaux local/full sans mannequin ; aucun ancien résultat n'est importé. Comparer les coordonnées au témoin avant d'affirmer une contamination cumulative. Après un full libre actuel, introduce_fitting_context importe uniquement le corps/enveloppe déclarés depuis le témoin exact, sans déplacer le vêtement. inspect_garment_fit mesure malgré un contact refusé mais conserve source/rest/pins/identités stricts ; proxy et repères supposés restent NOT_QUALIFIED. En cas de pose incompatible, fitting_placement exige un corps cible identifié et des cadres homologues validés par groupes disjoints, sans scale ni projection et avec pins/budgets/précontrôle inchangés. Ne jamais inventer ces repères depuis la seule hauteur du mannequin. contact_recovery est réservé aux pénétrations de 0,5 cm au plus : un contact profond exige pose/enfilage explicite et restauration native, sans seconde tentative aveugle. Aucun fitting PASS ne découle de la reprise propre.
 
 Après un refus local d'orientation, suivre [la préparation native des interfaces](../../references/local-interfaces.md). inspect_sewing_placement doit retourner les mesures du candidat rejeté sans PASS ni mutation, tout en vérifiant source/map/rest/pins. Distinguer tangente locale et corde globale. Utiliser interface_preparation pour les seules interfaces et leurs voisinages déclarés, depuis la copie cousue. Si un refus Cloth mesuré provient encore de panneaux éloignés, panel_mount rapproche un groupe explicite sur ses seules coutures permanentes source avec extérieur fixe et réserve de déformation. Vérifier les receipts et le même précontrôle avant le nouveau local puis full purpose=assembly ; aucune élévation des seuils ni script de déplacement externe. Le solver de préparation ne qualifie pas Cloth. Retirer ces options dans la recette de fitting séparée. Conserver toute preuve FAIL et ne pas rejouer une hypothèse globale déjà rejetée.

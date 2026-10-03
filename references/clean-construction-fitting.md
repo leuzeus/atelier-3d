@@ -1,4 +1,4 @@
-# Reprise propre et fitting distinct — 0.6.3
+# Reprise propre et fitting distinct — 0.6.4
 
 Une robe cousue librement peut réussir le montage tout en étant incompatible
 avec la pose actuelle du mannequin. Recommencer ne prouve ni ne corrige à lui
@@ -31,6 +31,22 @@ source sauvegardé et ses reçus restent inchangés. Une scène dirty, une ident
 périmée, une reconstruction acceptée ou un pending sont des refus. Ne pas lancer
 ce changement de scène pour un simple diagnostic ou à l'insu de l'utilisateur.
 
+La scène vide est chargée par `read_homefile(use_empty=True,
+use_factory_startup=True, load_ui=False, use_splash=False)`, autorisé par le MCP
+officiel. Préférences, add-ons et timers persistants sont conservés.
+Ne pas désactiver le garde ou modifier le code fourni pour contourner un refus.
+
+Un journal `clean-recovery-ID.json` existe avant le changement de scène.
+Sur erreur, le rollback rouvre la source et restaure la session ; son statut
+devient ROLLED_BACK. Source, témoin, candidat éventuel, archive et journal restent
+disponibles. Si le rollback échoue, ROLLBACK_REQUIRED conserve son erreur.
+Appeler alors `recover_clean_construction(recovery_path)` sur ce journal exact :
+identités source/témoin/archive et session non remplacée sont vérifiées.
+Préserver une scène dirty avant récupération. Un journal COMPLETED/ROLLED_BACK
+ou remplacé par une nouvelle session n'est pas rejouable.
+Cette opération n'utilise pas le pending standard : `restore_checkpoint`
+ne s'applique pas à ce changement de scène. Ne pas créer de pending fictif.
+
 Le package, le board, ses approbations exactes et les relations restent les mêmes.
 Seul le point de départ de construction change. Aucun mesh, mannequin, cube,
 Cloth ou résultat physique historique n'entre dans cette scène. Un nouvel ID de
@@ -62,8 +78,15 @@ déclarés dans la recette/fiche de fitting depuis le témoin exact :
 
 L'import vérifie le full courant, le fichier, les noms, géométries/poses, échelles
 et épaisseurs de collision. Il refuse les dépendances ou objets de construction
-non déclarés et les duplications. Il conserve le vêtement intact et retourne
+non déclarés et les duplications. Les objets déjà présents sont conservés et
+leurs identités vérifiées ; seuls les objets manquants sont importés.
+Il conserve le vêtement intact et retourne
 ses mesures, sans modifier la pose, enfiler ou simuler le vêtement.
+
+Pour un corps choisi dans un fichier contenant un ancien vêtement et un rig,
+suivre [la sélection du corps source](body-source.md). Préparer une référence
+figée exacte plutôt qu'importer l'ensemble du fichier ou perdre sa pose.
+Un collider séparé nécessite sa propre source qualifiée.
 
 ## Placement explicite de fitting
 
