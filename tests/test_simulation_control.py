@@ -26,11 +26,13 @@ class SimulationControl(unittest.TestCase):
         self.assertEqual(control.report()['stop_reason'], 'FRAME_BUDGET')
         with self.assertRaises(StudioError) as raised: control.require_convergence()
         self.assertEqual(raised.exception.simulation_outcome, 'INCOMPLETE')
+        self.assertEqual(raised.exception.reason_category, 'simulation_budget')
 
     def test_timeout_is_incomplete_and_never_a_success(self):
         ticks = iter([0., 10.]); control = monitor(clock=lambda: next(ticks))
         with self.assertRaises(StudioError) as raised: control.before_frame()
         self.assertEqual(raised.exception.simulation_outcome, 'INCOMPLETE')
+        self.assertEqual(raised.exception.reason_category, 'simulation_budget')
 
     def test_missing_frames_and_changed_topology_are_refused(self):
         control = monitor()

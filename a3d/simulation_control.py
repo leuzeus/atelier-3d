@@ -28,6 +28,7 @@ class ConvergenceMonitor:
             self.stop_reason = 'TIME_BUDGET'
             error = StudioError('Cloth time budget exhausted before measured convergence')
             error.simulation_outcome = 'INCOMPLETE'
+            error.reason_category = 'simulation_budget'
             raise error
 
     def observe(self, frame, coordinates, seam_gap_cm, gates_valid):
@@ -60,4 +61,5 @@ class ConvergenceMonitor:
         if self.stop_reason != 'MEASURED_CONVERGENCE':
             error = StudioError('Cloth frame budget exhausted without measured convergence')
             error.simulation_outcome = 'INCOMPLETE'
+            error.reason_category = 'simulation_budget'
             raise error
