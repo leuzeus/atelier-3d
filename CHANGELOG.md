@@ -1,5 +1,23 @@
 # Historique
 
+## 0.6.3 — 2026-10-02
+
+- L'inspection de fit et la proposition de capacité retournent leurs mesures
+  malgré le refus géométrique, sans mutation ni relâchement des identités.
+- `start_clean_construction` conserve un témoin binaire et l'ancien session,
+  puis crée une scène vide versionnée avec un nouvel ID de construction.
+  Les approbations de coupe exactes restent en place ; aucun PASS n'est importé.
+- `introduce_fitting_context` importe seulement les objets déclarés et liés au
+  témoin après un full libre courant, sans déplacer le vêtement ou le mannequin.
+- `fitting_placement` applique des cadres rigides par groupes source disjoints
+  avec indices/repères validés et corps cible identifié, sans scale/projection.
+  Ambiguïtés, proxy, pins fixes déplacés, budgets et précontrôles sont des refus.
+- Contact profond (> 0,5 cm) refusé avant projection ; petites récupérations
+  restent bornées et soumises aux gates initiaux inchangés.
+- Reprise réelle depuis patrons dans une scène vide : nouveau local/full PASS,
+  coordonnées exactement identiques au témoin. Proxy réintroduit séparément :
+  contact refusé et capacité/enfilage NOT_QUALIFIED ; aucun fitting réel exécuté.
+
 ## 0.6.2 — 2026-10-02
 
 - L'inspection de placement mesure les candidats refusés pour qualité,

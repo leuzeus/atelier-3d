@@ -3,7 +3,7 @@ from a3d.core import StudioError, contract, digest, inside, read_json, sha
 from a3d.fitting import compare_fit, propose_adjustments, section_loop
 
 
-def measured_report(project,obj,payload,recipe,fit_path):
+def measured_report(project,obj,payload,recipe,fit_path,measurement_only=False):
     import bpy
     from blender.sewing import object_mesh,mesh_digest,preflight
     from blender.placement import placement_report
@@ -29,9 +29,19 @@ def measured_report(project,obj,payload,recipe,fit_path):
             section=row.get(role+'_section')
             if section:sections[role][row['id']]=section_loop(vertices,faces,section)
     report=compare_fit(typed,plan,sections['body'],sections['envelope'])
-    context,_,trees=preflight(obj,payload,recipe)
+    if measurement_only:
+        from blender.placement import measurement_context
+        context,trees=measurement_context(obj,payload,recipe)
+    else:
+        context,_,trees=preflight(obj,payload,recipe)
     placement=placement_report(obj,payload,recipe,context,trees,project.root)
-    placement_summary={'warnings':placement['warnings'],
+    donning_missing=[]
+    if plan.get('body',{}).get('role')!='target':donning_missing.append('identified target body, not a proxy')
+    if context.get('status')=='REJECTED' and not recipe.get('fitting_placement'):
+        donning_missing.append('explicit common garment/body pose with validated shoulder, elbow and wrist landmarks where limbs differ')
+    report['donning']={'status':'NOT_QUALIFIED' if donning_missing else 'DECLARED_NOT_PHYSICALLY_QUALIFIED',
+        'missing':donning_missing,'placement_applied':False,'simulation':'NOT_EXECUTED'}
+    placement_summary={'preflight':context,'directions':placement['directions'],'warnings':placement['warnings'],
         'seams':{sid:{k:s[k] for k in ('kind','max_gap_cm','segments_crossing_collider')} for sid,s in placement['seams'].items()},
         'interpretation':placement['interpretation']}
     report.update(component_id=recipe['component_id'],fit_plan={'path':fit_path,'sha256':sha(path)},
@@ -58,14 +68,14 @@ def recipe_fit(project,obj,payload,recipe):
 def inspect_garment_fit(project_root,component_id,recipe_path,fit_path):
     from blender.operations import working
     from blender.sewing import managed_inputs
-    project,_=working(project_root);obj,payload,recipe=managed_inputs(project,component_id,recipe_path)
-    return measured_report(project,obj,payload,recipe,fit_path)[0]
+    project,_=working(project_root);obj,payload,recipe=managed_inputs(project,component_id,recipe_path,check_placement=False)
+    return measured_report(project,obj,payload,recipe,fit_path,measurement_only=True)[0]
 
 
 def propose_pattern_adjustment(project_root,component_id,recipe_path,fit_path):
     from blender.operations import working
     from blender.sewing import managed_inputs
-    project,_=working(project_root);obj,payload,recipe=managed_inputs(project,component_id,recipe_path)
-    report,data,plan=measured_report(project,obj,payload,recipe,fit_path)
+    project,_=working(project_root);obj,payload,recipe=managed_inputs(project,component_id,recipe_path,check_placement=False)
+    report,data,plan=measured_report(project,obj,payload,recipe,fit_path,measurement_only=True)
     proposal=propose_adjustments(data,plan,report)
     return {**proposal,'measurement_report':report,'fit_binding':report['fit_binding']}

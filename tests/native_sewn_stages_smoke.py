@@ -89,7 +89,7 @@ refused('prepare_sewn_stage',{'component_id':'garment.coat','recipe_path':'fit.j
 # coupon. Recovery with a tiny budget must refuse, rather than enlarge gates.
 fit['contact_recovery']={'source_ref':'test:bounded-contact-repair','clearance_cm':.02,'max_displacement_cm':.001,'max_passes':2}
 atomic_json(project.root/'fit-bounded.json',fit)
-refused('prepare_sewn_stage',{'component_id':'garment.coat','recipe_path':'fit-bounded.json','stage':'fitting'},'displacement budget')
+refused('prepare_sewn_stage',{'component_id':'garment.coat','recipe_path':'fit-bounded.json','stage':'fitting'},'explicit garment/body pose')
 # Separate small, explicitly identified synthetic target, not a resized envelope.
 bpy.ops.mesh.primitive_cylinder_add(vertices=48,radius=.025,depth=1.05,location=(0,0,.4))
 body=bpy.context.object;body.name='TARGET_FIXTURE_ENVELOPE';body.modifiers.new('Collision','COLLISION')

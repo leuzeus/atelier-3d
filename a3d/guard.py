@@ -24,9 +24,11 @@ def parse_code(code):
 
 def admit_operation(project, operation, arguments):
     state = project.state()
-    if operation not in ("prepare", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn", "apply_sewn_result", "prepare_sewn_stage"):
+    if operation not in ("prepare", "start_clean_construction", "introduce_fitting_context", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn", "apply_sewn_result", "prepare_sewn_stage"):
         raise StudioError("Unknown guarded Blender operation")
     required = {"prepare": set(), "resume": set(), "inspect": set(),
+        "start_clean_construction":{"working_sha256"},
+        "introduce_fitting_context":{"component_id","recipe_path","fit_path","source_blend","source_sha256"},
         "frame_view": {"component_id", "object_name"},
         "inspect_sewing_failure": {"component_id", "attempt_dir"},
         "inspect_garment_failure": {"component_id", "attempt_dir"},
@@ -110,7 +112,14 @@ def admit_operation(project, operation, arguments):
             raise StudioError("Completed project is immutable")
         return
     require_board(project, state)
-    if operation in ("simulate_sewn", "freeze_sewn", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "apply_sewn_result", "prepare_sewn_stage"):
+    if operation=='start_clean_construction':
+        if state['stage']!='RECONSTRUCTING' or any(c['stage']=='RECONSTRUCTED' for c in state['components'].values()):
+            raise StudioError('Clean construction requires unaccepted reconstruction candidates')
+        value=arguments['working_sha256']
+        if not isinstance(value,str) or len(value)!=64 or any(c not in '0123456789abcdef' for c in value):
+            raise StudioError('Clean construction requires the exact saved working SHA-256')
+        return
+    if operation in ("simulate_sewn", "freeze_sewn", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "apply_sewn_result", "prepare_sewn_stage", "introduce_fitting_context"):
         if state["stage"] != "RECONSTRUCTING":
             raise StudioError("Native sewing requires RECONSTRUCTING")
         if arguments['component_id'] not in state['components']:
@@ -133,6 +142,10 @@ def admit_operation(project, operation, arguments):
         if 'fit_path' in arguments:
             plan=contract('fitting-plan',read_json(inside(project.root,arguments['fit_path'])))
             if plan['component_id']!=arguments['component_id']:raise StudioError('Fitting plan component mismatch')
+        if operation=='introduce_fitting_context':
+            path=inside(project.root,arguments['source_blend'])
+            if path.suffix.lower()!='.blend' or sha(path)!=arguments['source_sha256']:
+                raise StudioError('Fitting context source identity changed')
         if recipe.get('fitting_plan'):
             ref=recipe['fitting_plan']
             if sha(inside(project.root,ref['path']))!=ref['sha256']:raise StudioError('Referenced fitting plan changed; update the recipe and requalify')
@@ -167,8 +180,8 @@ def admit_operation(project, operation, arguments):
             raise StudioError("garment requires recipe_path for its derived simulation mesh; keep approved packages unchanged")
         from .sewing import validate_recipe
         garment_recipe=read_json(inside(project.root, arguments["recipe_path"]))
-        if garment_recipe.get('interface_preparation') or garment_recipe.get('panel_mount'):
-            raise StudioError('Use prepare_sewn_stage on existing sewn geometry for local interfaces/panel mount')
+        if garment_recipe.get('interface_preparation') or garment_recipe.get('panel_mount') or garment_recipe.get('fitting_placement'):
+            raise StudioError('Use prepare_sewn_stage on existing sewn geometry for local interfaces/panel mount/fitting placement')
         validate_recipe(data, garment_recipe)
     elif operation == "assemble":
         if state["stage"] != "ASSEMBLING":

@@ -7,11 +7,20 @@ Plugin Codex pour préparer et produire des assets 3D à partir d'images de réf
 avec un choix de méthode par composant, des données de construction explicites et
 une validation humaine aux étapes déterminantes.
 
-**Version 0.6.2 — interfaces locales et montage borné.** Le runtime et ses contrats sont testés.
+**Version 0.6.3 — reprise propre et fitting distinct.** Le runtime et ses contrats sont testés.
 Le profil d'installation Windows est testé, avec découverte MCP et diagnostic
 compatibles avec le manifeste Codex. Une
 production complète sur un vrai vêtement ou un asset articulé reste à qualifier.
-Voir [les résultats et limites](VALIDATION.md) et la [release 0.6.2](https://github.com/leuzeus/atelier-3d/releases/tag/v0.6.2).
+Voir [les résultats et limites](VALIDATION.md) et la [release 0.6.3](https://github.com/leuzeus/atelier-3d/releases/tag/v0.6.3).
+
+La version 0.6.3 permet l'inspection de capacité malgré des contacts refusés,
+une [reprise native dans une scène vide et un fitting séparé](references/clean-construction-fitting.md),
+avec conservation du témoin et des approbations exactes. Un placement rigide
+optionnel exige un corps cible identifié et des repères homologues explicites.
+Les pénétrations profondes sont refusées avant une projection destructrice.
+La reprise propre du cas réel reproduit exactement les coordonnées du montage
+réussi : aucune contamination cumulative n'est établie. Le proxy anatomique
+reste NOT_QUALIFIED et le fitting réel n'est pas exécuté.
 
 La version 0.6.2 rend l'inspection d'un candidat géométriquement refusé lisible,
 avec les mêmes contrôles d'identité, rest, topologie et pins. Elle ajoute la

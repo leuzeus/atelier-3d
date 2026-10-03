@@ -1,5 +1,10 @@
 # Blender MCP externe
 
+`start_clean_construction` conserve un témoin exact et ouvre une scène vide
+versionnée sur demande explicite. `introduce_fitting_context` importe le corps
+déclaré après un nouveau full libre ; le placement rigide optionnel de fitting
+exige des repères mesurés. Voir [la reprise propre](clean-construction-fitting.md).
+
 `apply_sewn_result` et `prepare_sewn_stage` ajoutent la
 [reprise d'un résultat local et le fitting séparé](sewn-stages.md).
 Ces opérations passent par le même outil et le dispatcher installé ; garder
