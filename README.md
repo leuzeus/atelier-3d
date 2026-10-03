@@ -7,11 +7,19 @@ Plugin Codex pour préparer et produire des assets 3D à partir d'images de réf
 avec un choix de méthode par composant, des données de construction explicites et
 une validation humaine aux étapes déterminantes.
 
-**Version 0.6.3 — reprise propre et fitting distinct.** Le runtime et ses contrats sont testés.
+**Version 0.6.4 — reprise compatible avec le MCP interactif et corps source explicite.** Le runtime et ses contrats sont testés.
 Le profil d'installation Windows est testé, avec découverte MCP et diagnostic
 compatibles avec le manifeste Codex. Une
 production complète sur un vrai vêtement ou un asset articulé reste à qualifier.
-Voir [les résultats et limites](VALIDATION.md) et la [release 0.6.3](https://github.com/leuzeus/atelier-3d/releases/tag/v0.6.3).
+Voir [les résultats et limites](VALIDATION.md) et la [release 0.6.4](https://github.com/leuzeus/atelier-3d/releases/tag/v0.6.4).
+
+La reprise vide utilise l'opérateur autorisé par le MCP officiel, sans
+réinitialiser les préférences ni perdre ses add-ons ou sa connexion. Le test
+interactif isolé vérifie son garde réel, les requêtes suivantes et la récupération.
+Le test autonome de 0.6.3 ne couvrait pas ce garde. Une [sélection explicite du
+corps source](references/body-source.md) produit sa pose évaluée figée sans
+importer l'ancien vêtement. Elle ne crée pas de collider et ne valide pas les
+repères anatomiques ou le fitting.
 
 La version 0.6.3 permet l'inspection de capacité malgré des contacts refusés,
 une [reprise native dans une scène vide et un fitting séparé](references/clean-construction-fitting.md),
