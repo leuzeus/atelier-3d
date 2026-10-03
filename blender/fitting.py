@@ -23,6 +23,8 @@ def measured_report(project,obj,payload,recipe,fit_path,measurement_only=False):
         if current!=ref['geometry_sha256']:raise StudioError('Fitting '+role+' geometry/pose changed')
         if role=='envelope' and not any(c['object']==target.name and c['geometry_sha256']==current for c in recipe['colliders']):
             raise StudioError('Fitting envelope is not the actual recipe collider')
+        if role=='envelope' and target.get('a3d_body_geometry_sha256') and target['a3d_body_geometry_sha256']!=plan.get('body',{}).get('geometry_sha256'):
+            raise StudioError('Prepared auxiliary envelope belongs to another target geometry/pose')
         vertices,faces=object_mesh(target,True);vertices=[[x*100 for x in p] for p in vertices]
         identities[role]={'object':target.name,'geometry_sha256':current,'role':ref['role']}
         for row in plan['measurements']:
@@ -37,10 +39,18 @@ def measured_report(project,obj,payload,recipe,fit_path,measurement_only=False):
     placement=placement_report(obj,payload,recipe,context,trees,project.root)
     donning_missing=[]
     if plan.get('body',{}).get('role')!='target':donning_missing.append('identified target body, not a proxy')
-    if context.get('status')=='REJECTED' and not recipe.get('fitting_placement'):
+    if not plan.get('envelope'):
+        donning_missing.append('source-bound collision envelope for the actual target pose')
+    if not any(c['role']=='mannequin' for c in recipe['colliders']):
+        donning_missing.append('identified collision geometry and thicknesses in the fitting recipe')
+    if not recipe.get('fitting_placement') and not recipe.get('fitting_pose'):
         donning_missing.append('explicit common garment/body pose with validated shoulder, elbow and wrist landmarks where limbs differ')
+    if any(row['status']=='NOT_QUALIFIED' for row in report['rows']) or not report['rows']:
+        donning_missing.append('validated homologous measurements and closed pattern paths with declared ease')
     report['donning']={'status':'NOT_QUALIFIED' if donning_missing else 'DECLARED_NOT_PHYSICALLY_QUALIFIED',
-        'missing':donning_missing,'placement_applied':False,'simulation':'NOT_EXECUTED'}
+        'missing':donning_missing,'placement_applied':False,'simulation':'NOT_EXECUTED',
+        'collision_evaluation':'DECLARED_RECIPE_COLLIDERS_ONLY' if recipe['colliders'] else 'NOT_EXECUTED_NO_COLLIDER',
+        'body_presence_is_pose_declaration':False}
     placement_summary={'preflight':context,'directions':placement['directions'],'warnings':placement['warnings'],
         'seams':{sid:{k:s[k] for k in ('kind','max_gap_cm','segments_crossing_collider')} for sid,s in placement['seams'].items()},
         'interpretation':placement['interpretation']}

@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "body_receipt": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "object": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "regions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_meshes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "maxItems": 128
+          },
+          "partition_bones": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "rig": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "bone": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "rig",
+                "bone"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 0,
+            "maxItems": 32
+          }
+        },
+        "required": [
+          "id",
+          "source_meshes",
+          "partition_bones"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 32
+    },
+    "voxel_cm": {
+      "type": "number",
+      "minimum": 0.1,
+      "maximum": 2
+    },
+    "padding_cm": {
+      "type": "number",
+      "minimum": 0.1,
+      "maximum": 3
+    },
+    "max_body_outside_cm": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 0.2
+    },
+    "thickness_outer_cm": {
+      "type": "number",
+      "minimum": 0.001,
+      "maximum": 2
+    },
+    "thickness_inner_cm": {
+      "type": "number",
+      "minimum": 0.001,
+      "maximum": 2
+    }
+  },
+  "required": [
+    "version",
+    "body_receipt",
+    "object",
+    "source_ref",
+    "regions",
+    "voxel_cm",
+    "padding_cm",
+    "max_body_outside_cm",
+    "thickness_outer_cm",
+    "thickness_inner_cm"
+  ],
+  "additionalProperties": false
+}

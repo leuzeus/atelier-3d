@@ -25,12 +25,13 @@ def parse_code(code):
 
 def admit_operation(project, operation, arguments):
     state = project.state()
-    if operation not in ("prepare", "start_clean_construction", "recover_clean_construction", "inspect_body_source", "prepare_body_reference", "introduce_fitting_context", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn", "apply_sewn_result", "prepare_sewn_stage"):
+    if operation not in ("prepare", "start_clean_construction", "recover_clean_construction", "inspect_body_source", "prepare_body_reference", "prepare_fitting_envelope", "prepare_fitting_pose", "introduce_fitting_context", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn", "apply_sewn_result", "prepare_sewn_stage"):
         raise StudioError("Unknown guarded Blender operation")
     required = {"prepare": set(), "resume": set(), "inspect": set(),
         "start_clean_construction":{"working_sha256"},
         "recover_clean_construction":{"recovery_path"},
         "inspect_body_source":{"selection_path"},"prepare_body_reference":{"selection_path"},
+        "prepare_fitting_envelope":{"envelope_path"},"prepare_fitting_pose":{"component_id","recipe_path","pose_path"},
         "introduce_fitting_context":{"component_id","recipe_path","fit_path","source_blend","source_sha256"},
         "frame_view": {"component_id", "object_name"},
         "inspect_sewing_failure": {"component_id", "attempt_dir"},
@@ -129,6 +130,25 @@ def admit_operation(project, operation, arguments):
         if current!=old and Path(current['working']).resolve()!=candidate:
             raise StudioError('Another construction session supersedes this recovery')
         return
+    if operation=='prepare_fitting_envelope':
+        from .fitting_preparation import envelope_spec
+        if state['stage'] not in ('RECONSTRUCTING','ASSEMBLING'):raise StudioError('Envelope preparation requires an active construction')
+        require_board(project,state)
+        envelope_spec(project,arguments['envelope_path'])
+        return
+    if operation=='prepare_fitting_pose':
+        from .fitting_preparation import pose_spec
+        from .sewing import validate_recipe
+        if state['stage']!='RECONSTRUCTING':raise StudioError('Common pose preparation requires active reconstruction')
+        require_board(project,state)
+        spec,_=pose_spec(project,arguments['pose_path'])
+        if spec['component_id']!=arguments['component_id'] or arguments['component_id'] not in state['components']:
+            raise StudioError('Common pose component mismatch')
+        component=state['components'][arguments['component_id']]
+        if component['stage']=='RECONSTRUCTED' or component['route']['selected']!='PATTERN_SEWN':raise StudioError('Common pose requires an unaccepted sewn component')
+        recipe=read_json(inside(project.root,arguments['recipe_path']))
+        if recipe['component_id']!=arguments['component_id']:raise StudioError('Common pose recipe component mismatch')
+        return
     if operation in ('inspect_body_source','prepare_body_reference'):
         from .body_source import selection
         selection(project,arguments['selection_path'])
@@ -176,6 +196,10 @@ def admit_operation(project, operation, arguments):
             if path.suffix.lower()!='.blend' or sha(path)!=arguments['source_sha256']:
                 raise StudioError('Fitting context source identity changed')
         if recipe.get('fitting_plan'):
+            if recipe.get('fitting_pose'):
+                ref=recipe['fitting_pose']
+                if sha(inside(project.root,ref['path']))!=ref['sha256']:
+                    raise StudioError('Prepared common pose field changed; prepare and requalify')
             ref=recipe['fitting_plan']
             if sha(inside(project.root,ref['path']))!=ref['sha256']:raise StudioError('Referenced fitting plan changed; update the recipe and requalify')
         if operation in ('simulate_sewn','freeze_sewn') and recipe.get('fitting_tacks') and (operation=='freeze_sewn' or arguments['scope']=='full'):

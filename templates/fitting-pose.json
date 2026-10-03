@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "component_id": "garment.coat",
+  "body_receipt": {"path": ".a3d/blender/body-reference-EXACT.json", "sha256": "0000000000000000000000000000000000000000000000000000000000000000"},
+  "max_displacement_cm": 10,
+  "steps": 8,
+  "frames": [{
+    "id": "arm-left",
+    "source_ref": "Replace with measured homologous source edges and evaluated selected body bones",
+    "moving_pieces": ["sleeve-left"],
+    "origin_edges": [{"piece": "sleeve-left", "edge": "root"}],
+    "axis_edges": [{"piece": "sleeve-left", "edge": "wrist"}],
+    "transverse_edges": [{"piece": "sleeve-left", "edge": "front"}],
+    "target_origin": {"rig": "EXACT_RIG", "bone": "upper_arm.L", "endpoint": "head_cm"},
+    "target_axis": {"rig": "EXACT_RIG", "bone": "forearm.L", "endpoint": "tail_cm"},
+    "target_transverse_cm": [0, -1, 0],
+    "feather_cm": 40,
+    "max_axis_length_difference_cm": 1
+  }],
+  "strain_relaxation": {"passes": 120, "max_frame_residual_cm": 0.5}
+}

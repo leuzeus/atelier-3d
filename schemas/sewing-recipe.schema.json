@@ -379,6 +379,157 @@
               "type": "number",
               "minimum": 1e-06,
               "maximum": 1
+            },
+            "regional_stiffness": {
+              "type": "object",
+              "properties": {
+                "profiles": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "source_ref": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "status": {
+                        "const": "hypothesis"
+                      },
+                      "structural_weight": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "shear_weight": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "bending_weight": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "source_ref",
+                      "status",
+                      "structural_weight",
+                      "shear_weight",
+                      "bending_weight"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 1,
+                  "maxItems": 8
+                },
+                "default_profile": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "assignments": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "piece": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "profile": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "piece",
+                      "profile"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 0,
+                  "maxItems": 64
+                },
+                "reinforcements": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "piece": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "edge": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "profile": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "width_cm": {
+                        "type": "number",
+                        "minimum": 0.01,
+                        "maximum": 20
+                      }
+                    },
+                    "required": [
+                      "piece",
+                      "edge",
+                      "profile",
+                      "width_cm"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 0,
+                  "maxItems": 64
+                },
+                "ceilings": {
+                  "type": "object",
+                  "properties": {
+                    "tension_stiffness_max": {
+                      "type": "number",
+                      "minimum": 0.001,
+                      "maximum": 10000
+                    },
+                    "compression_stiffness_max": {
+                      "type": "number",
+                      "minimum": 0.001,
+                      "maximum": 10000
+                    },
+                    "shear_stiffness_max": {
+                      "type": "number",
+                      "minimum": 0.001,
+                      "maximum": 10000
+                    },
+                    "bending_stiffness_max": {
+                      "type": "number",
+                      "minimum": 0.001,
+                      "maximum": 10000
+                    }
+                  },
+                  "required": [
+                    "tension_stiffness_max",
+                    "compression_stiffness_max",
+                    "shear_stiffness_max",
+                    "bending_stiffness_max"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "profiles",
+                "default_profile",
+                "assignments",
+                "reinforcements",
+                "ceilings"
+              ],
+              "additionalProperties": false
             }
           },
           "required": [
@@ -484,6 +635,157 @@
               "type": "number",
               "minimum": 1e-06,
               "maximum": 1
+            },
+            "regional_stiffness": {
+              "type": "object",
+              "properties": {
+                "profiles": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "source_ref": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "status": {
+                        "const": "hypothesis"
+                      },
+                      "structural_weight": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "shear_weight": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "bending_weight": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "source_ref",
+                      "status",
+                      "structural_weight",
+                      "shear_weight",
+                      "bending_weight"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 1,
+                  "maxItems": 8
+                },
+                "default_profile": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "assignments": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "piece": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "profile": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "piece",
+                      "profile"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 0,
+                  "maxItems": 64
+                },
+                "reinforcements": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "piece": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "edge": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "profile": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "width_cm": {
+                        "type": "number",
+                        "minimum": 0.01,
+                        "maximum": 20
+                      }
+                    },
+                    "required": [
+                      "piece",
+                      "edge",
+                      "profile",
+                      "width_cm"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 0,
+                  "maxItems": 64
+                },
+                "ceilings": {
+                  "type": "object",
+                  "properties": {
+                    "tension_stiffness_max": {
+                      "type": "number",
+                      "minimum": 0.001,
+                      "maximum": 10000
+                    },
+                    "compression_stiffness_max": {
+                      "type": "number",
+                      "minimum": 0.001,
+                      "maximum": 10000
+                    },
+                    "shear_stiffness_max": {
+                      "type": "number",
+                      "minimum": 0.001,
+                      "maximum": 10000
+                    },
+                    "bending_stiffness_max": {
+                      "type": "number",
+                      "minimum": 0.001,
+                      "maximum": 10000
+                    }
+                  },
+                  "required": [
+                    "tension_stiffness_max",
+                    "compression_stiffness_max",
+                    "shear_stiffness_max",
+                    "bending_stiffness_max"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "profiles",
+                "default_profile",
+                "assignments",
+                "reinforcements",
+                "ceilings"
+              ],
+              "additionalProperties": false
             }
           },
           "required": [
@@ -727,27 +1029,89 @@
     "fitting_placement": {
       "type": "object",
       "properties": {
-        "max_displacement_cm": {"type":"number","minimum":0.001,"maximum":100},
+        "max_displacement_cm": {
+          "type": "number",
+          "minimum": 0.001,
+          "maximum": 100
+        },
         "groups": {
-          "type":"array","minItems":1,"maxItems":32,
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
           "items": {
-            "type":"object",
+            "type": "object",
             "properties": {
-              "pieces":{"type":"array","items":{"type":"string","minLength":1},"minItems":1,"maxItems":32,"uniqueItems":true},
-              "source_indices":{"type":"array","items":{"type":"integer","minimum":0},"minItems":3,"maxItems":3,"uniqueItems":true},
-              "target_indices":{"type":"array","items":{"type":"integer","minimum":0},"minItems":3,"maxItems":3,"uniqueItems":true},
-              "labels":{"type":"array","items":{"type":"string","minLength":1},"minItems":3,"maxItems":3,"uniqueItems":true},
-              "landmark_status":{"const":"validated"},
-              "source_ref":{"type":"string","minLength":1},
-              "tolerance_cm":{"type":"number","minimum":0.0001,"maximum":1}
+              "pieces": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "maxItems": 32,
+                "uniqueItems": true
+              },
+              "source_indices": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "minItems": 3,
+                "maxItems": 3,
+                "uniqueItems": true
+              },
+              "target_indices": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "minItems": 3,
+                "maxItems": 3,
+                "uniqueItems": true
+              },
+              "labels": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 3,
+                "maxItems": 3,
+                "uniqueItems": true
+              },
+              "landmark_status": {
+                "const": "validated"
+              },
+              "source_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "tolerance_cm": {
+                "type": "number",
+                "minimum": 0.0001,
+                "maximum": 1
+              }
             },
-            "required":["pieces","source_indices","target_indices","labels","landmark_status","source_ref","tolerance_cm"],
-            "additionalProperties":false
+            "required": [
+              "pieces",
+              "source_indices",
+              "target_indices",
+              "labels",
+              "landmark_status",
+              "source_ref",
+              "tolerance_cm"
+            ],
+            "additionalProperties": false
           }
         }
       },
-      "required":["max_displacement_cm","groups"],
-      "additionalProperties":false
+      "required": [
+        "max_displacement_cm",
+        "groups"
+      ],
+      "additionalProperties": false
     },
     "contact_recovery": {
       "type": "object",
@@ -899,6 +1263,24 @@
         "iterations",
         "settle_iterations",
         "strain_margin"
+      ],
+      "additionalProperties": false
+    },
+    "fitting_pose": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
       ],
       "additionalProperties": false
     }

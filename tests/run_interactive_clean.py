@@ -10,6 +10,7 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument('--blender',required=True);p.add_argument('--addon',required=True)
     p.add_argument('--output',required=True);p.add_argument('--runtime');p.add_argument('--body-selection')
+    p.add_argument('--fitting-preparation',action='store_true')
     args=p.parse_args();out=Path(args.output).resolve();out.mkdir(parents=True,exist_ok=True)
     if (out/'owned-pid.txt').exists():raise ValueError('Choose a fresh isolated output directory')
     root=Path(args.runtime).resolve() if args.runtime else Path(__file__).resolve().parents[1]
@@ -76,6 +77,16 @@ bpy.ops.blmcp.server_start()
         assert recovery['status']=='ok',recovery
         body=execute('from tests import interactive_clean_scenario as scenario\nfrom tests import native_body_source_scenario\nresult=native_body_source_scenario.run(scenario.project,'+repr(args.body_selection)+')')
         assert body['status']=='ok',body
+        preparation=None;regional=None;pose=None
+        if args.fitting_preparation:
+            preparation=execute('from tests import interactive_clean_scenario as scenario\nfrom tests import native_fitting_preparation\nresult=native_fitting_preparation.run('+repr(str(out/'native-preparation'))+',scenario.project)')
+            assert preparation['status']=='ok',preparation
+            regional=execute('from tests import native_regional_cloth\nresult=native_regional_cloth.run('+repr(str(out/'regional-coupons'))+')')
+            assert regional['status']=='ok',regional
+            pose=execute('from tests import native_pose_operation\nresult=native_pose_operation.run('+repr(str(out/'pose-operation'))+')')
+            assert pose['status']=='ok',pose
+            restored=execute('import bpy\nfrom a3d.core import read_json\nfrom tests import interactive_clean_scenario as scenario\nbpy.ops.wm.open_mainfile(filepath=read_json(scenario.project.data/"blender/session.json")["working"],load_ui=False)\nresult={"fixture_scene_restored":True}')
+            assert restored['status']=='ok',restored
         continuity=execute('from tests import interactive_clean_scenario as scenario\nresult=scenario.snapshot()')
         assert continuity['status']=='ok' and continuity['result']==setup['result'],continuity
         runtime=execute('from blender.bootstrap import dispatch_current\nfrom tests import interactive_clean_scenario as scenario\nresult=dispatch_current(str(scenario.project.root),"inspect",{})["runtime"]')
@@ -84,6 +95,7 @@ bpy.ops.blmcp.server_start()
             'official_guard_active':True,'separate_requests_after_reload':'PASS',
             'baseline':setup['result'],'scenario':run['result'],'continuity':continuity['result']}
         proof.update(failed_rollback=fault['result'],native_recovery=recovery['result'],body_source=body['result'])
+        if preparation:proof.update(fitting_preparation=preparation['result'],regional_stiffness=regional['result'],pose_operation=pose['result'])
         (out/'interactive-result.json').write_text(json.dumps(proof,indent=2),encoding='utf-8')
         print(json.dumps({'status':'PASS','proof':str(out/'interactive-result.json'),'runtime':runtime['result']}),flush=True)
     finally:
