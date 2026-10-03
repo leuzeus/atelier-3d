@@ -84,3 +84,66 @@ natifs isolés vérifient le repos, la topologie et un mouvement court ; la qual
 des déformations, les collisions textiles et le fitting gardent leurs gates.
 Les huit vues neutres sont des preuves de revue visuelle de développement,
 sans transfert d'approbation artistique à l'utilisateur.
+
+## Placement et corrections en cours
+
+Le guide sémantique du torse réutilise `a3d.preform_volume.volume_frames`.
+Chaque côté d'une couche doit identifier les pièces approuvées d'ouverture,
+devant, côté et dos, avec les bords source requis. Le profil mesuré fournit le
+repère ; aucune coordonnée par vêtement n'est introduite. Les autres rôles sont
+signalés comme pièces encore à traiter. Les manches et poignets utilisent une
+direction anatomique et des guides développables dont la circonférence et la
+longueur proviennent du patron, sans mise à l'échelle au corps. Leur axe UV
+longitudinal doit être déclaré pour éviter d'inventer un sens de fil.
+
+Ces guides sont des hypothèses de placement. Les contacts, la capacité réelle
+et les gates de métrique restent à mesurer ; ils ne prouvent ni l'enfilage ni
+le drapé. La capuche, les empiècements, la ceinture et le traitement des couches
+internes gardent leurs implémentations et essais complets à réaliser.
+
+`a3d.placement_correction.correct_placement` évalue des déplacements/rotations
+rigides de panneaux dans des copies temporaires. Les métriques et seuils restent
+fixes. Le meilleur candidat mesuré est conservé ; les propositions moins bonnes,
+répétées, hors budget ou rejetées par les gates sont annulées. Un budget de temps,
+d'itérations, de propositions, de déplacement et de stagnation borne la boucle.
+Les callbacks doivent eux-mêmes borner leur coût ; le temps est contrôlé entre
+évaluations. Aucun patron, support, raccord ou corps ne peut être édité par une
+proposition. Le coupon natif vérifie les métriques et contacts précis existants,
+dont le rejet d'une proposition traversant le corps, sans qualifier un vêtement
+complet ni une trajectoire d'enfilage.
+
+## Groupe natif de couches cousues
+
+Le plan d'assemblage peut déclarer `layer_execution` avec le mode
+`joint_coupled_single_object`, une référence exacte, la carte source et le
+graphe des raccords. Ce chemin ne s'applique qu'à un seul groupe couplé par les
+coutures permanentes, avec collision propre dans un objet Cloth. Une fermeture
+ou une attache amovible ne relie pas artificiellement deux groupes indépendants.
+Les colliders des couches internes déjà figées restent des obstacles externes ;
+une couche active ne peut pas être simultanément déclarée comme collider figé.
+Une déclaration périmée ou plusieurs groupes indépendants sont refusés.
+
+Le coupon natif comporte deux surfaces superposées reliées sur un bord. Douze
+frames évaluées avec collision propre active rapprochent ce bord de 0,30 cm à
+moins de 0,001 cm, avec les gates de métrique et contact et la source conservée.
+Cette preuve porte sur le coupon exécuté. Le séquençage de plusieurs groupes,
+le vêtement complet et les interactions textiles externes bidirectionnelles
+ne sont pas qualifiés par ce résultat.
+
+## Convergence mesurée
+
+Une phase Cloth peut déclarer `execution_control` : plafond de temps, minimum
+d'images calculées, fenêtre de stabilité et vitesse maximale en cm/s. Le moteur
+observe les positions réellement évaluées, vérifie la métrique et les contacts
+à chaque image et exige aussi l'écart final de couture. Il s'arrête dès que les
+critères mesurés sont atteints. L'épuisement du temps ou des images avant cette
+stabilité donne `INCOMPLETE`, jamais un succès repris de l'API.
+
+Sans cette déclaration, le mode historique conserve son budget fixe et annonce
+explicitement `convergence: NOT_QUALIFIED`. Une fenêtre courte de vitesse n'est
+pas une preuve de stabilité pour tous les mouvements futurs ; les seuils sont
+liés au cas déclaré. Le coupon vertical de deux couches atteint ses critères
+après 38 images sur un plafond de 96. L'essai précédent limité à 12 images reste
+conservé comme incomplet. Les limites de couture et de qualité sont inchangées.
+La reprise avec checkpoints, les mouvements du corps et le contrôleur complet
+des groupes restent à intégrer et à tester.
