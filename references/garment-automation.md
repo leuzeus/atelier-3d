@@ -60,3 +60,27 @@ Les états de développement sont enregistrés dans les preuves sur G:. Les essa
 natifs de développement utilisent des fixtures, jamais la scène personnelle.
 Le relais vers le chat d'acceptation inclut runtime, lanceur, entrées, critères
 et limites ; un message automatique ne donne pas permission de contacter ce chat.
+
+## État du catalogue et du profil
+
+Deux bases réalistes de Dan Ulrich, provenant du bundle officiel Blender Human
+Base Meshes 1.4.1 sous CC0, remplacent les candidats Nora/Theo exclus par
+l'utilisateur. Le catalogue reste `DEVELOPMENT_CANDIDATE`, sans admission de
+fitting. Le package n'admet que leurs deux fichiers `.blend` nommés ; une scène
+personnelle, un fichier supplémentaire ou une licence/empreinte modifiée sont
+refusés. La sélection copie le mannequin et son adaptateur dans le projet.
+
+Le profil calcule les contours de sections de la surface dans un repère déclaré.
+La segmentation du torse est explicite et liée à la topologie source : un contour
+fermé seul pourrait intégrer les bras et ne suffit donc pas à déclarer le profil
+complet. Les articulations proviennent des anneaux topologiques entre régions
+source. Les repères effondrés ou hors du corps sont refusés. La source, la pose,
+la géométrie, les repères et les options invalident le cache lorsqu'ils changent.
+
+Un rig préparatoire propre au plugin peut être créé dans une nouvelle copie.
+Il comporte 17 os, des influences issues des régions déclarées et un lissage
+borné. Il ne fournit aucun contrôle de mensurations indépendant. Les essais
+natifs isolés vérifient le repos, la topologie et un mouvement court ; la qualité
+des déformations, les collisions textiles et le fitting gardent leurs gates.
+Les huit vues neutres sont des preuves de revue visuelle de développement,
+sans transfert d'approbation artistique à l'utilisateur.
