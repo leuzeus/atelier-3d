@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Native source-pattern preparation; no Cloth qualification",
+  "type": "object",
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "component_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "regular_mesh": {
+      "type": "object",
+      "properties": {
+        "spacing_cm": {
+          "type": "number",
+          "minimum": 0.2,
+          "maximum": 10
+        },
+        "min_spacing_cm": {
+          "type": "number",
+          "minimum": 0.2,
+          "maximum": 10
+        },
+        "refinement_distance_cm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 30
+        },
+        "max_vertices": {
+          "type": "integer",
+          "minimum": 20,
+          "maximum": 50000
+        },
+        "target_min_angle_degrees": {
+          "type": "number",
+          "minimum": 3,
+          "maximum": 30,
+          "default": 15
+        }
+      },
+      "required": [
+        "spacing_cm",
+        "min_spacing_cm",
+        "refinement_distance_cm",
+        "max_vertices"
+      ],
+      "additionalProperties": false
+    },
+    "assembly_plan": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "construction_dossier": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "mass_policy": {
+      "enum": [
+        "native_uniform_vertex",
+        "require_exact_surface_density"
+      ],
+      "default": "native_uniform_vertex"
+    },
+    "migration": {
+      "type": "object",
+      "properties": {
+        "retire_legacy_preparations": {"const": true}
+      },
+      "required": ["retire_legacy_preparations"],
+      "additionalProperties": false
+    },
+    "material_profiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "pieces": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "areal_density_kg_m2": {
+            "type": "number",
+            "minimum": 0.0001,
+            "maximum": 10
+          },
+          "category": {
+            "enum": ["main", "lining", "reinforcement", "accessory"]
+          },
+          "cloth_profile": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Existing per-phase regional profile ID, or phase_base for unchanged scalar phase settings."
+          },
+          "visual_material_ref": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Visual material reference only; it does not change Cloth parameters."
+          }
+        },
+        "required": [
+          "id",
+          "source_ref",
+          "pieces",
+          "areal_density_kg_m2"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "version",
+    "component_id",
+    "source_ref",
+    "regular_mesh"
+  ],
+  "additionalProperties": false
+}

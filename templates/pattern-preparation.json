@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "component_id": "coupon",
+  "source_ref": "TEMPLATE ONLY: bind the approved source patterns, construction dossier and measured assembly plan before readiness can be established",
+  "regular_mesh": {
+    "spacing_cm": 2.0,
+    "min_spacing_cm": 1.0,
+    "refinement_distance_cm": 3.0,
+    "max_vertices": 20000,
+    "target_min_angle_degrees": 15
+  },
+  "mass_policy": "native_uniform_vertex",
+  "material_profiles": [
+    {
+      "id": "shared-cloth-hypothesis",
+      "category": "main",
+      "cloth_profile": "phase_base",
+      "source_ref": "TEMPLATE HYPOTHESIS: one shared 150 g/m2 profile; replace with sourced measurements or a declared bounded hypothesis",
+      "pieces": ["left", "right"],
+      "areal_density_kg_m2": 0.15
+    }
+  ]
+}

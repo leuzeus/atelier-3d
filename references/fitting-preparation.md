@@ -64,6 +64,15 @@ vêtement à l'échelle et ne corrige pas une longueur de manche inadéquate.
 
 Le champ combine les déplacements rigides des groupes de panneaux et un raccord
 continu par distance sur le graphe du vêtement et de ses coutures permanentes.
+Les partenaires d'une couture permanente partagent l'influence du même cadre.
+Si un partenaire est fixé, tout ce groupe garde une influence nulle pendant la
+préparation, y compris sa relaxation ; les poids de pins source ne changent pas.
+Les appuis partiels ne sont pas promus en pins fixes. Les indices et l'écart
+initial restent distincts : ce partage n'est pas une consolidation du mesh.
+Chaque paire conserve sa propre borne, le maximum de son écart initial et du
+`weld_gap_cm` existant. Un grand écart ailleurs ne libère donc pas une couture
+déjà rapprochée. Le résidu de chaque cadre est rapporté même sans relaxation ;
+un appui qui empêche d'atteindre la pose cible doit rester visible dans ce bilan.
 Les pins fixes ont une influence nulle. La fermeture A06 reste réversible ; elle
 ne participe pas aux liens permanents du graphe. Chaque pas vérifie les mêmes
 seuils de qualité/stretch, le budget de déplacement et la séparation des partenaires

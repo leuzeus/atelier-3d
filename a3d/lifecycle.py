@@ -90,6 +90,9 @@ def assembly_plan(project, state, path=None, verify_baseline=True):
 
 
 def assembly_result(project, state):
+    from .piece_inventory import current_proof
+    if any(c['route']['selected'] == 'PATTERN_SEWN' for c in state['components'].values()):
+        current_proof(project, state, require_global=True)
     plan, rec = assembly_plan(project, state, verify_baseline=False)
     proof = project.verify_evidence(state, "assembly-result")
     receipt = read_json(inside(project.root, proof["path"]))
@@ -117,6 +120,9 @@ def required_final_checks(state):
 
 
 def final_validation(project, state):
+    from .piece_inventory import current_proof
+    if any(c['route']['selected'] == 'PATTERN_SEWN' for c in state['components'].values()):
+        current_proof(project, state, require_global=True)
     project.require_gate(state, "final")
     if "final-validation" not in state["gates"]["final"]["evidence"]:
         raise StudioError("Final gate must bind final-validation report")

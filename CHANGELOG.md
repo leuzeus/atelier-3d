@@ -1,5 +1,113 @@
 # Historique
 
+## 0.6.8 — 2026-10-03
+
+- Contrôle de complétude des pièces Blender par identité source, bilans
+  local/global et admissions des jalons globaux. Inspection des candidats
+  non READY, rapports structurés et revue près des images. Demande explicite
+  d'autorisation avant l'exécution de code Blender. Catalogue des templates
+  ComfyUI conservé comme référence. Vérification native du vêtement séparée.
+
+### Documentation incluse dans 0.6.8
+
+- Correction de la complétude Blender : identités source et multiplicités
+  par composant, bilans local/global, absences/doublons, visibilité distincte
+  de présence et de qualification. L'inspection inclut les candidats non READY
+  portant seulement a3d_source_component_id. Pages de revue près des images,
+  cartes source conservées au gel, admissions des jalons globaux et invalidation
+  des preuves sur changement des fichiers liés.
+  [Protocole et limites](references/piece-completeness.md). Tests automatisés
+  avec adaptateur Blender simulé ; exécution native et installation à vérifier.
+
+- Bogue de complétude des pièces Blender enregistré dans
+  [le rapport du 3 octobre](BUG-2026-10-03-completude-pieces-blender.md) et
+  dans VALIDATION.md : résultat local du manteau 10/10, couverture textile
+  globale observée 10/15. La correction dans les sources est documentée
+  ci-dessus ; la qualification native reste à faire.
+
+- Avant `execute_blender_code` et sa variante CLI, les skills demandent
+  explicitement l'autorisation de l'utilisateur et attendent sa réponse.
+  `studio_blender_operation` rappelle cette étape dans le code préparé retourné
+  (champ `next`). Les permissions MCP et les contrôles d'admission restent actifs.
+
+- Catalogue des templates ComfyUI SD1.5 image-to-image et Hunyuan multivue :
+  usages, entrées/sorties, paramètres, exemples et procédure de réutilisation.
+  README, guide de démarrage, références et skills Comfy reliés au catalogue.
+  Graphes et registre existants conservés ; compatibilité native et qualité
+  des résultats à qualifier sur l'installation cible.
+
+## 0.6.7 — 2026-10-03, installation locale sans publication
+
+- Version locale regroupant la préparation, l'assemblage et les renforcements
+  ci-dessous, installable par le gestionnaire natif de Codex. Les anciens stages
+  sont conservés ; aucune publication ni migration des projets consommateurs.
+
+- [Renforcements après l'étude OpenSew](references/opensew-improvements.md) :
+  métrique commune par face à chaque frame Cloth évaluée, contacts précis et
+  mouvement discrètement échantillonné, enfilage sourcé et DAG des couches.
+  Contrat de validation version 2, repos et appuis exécutés tracés, contrôles
+  statiques d'enfilage avant/après drapé et références revérifiées au gel.
+  Coupons ciblés conservés sans promotion des anciens PASS ni qualification
+  du vêtement réel.
+- Sections corporelles partitionnées par boucle et sélectionnées par l'axe
+  sourcé ; une coupe parasite de jambe ne devient plus un faux défaut de
+  passage au poignet. Diagnostics distincts des faces du tissu et du collider.
+- Raffinement local borné des triangles intérieurs, contours et crans fixes ;
+  cible d'angle conservée et reliquats explicitement refusés. Coupons natifs
+  supplémentaires pour mesurer l'effet des paramètres de flexion.
+- Courbure simple évaluée par le modificateur natif Blender `Simple Deform →
+  Bend`, avec paramètres sourcés et correspondances conservées après remeshing.
+  Aucun Garment Tool requis ; aucun calcul de Bend réimplémenté. Les mauvais
+  repères restent refusés et la préforme ne remplace pas le repos physique.
+- Entrée native `prepare_pattern_assembly` : audit des sources et crans, maillage
+  triangulaire à densité graduée, préforme sourcée et mesures localisées avant
+  Cloth. Rapports, correspondances, vues de contrôle et master Blender produits
+  par le plugin ; transmission au montage sans réinitialiser le placement.
+- Préformes `arc_sections` : mise en volume des panneaux par sections 3D
+  paramétrées en longueur d'arc réelle, reliées aux UV métriques source, avec
+  repères, budgets de déplacement et contrôles de déformation conservés.
+- Flexion mesurée séparément de l'étirement : distributions globales et par
+  panneau des dièdres entre faces adjacentes orientées, comparées au plan
+  source. Les plis retournés ne sont pas masqués ; interfaces et faces
+  dégénérées sont exclues. Aucun seuil d'acceptation physique n'en est déduit.
+- Masse surfacique et aire tributaires mesurées, distinction explicite avec la
+  masse scalaire par sommet du Cloth natif. Les contacts profonds, appuis
+  contradictoires et données périmées conservent un refus de préparation.
+- Parcours natif reprenable : préforme liée aux patrons, Cloth court avec
+  retrait progressif des appuis temporaires, fermeture bornée unique,
+  consolidation permanente, détente continue puis drapé sur le corps.
+- Correspondances par IDs et paramètres d'arc réutilisées ; préformes par cadres
+  sourcés ou cages UV/3D. Les tangentes spatiales restent diagnostiques après
+  vérification du sens topologique des coutures.
+- Repos continu 3D et métriques 2D par face, sans FlatRest moyennée ni ressorts
+  après consolidation. Contrôle des cohortes transitives, attaches fixes,
+  orientations, non-manifold et recouvrements avant union.
+- Migration additive des reçus existants, dépréciation de l'empilement des
+  préparations, gel continu soumis à un fitting courant qualifié.
+- Suite finale : 355 tests Python et 15 contrôles de contrats ; cinq préparations courbes
+  natives `READY`, quatre refus attendus et quatre chaînes d'assemblage de
+  régression réussies. La préparation complète de la copie réelle conserve
+  447 fichiers source inchangés, mais reste refusée pour qualité et contacts,
+  sans Cloth ni fitting qualifié ; voir VALIDATION.md.
+
+## 0.6.6 - 2026-10-03
+
+- La pose commune partage l'influence de chaque cadre anatomique entre les
+  partenaires d'une couture permanente. Un appui fixe s'étend à ses seuls
+  partenaires pendant cette préparation ; les poids source restent inchangés.
+  Les fermetures et éléments amovibles ne sont ni contraints ainsi ni soudés.
+- La relaxation conserve une limite propre à chaque paire de couture, calculée
+  depuis son écart initial et le seuil de consolidation existant. Un écart élevé
+  ailleurs ne permet plus de rouvrir une couture déjà rapprochée. Les résidus des
+  cadres et les groupes d'appui sont rapportés sans cacher une contrainte fixe.
+- Régression reproduite avant correction et vérifiée dans Blender : couture
+  fixée ouverte de 2 mm auparavant, préservée après correction. Sur une copie
+  réelle inchangée, écart maximal de pose réduit de 4,90394 à 1,65213 mm ; aucun
+  fitting porté, contact profond résolu ou succès visuel n'est déduit de ce test.
+- 230 tests Python, tests natifs de pose/appuis et chaîne synthétique Cloth avec
+  consolidation. Le cas historique reste lu sans modification ; sa fusion à
+  65,9 mm n'est pas adoptée et la limite actuelle de 1,5 mm n'est pas relevée.
+
 ## 0.6.5 — 2026-10-02
 
 - Diagnostic d'enfilage explicite pour un corps seul : enveloppe, collisions,

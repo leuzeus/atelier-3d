@@ -50,23 +50,29 @@ def placement_report(obj, payload, recipe, context, trees, project_root):
 
 def measurement_context(obj,payload,recipe):
     """Strict structure/context identity, independent geometric measurements."""
-    from blender.sewing import structural_inputs, context_colliders, penetration_cm
-    from a3d.sewing import mesh_quality
+    from blender.sewing import structural_inputs, context_colliders, penetration_cm, simulation_quality
     from a3d.garment_rejections import seam_directions
     if any(m.type == 'CLOTH' for m in obj.modifiers):
         raise StudioError('Inspect initial placement before Cloth; restore the checkpoint after a failed simulation')
     coords,faces=structural_inputs(obj,payload,recipe)
     _,trees,snapshots=context_colliders(recipe)
     errors=[]
-    try:quality=mesh_quality(payload['rest_cm'],coords,faces,recipe['mesh'])
+    try:quality=simulation_quality(payload,coords,recipe['mesh'])
     except StudioError as exc:
         quality=getattr(exc,'quality_metrics',None);errors.append(str(exc))
     directions=seam_directions(payload,coords)
-    if directions['violations']:errors.append('Opposed/undefined permanent seam tangents')
+    warnings=[]
+    if payload.get('rest_mode')!='assembled_3d' and all('parameters' in s for s in payload['seams'].values()):
+        from a3d.pattern_assembly import _topology
+        try:_topology(payload)
+        except StudioError as exc:errors.append(str(exc))
+        if directions['violations']:warnings.append('Opposed spatial tangents; inspect placement independently of source topology')
+    elif payload.get('rest_mode')!='assembled_3d' and directions['violations']:
+        errors.append('Opposed/undefined permanent seam tangents on legacy map')
     penetration=penetration_cm(coords,trees)
     if penetration>recipe['limits']['max_penetration_cm']:errors.append('Initial penetration exceeds the unchanged limit')
     context={'quality':quality,'colliders':snapshots,'max_penetration_cm':penetration,
-        'status':'REJECTED' if errors else 'PASS','errors':errors,
+        'status':'REJECTED' if errors else 'PASS','errors':errors,'warnings':warnings,
         'qualification':'MEASUREMENTS_ONLY','accepted':False}
     return context,trees
 

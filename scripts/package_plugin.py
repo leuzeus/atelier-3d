@@ -7,7 +7,7 @@ import sys
 import zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
-ROOT_FILES=("plugin.json","mcp.json","README.md","VALIDATION.md","CHANGELOG.md","LICENSE","SECURITY.md","CONTRIBUTING.md","pyproject.toml",".gitignore",".gitattributes")
+ROOT_FILES=("plugin.json","mcp.json","README.md","VALIDATION.md","CHANGELOG.md","LICENSE","SECURITY.md","CONTRIBUTING.md","pyproject.toml",".gitignore",".gitattributes","BUG-2026-10-03-completude-pieces-blender.md")
 DIRS=(".codex-plugin","a3d","assets","blender","hooks","references","schemas","scripts","servers","skills","templates","tests","workflows")
 EXTENSIONS={".py",".json",".md",".svg",".png",".ps1"}
 

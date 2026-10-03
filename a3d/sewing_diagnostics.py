@@ -8,6 +8,27 @@ from .core import StudioError, atomic_json, inside, read_json, sha
 from .sewing import distance
 
 
+def source_coordinates(payload,index,piece=None):
+    """Do not label a continuous surface's 3D rest as one invented island UV."""
+    if payload.get('rest_mode')!='assembled_3d':
+        return {'rest_uv_cm':payload['rest_cm'][index][:2],'rest_coordinate_domain':'source_panel_2d'}
+    original=payload.get('regional_source',{});points=original.get('rest_cm',[])
+    samples=[]
+    for old,new in payload.get('source_vertex_map',{}).items():
+        if new!=index:continue
+        source_index=int(old)
+        panels=[pid for pid,panel in original.get('panels',{}).items() if source_index in panel['indices']]
+        if piece is not None and piece not in panels:continue
+        if 0<=source_index<len(points):
+            samples.append({'unconsolidated_vertex_index':source_index,'pieces':panels,
+                'source_uv_cm':list(points[source_index][:2])})
+    uv=samples[0]['source_uv_cm'] if len(samples)==1 else None
+    return {'rest_uv_cm':uv,'rest_coordinate_domain':'source_panel_2d' if uv is not None else 'multiple_source_islands_no_single_uv',
+        'source_uv_samples':samples,'source_vertex_cohort':payload.get('source_vertex_cohorts',{}).get(str(index)),
+        'source_vertex_index_semantics':'representative_only_see_source_vertex_cohort',
+        'simulation_rest_cm':list(payload['rest_cm'][index]),'simulation_rest_domain':'assembled_3d'}
+
+
 def motion_metrics(payload, coords, start, frame, previous=None, previous_frame=None,
                    budget_cm=None, include_pieces=True):
     """Bounded source localization, not velocity or an instability classifier.
@@ -35,7 +56,7 @@ def motion_metrics(payload, coords, start, frame, previous=None, previous_frame=
             'distance_cm': distance(origin[index], coords[index]),
             'from_cm': origin[index], 'to_cm': coords[index],
             'delta_cm': [coords[index][k]-origin[index][k] for k in range(3)],
-            'rest_uv_cm': payload['rest_cm'][index][:2],
+            **source_coordinates(payload,index),
             'named_edges': [name for name, ids in panel.get('edges', {}).items() if index in ids],
             'pin_weight': payload.get('pins', {}).get(str(index), 0.)}
     excursions = [distance(a, b) for a, b in zip(start, coords)]
@@ -66,12 +87,22 @@ def failure_geometry(payload, coords, start, recipe, penetrations=()):
         'panels': payload.get('panels', {}), 'pins': payload['pins'], 'seams': payload['seams'],
         'fitting_tacks':payload.get('fitting_tacks',[]),
         'finite_matching_topology': valid, 'penetrations': list(penetrations), 'outlier_edges': [], 'outlier_faces': [], 'seam_gaps': {}}
+    if payload.get('rest_mode')=='assembled_3d':
+        base.update(rest_coordinate_domain='assembled_3d',source_rest_triangles_cm=payload.get('source_rest_triangles_cm'),
+            source_vertex_map=payload.get('source_vertex_map'),source_vertex_cohorts=payload.get('source_vertex_cohorts'),
+            source_vertex_indices_semantics='representative_only_see_source_vertex_cohorts')
     if not valid:
         return base
     limits = recipe['mesh']
     edges = sorted({tuple(sorted((a, b))) for f in payload['faces'] for a, b in zip(f, f[1:] + f[:1])})
-    for a, b in edges:
-        rest = distance(payload['rest_cm'][a], payload['rest_cm'][b])
+    rest_by_edge={}
+    if payload.get('rest_mode')=='assembled_3d':
+        for fi,(face,triangle) in enumerate(zip(payload['faces'],payload['source_rest_triangles_cm'],strict=True)):
+            for j,(a,b) in enumerate(zip(face,face[1:]+face[:1])):
+                rest_by_edge.setdefault(tuple(sorted((a,b))),[]).append((fi,distance(triangle[j],triangle[(j+1)%3])))
+    measured_edges=[(a,b,None,distance(payload['rest_cm'][a],payload['rest_cm'][b])) for a,b in edges] if not rest_by_edge else [
+        (a,b,fi,length) for (a,b),samples in rest_by_edge.items() for fi,length in samples]
+    for a,b,source_face,rest in measured_edges:
         placed = distance(coords[a], coords[b])
         ratio = placed / rest if rest > 1e-8 else None
         reasons = []
@@ -82,7 +113,8 @@ def failure_geometry(payload, coords, start, recipe, penetrations=()):
         if reasons:
             base['outlier_edges'].append({'indices': [a,b], 'source_indices': [source[a],source[b]],
                 'pieces': sorted({owners.get(a, 'unknown'), owners.get(b, 'unknown')}), 'rest_cm': rest,
-                'evaluated_cm': placed, 'ratio': ratio, 'reasons': reasons})
+                'evaluated_cm': placed, 'ratio': ratio, 'reasons': reasons,
+                'source_face':source_face,'rest_metric_domain':'immutable_source_uv_per_face' if source_face is not None else 'source_panel_2d'})
     for fi, face in enumerate(payload['faces']):
         lengths = [distance(coords[a],coords[b]) for a,b in zip(face, face[1:] + face[:1])]
         if len(face) != 3 or min(lengths) < 1e-8:

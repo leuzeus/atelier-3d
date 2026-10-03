@@ -5,6 +5,13 @@ description: Orchestrer un projet de production 3D local reprenable à partir de
 
 # 3d-project
 
+Suivre [la complétude des pièces](../../references/piece-completeness.md).
+Présenter `piece_completeness.summary` et les identités manquantes dans le
+chat avec chaque aperçu. Les candidats de préparation restent distincts de
+la géométrie active et une couverture locale ne vaut pas couverture globale.
+
+Avant chaque appel à `execute_blender_code` ou `execute_blender_code_for_cli`, présenter l'opération préparée, le projet cible et ses effets attendus ; demander explicitement l'autorisation de l'utilisateur et attendre sa réponse affirmative. La préparation du code et les validations du pipeline ne valent pas autorisation d'exécution. Un refus ou une absence de réponse empêche l'appel. Si l'opération ou ses arguments changent, demander l'autorisation pour la nouvelle action. Respecter tout blocage de Codex ou du projet. Voir [le protocole Blender](../../references/blender.md).
+
 Pour PATTERN_SEWN, suivre [le fitting mesuré](../../references/measured-fitting.md) avant de varier la physique : préparer la fiche technique depuis le corps cible, le collider effectif et les repères homologues des patrons à la ligne de couture. Appeler inspect_garment_fit ; repères/capacité absents restent NOT_QUALIFIED. Distinguer déficit de coupe prouvé, signaux de placement, supports et physique non établie. Ne jamais déduire un manque d'aisance d'un échec Cloth seul. Les fitting_tacks natifs ne tiennent qu'une closure source dans l'essai local, avec force commune/durée explicites ; pas de retypage/soudure, pas de full/freeze tant qu'ils sont présents. Retirer ces attaches puis requalifier local sur la recette exacte. Une proposition d'ajustement alloue le déficit en cm, sans éditer de courbes : si nécessaire, préparer une variante native séparée, recontrôler coutures/embu/droit-fil et faire valider le board des différences avant production. Ne pas faire réapprouver une coupe inchangée ni imposer un formulaire utilisateur.
 
 Avant Cloth pour PATTERN_SEWN, suivre [la revue de prépositionnement](../../references/sewing-placement.md) : appeler `inspect_sewing_placement`, examiner coutures, supports, trajets dans les colliders et orientations, puis ouvrir un rendu du montage initial. Une manche alignée sur un bras n'est pas forcément enfilée. Utiliser d'abord flat/cylinder avec paramètres mesurés ; leurs limites restent explicites. Le rapport automatique de tentative ne remplace pas cette revue et n'accorde aucun PASS local ni validation de silhouette.

@@ -261,8 +261,40 @@ def active_sewing_pairs(payload):
     return permanent+temporary
 
 
-def prepare_boundaries(data, recipe):
+def permanent_support_groups(payload):
+    """Share placement support only through declared permanent seam partners.
+
+    These are index groups, never a mesh weld. Closures and temporary tacks
+    must not propagate a fixed support or an anatomical placement influence.
+    """
+    parent = {}
+    def root(i):
+        parent.setdefault(i, i)
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+    for seam in payload['seams'].values():
+        if seam['kind'] != 'permanent':
+            continue
+        for a, b in seam['pairs']:
+            ra, rb = root(a), root(b)
+            if ra != rb:
+                parent[max(ra, rb)] = min(ra, rb)
+    groups = {}
+    for i in sorted(parent):
+        groups.setdefault(root(i), []).append(i)
+    return sorted(group for group in groups.values() if len(group) > 1)
+
+
+def prepare_boundaries(data, recipe, seam_parameters=None):
     reports, flips = validate_recipe(data, recipe)
+    seam_parameters = {} if seam_parameters is None else seam_parameters
+    if not isinstance(seam_parameters, dict) or set(seam_parameters) - {s['id'] for s in data['seams']}:
+        raise StudioError('Extra boundary parameters must reference existing source seam IDs')
+    for sid, values in seam_parameters.items():
+        if not isinstance(values, (list, tuple)) or any(type(t) not in (int, float) or not math.isfinite(t) or not 0 <= t <= 1 for t in values):
+            raise StudioError('Extra seam parameters must be finite normalized source arc lengths: ' + sid)
     spacing = recipe["mesh"]["spacing_cm"]
     error = recipe["mesh"]["max_boundary_error_cm"]
     samples, seam_samples, covered = {}, {}, {}
@@ -297,7 +329,7 @@ def prepare_boundaries(data, recipe):
         cb, b, _ = edge_chain(data["pieces"][pb], seam["edge_b"])
         if seam["orientation"] == "reverse":
             cb, b = list(reversed(cb)), list(reversed(b))
-        ts = resample_parameters([a,b],spacing,error)
+        ts = sorted(set(resample_parameters([a,b],spacing,error)) | set(seam_parameters.get(seam['id'], [])))
         # Preserve named-edge endpoints used by pin groups, while carrying every
         # inserted parameter to both sides of this seam.
         for pid, chain, points in ((pa,ca,a),(pb,cb,b)):

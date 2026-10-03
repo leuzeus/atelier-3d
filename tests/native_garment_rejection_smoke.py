@@ -58,7 +58,16 @@ def reject(expected):
 
 recipe['placements']['back']['rotation_degrees']=[90,0,0]
 atomic_json(project.root/'recipe.json',recipe)
-orientation=reject('Placed seam directions oppose each other')
+from blender.sewing import build_mesh,make_object,preflight
+from a3d.garment_rejections import seam_directions
+payload=build_mesh(read_json(extracted/'garment.json'),recipe)
+candidate=make_object(payload,'TangentDiagnosticOnly')
+try:
+    context,_,_=preflight(candidate,payload,recipe)
+    orientation={'directions':seam_directions(payload,payload['placed_cm'],read_json(extracted/'garment.json')),
+                 'preflight':context,'simulation':'NOT_EXECUTED','accepted':False}
+finally:
+    bpy.data.objects.remove(candidate,do_unlink=True)
 bad=orientation['directions']['violations'][0]
 assert bad['seam_id']=='torso-right' and bad['edge_a']=='right' and bad['edge_b']=='left'
 assert bad['cosine']<-.5 and bad['threshold']==-.5
@@ -83,7 +92,7 @@ assert all(c['piece']=='front' and c['collider']=='SYNTHETIC_CONTACT_VOLUME' and
     for c in contact['initial_contacts'])
 assert all(c['rest_uv_cm'] and len(c['position_cm'])==3 and len(c['surface_normal'])==3 for c in contact['initial_contacts'])
 assert not list((project.data/'blender/sewing').glob('*-local.json'))
-atomic_json(root/'result.json',{'status':'PASS','blender':bpy.app.version_string,'orientation_localized':'PASS',
+atomic_json(root/'result.json',{'status':'PASS','blender':bpy.app.version_string,'topological_orientation_spatial_tangent_diagnostic':'PASS',
     'contact_localized':'PASS','quality_rejection_preserved':'PASS','immutable_diagnostics_survive_restore':'PASS','state_mesh_package_receipt_board_preserved':'PASS',
     'pending_recovery_guard':'PASS','orientation':orientation,'contact':contact,'cloth':'NOT_EXECUTED','consumer':'UNTOUCHED'})
 print('A3D_REJECTION_RESULT='+str(root/'result.json'),flush=True)
