@@ -1,4 +1,29 @@
-# Validation d'Atelier 3D
+# Validation d’Atelier 3D
+
+## État de la version 0.6.3
+
+| Vérification | Résultat | Portée |
+| --- | --- | --- |
+| Suite Python Windows | PASS : 218 tests | Contrats de reprise, pending, groupes/repères/budgets de placement |
+| Inspection du full réel .012 | PASS du diagnostic / NOT_QUALIFIED | Pénétration 12,346239 cm séparée de la capacité ; scène/fichier/DB conservés |
+| Contact profond réel | Refus avant projection | Pas d'arête ou face effondrée ; source full intacte, diagnostic et restauration natifs |
+| Reprise propre réelle | Nouveau local/full PASS | Même package exact, zéro objet au départ, sans mannequin/collider au montage |
+| Comparaison au témoin | Écart coordonnée maximal 0 cm | Gap 0,175213 cm ; aucune contamination cumulative établie sur ce cas |
+| Historique et approbations | Conservés | Nouvelle identité de construction ; full antérieur refusé avant nouveau local |
+| Introduction du proxy réelle | Import exact / NOT_QUALIFIED | Vêtement intact, proxy importé après montage libre ; contact et données manquantes lisibles |
+| Placement explicite rigide | PASS sur fixture | Repères non collinéaires, translation/rotation sans scale/projection ; proxy, stale, budget/pin fixe refusés |
+| Diagnostic synthétique | PASS / refus structure | Géométrie rejetée mesurée sans mutation ; FlatRest et pins altérés refusés |
+| Parcours assembly/fitting historique | PASS sur fixture | Petites récupérations bornées et nouveau local/full de fitting synthétique conservés |
+| Fitting réel, enfilage dynamique, visuel et Unreal | NOT_EXECUTED / NOT_QUALIFIED | Proxy et repères anatomiques supposés ne permettent pas de conclure |
+
+Toutes les mutations de qualification ciblent des fixtures sur G:, jamais le
+Blender consommateur. La reprise vide construit à nouveau depuis les patrons,
+sans copier le résultat complet ou ses reçus physiques. Le test compare ensuite
+les mêmes indices aux coordonnées du full témoin. Ce cas reproduit le résultat
+exactement ; cela ne prouve pas une absence de défaut dans tous les projets.
+Les mesures de contact restent des échantillons signés de sommets, sans prétendre
+à une preuve exhaustive d'intersection ou à un fitting. Voir la
+[reprise propre et le placement de fitting](references/clean-construction-fitting.md).
 
 ## État de la version 0.6.2
 

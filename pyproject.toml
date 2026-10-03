@@ -1,6 +1,6 @@
 [project]
 name = "atelier-3d"
-version = "0.6.2"
+version = "0.6.3"
 description = "Local 3D production orchestration for Codex"
 requires-python = ">=3.11"
 dependencies = []

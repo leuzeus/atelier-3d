@@ -1,5 +1,10 @@
 # Reprise cousue et fitting séparé — 0.6.1
 
+Depuis 0.6.3, [la reprise propre et le placement explicite de fitting](clean-construction-fitting.md)
+conservent un témoin, créent une scène vide sur demande et introduisent le corps
+après montage libre. `contact_recovery` refuse les pénétrations initiales de plus
+de 0,5 cm avant projection ; il faut alors établir une pose/enfilage explicite.
+
 Depuis 0.6.2, [l'inspection et la préparation locale des interfaces](local-interfaces.md)
 permettent de lire un candidat refusé et de préparer un groupe de panneaux sans
 réinitialiser le torse cousu. Retirer les options `interface_preparation` et
