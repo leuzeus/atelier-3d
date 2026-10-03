@@ -20,9 +20,31 @@ def _refuse(message, category='geometry_safety'):
 
 def map_digest(payload):
     """Bind a plan to the current versioned derivation, not historic indices."""
-    return digest({k: payload.get(k) for k in (
+    fields = {k: payload.get(k) for k in (
         'version', 'component_id', 'source_garment_sha256', 'rest_cm',
-        'faces', 'panels', 'seams')})
+        'faces', 'panels', 'seams')}
+    for key in ('trial_mode', 'single_panel_source'):
+        if key in payload:
+            fields[key] = payload[key]
+    return digest(fields)
+
+
+def _single_panel_noop(payload):
+    """Accept only the explicit complete one-panel source, never a trial subset."""
+    if payload.get('trial_mode') != 'single_panel':
+        return False
+    source = payload.get('single_panel_source')
+    panels = sorted(payload['panels'])
+    kinds = {sid: seam.get('kind') for sid, seam in payload['seams'].items()}
+    if (not isinstance(source, dict) or len(panels) != 1
+            or source.get('component_id') != payload['component_id']
+            or not payload.get('source_garment_sha256')
+            or source.get('source_garment_sha256') != payload['source_garment_sha256']
+            or source.get('piece_ids') != panels or source.get('trial_pieces') != panels
+            or source.get('seam_kinds') != kinds
+            or any(kind not in ('closure', 'detachable') for kind in kinds.values())):
+        _refuse('Single-panel no-op requires complete and consistent source provenance')
+    return True
 
 
 def _vec(a, b):
@@ -331,6 +353,7 @@ def bounded_close(payload, coords, plan, collision_check=None):
     current = copy.deepcopy(coords)
     limits, budget = plan['quality'], plan['assembly']
     pairs = _pairs(payload)
+    single_panel = _single_panel_noop(payload)
     tolerance = plan['consolidation']['weld_gap_cm']
     weights, supports = support_weights(payload, plan, 'closure', budget['closure_support_release'])
     report = {'status': 'REFUSED', 'qualification': 'NONE', 'initial_gap_cm': _gap(current, pairs),
@@ -353,6 +376,14 @@ def bounded_close(payload, coords, plan, collision_check=None):
         if any(math.dist(current[a], current[b]) > tolerance for a in fixed for b in fixed):
             return refused('contradictory_fixed_seam_supports', 'support_conflict', fixed_vertices=fixed)
     if not pairs:
+        if single_panel:
+            report.update(status='GEOMETRY_READY', operation='SINGLE_PANEL_NO_OP',
+                final_gap_cm=0., max_displacement_cm=0., explicit_unions=0,
+                sewing_executed=False, welding_executed=False, closure_behavior='NOT_QUALIFIED',
+                source_mapping_sha256=map_digest(payload),
+                preserved_links=list(payload['seams']),
+                quality=continuous_quality(payload, current, limits))
+            return current, report
         return refused('no_declared_permanent_seams', 'free_assembly')
     adjacency = [set() for _ in current]
     edge_list = list(_edges(payload['faces']))
@@ -470,7 +501,16 @@ def consolidate(payload, coords, plan):
         diameter = max(math.dist(coords[a], coords[b]) for a in group for b in group)
         if diameter > tolerance:
             _refuse('Permanent transitive cohort diameter exceeds verified weld tolerance')
-    vertices, faces, mapping, count = weld_permanent(coords, payload['faces'], payload['seams'], tolerance)
+    single_panel = _single_panel_noop(payload)
+    if single_panel:
+        # The cloth is already one continuous panel. No source endpoints are
+        # joined and nonpermanent links remain descriptions, not fastenings.
+        vertices, faces = copy.deepcopy(coords), copy.deepcopy(payload['faces'])
+        mapping, count = {i: i for i in range(len(coords))}, 0
+        if len({tuple(sorted(face)) for face in faces}) != len(faces):
+            _refuse('Single-panel consolidation would retain duplicate faces')
+    else:
+        vertices, faces, mapping, count = weld_permanent(coords, payload['faces'], payload['seams'], tolerance)
     # A geometric union may use a fixed declared support as its representative,
     # but cannot move that support to the average of a nearby cohort.
     supports, _ = support_weights(payload, plan, 'closure', plan['assembly']['closure_support_release'])
@@ -505,11 +545,11 @@ def consolidate(payload, coords, plan):
     result['source_vertex_cohorts'] = {str(new): [source_ids[i] for i in old_ids] for new, old_ids in groups.items()}
     result['source_vertex_indices'] = [min(result['source_vertex_cohorts'][str(i)]) for i in range(len(vertices))]
     result['source_vertex_index_semantics'] = 'representative_only_see_source_vertex_cohorts'
-    for panel in result['panels'].values():
+    for panel in (() if single_panel else result['panels'].values()):
         panel['indices'] = sorted({mapping[i] for i in panel['indices']})
         panel['boundary'] = [mapping[i] for i in panel['boundary']]
         panel['edges'] = {name: [mapping[i] for i in ids] for name, ids in panel['edges'].items()}
-    for seam in result['seams'].values():
+    for seam in (() if single_panel else result['seams'].values()):
         seam['pairs'] = [[mapping[a], mapping[b]] for a, b in seam['pairs']]
         if seam['kind'] == 'permanent':
             seam['consolidated'] = True
@@ -530,6 +570,9 @@ def consolidate(payload, coords, plan):
         'source_rest_mode': 'immutable_source_uv_per_face', 'simulation_rest_mode': 'assembled_3d',
         'quality': result['quality'], 'preserved_links': [sid for sid, s in payload['seams'].items() if s['kind'] != 'permanent'],
         'requires': ['continuous_cloth_relaxation', 'body_fitting', 'behaviour_qualification', 'artistic_review']}
+    if single_panel:
+        report.update(operation='SINGLE_PANEL_NO_OP', sewing_executed=False,
+            welding_executed=False, closure_behavior='NOT_QUALIFIED', verified_weld_gap_cm=None)
     return result, report
 
 

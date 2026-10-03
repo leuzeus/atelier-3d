@@ -16,6 +16,9 @@ from a3d.sewing import (distance, mass_settings, mesh_quality, point_inside,
 def mesh_recipe_digest(recipe):
     fields={k:recipe[k] for k in ("component_id","mesh","placements","seams","pins")}
     if 'experimental_prefit' in recipe:fields['experimental_prefit']=recipe['experimental_prefit']
+    if 'trial_mode' in recipe:
+        fields['trial_mode']=recipe['trial_mode']
+        fields['trial_pieces']=recipe['trial_pieces']
     return digest(fields)
 
 
@@ -199,6 +202,12 @@ def build_mesh(data, recipe, regular_mesh=None, dossier=None):
     payload={"version":1,"component_id":data["component_id"],"recipe_mesh_sha256":mesh_recipe_digest(recipe),
         "source_garment_sha256":digest(data),"rest_cm":rest,"placed_cm":placed,"faces":faces,"panels":panels,
         "seams":seams,"pins":pins,"seam_lengths":reports}
+    if recipe.get('trial_mode') == 'single_panel':
+        payload['trial_mode'] = 'single_panel'
+        payload['single_panel_source'] = {
+            'component_id': data['component_id'], 'source_garment_sha256': digest(data),
+            'piece_ids': sorted(data['pieces']), 'trial_pieces': list(recipe['trial_pieces']),
+            'seam_kinds': {s['id']: s.get('kind', recipe['seams'][s['id']]['kind']) for s in data['seams']}}
     if regular_mesh:
         payload['regular_preparation_mesh']=copy.deepcopy(regular_mesh)
         payload['regular_preparation_sampling']=sampling

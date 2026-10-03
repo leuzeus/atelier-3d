@@ -17,6 +17,12 @@ def _issue(code, message, category, **location):
     return {'code': code, 'message': message, 'category': category, **location}
 
 
+def _inversion_invariant_notch(position):
+    """The board's side-free self-seam mark denotes both edges only at a fixed point."""
+    return (type(position) in (int, float) and math.isfinite(position)
+            and position == .5)
+
+
 def audit_source(data, recipe, dossier=None):
     """Audit garment geometry plus the separately approved cutting dossier.
 
@@ -147,7 +153,8 @@ def audit_source(data, recipe, dossier=None):
                     if len({m.get('id') for m in entries}) != len(entries):
                         issues.append(_issue('DUPLICATE_NOTCH_ID', 'Seam has duplicate notch identifiers', 'source_contract', seam_id=sid))
                     marks.append({m.get('id'): m for m in entries})
-                if seam['piece_a'] == seam['piece_b'] and seam['orientation'] == 'reverse':
+                if (seam['piece_a'] == seam['piece_b'] and seam['orientation'] == 'reverse'
+                        and any(not _inversion_invariant_notch(m.get('position')) for m in marks[0].values())):
                     issues.append(_issue('SELF_SEAM_NOTCH_SIDE_UNSPECIFIED',
                         'The source mark format does not identify which edge of this self-seam carries each notch',
                         'missing_metadata', seam_id=sid, piece=seam['piece_a']))
@@ -159,7 +166,9 @@ def audit_source(data, recipe, dossier=None):
                         ta, tb = mark.get('position'), other.get('position')
                         valid = type(ta) in (int, float) and type(tb) in (int, float) and 0 <= ta <= 1 and 0 <= tb <= 1
                         expected = 1-ta if valid and seam['orientation'] == 'reverse' else ta
-                        if not valid or abs(tb-expected) > 1e-6 or mark.get('symbol') != other.get('symbol'):
+                        if (not valid or abs(tb-expected) > 1e-6
+                                or mark.get('symbol') not in ('notch', 'double-notch')
+                                or mark.get('symbol') != other.get('symbol')):
                             issues.append(_issue('NOTCH_ORIENTATION_CONFLICT', 'Paired notch parameters disagree with source seam orientation', 'source_contract', seam_id=sid, notch_id=mid))
                         report['notches'].append({'id': mid, 'a': ta, 'b': tb, 'symbol': mark.get('symbol')})
             seams.append(report)
@@ -208,7 +217,8 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
             position = mark.get('position')
             if type(position) not in (int, float) or not math.isfinite(position) or not 0 <= position <= 1:
                 raise StudioError('Source notch must have a finite normalized arc position')
-            if seam['piece_a'] == seam['piece_b'] and seam['orientation'] == 'reverse':
+            if (seam['piece_a'] == seam['piece_b'] and seam['orientation'] == 'reverse'
+                    and not _inversion_invariant_notch(position)):
                 ambiguous_notches.append({'seam_id': seam['id'], 'notch_id': mark['id'], 'piece': pid,
                     'reason': 'source_mark_has_no_self_seam_side', 'requires_clarification': True})
                 continue
@@ -230,6 +240,14 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
         sample = seam['parameters'].index(notch['common_parameter'])
         notch['common_sample'] = sample
         notch['derived_boundary_vertex'] = seam[notch['side']][sample]
+    paired_self_notches = {}
+    for notch in notch_sources:
+        source = seam_by_id[notch['seam_id']]
+        if source['piece_a'] == source['piece_b']:
+            key = (notch['seam_id'], notch['notch_id'])
+            paired_self_notches.setdefault(key, {})[notch['side']] = notch['derived_boundary_vertex']
+    if any(set(pair) != {'a', 'b'} or pair['a'] == pair['b'] for pair in paired_self_notches.values()):
+        raise StudioError('Self-seam paired notches require distinct derived boundary vertices')
     count = sum(len(p['polygon']) for p in boundaries.values())
     if count > maximum:
         raise StudioError('Shared source boundary samples exceed the preparation vertex budget')

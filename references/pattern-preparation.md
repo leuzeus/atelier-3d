@@ -1,5 +1,10 @@
 # Préparer PATTERN_SEWN avant l'assemblage
 
+Après un refus ou une absence de pièces, suivre [la reprise ciblée](preparation-recovery.md) :
+identifier la cause, proposer une correction ou la production des éléments
+manquants ; si la technique approuvée dépasse le support du logiciel, expliquer
+la limite et attendre le choix de l'utilisateur avant de changer de méthode.
+
 `prepare_pattern_assembly` prépare et mesure les entrées du parcours cousu.
 Cette opération n'exécute aucun Cloth, ne ferme aucune couture et n'accorde
 aucune qualification physique, de fitting, de comportement ou d'export.

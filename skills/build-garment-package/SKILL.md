@@ -5,6 +5,16 @@ description: Créer et vérifier un package de vêtement .garmentpkg avec patron
 
 # build-garment-package
 
+Suivre [la reprise après un refus](../../references/preparation-recovery.md).
+Distinguer une limite du logiciel d'une erreur de préparation : pour une limite,
+informer l'utilisateur et lui faire choisir entre conserver la technique
+approuvée avec un parcours compatible et revenir au contrat supporté, avant
+tout changement. Pour un défaut confirmé ou des pièces manquantes, proposer une
+correction ciblée ou refaire les seuls patrons/dérivés concernés depuis les
+sources approuvées, puis recontrôler raccords et complétude. Un bord partagé
+entre couture permanente et attache détachable n'est pas automatiquement erroné.
+Conserver le découpage approuvé et les autorisations d'exécution Blender.
+
 Avant chaque appel à `execute_blender_code` ou `execute_blender_code_for_cli`, présenter l'opération préparée, le projet cible et ses effets attendus ; demander explicitement l'autorisation de l'utilisateur et attendre sa réponse affirmative. La préparation du code et les validations du pipeline ne valent pas autorisation d'exécution. Un refus ou une absence de réponse empêche l'appel. Si l'opération ou ses arguments changent, demander l'autorisation pour la nouvelle action. Respecter tout blocage de Codex ou du projet. Voir [le protocole Blender](../../references/blender.md).
 
 Après le maillage dérivé, suivre [la revue de prépositionnement](../../references/sewing-placement.md) avant Cloth : `inspect_sewing_placement`, mesures des coutures/supports/colliders et rendu initial. Documenter le placement natif par panneau et sa correspondance aux bords source. Corriger la recette dérivée avec rebuild sans réécrire le package approuvé. Un rapport sans avertissement n'est pas une preuve de fitting ni un PASS local.

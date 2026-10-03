@@ -1,5 +1,11 @@
 # Atelier 3D
 
+La [reprise après un refus](references/preparation-recovery.md) distingue une
+limite technique des erreurs de préparation. Une limite impose de présenter
+le choix entre technique approuvée et contrat supporté ; un défaut confirmé
+ou une pièce manquante appelle une correction ou une préparation ciblée qui
+conserve le découpage approuvé.
+
 Le [contrôle de complétude des pièces](references/piece-completeness.md)
 affiche la couverture locale et globale du candidat Blender, détecte absences
 et doublons et empêche qu'un composant complet valide tout le vêtement.

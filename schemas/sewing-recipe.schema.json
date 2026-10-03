@@ -194,13 +194,18 @@
         "additionalProperties": false
       }
     },
+    "trial_mode": {
+      "enum": ["sewn", "single_panel"],
+      "description": "Single-panel mode is explicit and applies only to a complete one-panel source with no permanent seams."
+    },
     "trial_pieces": {
       "type": "array",
       "items": {
         "type": "string",
         "minLength": 1
       },
-      "minItems": 2
+      "minItems": 1,
+      "uniqueItems": true
     },
     "pins": {
       "type": "array",
@@ -1300,5 +1305,9 @@
     "phases",
     "limits"
   ],
-  "additionalProperties": false
+  "additionalProperties": false,
+  "anyOf": [
+    {"required": ["trial_mode"], "properties": {"trial_mode": {"const": "single_panel"}, "trial_pieces": {"maxItems": 1}}},
+    {"properties": {"trial_mode": {"const": "sewn"}, "trial_pieces": {"minItems": 2}}}
+  ]
 }
