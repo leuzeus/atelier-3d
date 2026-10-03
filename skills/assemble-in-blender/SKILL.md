@@ -5,6 +5,58 @@ description: Assembler dans une copie Blender des reconstructions 3D indépendan
 
 # assemble-in-blender
 
+Suivre [le contrôle de complétude](../../references/piece-completeness.md).
+Avec chaque aperçu, présenter le résumé `piece_completeness.summary`, les
+pièces manquantes et la portée locale/globale. Un manteau 10/10 peut rester
+un vêtement 10/15 ; ne pas transformer ce résultat local en validation globale.
+Ouvrir la page `piece_completeness.review` retournée pour voir le bilan près
+des images, et distinguer présence, visibilité et qualification.
+
+Avant chaque appel à `execute_blender_code` ou `execute_blender_code_for_cli`, présenter l'opération préparée, le projet cible et ses effets attendus ; demander explicitement l'autorisation de l'utilisateur et attendre sa réponse affirmative. La préparation du code et les validations du pipeline ne valent pas autorisation d'exécution. Un refus ou une absence de réponse empêche l'appel. Si l'opération ou ses arguments changent, demander l'autorisation pour la nouvelle action. Respecter tout blocage de Codex ou du projet. Voir [le protocole Blender](../../references/blender.md).
+
+## Parcours nominal PATTERN_SEWN
+
+Commencer par [la préparation native](../../references/pattern-preparation.md)
+avec `prepare_pattern_assembly(component_id, recipe_path, preparation_path)`
+via `studio_blender_operation` et le MCP officiel. Examiner l'audit de coupe,
+les extrema localisés de qualité/déformation, les appuis et les vues neutres et
+wireframe. Un résultat `NEEDS_CORRECTION` ou `NEEDS_CLARIFICATION` reste un
+candidat inspectable et n'autorise pas le montage. Une préparation `READY`
+entre par `preposition` avec les références de recette/plan retournées : elle
+conserve ses coordonnées, son repos et ses correspondances, sans revenir à
+l'ancien placement. Ce statut n'exécute et ne qualifie aucun Cloth.
+
+Suivre [l'assemblage générique reprenable](../../references/pattern-assembly.md).
+Utiliser `transition_pattern_assembly(component_id, recipe_path, plan_path, stage)` :
+`preposition`, `mount`, `close`, `consolidate`, `relax`, puis `drape`.
+`migrate` conserve les anciens reçus sans transférer leur qualification. Les
+patrons approuvés, les coutures typées et le mapping par longueur d'arc restent
+la source. La préforme pilote uniquement le maillage dérivé. La fermeture est
+une transition bornée unique ; la consolidation géométrique n'accepte ni Cloth,
+ni fitting, ni apparence. Le repos continu est 3D et ses métriques source restent
+2D par face. Ne pas fabriquer une FlatRest en moyennant plusieurs îlots.
+
+Séparer les appuis temporary/drape/functional, retirer progressivement temporary
+avant le drapé et conserver les conflits mesurés. Les tangentes 3D sont des
+diagnostics de placement ; le sens des coutures est vérifié topologiquement.
+Un contact profond impose une pose/enfilage explicite. Ne pas modifier le corps
+ou augmenter une tolérance pour le dissimuler. Un squelette ajouré exige une
+enveloppe auxiliaire sourcée et une revue visuelle liée à cette enveloppe.
+
+Les paragraphes historiques ci-dessous servent à la reprise des reçus existants.
+Ne pas empiler `experimental_prefit`, `interface_preparation`, `panel_mount`,
+`fitting_placement`, `fitting_pose` et `contact_recovery` dans une nouvelle
+recette nominale. Conserver leurs preuves et suivre la migration avant retrait.
+L'acceptation finale et l'export restent soumis au fitting et au comportement.
+
+## Reprise des parcours historiques
+
+Pour une préparation de pose commune, suivre [les appuis de couture permanents](../../references/fitting-preparation.md).
+Vérifier les résidus des cadres, les groupes fixes et les écarts par paire ; un
+appui fixe peut empêcher la cible anatomique. Ne pas desserrer un seuil ni
+modifier les pins pour masquer ce conflit. Le partage d'influence ne soude pas
+les panneaux et un PASS de préparation ne qualifie ni Cloth ni les collisions.
+
 Pour un corps cible choisi dans un .blend existant, suivre [la sélection native
 et sa pose évaluée](../../references/body-source.md). Utiliser
 inspect_body_source/prepare_body_reference via studio_blender_operation, avec

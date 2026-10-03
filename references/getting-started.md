@@ -126,6 +126,25 @@ Codex peut présenter des choix quand une information manque. La provenance d'un
 image et la fidélité d'une hypothèse ne doivent jamais être fabriquées pour
 franchir une étape. Lire [le parcours complet](production.md).
 
+## Choisir un template ComfyUI
+
+Consulter [le catalogue de référence](../workflows/comfy/README.md) avant une
+génération. `reference-sd15` consomme un original PNG et un prompt ;
+`hunyuan-multiview` consomme deux vues clean, face et gauche, pour une partie
+`MULTIVIEW_PART`. Les panneaux textiles restent issus de leurs patrons approuvés.
+
+Vérifier les nœuds et modèles disponibles, uploader les images exactes puis
+remplacer les placeholders des exemples par les `input_name` retournés. Appeler
+`comfy_validate_workflow` avec le `project_root`, l'identifiant et les paramètres.
+Pour une exécution autorisée, soumettre ensuite avec une `request_key` stable
+et conserver le graphe, les sources, paramètres, reçus et sorties dans l'asset.
+
+Un graphe enregistré est une base réutilisable. Sa présence ne prouve ni sa
+compatibilité avec l'installation cible, ni la qualité du résultat. Examiner
+les images ou le mesh avant acceptation ; les deux bases sont encore à qualifier.
+Voir [l'intégration officielle](comfy-official.md) pour le suivi et la reprise
+des jobs.
+
 ## CLI et archive portable
 
 ```powershell

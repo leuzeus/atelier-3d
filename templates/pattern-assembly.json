@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "component_id": "coupon",
+  "source_refs": [
+    "TEMPLATE ONLY: bind this plan to an approved current native source map before use"
+  ],
+  "mapping_sha256": "43d63e150896a23d2c81c0fa30018d3f9e6d704a7596a31badd519da0067f0c3",
+  "preform": {
+    "panels": {
+      "left": {
+        "source_ref": "fixture:left",
+        "origin_cm": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "u_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "v_axis": [
+          0.0,
+          1.0,
+          0.0
+        ]
+      },
+      "right": {
+        "source_ref": "fixture:right",
+        "origin_cm": [
+          2.3,
+          0.0,
+          0.0
+        ],
+        "u_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "v_axis": [
+          0.0,
+          1.0,
+          0.0
+        ]
+      }
+    }
+  },
+  "assembly": {
+    "max_initial_gap_cm": 0.8,
+    "max_displacement_cm": 0.8,
+    "max_step_cm": 0.03,
+    "iterations": 100,
+    "neighborhood_rings": 3,
+    "closure_support_release": 1.0
+  },
+  "consolidation": {
+    "weld_gap_cm": 0.01
+  },
+  "quality": {
+    "min_angle_degrees": 10.0,
+    "min_edge_cm": 0.05,
+    "min_stretch": 0.8,
+    "max_stretch": 1.25
+  },
+  "supports": {
+    "temporary": [],
+    "drape": [],
+    "functional": []
+  },
+  "collision": {
+    "required": false,
+    "clearance_cm": 0.0,
+    "source_ref": "fixture:free"
+  },
+  "layers": {
+    "version": 1,
+    "source_ref": {
+      "path": "evidence/approved-placement.json",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "mode": "single",
+    "interaction": "one_way_declared",
+    "nodes": [
+      {
+        "id": "garment",
+        "kind": "garment",
+        "panels": [
+          "left",
+          "right"
+        ],
+        "colliders": [],
+        "source_ref": {
+          "path": "evidence/approved-placement.json",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      }
+    ],
+    "inside_to_outside": []
+  },
+  "dressing": {
+    "version": 1,
+    "required": false,
+    "source_ref": {
+      "path": "evidence/approved-placement.json",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "regions": [],
+    "openings": [],
+    "assignments": [],
+    "mount_order": [],
+    "milestones": []
+  }
+}

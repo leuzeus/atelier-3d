@@ -25,7 +25,7 @@ def parse_code(code):
 
 def admit_operation(project, operation, arguments):
     state = project.state()
-    if operation not in ("prepare", "start_clean_construction", "recover_clean_construction", "inspect_body_source", "prepare_body_reference", "prepare_fitting_envelope", "prepare_fitting_pose", "introduce_fitting_context", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn", "apply_sewn_result", "prepare_sewn_stage"):
+    if operation not in ("prepare", "start_clean_construction", "recover_clean_construction", "inspect_body_source", "prepare_body_reference", "prepare_fitting_envelope", "prepare_fitting_pose", "introduce_fitting_context", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn", "apply_sewn_result", "prepare_sewn_stage", "transition_pattern_assembly", "prepare_pattern_assembly"):
         raise StudioError("Unknown guarded Blender operation")
     required = {"prepare": set(), "resume": set(), "inspect": set(),
         "start_clean_construction":{"working_sha256"},
@@ -44,12 +44,16 @@ def admit_operation(project, operation, arguments):
         "simulate_sewn": {"component_id", "recipe_path", "phase", "scope"},
         "apply_sewn_result": {"component_id", "recipe_path", "result_path", "result_sha256"},
         "prepare_sewn_stage": {"component_id", "recipe_path", "stage"},
+        "transition_pattern_assembly": {"component_id", "recipe_path", "plan_path", "stage"},
+        "prepare_pattern_assembly": {"component_id", "recipe_path", "preparation_path"},
         "freeze_sewn": {"component_id", "recipe_path"}}[operation]
     if operation=='simulate_sewn' and 'purpose' in arguments:
         required|={'purpose'}
         if arguments['purpose'] not in ('assembly','fitting'):raise StudioError('Unknown sewing purpose')
     if operation=='prepare_sewn_stage' and arguments.get('stage') not in ('assembly','fitting'):
         raise StudioError('Unknown sewing construction stage')
+    if operation=='transition_pattern_assembly' and arguments.get('stage') not in ('migrate','preposition','mount','close','consolidate','relax','drape'):
+        raise StudioError('Unknown pattern assembly stage')
     if operation == "garment" and "recipe_path" in arguments:
         required = required | {"recipe_path"}
     if operation == "garment" and "rebuild" in arguments:
@@ -168,7 +172,7 @@ def admit_operation(project, operation, arguments):
         if not isinstance(value,str) or len(value)!=64 or any(c not in '0123456789abcdef' for c in value):
             raise StudioError('Clean construction requires the exact saved working SHA-256')
         return
-    if operation in ("simulate_sewn", "freeze_sewn", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "apply_sewn_result", "prepare_sewn_stage", "introduce_fitting_context"):
+    if operation in ("simulate_sewn", "freeze_sewn", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "apply_sewn_result", "prepare_sewn_stage", "introduce_fitting_context", "transition_pattern_assembly", "prepare_pattern_assembly"):
         if state["stage"] != "RECONSTRUCTING":
             raise StudioError("Native sewing requires RECONSTRUCTING")
         if arguments['component_id'] not in state['components']:
@@ -180,6 +184,28 @@ def admit_operation(project, operation, arguments):
         recipe = contract("sewing-recipe", read_json(inside(project.root, arguments["recipe_path"])))
         if recipe["component_id"] != arguments["component_id"]:
             raise StudioError("Sewing recipe identity mismatch")
+        if operation=='prepare_pattern_assembly':
+            spec=contract('pattern-preparation',read_json(inside(project.root,arguments['preparation_path'])))
+            if spec['component_id']!=arguments['component_id']:raise StudioError('Pattern preparation component mismatch')
+            for key in ('assembly_plan','construction_dossier'):
+                if spec.get(key) and sha(inside(project.root,spec[key]['path']))!=spec[key]['sha256']:
+                    raise StudioError('Pattern preparation source reference changed: '+key)
+            if spec.get('assembly_plan'):
+                plan=contract('pattern-assembly',read_json(inside(project.root,spec['assembly_plan']['path'])))
+                if plan['component_id']!=arguments['component_id']:raise StudioError('Pattern preparation assembly plan mismatch')
+        if operation=='transition_pattern_assembly':
+            plan=contract('pattern-assembly',read_json(inside(project.root,arguments['plan_path'])))
+            if plan['component_id']!=arguments['component_id']:
+                raise StudioError('Pattern assembly plan component mismatch')
+        if operation in ('transition_pattern_assembly','prepare_pattern_assembly'):
+            redundant={'experimental_prefit','interface_preparation','panel_mount','fitting_placement',
+                       'contact_recovery','fitting_pose','fitting_tacks'}
+            migrating=operation=='prepare_pattern_assembly' and spec.get('migration',{}).get('retire_legacy_preparations') is True
+            if migrating and not spec.get('assembly_plan'):
+                raise StudioError('Legacy preparation migration requires a sourced assembly plan reference')
+            if any(key in recipe for key in redundant) and not migrating:
+                raise StudioError('Nominal pattern assembly requires one preform and one bounded closure; migrate legacy preparations separately')
+            if migrating:recipe={key:value for key,value in recipe.items() if key not in redundant}
         if operation=='apply_sewn_result':
             fingerprint=arguments['result_sha256']
             if not isinstance(fingerprint,str) or len(fingerprint)!=64 or sha(inside(project.root,arguments['result_path']))!=fingerprint:
@@ -257,6 +283,9 @@ def admit_operation(project, operation, arguments):
         if arguments["purpose"] in ("behavior", "export"):
             from .lifecycle import silhouette
             silhouette(project, state)
+        if arguments["purpose"] in ("behavior", "validate", "export") and any(c['route']['selected'] == 'PATTERN_SEWN' for c in state['components'].values()):
+            from .piece_inventory import current_proof
+            current_proof(project, state, require_global=True)
         path = inside(project.root, arguments["path"])
         if path.suffix != ".py" or sha(path) != arguments["sha256"]:
             raise StudioError("Script changed or is not a project Python file")

@@ -1,5 +1,25 @@
 # Blender MCP externe
 
+La [complétude des pièces](piece-completeness.md) réconcilie les identités
+source avec la géométrie réellement présente. Afficher `piece_completeness.summary`
+et les absences dans le chat et près des aperçus ; un composant complet ne vaut
+pas un vêtement complet. `inspect` distingue candidats de préparation et
+géométrie active sans attribuer d'acceptation technique ou visuelle.
+
+Avant chaque appel à `execute_blender_code` ou `execute_blender_code_for_cli`,
+présenter l'opération préparée, le projet cible et ses effets attendus, puis
+demander explicitement à l'utilisateur l'autorisation d'exécuter ce code.
+Attendre sa réponse affirmative avant l'appel. Exemple : « Puis-je exécuter
+`resume` dans ce projet pour créer un checkpoint de la scène connectée ? »
+La préparation du code, l'admission du pipeline et l'approbation du découpage
+ne valent pas autorisation d'exécuter du Python Blender. Un refus ou une
+absence de réponse empêche l'appel. Si l'opération ou ses arguments changent,
+préparer le nouveau code et demander l'autorisation pour cette nouvelle action.
+
+Cette demande est faite dans la conversation par l'agent qui utilise le plugin.
+Elle ne modifie pas les permissions MCP de Codex et ne lève pas ses blocages.
+Un refus de Codex ou du projet reste à résoudre sans contourner les contrôles.
+
 `start_clean_construction` conserve un témoin exact et ouvre une scène vide
 versionnée sur demande explicite. `introduce_fitting_context` importe le corps
 déclaré après un nouveau full libre ; le placement rigide optionnel de fitting

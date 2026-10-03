@@ -14,8 +14,11 @@ def basis(origin,axis,transverse):
 
 def pose_field(payload,spec,body,recipe):
     import numpy as np
-    from a3d.sewing import mesh_quality,active_sewing_pairs,distance
+    from a3d.sewing import mesh_quality,active_sewing_pairs,distance,permanent_support_groups
     start=np.array(payload['placed_cm'],dtype=float);delta=np.zeros_like(start);sum_weight=np.zeros(len(start));reports=[]
+    support_groups=permanent_support_groups(payload)
+    fixed={int(i) for i,w in payload['pins'].items() if w>=1}
+    fixed_groups=[ids for ids in support_groups if fixed.intersection(ids)]
     graph=[{} for _ in start]
     for face in payload['faces']:
         for a,b in zip(face,face[1:]+face[:1]):graph[a][b]=graph[b][a]=distance(start[a],start[b])
@@ -51,8 +54,12 @@ def pose_field(payload,spec,body,recipe):
                 nd=d+length
                 if nd<distances[j]:distances[j]=nd;heapq.heappush(queue,(nd,j))
         weight=np.array([max(0.,1-d/frame['feather_cm']) for d in distances]);weight=weight*weight*(3-2*weight)
-        for key,value in payload['pins'].items():
-            if value>=1:weight[int(key)]=0.
+        # A seam partner receives the same rigid-frame influence, including
+        # fixed support, as its permanent cohort. Preserve original indices,
+        # pins and separation; do not close or weld the source seam here.
+        for ids in support_groups:
+            weight[ids]=0. if fixed.intersection(ids) else float(weight[ids].max())
+        for i in fixed:weight[i]=0.
         delta+=(start@rotation.T+translation-start)*weight[:,None];sum_weight+=weight
         reports.append({'id':frame['id'],'source_origin_cm':origin.tolist(),'source_axis_cm':axis.tolist(),
             'source_transverse_cm':transverse.tolist(),'target_origin_cm':target_origin.tolist(),'target_axis_cm':target_axis.tolist(),
@@ -70,7 +77,11 @@ def pose_field(payload,spec,body,recipe):
     movable=np.ones(len(start))
     pairs=active_sewing_pairs(payload)
     pair_a=np.array([a for a,b in pairs],dtype=int);pair_b=np.array([b for a,b in pairs],dtype=int)
-    gap_limit=max(initial,recipe['limits']['max_seam_gap_cm'])
+    # Each pair keeps its own initial gap budget. A distant unrelated seam
+    # must not permit an already settled armhole to open during relaxation.
+    pair_gaps=np.array([distance(start[a],start[b]) for a,b in pairs])
+    gap_limits=np.maximum(pair_gaps,recipe['limits'].get('weld_gap_cm',0.))
+    for ids in fixed_groups:movable[ids]=0.
     for key,value in payload['pins'].items():
         if value>=1:movable[int(key)]=0.
     for step in range(1,spec['steps']+1):
@@ -87,7 +98,7 @@ def pose_field(payload,spec,body,recipe):
                 q+=changes/np.maximum(degree,1)[:,None]*movable[:,None]*.8
                 if pairs:
                     d=q[pair_b]-q[pair_a];actual=np.linalg.norm(d,axis=1)
-                    desired=np.minimum(actual,max(0.,gap_limit-min(.01,gap_limit/10)))
+                    desired=np.minimum(actual,np.maximum(0.,gap_limits-np.minimum(.01,gap_limits/10)))
                     total=movable[pair_a]+movable[pair_b]
                     correction=d*(1-desired/np.maximum(actual,1e-12))[:,None]/np.maximum(total,1)[:,None]
                     changes=np.zeros_like(q);counts=np.zeros(len(q))
@@ -99,10 +110,13 @@ def pose_field(payload,spec,body,recipe):
             raise StudioError('Common pose relaxation exceeded the displacement budget')
         quality=mesh_quality(payload['rest_cm'],q.tolist(),payload['faces'],recipe['mesh'])
         gap=max((distance(q[a],q[b]) for a,b in active_sewing_pairs(payload)),default=0.)
-        if gap>max(initial,recipe['limits']['max_seam_gap_cm'])+1e-6:
-            raise StudioError('Common pose field separates permanent seam partners')
+        pair_excess=np.array([distance(q[a],q[b]) for a,b in pairs])-gap_limits
+        if pairs and float(pair_excess.max())>1e-6:
+            index=int(pair_excess.argmax())
+            raise StudioError('Common pose field separates seam partners %s beyond their own gap limit %.6f cm'
+                %(pairs[index],gap_limits[index]))
         history.append({'step':step,'max_displacement_cm':excursion,'min_stretch':quality['min_stretch'],'max_stretch':quality['max_stretch'],'seam_gap_cm':gap})
-    if relaxation:
+    if frame_edges:
         for (frame,origin,axis,transverse),row in zip(frame_edges,reports,strict=True):
             residual=[]
             for name,old in [('origin_edges',origin),('axis_edges',axis),('transverse_edges',transverse)]:
@@ -110,13 +124,17 @@ def pose_field(payload,spec,body,recipe):
                 expected=old@np.array(row['rotation']).T+row['translation_cm']
                 residual.append(float(np.linalg.norm(np.mean(q[ids],axis=0)-expected)))
             row['relaxed_frame_residual_cm']=max(residual)
-            if max(residual)>relaxation['max_frame_residual_cm']:
+            if relaxation and max(residual)>relaxation['max_frame_residual_cm']:
                 raise StudioError('Common pose relaxation no longer respects its declared frame')
     for key,value in payload['pins'].items():
         if value>=1 and np.linalg.norm(q[int(key)]-start[int(key)])>1e-8:raise StudioError('Common pose would move a fixed pin')
     return q.tolist(),{'frames':reports,'steps':spec['steps'],'history':history,'strain_relaxation':relaxation,
         'max_displacement_cm':float(np.linalg.norm(q-start,axis=1).max()),'quality':quality,
-        'seam_gap_cm':gap,'scaling':'NOT_APPLIED','surface_projection':'NOT_APPLIED','fixed_pins':'PRESERVED',
+        'seam_gap_cm':gap,'initial_seam_gap_cm':initial,
+        'seam_supports':{'permanent_groups':len(support_groups),'fixed_groups':len(fixed_groups),
+            'source_pins':'UNCHANGED','mesh_welding':'NOT_APPLIED',
+            'max_pair_gap_excess_cm':max(0.,float(pair_excess.max())) if pairs else 0.},
+        'scaling':'NOT_APPLIED','surface_projection':'NOT_APPLIED','fixed_pins':'PRESERVED',
         'closure_welding':'NOT_APPLIED','simulation':'NOT_EXECUTED','accepted':False,'anatomical_fit':'NOT_QUALIFIED'}
 
 def prepare_fitting_pose(project_root,component_id,recipe_path,pose_path):

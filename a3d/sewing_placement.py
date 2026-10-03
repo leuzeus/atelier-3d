@@ -2,6 +2,7 @@
 import math
 
 from .sewing import distance
+from .sewing_diagnostics import source_coordinates
 
 
 def extents(points):
@@ -22,21 +23,21 @@ def placement_geometry(payload, coords, recipe, nearest, crossings):
     for pid, panel in payload['panels'].items():
         arc = dict(zip(panel['boundary'], panel['boundary_source_arclength_cm'], strict=True))
         for index in panel['indices']:
-            anchors[index] = {'index': index, 'source_vertex_index': source[index], 'piece': pid,
-                'rest_uv_cm': payload['rest_cm'][index][:2], 'position_cm': coords[index],
+            anchors[(pid,index)] = {'index': index, 'source_vertex_index': source[index], 'piece': pid,
+                **source_coordinates(payload,index,pid), 'position_cm': coords[index],
                 'boundary_source_arclength_cm': arc.get(index),
                 'named_edges': [name for name, ids in panel['edges'].items() if index in ids],
                 'pin_weight': payload['pins'].get(str(index), 0.)}
     near_cache = {}
-    def node(index):
+    def node(index,piece):
         if index not in near_cache:
             near_cache[index] = nearest(coords[index])
-        return {**anchors[index], 'nearest_colliders': near_cache[index]}
+        return {**anchors[(piece,index)], 'nearest_colliders': near_cache[index]}
     seams = {}
     for sid, seam in payload['seams'].items():
         pairs = []
         for a, b in seam['pairs']:
-            pairs.append({'a': node(a), 'b': node(b), 'gap_cm': distance(coords[a], coords[b]),
+            pairs.append({'a': node(a,seam['piece_a']), 'b': node(b,seam['piece_b']), 'gap_cm': distance(coords[a], coords[b]),
                 'straight_segment_hits': crossings(coords[a], coords[b])})
         seams[sid] = {k: seam[k] for k in ('kind', 'piece_a', 'piece_b', 'edge_a', 'edge_b')}
         seams[sid].update(pairs=pairs, max_gap_cm=max((p['gap_cm'] for p in pairs), default=0.),
@@ -61,7 +62,7 @@ def placement_geometry(payload, coords, recipe, nearest, crossings):
     for pid, panel in payload['panels'].items():
         panels[pid] = {'placement': recipe['placements'][pid], 'source_contour_sha256': panel['source_contour_sha256'],
             'extents_cm': extents([coords[i] for i in panel['indices']]),
-            'supports': [node(i) for i in panel['indices'] if payload['pins'].get(str(i), 0.) > 0],
+            'supports': [node(i,pid) for i in panel['indices'] if payload['pins'].get(str(i), 0.) > 0],
             'collider_regions': {name: {'surface_extents_cm': extents([r['surface_cm'] for r in rows]),
                 'distance_range_cm': [min(r['distance_cm'] for r in rows), max(r['distance_cm'] for r in rows)],
                 'normal_dot_range': [min(r['normal_dot_collider'] for r in rows), max(r['normal_dot_collider'] for r in rows)],

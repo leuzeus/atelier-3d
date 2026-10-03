@@ -19,7 +19,21 @@ def mesh_recipe_digest(recipe):
     return digest(fields)
 
 
-def triangulate(boundary, recipe):
+def simulation_pairs(payload):
+    """A continuous sewn surface has no loose sewing springs."""
+    return [] if payload.get('rest_mode')=='assembled_3d' else active_sewing_pairs(payload)
+
+
+def rest_key_name(payload):
+    return 'A3D.AssembledRest' if payload.get('rest_mode')=='assembled_3d' else 'A3D.FlatRest'
+
+
+def simulation_quality(payload,coords,limits):
+    from a3d.cloth_metrics import validate_metrics
+    return validate_metrics(payload,coords,limits,include_faces=False)
+
+
+def triangulate(boundary, recipe, regular_mesh=None):
     from mathutils import Vector
     from mathutils.geometry import delaunay_2d_cdt
     polygon=boundary["polygon"]
@@ -30,14 +44,23 @@ def triangulate(boundary, recipe):
     nx,ny=math.ceil((xmax-xmin)/spacing),math.ceil((ymax-ymin)/spacing)
     if nx*ny>recipe["mesh"]["max_vertices"]*4:
         raise StudioError("Interior grid exceeds the declared mesh budget")
-    for j in range(1,ny):
-        for i in range(1,nx):
-            p=[xmin+i*spacing,ymin+j*spacing]
-            if point_inside(p,polygon) and min(segment_distance(p,a,b) for a,b in zip(polygon,polygon[1:]+polygon[:1])) >= .4*spacing:
-                points.append(Vector(p))
+    if regular_mesh:
+        from a3d.pattern_preparation import regular_interior_points
+        interior,_=regular_interior_points(boundary,regular_mesh)
+        points.extend(Vector(p) for p in interior)
+    else:
+        for j in range(1,ny):
+            for i in range(1,nx):
+                p=[xmin+i*spacing,ymin+j*spacing]
+                if point_inside(p,polygon) and min(segment_distance(p,a,b) for a,b in zip(polygon,polygon[1:]+polygon[:1])) >= .4*spacing:
+                    points.append(Vector(p))
     ids=list(range(len(polygon)))
     if signed_area(polygon)<0:ids.reverse()
-    refinement=recipe['mesh'].get('quality_refinement');added=0;passes=0
+    refinement=recipe['mesh'].get('quality_refinement');added=0;passes=0;refusal=None;best=None;rejected_candidate=None
+    if regular_mesh:
+        refinement={**(refinement or {'max_passes':8,'max_added_vertices':4000}),
+            'target_min_angle_degrees':max(regular_mesh.get('target_min_angle_degrees',15.),
+                recipe['mesh']['min_angle_degrees'],(refinement or {}).get('target_min_angle_degrees',0.))}
     def angle(face):
         lengths=[distance(verts[a],verts[b]) for a,b in zip(face,face[1:]+face[:1])]
         if min(lengths)<1e-10:return 0.
@@ -47,8 +70,22 @@ def triangulate(boundary, recipe):
         verts,edges,faces,orig,_,_=delaunay_2d_cdt(points,[],[ids],1,1e-6,True)
         if not refinement:break
         bad=[f for f in faces if angle(f)<refinement['target_min_angle_degrees']]
+        if regular_mesh:
+            measured_angle=min((angle(f) for f in faces),default=0.)
+            measured_edge=min((distance(verts[a],verts[b]) for f in faces for a,b in zip(f,f[1:]+f[:1])),default=0.)
+            if best and (measured_angle<best['min_angle_degrees']-1e-7 or
+                    measured_edge<min(best['min_edge_cm'],recipe['mesh']['min_edge_cm'])-1e-9):
+                rejected_candidate={'min_angle_degrees':measured_angle,'min_edge_cm':measured_edge,
+                    'added_vertices':added,'passes':passes}
+                verts,edges,faces,orig=best['triangulation']
+                added,passes=best['added_vertices'],best['passes']
+                refusal='NON_MONOTONIC_REFINEMENT_ROLLED_BACK';break
+            best={'triangulation':(verts,edges,faces,orig),'min_angle_degrees':measured_angle,
+                'min_edge_cm':measured_edge,'added_vertices':added,'passes':passes}
         if not bad:break
         if passes>=refinement['max_passes']:
+            if regular_mesh:
+                refusal='PASS_BUDGET_EXHAUSTED';break
             error=StudioError('Derived mesh refinement did not reach the declared angle target within its pass budget')
             error.refinement_metrics={'min_angle_degrees':min(angle(f) for f in faces),'bad_faces':len(bad),
                 'added_vertices':added,'source_polygon':boundary['source'],
@@ -74,11 +111,38 @@ def triangulate(boundary, recipe):
             if not inside_face and not point_inside(value,polygon):value=sum(tri,Vector((0.,0.)))/3
             key=(round(value.x,6),round(value.y,6))
             if key not in existing and point_inside(value,polygon):
+                if regular_mesh:
+                    separation=max(recipe['mesh']['min_edge_cm'],distance(a,b)*.2)
+                    if any(distance(value,p)<separation for p in points+insert):continue
+                    if min(segment_distance(value,u,v) for u,v in zip(polygon,polygon[1:]+polygon[:1]))<separation:continue
                 existing.add(key);insert.append(value)
-        if not insert:raise StudioError('Derived refinement stalled; source boundary anchors remain unchanged')
-        if added+len(insert)>refinement['max_added_vertices'] or len(points)+len(insert)>recipe['mesh']['max_vertices']:
+        if not insert:
+            if regular_mesh:
+                refusal='REFINEMENT_STALLED';break
+            raise StudioError('Derived refinement stalled; source boundary anchors remain unchanged')
+        vertex_budget=min(recipe['mesh']['max_vertices'],regular_mesh['max_vertices'] if regular_mesh else recipe['mesh']['max_vertices'])
+        if added+len(insert)>refinement['max_added_vertices'] or len(points)+len(insert)>vertex_budget:
+            if regular_mesh:
+                refusal='VERTEX_BUDGET_EXHAUSTED';break
             raise StudioError('Derived mesh refinement exceeds the declared vertex budget')
         points.extend(insert);added+=len(insert);passes+=1
+    if regular_mesh:
+        from a3d.mesh_refinement import improve_interior
+        anchors={i for i,inputs in enumerate(orig) if any(j<len(polygon) for j in inputs)}
+        improved,smoothing=improve_interior([list(v) for v in verts],faces,anchors,
+            target_angle=refinement['target_min_angle_degrees'],min_edge=recipe['mesh']['min_edge_cm'],
+            max_displacement=regular_mesh['min_spacing_cm']*.5)
+        verts=[Vector(p) for p in improved]
+        if smoothing['target_reached']:refusal=None
+        elif refusal is None:refusal='INTERIOR_QUALITY_TARGET_NOT_REACHED'
+        boundary['preparation_refinement']={'status':'NEEDS_CORRECTION' if refusal else 'TARGET_REACHED',
+            'refusal':refusal,'target_min_angle_degrees':refinement['target_min_angle_degrees'],
+            'min_angle_degrees':min((angle(f) for f in faces),default=0.),'passes':passes,'added_vertices':added,
+            'max_passes':refinement['max_passes'],'max_added_vertices':refinement['max_added_vertices'],
+            'source_anchors_changed':False,'rejected_candidate':rejected_candidate,
+            'interior_smoothing':smoothing,
+            'best_safe_candidate_preserved':True,
+            'bad_faces':[list(f) for f in faces if angle(f)<refinement['target_min_angle_degrees']]}
     mapping={j:i for i,inputs in enumerate(orig) for j in inputs}
     if any(i not in mapping for i in range(len(polygon))) or len({mapping[i] for i in range(len(polygon))})!=len(polygon):
         raise StudioError("Triangulator collapsed a boundary anchor")
@@ -105,12 +169,16 @@ def placed_point(point, placement):
     return list(rotation@Vector(local)+Vector(placement["position_cm"]))
 
 
-def build_mesh(data, recipe):
-    boundaries,seams,reports=prepare_boundaries(data,recipe)
+def build_mesh(data, recipe, regular_mesh=None, dossier=None):
+    if regular_mesh:
+        from a3d.pattern_preparation import prepare_regular_boundaries
+        boundaries,seams,sampling=prepare_regular_boundaries(data,recipe,regular_mesh,dossier)
+        reports=sampling['seams']
+    else:boundaries,seams,reports=prepare_boundaries(data,recipe)
     rest,placed,faces=[],[],[]
     panels={};pins={}
     for index,(pid,boundary) in enumerate(boundaries.items()):
-        verts,local_faces,mapping=triangulate(boundary,recipe)
+        verts,local_faces,mapping=triangulate(boundary,recipe,regular_mesh)
         offset=len(rest)
         rest.extend([[v[0],v[1],index*1000.] for v in verts])
         placed.extend(placed_point(v,recipe["placements"][pid]) for v in verts)
@@ -123,7 +191,7 @@ def build_mesh(data, recipe):
         for seam in seams.values():
             for side in ("a","b"):
                 if seam["piece_"+side]==pid:seam[side]=[offset+mapping[i] for i in seam[side]]
-        if len(rest)>recipe["mesh"]["max_vertices"]:raise StudioError("Simulation vertex budget exceeded")
+        if len(rest)>min(recipe["mesh"]["max_vertices"],regular_mesh['max_vertices'] if regular_mesh else recipe['mesh']['max_vertices']):raise StudioError("Simulation vertex budget exceeded")
     for seam in seams.values():seam["pairs"]=list(zip(seam.pop("a"),seam.pop("b"),strict=True))
     for pin in recipe["pins"]:
         for i in panels[pin["piece"]]["edges"][pin["edge"]]:pins[str(i)]=max(pins.get(str(i),0),pin["weight"])
@@ -131,6 +199,10 @@ def build_mesh(data, recipe):
     payload={"version":1,"component_id":data["component_id"],"recipe_mesh_sha256":mesh_recipe_digest(recipe),
         "source_garment_sha256":digest(data),"rest_cm":rest,"placed_cm":placed,"faces":faces,"panels":panels,
         "seams":seams,"pins":pins,"seam_lengths":reports}
+    if regular_mesh:
+        payload['regular_preparation_mesh']=copy.deepcopy(regular_mesh)
+        payload['regular_preparation_sampling']=sampling
+        payload['regular_preparation_refinement']={pid:boundary['preparation_refinement'] for pid,boundary in boundaries.items()}
     try:quality=mesh_quality(rest,placed,faces,recipe["mesh"])
     except StudioError as exc:
         exc.garment_payload=payload
@@ -140,7 +212,7 @@ def build_mesh(data, recipe):
 
 
 def subset_mesh(payload, piece_ids):
-    keep=sorted(i for pid in piece_ids for i in payload["panels"][pid]["indices"])
+    keep=sorted({i for pid in piece_ids for i in payload["panels"][pid]["indices"]})
     mapping={old:i for i,old in enumerate(keep)}
     sub=copy.deepcopy(payload)
     source_indices=payload.get('source_vertex_indices', list(range(len(payload['rest_cm']))))
@@ -150,6 +222,17 @@ def subset_mesh(payload, piece_ids):
     sub['omitted_seams']=[sid for sid,s in payload['seams'].items() if s['piece_a'] not in piece_ids or s['piece_b'] not in piece_ids]
     for key in ("rest_cm","placed_cm"):sub[key]=[payload[key][i] for i in keep]
     sub["faces"]=[[mapping[i] for i in f] for f in payload["faces"] if all(i in mapping for i in f)]
+    face_ids=[i for i,f in enumerate(payload['faces']) if all(v in mapping for v in f)]
+    for key in ('source_rest_triangles_cm','source_face_pieces','source_face_vertex_ids'):
+        if key in payload:sub[key]=[copy.deepcopy(payload[key][i]) for i in face_ids]
+    if 'source_vertex_map' in payload:
+        sub['source_vertex_map']={str(source):mapping[current] for source,current in payload['source_vertex_map'].items()
+                                  if current in mapping}
+    elif 'source_face_vertex_ids' in payload:
+        sub['source_vertex_map']={str(old):new for old,new in mapping.items()}
+    if 'source_vertex_cohorts' in payload:
+        sub['source_vertex_cohorts']={str(mapping[int(current)]):copy.deepcopy(sources)
+                                     for current,sources in payload['source_vertex_cohorts'].items() if int(current) in mapping}
     sub["pins"]={str(mapping[int(i)]):w for i,w in payload["pins"].items() if int(i) in mapping}
     sub["seams"]={sid:{**s,"pairs":[[mapping[a],mapping[b]] for a,b in s["pairs"]]}
         for sid,s in payload["seams"].items() if s["piece_a"] in piece_ids and s["piece_b"] in piece_ids}
@@ -162,12 +245,12 @@ def subset_mesh(payload, piece_ids):
 
 def make_object(payload, name):
     import bpy
-    edges=sorted({tuple(sorted(p)) for p in active_sewing_pairs(payload)})
+    edges=sorted({tuple(sorted(p)) for p in simulation_pairs(payload)})
     mesh=bpy.data.meshes.new(name)
     mesh.from_pydata([[v/100 for v in p] for p in payload["placed_cm"]],edges,payload["faces"]);mesh.update()
     obj=bpy.data.objects.new(name,mesh);bpy.context.scene.collection.objects.link(obj)
     obj.shape_key_add(name="Placement")
-    rest=obj.shape_key_add(name="A3D.FlatRest")
+    rest=obj.shape_key_add(name=rest_key_name(payload))
     for v,p in zip(rest.data,payload["rest_cm"],strict=True):v.co=[x/100 for x in p]
     rest.value=0.
     group=obj.vertex_groups.new(name="A3D.Pins")
@@ -262,9 +345,10 @@ def structural_inputs(obj,payload,recipe):
     if any(not math.isfinite(x) for p in coords for x in p):raise StudioError('Non-finite simulation coordinates')
     if faces!=payload["faces"]:raise StudioError("Simulation topology differs from its boundary map")
     keys=obj.data.shape_keys
-    if keys is None or "A3D.FlatRest" not in keys.key_blocks:raise StudioError("Missing flat rest shape key")
-    if any(distance([x*100 for x in v.co],p)>1e-3 for v,p in zip(keys.key_blocks["A3D.FlatRest"].data,payload["rest_cm"],strict=True)):
-        raise StudioError("Flat rest shape was edited")
+    rest_name=rest_key_name(payload)
+    if keys is None or rest_name not in keys.key_blocks:raise StudioError("Missing declared rest shape key: "+rest_name)
+    if any(distance([x*100 for x in v.co],p)>1e-3 for v,p in zip(keys.key_blocks[rest_name].data,payload["rest_cm"],strict=True)):
+        raise StudioError("Flat rest shape was edited" if rest_name=='A3D.FlatRest' else 'Assembled 3D rest shape was edited')
     if any(abs(k.value)>1e-8 for k in keys.key_blocks[1:]):raise StudioError("Rest/display shape keys must not deform the base mesh")
     group=obj.vertex_groups.get("A3D.Pins")
     if group is None:raise StudioError("Missing construction pin group")
@@ -279,13 +363,21 @@ def structural_inputs(obj,payload,recipe):
 
 def preflight(obj,payload,recipe):
     coords,faces=structural_inputs(obj,payload,recipe)
-    try:quality=mesh_quality(payload["rest_cm"],coords,faces,recipe["mesh"])
+    try:quality=simulation_quality(payload,coords,recipe['mesh'])
     except StudioError as exc:
         exc.initial_coords_cm=coords
         raise
     from a3d.garment_rejections import seam_directions
     directions=seam_directions(payload,coords)
-    if directions['violations']:
+    # Current derived maps validate source arc correspondence and topology.
+    # A spatial tangent reversal during mounting is diagnostic, not proof of a
+    # reversed source seam. Old maps lacking arc correspondence keep their gate
+    # until an explicit migration/rebuild supplies a verifiable current map.
+    source_topology=payload.get('rest_mode')=='assembled_3d' and bool(payload.get('pattern_assembly'))
+    if payload.get('rest_mode')!='assembled_3d' and payload.get('panels') and all('parameters' in s for s in payload['seams'].values()):
+        from a3d.pattern_assembly import _topology
+        _topology(payload);source_topology=True
+    if directions['violations'] and not source_topology:
         bad=directions['violations'][0]
         error=StudioError('Placed seam directions oppose each other; seam=%s pieces=%s/%s segment=%d cosine=%s threshold=%s; inspect orientation before sewing'
             %(bad['seam_id'],bad['piece_a'],bad['piece_b'],bad['segment'],bad['cosine'],bad['threshold']))
@@ -295,6 +387,7 @@ def preflight(obj,payload,recipe):
     penetration=penetration_cm(coords,trees)
     if penetration>recipe["limits"]["max_penetration_cm"]:
         from mathutils import Vector
+        from a3d.sewing_diagnostics import source_coordinates
         owners={i:pid for pid,panel in payload['panels'].items() for i in panel['indices']}
         contacts=[]
         for index,point in enumerate(coords):
@@ -305,7 +398,7 @@ def preflight(obj,payload,recipe):
                 depth=-(p-hit).dot(normal)*100
                 if depth>recipe['limits']['max_penetration_cm']:
                     pid=owners[index];panel=payload['panels'][pid]
-                    contacts.append({'index':index,'piece':pid,'rest_uv_cm':payload['rest_cm'][index][:2],
+                    contacts.append({'index':index,'piece':pid,**source_coordinates(payload,index),
                         'position_cm':point,'named_edges':[name for name,ids in panel['edges'].items() if index in ids],
                         'pin_weight':payload['pins'].get(str(index),0.),'collider':snapshot['object'],'surface_face':face,
                         'surface_cm':[x*100 for x in hit],'surface_normal':list(normal),'depth_cm':depth,
@@ -315,7 +408,8 @@ def preflight(obj,payload,recipe):
             %(penetration,worst['piece'],worst['index'],worst['collider'],worst['threshold_cm']))
         error.initial_contacts=contacts;error.collider_snapshots=snapshots;error.initial_coords_cm=coords
         raise error
-    return {"quality":quality,"colliders":snapshots,"max_penetration_cm":penetration},colliders,trees
+    return {"quality":quality,"colliders":snapshots,"max_penetration_cm":penetration,
+        'seam_directions':directions,'orientation_policy':'SOURCE_TOPOLOGY' if source_topology else 'LEGACY_3D_TANGENTS'},colliders,trees
 
 
 def apply_physics(obj,payload,recipe,phase,colliders):
@@ -326,13 +420,14 @@ def apply_physics(obj,payload,recipe,phase,colliders):
     scene.frame_set(1);scene.frame_start=1;scene.frame_end=profile["frames"]
     scene.render.fps=profile["fps"];scene.render.fps_base=1.;scene.use_gravity=True;scene.gravity=profile["gravity_m_s2"]
     cloth=obj.modifiers.new("A3D.Cloth", "CLOTH");settings=cloth.settings
-    area=mesh_quality(payload["rest_cm"],payload["placed_cm"],payload["faces"],recipe["mesh"])["rest_area_cm2"]
+    area=simulation_quality(payload,payload['placed_cm'],recipe['mesh'])["rest_area_cm2"]
     mass=copy.deepcopy(recipe["mass"])
     if mass["basis"]=="total_kg":mass["value"]*=area/payload["full_rest_area_cm2"]
     calculated=mass_settings(mass,area,len(payload["rest_cm"]),profile["sewing_force_per_kg"])
     settings.mass=calculated["mass_per_vertex_kg"];settings.sewing_force_max=calculated["sewing_force_max"]
-    settings.use_sewing_springs=bool(active_sewing_pairs(payload))
-    settings.rest_shape_key=obj.data.shape_keys.key_blocks["A3D.FlatRest"];settings.use_dynamic_mesh=False
+    settings.use_sewing_springs=bool(simulation_pairs(payload))
+    settings.rest_shape_key=obj.data.shape_keys.key_blocks[rest_key_name(payload)];settings.use_dynamic_mesh=False
+    settings.shrink_min=0.;settings.shrink_max=0.
     settings.vertex_group_mass="A3D.Pins";settings.pin_stiffness=1.;settings.quality=profile["quality"];settings.time_scale=1.
     damping_scale=calculated["mass_per_vertex_kg"]/profile["damping_reference_mass_kg"]
     calculated['damping_scale']=damping_scale
@@ -340,7 +435,7 @@ def apply_physics(obj,payload,recipe,phase,colliders):
     for name in ("tension_stiffness","compression_stiffness","shear_stiffness","bending_stiffness"):
         setattr(settings,name,profile[name])
     from blender.regional_cloth import apply_regions
-    regional=apply_regions(obj,payload,profile,settings)
+    regional=apply_continuous_regions(obj,payload,profile,settings) if payload.get('rest_mode')=='assembled_3d' and profile.get('regional_stiffness') else apply_regions(obj,payload,profile,settings)
     if regional:calculated['regional_stiffness']=regional
     for name in ("tension_damping","compression_damping","shear_damping","bending_damping"):
         setattr(settings,name,profile["structural_damping"]*damping_scale)
@@ -355,7 +450,7 @@ def apply_physics(obj,payload,recipe,phase,colliders):
     # deliberately describe that meaning; do not use an "interior inclusion" group.
     group=obj.vertex_groups.get("A3D.SeamSelfExclusion") or obj.vertex_groups.new(name="A3D.SeamSelfExclusion")
     group.remove(list(range(len(obj.data.vertices))))
-    seam_ids={i for pair in active_sewing_pairs(payload) for i in pair}
+    seam_ids={i for pair in simulation_pairs(payload) for i in pair}
     ids=sorted(seam_ids | {i for face in payload['faces'] if seam_ids.intersection(face) for i in face})
     if ids:group.add(ids,1.,"REPLACE")
     collision.vertex_group_self_collisions=group.name;collision.vertex_group_object_collisions=""
@@ -373,12 +468,44 @@ def apply_physics(obj,payload,recipe,phase,colliders):
     return cloth,calculated,collection
 
 
+def apply_continuous_regions(obj,payload,profile,settings):
+    """Map source 2D material weights through declared permanent unions."""
+    from a3d.regional_cloth import regional_weights,MAXIMA
+    from blender.regional_cloth import GROUPS
+    source=payload.get('regional_source');mapping=payload.get('source_vertex_map')
+    if not source or not mapping:raise StudioError('Continuous regional stiffness requires the immutable source UV map')
+    weights,receipt=regional_weights(source,profile['regional_stiffness'])
+    actual={};count=len(payload['rest_cm'])
+    for channel,field in GROUPS.items():
+        values=[0.]*count
+        for old,new in mapping.items():values[new]=max(values[new],weights[channel][int(old)])
+        group=obj.vertex_groups.get('A3D.Stiffness.'+channel) or obj.vertex_groups.new(name='A3D.Stiffness.'+channel)
+        group.remove(list(range(count)))
+        for i,value in enumerate(values):group.add([i],value,'REPLACE')
+        setattr(settings,field,group.name)
+        measured=[next((g.weight for g in v.groups if g.group==group.index),0.) for v in obj.data.vertices]
+        if any(not math.isclose(a,b,rel_tol=1e-6,abs_tol=1e-7) for a,b in zip(values,measured,strict=True)):
+            raise StudioError('Blender clamped continuous regional stiffness weights')
+        actual[channel]=measured
+    for field,value in profile['regional_stiffness']['ceilings'].items():
+        prop=settings.bl_rna.properties[field]
+        if not math.isfinite(value) or not prop.hard_min<=value<=prop.hard_max:
+            raise StudioError('Continuous regional stiffness ceiling is outside the native RNA range')
+        setattr(settings,field,value)
+        if not math.isclose(getattr(settings,field),value,rel_tol=1e-6,abs_tol=1e-7):
+            raise StudioError('Blender clamped continuous regional stiffness ceiling')
+    return {**receipt,'source_vertex_map_sha256':digest(mapping),'junction_policy':'MAX_SOURCE_WEIGHT_PER_CHANNEL',
+        'executed_weights':actual,'executed_weights_sha256':digest(actual),
+        'executed_groups':{k:getattr(settings,v) for k,v in GROUPS.items()},
+        'executed_ceilings':{k:getattr(settings,k) for k in MAXIMA}}
+
+
 def physical_snapshot(obj):
     import bpy
     cloths=[m for m in obj.modifiers if m.type=="CLOTH"]
     if len(cloths)!=1:raise StudioError("Expected exactly one Cloth modifier")
     m=cloths[0];s=m.settings;c=m.collision_settings;scene=bpy.context.scene
-    fields=("mass","sewing_force_max","use_sewing_springs","quality","time_scale","use_dynamic_mesh","vertex_group_mass","pin_stiffness",
+    fields=("mass","sewing_force_max","use_sewing_springs","quality","time_scale","use_dynamic_mesh","shrink_min","shrink_max","vertex_group_mass","pin_stiffness",
         "tension_stiffness","compression_stiffness","shear_stiffness","bending_stiffness","tension_damping","compression_damping","shear_damping","bending_damping","air_damping",
         "vertex_group_structural_stiffness","vertex_group_shear_stiffness","vertex_group_bending",
         "tension_stiffness_max","compression_stiffness_max","shear_stiffness_max","bending_stiffness_max")
@@ -401,17 +528,70 @@ def verify_physics(obj, expected):
     if physical_snapshot(obj)!=expected:raise StudioError("Executed Cloth/cache/context parameters differ from the recipe (including recreated modifiers)")
 
 
+def contact_refusal(report,initial=False):
+    reasons=[];uncertain=False;demonstrated=False
+    def visit(value):
+        nonlocal uncertain,demonstrated
+        if isinstance(value,dict):
+            if value.get('reason'):reasons.append(value['reason'])
+            uncertain=uncertain or value.get('ambiguous_sign_count',0)>0
+            demonstrated=demonstrated or value.get('contact_count',0)>0 or bool(value.get('swept_contacts'))
+            worst=value.get('worst') or {}
+            if (worst.get('sign_classification') not in (None,'AMBIGUOUS_REFUSED')
+                    and worst.get('signed_offset_cm',0)<value.get('clearance_cm',-math.inf)-1e-6):
+                demonstrated=True
+            for key in ('contact','self_contact','point_samples'):visit(value.get(key))
+    visit(report)
+    if any(reason in ('CONTACT_MOTION_UNDERSAMPLED','CONTACT_PAIR_BUDGET','SWEPT_RAY_BUDGET') for reason in reasons):
+        category='contact_sampling';outcome='INCOMPLETE'
+    elif any(reason in ('COLLIDER_GEOMETRY_CHANGED','COLLIDER_UNAVAILABLE','COLLIDER_VOLUME_ORIENTATION') for reason in reasons):
+        category='contact_context';outcome='INCOMPLETE'
+    elif uncertain and not demonstrated:
+        category='contact_sign_uncertainty';outcome='INCOMPLETE'
+    else:
+        category='placement_enfilage' if initial else 'sampled_motion_contact';outcome='FAIL'
+    error=StudioError('Precise cloth contact admission refused: '+str(report.get('reason',report.get('status','REFUSED'))))
+    error.contact_report=report;error.reason_category=category;error.simulation_outcome=outcome
+    return error
+
+
 def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,save_diagnostic=None):
     import bpy
     from a3d.sewing_diagnostics import motion_metrics
     cloth,mass,collection=apply_physics(obj,payload,recipe,phase,colliders)
     expected=physical_snapshot(obj)
     start=[[x*100 for x in p] for p in object_mesh(obj)[0]]
-    pairs=active_sewing_pairs(payload)
+    pairs=simulation_pairs(payload)
     initial_gap=max((distance(start[a],start[b]) for a,b in pairs),default=0.)
     history=[];maximum_displacement=0.;coords=start;frame=0;final_quality=None
     previous=None;previous_frame=None;evaluated_frame=0;motion=None;final_checks=None
+    contact=None;context=None
     try:
+        from blender.cloth_contacts import build_contact_context,check_contacts,check_motion
+        from a3d.cloth_metrics import face_sources
+        source_metrics=face_sources(payload)
+        profile=recipe['phases'][phase]
+        policy=payload.get('pattern_assembly',{}).get('contact_policy',{})
+        clearance=policy.get('clearance_cm',0.)
+        context=build_contact_context(payload,colliders,clearance_cm=clearance,
+            self_clearance_cm=profile['self_distance_cm'] if profile['self_collision'] else 0.,
+            seam_tolerance_cm=recipe['limits']['weld_gap_cm'],
+            max_penetration_cm=recipe['limits']['max_penetration_cm'])
+        reserves=[v for v in (profile['collision_distance_cm'],profile['self_distance_cm'],clearance) if v>0.]
+        contact_step=min([.25]+[v/2 for v in reserves])
+        evidence={'version':2,'metric_scope':'SOURCE_2D_PRINCIPAL_PER_FACE_EVERY_EVALUATED_FRAME',
+            'source_face_metrics_sha256':digest(source_metrics),'native_rest':rest_key_name(payload),
+            'native_rest_sha256':digest(payload['rest_cm']),
+            'dynamic_mesh':False,'shrink_min':0.,'shrink_max':0.,
+            'contact_scope':'STATIC_COLLIDERS_DISCRETE_LINEAR_INTERVAL_SAMPLES_NOT_EXHAUSTIVE_CCD',
+            'motion_max_step_cm':contact_step,'motion_max_subdivisions':128,
+            'temporary_supports_active':payload.get('pattern_assembly',{}).get('temporary_supports_active','NOT_RECORDED')}
+        if payload.get('rest_mode')=='assembled_3d' and (expected['settings']['use_sewing_springs'] or
+                evidence['temporary_supports_active'] is True):
+            raise StudioError('Continuous relaxation requires zero sewing springs and no temporary supports')
+        contact=check_contacts(context,start,frame=0)
+        if not contact['ok']:
+            raise contact_refusal(contact,initial=True)
         for frame in range(1,recipe["phases"][phase]["frames"]+1):
             previous=coords;previous_frame=evaluated_frame
             bpy.context.scene.frame_set(frame)
@@ -425,18 +605,30 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
             movement=motion['max_excursion']['distance_cm']
             maximum_displacement=max(maximum_displacement,movement)
             gap=max((distance(coords[a],coords[b]) for a,b in pairs),default=0.)
+            quality_error=None
+            try:final_quality=simulation_quality(payload,coords,recipe['mesh'])
+            except StudioError as exc:
+                final_quality=getattr(exc,'quality_metrics',None);quality_error=exc
+            contact=check_motion(context,previous,coords,previous_frame,frame,
+                max_step_cm=contact_step,max_subdivisions=128)
             solver=cloth.solver_result
             history.append({"frame":frame,"max_movement_cm":movement,"max_seam_gap_cm":gap,
-                "motion":motion,
+                "motion":motion,'quality':{'status':'FAIL' if quality_error else 'PASS','metrics':final_quality,
+                    'violations':getattr(quality_error,'quality_violations',[])},'contact':contact,
                 "solver_max_iterations":solver.max_iterations if solver else None})
             if save_progress:save_progress(history)
+            if quality_error:raise quality_error
+            if not contact['ok']:
+                raise contact_refusal(contact)
             if maximum_displacement>recipe["limits"]["max_displacement_cm"]:raise StudioError("Cloth displacement budget exceeded; diagnose the local case")
         verify_physics(obj,expected)
         quality_error=None
-        try:final_quality=mesh_quality(payload['rest_cm'],coords,payload['faces'],recipe['mesh'])
+        try:final_quality=simulation_quality(payload,coords,recipe['mesh'])
         except StudioError as exc:
             final_quality=getattr(exc,'quality_metrics',None);quality_error=exc
-        penetration=penetration_cm(coords,trees)
+        final_contact=check_contacts(context,coords,frame=frame)
+        if not final_contact['ok']:raise contact_refusal(final_contact)
+        penetration=max(0.,-(final_contact['minimum_signed_offset_cm'] or 0.))
         final_gap=history[-1]['max_seam_gap_cm']
         final_checks={'quality':{'status':'FAIL' if quality_error else 'PASS','metrics':final_quality,
                 'violations':getattr(quality_error,'quality_violations',[])},
@@ -453,6 +645,7 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
         if pairs and initial_gap>recipe["limits"]["max_seam_gap_cm"] and final_gap>=initial_gap*.95:
             raise StudioError("No measured sewing improvement")
         return coords,{"simulation":"PASS","phase":phase,"mass":mass,"executed":expected,"frames":history,"final_quality":final_quality,"final_checks":final_checks,
+            'validation_contract':evidence,'final_contact':final_contact,
             "max_penetration_cm":penetration,"initial_gap_cm":initial_gap,"final_gap_cm":final_gap,
             "centroid_start_cm":[sum(p[k] for p in start)/len(start) for k in range(3)],
             "centroid_end_cm":[sum(p[k] for p in coords)/len(coords) for k in range(3)],
@@ -479,6 +672,7 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
                 geometry['motion']=motion_metrics(payload,coords,start,evaluated_frame,previous,previous_frame,
                     recipe['limits']['max_displacement_cm'])
                 save_diagnostic({'error':str(exc),'frame':frame,'expected_execution':expected,'executed':observed,'frames':history,'final_quality':final_quality,'final_checks':final_checks,
+                    'contact':getattr(exc,'contact_report',contact),
                     'geometry':geometry})
             except Exception as diagnostic_error:
                 exc.add_note('Failure diagnostic unavailable: '+repr(diagnostic_error))
@@ -514,7 +708,9 @@ def grid_probe(spacing, two=False, height=6.):
                 faces.extend([[a,a+1,a+n+2],[a,a+n+2,a+n+1]])
     if two:
         seams['coupon']={'kind':'permanent','pairs':[[y*(n+1)+n,(n+1)**2+y*(n+1)] for y in range(n+1)]}
-    return {'rest_cm':rest,'placed_cm':placed,'faces':faces,'pins':pins,'seams':seams,'full_rest_area_cm2':100*(2 if two else 1)}
+    panels={'synthetic-'+str(index):{'indices':list(range(index*(n+1)**2,(index+1)*(n+1)**2)),
+        'edges':{},'boundary':[]} for index in range(2 if two else 1)}
+    return {'rest_cm':rest,'placed_cm':placed,'faces':faces,'pins':pins,'seams':seams,'panels':panels,'full_rest_area_cm2':100*(2 if two else 1)}
 
 
 def backend_probes(recipe,phase,output_dir,proof_callback=None,failure_callback=None):
@@ -638,6 +834,8 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope,purpose='fit
     project,session=working(project_root)
     obj,payload,recipe=managed_inputs(project,component_id,recipe_path)
     context,colliders,trees=preflight(obj,payload,recipe)
+    from blender.piece_inventory import require_live
+    require_live(project, component_id)
     from blender.fitting import recipe_fit
     fitting=recipe_fit(project,obj,payload,recipe)
     if fitting:context['fit_binding']=fitting['fit_binding']
@@ -772,6 +970,9 @@ def freeze_sewn(project_root,component_id,recipe_path):
     from blender.operations import working
     project,session=working(project_root)
     obj,payload,recipe=managed_inputs(project,component_id,recipe_path)
+    if payload.get('rest_mode')=='assembled_3d':
+        from blender.pattern_assembly import freeze_continuous
+        return freeze_continuous(project,session,obj,payload,recipe)
     report_path=project.data/'blender/sewing'/(component_id+'-full.json')
     if not report_path.exists():raise StudioError('No completed full toile to freeze')
     report=read_json(report_path)
@@ -788,6 +989,8 @@ def freeze_sewn(project_root,component_id,recipe_path):
     result=bpy.data.objects.new('A3D.Sewn.'+component_id,mesh);bpy.context.scene.collection.objects.link(result)
     result['a3d_component_id']=component_id;result['a3d_package_sha256']=payload['package_sha256'];result['a3d_role']='render'
     result['a3d_source_simulation']=obj.name
+    from blender.piece_inventory import bind_frozen_map
+    bind_frozen_map(project, result, payload, new_faces, vertices, mapping)
     obj['a3d_source_component_id']=component_id;del obj['a3d_component_id'];obj['a3d_role']='archived-simulation'
     obj.hide_set(True);obj.hide_render=True
     receipt={'operation':'freeze_sewn','component_id':component_id,'object':result.name,'vertices_before':len(coords),

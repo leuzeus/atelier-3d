@@ -1,5 +1,35 @@
 # Atelier 3D
 
+Le [contrôle de complétude des pièces](references/piece-completeness.md)
+affiche la couverture locale et globale du candidat Blender, détecte absences
+et doublons et empêche qu'un composant complet valide tout le vêtement.
+Voir [la portée testée](VALIDATION.md) pour la vérification native restante.
+
+Avant d’exécuter du code via Blender MCP, le plugin demande explicitement
+l’autorisation de l’utilisateur et attend sa réponse affirmative. Voir
+[le protocole Blender](references/blender.md). Cette consigne ne modifie pas
+les permissions MCP de Codex.
+
+La [préparation native des patrons](references/pattern-preparation.md) contrôle
+la coupe et les correspondances, dérive un maillage régulier et mesure sa
+préforme autour du corps avant tout Cloth. Elle conserve les patrons approuvés,
+produit les vues neutres/wireframe et transmet sa géométrie exacte à l'assemblage.
+Ses états `READY`, `NEEDS_CORRECTION` et `NEEDS_CLARIFICATION` restent distincts
+d'une qualification physique ou d'une acceptation finale.
+
+Le parcours `PATTERN_SEWN` dispose d'une [refonte locale de l'assemblage](references/pattern-assembly.md) :
+préforme sourcée, Cloth court, fermeture bornée, consolidation géométrique,
+détente continue et drapé distinct. Les patrons approuvés restent immuables.
+Voir [VALIDATION.md](VALIDATION.md) pour la portée réellement testée ; une
+consolidation ne qualifie pas le fitting, le comportement ou l'export.
+
+Les [renforcements après l'étude OpenSew](references/opensew-improvements.md)
+ajoutent la métrique source par face pendant Cloth, les contacts entre frames,
+un enfilage mesuré et l'ordre explicite des couches. Leurs coupons ont une
+portée limitée ; les anciens PASS gardent leur périmètre et le fitting réel
+reste non qualifié. Ces améliorations locales de la version 0.6.7 sont
+incluses dans la version 0.6.8.
+
 [![CI](https://github.com/leuzeus/atelier-3d/actions/workflows/ci.yml/badge.svg)](https://github.com/leuzeus/atelier-3d/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -7,11 +37,14 @@ Plugin Codex pour préparer et produire des assets 3D à partir d'images de réf
 avec un choix de méthode par composant, des données de construction explicites et
 une validation humaine aux étapes déterminantes.
 
-**Version 0.6.5 — préparations de fitting natives et rigidité par zone.** Le runtime et ses contrats sont testés.
+**Version 0.6.8 — complétude des pièces et autorisation du code Blender.** Le runtime et ses contrats sont testés.
 Le profil d'installation Windows est testé, avec découverte MCP et diagnostic
 compatibles avec le manifeste Codex. Une
 production complète sur un vrai vêtement ou un asset articulé reste à qualifier.
-Voir [les résultats et limites](VALIDATION.md) et la [release 0.6.5](https://github.com/leuzeus/atelier-3d/releases/tag/v0.6.5).
+Voir [les résultats et limites](VALIDATION.md) et la
+[release 0.6.8](https://github.com/leuzeus/atelier-3d/releases/tag/v0.6.8).
+Le paquet portable contient le plugin et ses références ; les scènes, modèles,
+configurations locales et sorties de production sont exclus.
 
 
 La [préparation native du fitting](references/fitting-preparation.md) peut produire
@@ -158,6 +191,20 @@ pas une certification de patronage ni une planche de coupe à imprimer en taille
 Une modification des images, du dossier, des packages ou du board invalide
 l'approbation correspondante. Voir [le contrat de fabrication](references/fabrication-board.md).
 
+## Templates ComfyUI réutilisables
+
+Le [catalogue des templates](workflows/comfy/README.md) décrit les deux bases
+enregistrées : `reference-sd15` pour préparer une image de référence depuis un
+original et `hunyuan-multiview` pour reconstruire une partie volumique depuis
+les vues de face et de gauche. Il fournit les paramètres, exemples et limites.
+
+Studio charge le graphe API enregistré dans `workflows/comfy/registry.json`,
+applique les paramètres déclarés et conserve le workflow exact de chaque job.
+Réutiliser une base adaptée au besoin ; une nouvelle structure ou un workflow
+externe exige une variante revue et enregistrée. La compatibilité doit être
+validée sur les modèles et nœuds installés avant exécution. Les bases fournies
+restent à qualifier ; elles ne génèrent pas les panneaux `PATTERN_SEWN`.
+
 ## Installation et premier usage
 
 Le profil d'installation fourni est qualifié **sous Windows**. Studio requiert
@@ -174,6 +221,15 @@ python -m venv .venv
 
 Suivre ensuite [le guide d'installation et de configuration](references/getting-started.md).
 Cloner le dépôt ou télécharger un ZIP n'installe pas le plugin dans Codex.
+
+Le préformage textile n'exige pas Garment Tool. Il utilise les outils natifs
+de Blender : `Simple Deform → Bend` pour courber les pièces simples, puis
+Cloth pour le montage. Avant consolidation, `Rest Shape Key` conserve
+`A3D.FlatRest` et `Dynamic Mesh` reste désactivé ; après consolidation, le repos
+3D et les métriques 2D par face sont conservés séparément. Le backend est testé
+sous Blender 5.2.2 LTS. Le MCP pilote les opérations dans une copie de travail ;
+aucun add-on textile supplémentaire n'est à installer. Voir la
+[recette de préparation et ses contrôles](references/pattern-preparation.md).
 
 Après le remplacement d'une version installée, fermer puis rouvrir Codex avant
 de reprendre la production : une conversation peut conserver les chemins de
@@ -194,7 +250,7 @@ générale de production ne vaut pas approbation d'une image encore inexistante.
 ## Architecture
 
 Les **11 skills** guident Codex ; le serveur Studio expose **29 outils MCP** et
-utilise **18 schémas JSON**. L'état canonique du projet est conservé dans SQLite
+utilise **24 schémas JSON**. L'état canonique du projet est conservé dans SQLite
 sous `.a3d`, avec les preuves et décisions. Les fichiers `.partpkg` et
 `.garmentpkg` sont des archives de transport contrôlées.
 
@@ -215,6 +271,7 @@ le terme « local » décrit Studio, les fichiers de projet et l'adaptateur Comf
 ## Documentation
 
 - [Installer, configurer et démarrer](references/getting-started.md)
+- [Templates ComfyUI : usages, paramètres et réutilisation](workflows/comfy/README.md)
 - [Déroulement et état du projet](references/production.md)
 - [Proposition de méthode et revue du découpage](references/construction-review.md)
 - [Board et patrons de fabrication](references/fabrication-board.md)

@@ -275,8 +275,9 @@ def inspect(project_root):
     import bmesh
     project, rec = working(project_root)
     objects = []
-    for obj in bpy.data.objects:
-        if obj.type != "MESH" or not obj.get("a3d_component_id"):
+    for obj in bpy.context.scene.objects:
+        cid = obj.get('a3d_component_id') or (obj.get('a3d_source_component_id') if obj.get('a3d_role') == 'preparation-candidate' else None)
+        if obj.type != "MESH" or not cid:
             continue
         mesh = obj.data
         bm = bmesh.new()
@@ -284,7 +285,7 @@ def inspect(project_root):
         nonmanifold = sum(not e.is_manifold for e in bm.edges)
         degenerate = sum(f.calc_area() < 1e-12 for f in bm.faces)
         bm.free()
-        objects.append({"name": obj.name, "component_id": obj["a3d_component_id"], "vertices": len(mesh.vertices),
+        objects.append({"name": obj.name, "component_id": cid, "role": obj.get('a3d_role'), "vertices": len(mesh.vertices),
                         "polygons": len(mesh.polygons), "nonmanifold_edges": nonmanifold, "degenerate_faces": degenerate,
                         "dimensions_m": list(obj.dimensions), "materials": len(mesh.materials),
                         "uv_layers": len(mesh.uv_layers), "armature_modifiers": sum(m.type == "ARMATURE" for m in obj.modifiers)})
@@ -296,6 +297,11 @@ def inspect(project_root):
     report = {"blender_version": bpy.app.version_string, "working": rec["working"], "is_dirty": bpy.data.is_dirty, "objects": objects, "auxiliary_colliders": colliders,
               "evaluated_geometry": "NOT_EXECUTED", "identity": "NOT_EXECUTED", "visual": "NOT_EXECUTED",
               "note": "Counts are evidence, not automatic acceptance; evaluate modifiers, rig deformation and silhouette separately."}
+    from blender.piece_inventory import collect, save_report
+    report['active_piece_completeness'] = save_report(project, collect(project))
+    report['piece_completeness'] = save_report(project, collect(project, previews=True))
+    report['summary'] = report['piece_completeness']['summary']
+    report['next'] = 'Present this piece coverage and missing identities in the chat alongside the preview; presence is not technical or visual acceptance.'
     atomic_json(project.data / "blender/inspection.json", report)
     return report
 
@@ -304,6 +310,8 @@ def _perform(project_root, operation, arguments):
     if operation != "run_script":
         from blender.sewing import simulate_sewn, freeze_sewn
         from blender.sewn_stages import apply_sewn_result, prepare_sewn_stage
+        from blender.pattern_assembly import transition_pattern_assembly
+        from blender.pattern_preparation import prepare_pattern_assembly
         from blender.viewport import frame_view
         from blender.placement import inspect_sewing_placement
         from blender.fitting import inspect_garment_fit, propose_pattern_adjustment
@@ -326,7 +334,9 @@ def _perform(project_root, operation, arguments):
             "inspect_sewing_placement": inspect_sewing_placement,
             "inspect_garment_fit": inspect_garment_fit, "propose_pattern_adjustment": propose_pattern_adjustment,
             "simulate_sewn": simulate_sewn, "freeze_sewn": freeze_sewn,
-            "apply_sewn_result": apply_sewn_result, "prepare_sewn_stage": prepare_sewn_stage}[operation](project_root, **arguments)
+            "apply_sewn_result": apply_sewn_result, "prepare_sewn_stage": prepare_sewn_stage,
+            "transition_pattern_assembly": transition_pattern_assembly,
+            "prepare_pattern_assembly":prepare_pattern_assembly}[operation](project_root, **arguments)
     import bpy
     import runpy
     project, rec = working(project_root)
@@ -429,7 +439,33 @@ def dispatch(project_root, operation, arguments):
         state["pending_blender_operation"] = {"operation": operation, "checkpoint": saved, "status": "running"}
         project.save(db, state, "blender_started", state["pending_blender_operation"])
     try:
+        if operation in ('simulate_sewn', 'freeze_sewn', 'transition_pattern_assembly', 'apply_sewn_result', 'prepare_sewn_stage'):
+            from blender.piece_inventory import require_live
+            require_live(project, arguments['component_id'])
+        if operation == 'run_script' and arguments['purpose'] == 'simulate':
+            from blender.piece_inventory import require_live
+            for cid in arguments['component_ids']:
+                require_live(project, cid)
+        if operation == 'run_script' and arguments['purpose'] in ('validate', 'export', 'behavior'):
+            from blender.piece_inventory import require_live
+            require_live(project)
         result = _perform(project_root, operation, arguments)
+        if operation in ('garment', 'assemble', 'run_script', 'simulate_sewn', 'freeze_sewn', 'transition_pattern_assembly', 'apply_sewn_result', 'prepare_sewn_stage'):
+            from blender.piece_inventory import collect, remember_candidate, require_live, save_report
+            cid = arguments.get('component_id')
+            if not cid and operation == 'garment':
+                cid = result.get('component_id')
+                if not cid and result.get('object'):
+                    cid = bpy.data.objects[result['object']].get('a3d_component_id')
+            if cid and result.get('object'):
+                remember_candidate(project, cid, bpy.data.objects[result['object']])
+            if operation == 'assemble' or (operation == 'run_script' and arguments['purpose'] in ('validate', 'export', 'behavior')):
+                coverage = require_live(project)
+            else:
+                coverage = collect(project, cid)
+            result['piece_completeness'] = save_report(project, coverage)
+            result['summary'] = coverage['summary']
+            result['next_piece_review'] = 'Show local and global piece coverage and missing identities in the chat; a component result cannot qualify the whole garment.'
         after_ids = {o.get("a3d_component_id") for o in bpy.data.objects if o.type == "MESH" and o.get("a3d_component_id")}
         if before_ids - after_ids:
             raise StudioError("Operation removed independent component geometry; restore checkpoint")

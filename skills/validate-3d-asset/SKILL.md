@@ -5,6 +5,13 @@ description: Valider un asset 3D selon sa destination et distinguer résultat te
 
 # validate-3d-asset
 
+Appliquer [la complétude des pièces](../../references/piece-completeness.md) :
+exiger le bilan global des identités du candidat actif avant validation finale,
+et afficher son résumé près des images et dans le chat. Présence, visibilité,
+préparation, simulation et acceptation restent des verdicts distincts.
+
+Avant chaque appel à `execute_blender_code` ou `execute_blender_code_for_cli`, présenter l'opération préparée, le projet cible et ses effets attendus ; demander explicitement l'autorisation de l'utilisateur et attendre sa réponse affirmative. La préparation du code et les validations du pipeline ne valent pas autorisation d'exécution. Un refus ou une absence de réponse empêche l'appel. Si l'opération ou ses arguments changent, demander l'autorisation pour la nouvelle action. Respecter tout blocage de Codex ou du projet. Voir [le protocole Blender](../../references/blender.md).
+
 Le cadrage natif `frame_view` aide à capturer les pixels d'un candidat identifié,
 sans le modifier. Les diagnostics `inspect_sewing_failure` restent FAIL et
 historiques, même après restauration ; ne jamais les utiliser comme preuve PASS.

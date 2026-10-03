@@ -24,7 +24,8 @@ def seam_directions(payload, coords, source=None):
             value = cosine(u, v); samples.append(value)
             if value is None or value < threshold:
                 def point(index):
-                    return {'index': index, 'rest_uv_cm': payload['rest_cm'][index][:2], 'position_cm': coords[index]}
+                    from .sewing_diagnostics import source_coordinates
+                    return {'index': index, **source_coordinates(payload,index), 'position_cm': coords[index]}
                 named = source_seams.get(sid, seam)
                 violations.append({'seam_id': sid, 'piece_a': seam['piece_a'], 'piece_b': seam['piece_b'],
                     'edge_a': named.get('edge_a'), 'edge_b': named.get('edge_b'), 'segment': j,

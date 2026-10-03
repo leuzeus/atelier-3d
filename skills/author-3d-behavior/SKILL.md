@@ -5,6 +5,8 @@ description: Configurer dans Blender les comportements nécessaires à un asset 
 
 # author-3d-behavior
 
+Avant chaque appel à `execute_blender_code` ou `execute_blender_code_for_cli`, présenter l'opération préparée, le projet cible et ses effets attendus ; demander explicitement l'autorisation de l'utilisateur et attendre sa réponse affirmative. La préparation du code et les validations du pipeline ne valent pas autorisation d'exécution. Un refus ou une absence de réponse empêche l'appel. Si l'opération ou ses arguments changent, demander l'autorisation pour la nouvelle action. Respecter tout blocage de Codex ou du projet. Voir [le protocole Blender](../../references/blender.md).
+
 Déduire les besoins du profil de destination et du graphe de mobilité. Vérifier les capacités du Blender connecté avant toute exécution. Créer un checkpoint, puis construire les contraintes/rig/collisions appropriés au modèle réel. Tester les poses extrêmes, la séparation des articulations et la déformation. Utiliser material.schema.json et simulation.schema.json pour les données applicables. Les scripts V0.1 ne génèrent pas automatiquement un rig de personnage, un bake cloth complet ni de lip-sync : les réaliser avec Blender MCP si demandés et les déclarer NOT_EXECUTED sinon. Aucune acceptation implicite.
 
 Respecter [la revue humaine de construction](../../references/construction-review.md). Après préparation des packages, le board doit montrer les données réellement utilisées et attendre la validation humaine du découpage. Les opérations Blender passent par `studio_blender_operation`; ne pas contourner un refus par un script direct. Conserver les sources, ouvrir les preuves visuelles et ne pas confondre contrôles techniques et acceptation artistique.

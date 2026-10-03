@@ -287,6 +287,7 @@ class Project:
 
     def summary(self):
         s = self.state()
+        from .piece_inventory import cached_status
         return {"project_id": s["project_id"], "asset_id": s["asset"]["id"], "stage": s["stage"],
                 "components": {k: v["stage"] for k, v in s["components"].items()},
                 "jobs": [{k: j.get(k) for k in ("job_id", "prompt_id", "component_id", "status")} for j in self.jobs()],
@@ -294,4 +295,5 @@ class Project:
                 "pending_blender_operation": s.get("pending_blender_operation"),
                 "construction_review": "RECORDED_RECHECK_REQUIRED" if s["gates"].get("construction", {}).get("approved") else "PENDING",
                 "pipeline_proposal": s["evidence"].get("pipeline-proposal"),
-                "construction_board": s["evidence"].get("construction-board")}
+                "construction_board": s["evidence"].get("construction-board"),
+                "piece_completeness": cached_status(self)}

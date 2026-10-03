@@ -14,6 +14,17 @@ from tests.support import ready_project, construction_dossier
 
 
 class PipelineGuards(Case):
+    def test_prepared_blender_code_requires_user_permission_before_execution(self):
+        ready_project(self.root, True, False)
+        result = call("studio_blender_operation", {
+            "project_root": str(self.root), "operation": "prepare", "arguments": {}})
+        self.assertFalse(result["executed"])
+        self.assertEqual(parse_code(result["code"])["operation"], "prepare")
+        self.assertIn("explicitly ask for permission", result["next"])
+        self.assertIn("wait for their affirmative reply", result["next"])
+        self.assertIn("execute_blender_code_for_cli", result["next"])
+        self.assertIn("never bypass it", result["next"])
+
     def test_cutting_board_does_not_approve_itself(self):
         p = ready_project(self.root, True, False)
         self.assertNotIn("construction", p.state()["gates"])
