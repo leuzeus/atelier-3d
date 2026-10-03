@@ -29,6 +29,45 @@ O = {"type": "object"}
 P = {"project_root": S}
 
 
+@tool("studio_mannequin_catalog", "List the two source-bound offline realistic catalog bases with measured dimensions, provenance and actual readiness. Labels do not select cut rules or qualify anatomy/fitting.")
+def mannequin_catalog():
+    from .mannequins import catalog
+    return catalog()
+
+
+@tool("studio_select_catalog_body", "Copy an explicitly chosen catalog mannequin into this project and prepare a native body-source descriptor. Preserve originals and old selections; no anatomy, collider or fitting acceptance.",
+      {**P, "asset_id": S}, ("project_root", "asset_id"), read_only=False)
+def select_mannequin(project_root, asset_id):
+    from .mannequins import select_catalog_body
+    return select_catalog_body(Project(project_root), asset_id)
+
+
+@tool("studio_plan_garment_assembly", "Inspect source-bound semantic pieces, permanent sewing groups and spatial layer order. Return deterministic stages, budgets and frozen-inner-group dependencies. Refuse unsupported coupled layers early with a remedy. No geometry mutation, native execution or qualification.",
+      {**P, "specification_path": S}, ("project_root", "specification_path"))
+def plan_garment_assembly(project_root, specification_path):
+    from .core import inside, sha
+    from .garment_planner import plan_assembly
+    project = Project(project_root)
+    spec = read_json(inside(project.root, specification_path))
+    def verify_refs(value):
+        if isinstance(value, dict):
+            if set(value) == {'path', 'sha256'}:
+                if sha(inside(project.root, value['path'])) != value['sha256']:
+                    raise StudioError('Assembly source reference changed: '+value['path'])
+            else:
+                for item in value.values(): verify_refs(item)
+        elif isinstance(value, list):
+            for item in value: verify_refs(item)
+    verify_refs(spec)
+    try:
+        # No unqualified native coupled-layer capability may be advertised.
+        return plan_assembly(spec)
+    except StudioError as error:
+        return {'status': 'NEEDS_CORRECTION', 'qualification': 'NONE',
+                'diagnostic': getattr(error, 'diagnostic', {'reason': str(error)}),
+                'source_mutated': False, 'simulation': 'NOT_EXECUTED'}
+
+
 @tool("studio_doctor", "Inspect package/config and optionally ComfyUI with read-only requests. Never launches software or downloads models.",
       {"project_root": S, "live_comfy": B})
 def doctor(project_root=None, live_comfy=False):
