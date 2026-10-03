@@ -183,6 +183,8 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
             original_plan=contract('pattern-assembly',read_json(verified_reference(project,spec['assembly_plan'])))
             if original_plan['component_id']!=component_id:raise StudioError('Preparation assembly plan component mismatch')
             plan=copy.deepcopy(original_plan);plan['mapping_sha256']=map_digest(payload)
+            from a3d.dressing import rebind_layer_execution
+            plan=rebind_layer_execution(plan,payload)
             if 'layers' not in plan:
                 from a3d.dressing import migrate_legacy_layers
                 roles={item['object']:'body' if item['role']=='mannequin' else 'unknown' for item in recipe['colliders']}
