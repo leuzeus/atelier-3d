@@ -102,8 +102,25 @@ longitudinal doit être déclaré pour éviter d'inventer un sens de fil.
 
 Ces guides sont des hypothèses de placement. Les contacts, la capacité réelle
 et les gates de métrique restent à mesurer ; ils ne prouvent ni l'enfilage ni
-le drapé. La capuche, les empiècements, la ceinture et le traitement des couches
+le drapé. La capuche, les empiècements et le traitement des couches
 internes gardent leurs implémentations et essais complets à réaliser.
+
+La ceinture possède un guide ouvert autour de la taille mesurée. La longueur
+matérielle vient du patron et son axe longitudinal `u` doit être déclaré. Un
+petit arc auxiliaire vide sépare les extrémités ; il n'ajoute aucune longueur
+au patron. La fermeture, la boucle rigide et le fitting restent distincts et
+non exécutés. La ceinture demeure une bande source unique.
+
+Le plan conserve les déclarations de chaque pièce dans `piece_semantics`.
+L'axe longitudinal, le sous-rôle de bande d'ouverture et les alias de bords
+du guide font partie de son identité et invalident le plan quand ils changent.
+Un alias de bord absent du patron est refusé avant placement.
+
+Les guides des quatre panneaux de torse et de la ceinture ont été évalués sur
+des dérivations maillées natives pour les deux bases réalistes. Les limites
+géométriques des recettes sources sont conservées et passent dans ces cas.
+Ces reçus portent sur la géométrie des guides ; les autres panneaux, les
+contacts, les coutures fermées et la simulation complète n'en héritent pas.
 
 `a3d.placement_correction.correct_placement` évalue des déplacements/rotations
 rigides de panneaux dans des copies temporaires. Les métriques et seuils restent

@@ -87,6 +87,17 @@
             "minItems": 1,
             "uniqueItems": true
           },
+          "longitudinal_uv_axis": {"enum": ["u", "v"]},
+          "subrole": {"enum": ["opening_strip"]},
+          "guide_edges": {
+            "type": "object",
+            "properties": {
+              "side": {"type": "string", "minLength": 1},
+              "hem": {"type": "string", "minLength": 1},
+              "center": {"type": "string", "minLength": 1}
+            },
+            "additionalProperties": false
+          },
           "source_ref": {
             "type": "object",
             "properties": {

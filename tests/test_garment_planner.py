@@ -28,6 +28,16 @@ def link(kind='permanent'):
 
 
 class GarmentPlanner(unittest.TestCase):
+    def test_source_bound_semantics_survive_planning_and_invalidate_changed_material_axes(self):
+        data=example();data['pieces'][0].update(longitudinal_uv_axis='v',guide_edges={'side':'left'})
+        first=plan_assembly(data)
+        self.assertEqual(first['piece_semantics']['shirt']['longitudinal_uv_axis'],'v')
+        data['pieces'][0]['longitudinal_uv_axis']='u'
+        self.assertNotEqual(plan_assembly(data)['plan_sha256'],first['plan_sha256'])
+        data['pieces'][0]['guide_edges']['side']='missing'
+        with self.assertRaises(StudioError) as raised:plan_assembly(data)
+        self.assertEqual(raised.exception.diagnostic['reason'],'UNKNOWN_GUIDE_EDGE')
+
     def test_independent_layers_are_ordered_and_receive_frozen_inner_colliders(self):
         data = example(); before = digest(data)
         plan = plan_assembly(data)
@@ -71,6 +81,7 @@ class GarmentPlanner(unittest.TestCase):
         data = example(); plan = plan_assembly(data)
         data['pieces'].reverse(); data['layers']['nodes'].reverse()
         data['layers']['inside_to_outside'].reverse()
+        for piece in data['pieces']:piece['edges'].reverse()
         self.assertEqual(plan_assembly(data), plan)
 
     def test_body_identity_or_budget_changes_invalidate_plan(self):

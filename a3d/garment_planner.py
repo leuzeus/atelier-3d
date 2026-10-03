@@ -36,6 +36,11 @@ def plan_assembly(spec, capabilities=()):
         _reference(piece['source_ref'])
         if piece['id'] in pieces:
             _refuse('DUPLICATE_PIECE', 'Duplicate source piece identity', [piece['id']])
+        if any(edge not in piece['edges'] for edge in piece.get('guide_edges',{}).values()):
+            _refuse('UNKNOWN_GUIDE_EDGE','Semantic placement references a missing named source edge', [piece['id']],
+                    'Correct the declared guide edge using the approved source contour')
+        if piece.get('subrole')=='opening_strip' and piece['role']!='front':
+            _refuse('INVALID_OPENING_ROLE','An opening strip must be a declared front panel',[piece['id']])
         pieces[piece['id']] = piece
     layers = spec['layers']
     collider_ids = [name for node in layers['nodes'] for name in node['colliders']]
@@ -134,6 +139,7 @@ def plan_assembly(spec, capabilities=()):
     # Normalize arrays that are sets, while preserving the explicit layer order.
     normalized = copy.deepcopy(spec)
     normalized['pieces'] = sorted(normalized['pieces'], key=lambda item: item['id'])
+    for piece in normalized['pieces']:piece['edges'].sort()
     normalized['links'] = sorted(normalized['links'], key=lambda item: item['id'])
     normalized['layers']['nodes'] = sorted(normalized['layers']['nodes'], key=lambda item: item['id'])
     for node in normalized['layers']['nodes']:
@@ -143,6 +149,7 @@ def plan_assembly(spec, capabilities=()):
     plan = {'version': 1, 'status': 'PLANNED', 'qualification': 'NONE',
             'source_sha256': digest(normalized), 'source_ref': copy.deepcopy(spec['source_ref']),
             'body_ref': copy.deepcopy(spec['body_ref']), 'groups': [groups[gid] for gid in order],
+            'piece_semantics': {piece['id']:copy.deepcopy(piece) for piece in normalized['pieces']},
             'link_graph': [copy.deepcopy(links[sid]) for sid in sorted(links)],
             'spatial_graph': copy.deepcopy(normalized['layers']),
             'source_mutated': False, 'simulation': 'NOT_EXECUTED',
