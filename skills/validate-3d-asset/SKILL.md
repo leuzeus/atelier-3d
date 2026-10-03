@@ -5,6 +5,16 @@ description: Valider un asset 3D selon sa destination et distinguer résultat te
 
 # validate-3d-asset
 
+Suivre [la reprise après un refus](../../references/preparation-recovery.md).
+Distinguer une limite du logiciel d'une erreur de préparation : pour une limite,
+informer l'utilisateur et lui faire choisir entre conserver la technique
+approuvée avec un parcours compatible et revenir au contrat supporté, avant
+tout changement. Pour un défaut confirmé ou des pièces manquantes, proposer une
+correction ciblée ou refaire les seuls patrons/dérivés concernés depuis les
+sources approuvées, puis recontrôler raccords et complétude. Un bord partagé
+entre couture permanente et attache détachable n'est pas automatiquement erroné.
+Conserver le découpage approuvé et les autorisations d'exécution Blender.
+
 Appliquer [la complétude des pièces](../../references/piece-completeness.md) :
 exiger le bilan global des identités du candidat actif avant validation finale,
 et afficher son résumé près des images et dans le chat. Présence, visibilité,

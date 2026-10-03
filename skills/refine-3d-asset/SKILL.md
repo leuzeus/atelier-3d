@@ -5,6 +5,16 @@ description: Corriger un asset Blender reconstruit en topologie, raccords, silho
 
 # refine-3d-asset
 
+Suivre [la reprise après un refus](../../references/preparation-recovery.md).
+Distinguer une limite du logiciel d'une erreur de préparation : pour une limite,
+informer l'utilisateur et lui faire choisir entre conserver la technique
+approuvée avec un parcours compatible et revenir au contrat supporté, avant
+tout changement. Pour un défaut confirmé ou des pièces manquantes, proposer une
+correction ciblée ou refaire les seuls patrons/dérivés concernés depuis les
+sources approuvées, puis recontrôler raccords et complétude. Un bord partagé
+entre couture permanente et attache détachable n'est pas automatiquement erroné.
+Conserver le découpage approuvé et les autorisations d'exécution Blender.
+
 Avant chaque appel à `execute_blender_code` ou `execute_blender_code_for_cli`, présenter l'opération préparée, le projet cible et ses effets attendus ; demander explicitement l'autorisation de l'utilisateur et attendre sa réponse affirmative. La préparation du code et les validations du pipeline ne valent pas autorisation d'exécution. Un refus ou une absence de réponse empêche l'appel. Si l'opération ou ses arguments changent, demander l'autorisation pour la nouvelle action. Respecter tout blocage de Codex ou du projet. Voir [le protocole Blender](../../references/blender.md).
 
 Pour un arrêt de déplacement Cloth, lire [le diagnostic de mouvement](../../references/cloth-motion.md) via inspect_sewing_failure : sommet source/pièce, excursion depuis le début de phase, incrément entre deux images évaluées et image d'arrêt. Ne pas déduire l'incrément de deux maxima scalaires ni qualifier une instabilité par l'excursion seule. Préparer une unique correction mesurée et bornée de placement/appui, avec précontrôle natif et nouvelle preuve locale ; ne pas relâcher le budget. mount/drape existent déjà ; après retrait d'appuis temporaires, requalifier la recette correspondante.

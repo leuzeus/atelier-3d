@@ -1,5 +1,10 @@
 # Complétude des pièces dans Blender
 
+Après un refus ou une absence de pièces, suivre [la reprise ciblée](preparation-recovery.md) :
+identifier la cause, proposer une correction ou la production des éléments
+manquants ; si la technique approuvée dépasse le support du logiciel, expliquer
+la limite et attendre le choix de l'utilisateur avant de changer de méthode.
+
 Le nombre d'objets ou d'îlots ne prouve pas la présence des pièces prévues.
 Le contrôle réconcilie chaque identité `(component_id, piece_id)` avec le
 package lié à la planche approuvée. Chaque identifiant source est attendu une

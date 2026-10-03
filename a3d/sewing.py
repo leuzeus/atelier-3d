@@ -89,7 +89,7 @@ def edge_chain(piece, name):
 def seam_report(data, recipe):
     if set(recipe["seams"]) != {s["id"] for s in data["seams"]}:
         raise StudioError("Recipe must type every seam explicitly, including closures and detachable links")
-    reports, used, equations = [], set(), []
+    reports, used, equations = [], {}, []
     for seam in data["seams"]:
         sid = seam["id"]
         declared = recipe["seams"][sid]
@@ -99,9 +99,13 @@ def seam_report(data, recipe):
             ids, _, _ = edge_chain(data["pieces"][pid], eid)
             for x, y in zip(ids, ids[1:]):
                 key = (pid, min(x,y), max(x,y))
-                if key in used:
+                owners = used.setdefault(key, [])
+                # A detachable attachment may sit on a permanently sewn edge.
+                # It must remain a distinct source link, never a second weld.
+                if owners and (len(owners) != 1 or owners[0][0] == sid or
+                        {owners[0][1], declared['kind']} != {'permanent', 'detachable'}):
                     raise StudioError("Source boundary used by multiple seams")
-                used.add(key)
+                owners.append((sid, declared['kind']))
         la, lb = chain_lengths(a)[-1], chain_lengths(b)[-1]
         residual = abs(lb/la - (1+declared["ease_b_over_a"]))
         if residual > declared["tolerance_relative"] + 1e-8:
@@ -214,12 +218,20 @@ def validate_recipe(data, recipe):
             raise StudioError('Local interface declarations must be unique')
     if recovery and recovery['max_displacement_cm']>recipe['limits']['max_displacement_cm']:
         raise StudioError('Contact recovery cannot exceed the existing displacement budget')
-    if set(recipe["trial_pieces"]) - data["pieces"].keys() or len(set(recipe["trial_pieces"])) < 2:
-        raise StudioError("Local trial needs at least two declared panels")
-    trial = [s for s in data["seams"] if s["piece_a"] in recipe["trial_pieces"] and s["piece_b"] in recipe["trial_pieces"]
-             and recipe["seams"][s["id"]]["kind"] == "permanent"]
-    if not trial:
-        raise StudioError("Local trial must contain a permanent seam")
+    if recipe.get('trial_mode', 'sewn') == 'single_panel':
+        if (len(data['pieces']) != 1 or len(recipe['trial_pieces']) != 1
+                or set(recipe['trial_pieces']) != set(data['pieces'])):
+            raise StudioError('Single-panel trial requires the exact sole panel of the complete source component')
+        if any(s.get('kind', recipe['seams'][s['id']]['kind']) == 'permanent'
+               or recipe['seams'][s['id']]['kind'] == 'permanent' for s in data['seams']):
+            raise StudioError('Single-panel trial cannot contain or hide a permanent source seam')
+    else:
+        if set(recipe["trial_pieces"]) - data["pieces"].keys() or len(set(recipe["trial_pieces"])) < 2:
+            raise StudioError("Local trial needs at least two declared panels")
+        trial = [s for s in data["seams"] if s["piece_a"] in recipe["trial_pieces"] and s["piece_b"] in recipe["trial_pieces"]
+                 and recipe["seams"][s["id"]]["kind"] == "permanent"]
+        if not trial:
+            raise StudioError("Local trial must contain a permanent seam")
     for pin in recipe["pins"]:
         if pin["piece"] not in data["pieces"] or pin["edge"] not in data["pieces"][pin["piece"]]["edges"]:
             raise StudioError("Pin group refers to an unknown pattern edge")
@@ -323,6 +335,7 @@ def prepare_boundaries(data, recipe, seam_parameters=None):
                 return key
         raise StudioError("Boundary sampling failed")
 
+    paired_chains, parameters = {}, {}
     for seam in data["seams"]:
         pa, pb = seam["piece_a"], seam["piece_b"]
         ca, a, _ = edge_chain(data["pieces"][pa], seam["edge_a"])
@@ -336,10 +349,31 @@ def prepare_boundaries(data, recipe, seam_parameters=None):
             lengths = chain_lengths(points)
             endpoints = {i for e in data["pieces"][pid]["edges"].values() for i in (e[0],e[-1])}
             ts = sorted(set(ts) | {lengths[j]/lengths[-1] for j,i in enumerate(chain) if i in endpoints})
-        seam_samples[seam["id"]] = {"piece_a":pa,"piece_b":pb,"kind":recipe["seams"][seam["id"]]["kind"],
-            "parameters":ts,"a":[put(pa,ca,t) for t in ts],"b":[put(pb,cb,t) for t in ts]}
+        paired_chains[seam['id']] = ((pa, ca), (pb, cb))
+        parameters[seam['id']] = ts
         for pid, chain in ((pa,ca),(pb,cb)):
             covered[pid].update(tuple(sorted((a,b))) for a,b in zip(chain,chain[1:]))
+    from .shared_seam_sampling import shared_parameters
+    parameters = shared_parameters(data['pieces'], paired_chains, parameters)
+    for seam in sorted(data['seams'], key=lambda item: item['id']):
+        sid = seam['id']
+        (pa, ca), (pb, cb) = paired_chains[sid]
+        ts = parameters[sid]
+        # Exact propagation can bring two binary-float representations of the
+        # same source endpoint together. Coalesce only if BOTH paired samples
+        # have the same existing perimeter key; never collapse one side alone.
+        paired = []
+        for t in ts:
+            ka, kb = put(pa, ca, t), put(pb, cb, t)
+            if paired and (ka == paired[-1][1] or kb == paired[-1][2]):
+                if (ka, kb) != paired[-1][1:]:
+                    raise StudioError('Paired source samples exceed boundary key precision: ' + sid)
+                if t in (0., 1.):
+                    paired[-1] = (t, ka, kb)
+                continue
+            paired.append((t, ka, kb))
+        seam_samples[sid] = {'piece_a': pa, 'piece_b': pb, 'kind': recipe['seams'][sid]['kind'],
+            'parameters': [p[0] for p in paired], 'a': [p[1] for p in paired], 'b': [p[2] for p in paired]}
     for pid,piece in data["pieces"].items():
         n=len(piece["vertices"])
         # Unsewn boundary runs are resampled as polylines too; dense source curves

@@ -1,5 +1,27 @@
 # Historique
 
+## Non publié
+
+- Correctif local 0.6.9 : essai explicite `single_panel` pour une pièce source
+  unique sans couture permanente, avec provenance liée aux empreintes et
+  fermeture/consolidation sans soudure ni qualification physique implicite.
+- Préparation des raccords permanents/détachables partageant un bord source :
+  subdivisions propagées à tous les partenaires ; les doubles coutures
+  permanentes et cycles de correspondance incohérents restent refusés.
+- Crans centraux des coutures inversées sur un même panneau : appariement sur
+  les deux bords pour le point fixe exact 0.5, conformément à la planche.
+  Les crans ambigus restent à clarifier. Les patrons approuvés restent intacts.
+- Validation du correctif : 148 tests ciblés, 15 contrats JSON et audit des
+  entrées réelles des 15 panneaux. Nouvelle préparation et simulation Blender
+  avec le correctif encore à exécuter ; aucune publication GitHub effectuée.
+
+- Consignes de reprise après refus : distinction entre limite du logiciel,
+  erreur de préparation et pièces manquantes. Choix explicite de l'utilisateur
+  entre technique approuvée et contrat supporté ; proposition de correction
+  ou de préparation ciblée conservant le découpage. Les raccords permanents et
+  détachables partageant un bord doivent être diagnostiqués avant toute
+  attribution d'erreur aux patrons. [Protocole](references/preparation-recovery.md).
+
 ## 0.6.8 — 2026-10-03
 
 - Contrôle de complétude des pièces Blender par identité source, bilans
