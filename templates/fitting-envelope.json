@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "body_receipt": {"path": ".a3d/blender/body-reference-EXACT.json", "sha256": "0000000000000000000000000000000000000000000000000000000000000000"},
+  "object": "A3D.Body.GeometricEnvelope",
+  "source_ref": "Replace with the actual selected body receipt; geometric auxiliary hypothesis",
+  "regions": [{"id": "body", "source_meshes": ["EXACT_BODY_MESH"], "partition_bones": []}],
+  "voxel_cm": 0.5,
+  "padding_cm": 1,
+  "max_body_outside_cm": 0.1,
+  "thickness_outer_cm": 0.3,
+  "thickness_inner_cm": 0.1
+}

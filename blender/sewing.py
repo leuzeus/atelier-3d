@@ -339,6 +339,9 @@ def apply_physics(obj,payload,recipe,phase,colliders):
     settings.effector_weights.gravity=1.;settings.air_damping=profile["air_damping"]*damping_scale
     for name in ("tension_stiffness","compression_stiffness","shear_stiffness","bending_stiffness"):
         setattr(settings,name,profile[name])
+    from blender.regional_cloth import apply_regions
+    regional=apply_regions(obj,payload,profile,settings)
+    if regional:calculated['regional_stiffness']=regional
     for name in ("tension_damping","compression_damping","shear_damping","bending_damping"):
         setattr(settings,name,profile["structural_damping"]*damping_scale)
     collection=bpy.data.collections.new(recipe["collision_collection"]+"."+uuid.uuid4().hex[:8])
@@ -376,10 +379,13 @@ def physical_snapshot(obj):
     if len(cloths)!=1:raise StudioError("Expected exactly one Cloth modifier")
     m=cloths[0];s=m.settings;c=m.collision_settings;scene=bpy.context.scene
     fields=("mass","sewing_force_max","use_sewing_springs","quality","time_scale","use_dynamic_mesh","vertex_group_mass","pin_stiffness",
-        "tension_stiffness","compression_stiffness","shear_stiffness","bending_stiffness","tension_damping","compression_damping","shear_damping","bending_damping","air_damping")
+        "tension_stiffness","compression_stiffness","shear_stiffness","bending_stiffness","tension_damping","compression_damping","shear_damping","bending_damping","air_damping",
+        "vertex_group_structural_stiffness","vertex_group_shear_stiffness","vertex_group_bending",
+        "tension_stiffness_max","compression_stiffness_max","shear_stiffness_max","bending_stiffness_max")
     groups={g.name:g.index for g in obj.vertex_groups}
     weights={name:[(v.index,round(w.weight,7)) for v in obj.data.vertices for w in v.groups if w.group==index]
-        for name,index in groups.items() if name in (s.vertex_group_mass,c.vertex_group_self_collisions,c.vertex_group_object_collisions)}
+        for name,index in groups.items() if name in (s.vertex_group_mass,c.vertex_group_self_collisions,c.vertex_group_object_collisions,
+            s.vertex_group_structural_stiffness,s.vertex_group_shear_stiffness,s.vertex_group_bending)}
     return {"settings":{k:getattr(s,k) for k in fields},"rest_shape_key":s.rest_shape_key.name if s.rest_shape_key else None,
         "sewing_edges_sha256":digest(sorted(sorted(e.vertices) for e in obj.data.edges if e.is_loose)),
         "fitting_tacks":obj.get('a3d_fitting_tacks'),
@@ -697,6 +703,9 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope,purpose='fit
     try:
         if scope=='local':
             probe_recipe=copy.deepcopy(recipe)
+            # Backend coupons have no source panel IDs. They qualify uniform
+            # integration only; the actual local garment executes regional groups.
+            for profile in probe_recipe['phases'].values():profile.pop('regional_stiffness',None)
             if recipe['mass']['basis']=='total_kg':probe_recipe['mass']={'basis':'areal_density_kg_m2','value':recipe['mass']['value']/(payload['full_rest_area_cm2']/10000)}
             probes=backend_probes(probe_recipe,phase,attempt_dir/'backend-probes',failure_callback=save_probe_diagnostic)
             execution_stage='garment'

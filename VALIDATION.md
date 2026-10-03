@@ -1,5 +1,28 @@
 # Validation d’Atelier 3D
 
+## État de la version 0.6.5
+
+| Vérification | Résultat | Portée |
+| --- | --- | --- |
+| Suite Python Windows | PASS : 227 tests | Contrats existants, groupes régionaux, provenance/partition et admissions nouvelles |
+| Contrats PowerShell | PASS : 13 contrôles locaux | Deux nouveaux descriptifs ; CI sans configuration machine |
+| MCP interactif officiel isolé | PASS | Garde actif, reprise/récupération, enveloppe, pose native et coupons ; aucun contournement |
+| Corps seul, vrai montage libre cloné | PASS du diagnostic / NOT_QUALIFIED | Liste de manques concrète ; mesh, fichier et SQLite conservés |
+| Enveloppe R21 auxiliaire | PASS géométrique | Fermée, normales extérieures, aucun sommet cible extérieur ; corps original inchangé |
+| Pose continue sur copie R21 | PREPARED_NOT_APPLIED | 8 pas, déplacement max 9,79484 cm ; stretch 0,807647–1,244358, gap 0,490394 cm, pins fixes conservés |
+| Introduction de l'enveloppe | PASS natif sur copie isolée | Exacte, corps conservé, garment inchangé |
+| Entrée physique R21 | REFUS MESURÉ | Contact 7,81148 cm au haut du buste, seuil conservé 0,05 cm ; diagnostic retenu et récupération native |
+| Coupons régionaux | PASS | Réponse distincte mesurée ; seuls poids de flexion différents, paramètres communs conservés |
+| Remappage, transfert, mutations | PASS | Indices source/FlatRest/pins conservés ; poids altérés et plafonds hors plage refusés ; profil uniforme compatible |
+| Fitting local/full porté, calibration matière sur robe, revue visuelle et Unreal | NOT_EXECUTED | Prépositionnement du buste encore à qualifier avant physique ; aucun PASS de fixture transféré |
+
+Ces préparations ne modifient ni la coupe, ni le board approuvé, ni les originaux.
+La nouvelle enveloppe est un proxy géométrique du squelette, pas une validation
+d'anatomie en chair. Le champ de pose est une préparation vérifiée, pas un enfilage
+physique réussi. Le refus de contact reste distinct d'une erreur d'intégration.
+Voir [la procédure native](references/fitting-preparation.md). Les preuves privées
+contenant les assets et références consommateur ne sont pas publiées.
+
 ## État de la version 0.6.4
 
 | Vérification | Résultat | Portée |

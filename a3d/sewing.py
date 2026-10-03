@@ -138,6 +138,8 @@ def seam_report(data, recipe):
 
 def validate_recipe(data, recipe):
     contract("sewing-recipe", recipe)
+    from .regional_cloth import validate_regions
+    for phase in recipe['phases'].values():validate_regions(data,phase)
     if set(recipe['seams']) != {s['id'] for s in data['seams']}:
         raise StudioError('Recipe must type every seam explicitly, including closures and detachable links')
     if recipe["component_id"] != data["component_id"]:
@@ -166,6 +168,9 @@ def validate_recipe(data, recipe):
                 raise StudioError('Experimental prefit fixed edge must exist on an active source panel')
     recovery=recipe.get('contact_recovery')
     placement=recipe.get('fitting_placement')
+    pose=recipe.get('fitting_pose')
+    if pose and (placement or not recipe.get('fitting_plan') or not any(c['role']=='mannequin' for c in recipe['colliders'])):
+        raise StudioError('Prepared common pose requires its fitting plan and mannequin, without another placement method')
     if placement:
         if not recipe.get('fitting_plan') or not any(c['role']=='mannequin' for c in recipe['colliders']):
             raise StudioError('Explicit fitting placement requires a measurement plan and mannequin')
@@ -179,7 +184,7 @@ def validate_recipe(data, recipe):
             selected|=pieces
     mount=recipe.get('panel_mount')
     if mount:
-        if recipe['colliders'] or recipe.get('experimental_prefit') or recipe.get('fitting_tacks') or placement:
+        if recipe['colliders'] or recipe.get('experimental_prefit') or recipe.get('fitting_tacks') or placement or pose:
             raise StudioError('Scoped panel mount requires free assembly without global prefit or tacks')
         if mount['max_displacement_cm']>recipe['limits']['max_displacement_cm']:
             raise StudioError('Scoped panel mount cannot exceed the existing displacement budget')
@@ -194,7 +199,7 @@ def validate_recipe(data, recipe):
                 raise StudioError('Scoped mount cannot select a seam outside its moving panels')
     preparation=recipe.get('interface_preparation')
     if preparation:
-        if recipe['colliders'] or recipe.get('fitting_tacks') or recipe.get('experimental_prefit') or placement:
+        if recipe['colliders'] or recipe.get('fitting_tacks') or recipe.get('experimental_prefit') or placement or pose:
             raise StudioError('Local interfaces require free assembly without global prefit or tacks')
         if preparation['max_displacement_cm']>recipe['limits']['max_displacement_cm']:
             raise StudioError('Local interface preparation cannot exceed the existing displacement budget')

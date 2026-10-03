@@ -45,6 +45,9 @@ def save_copy(project,session,old,payload,recipe,record):
         immutable_geometry_sha256=immutable,mesh_sha256=mesh_digest(obj),units='cm',
         checkpoint=project.state()['pending_blender_operation']['checkpoint'],object=obj.name,
         simulation='NOT_EXECUTED',visual_validation='NOT_EXECUTED',accepted=False)
+    from a3d.regional_cloth import regional_weights
+    record['regional_stiffness']={phase:regional_weights(payload,profile['regional_stiffness'])[1]
+        for phase,profile in recipe['phases'].items() if profile.get('regional_stiffness')}
     receipt_path=project.data/('blender/sewing/stage-'+uuid.uuid4().hex+'.json');atomic_json(receipt_path,record)
     obj['a3d_sewn_stage_receipt']=receipt_path.relative_to(project.root).as_posix()
     obj['a3d_sewn_stage_receipt_sha256']=sha(receipt_path)
@@ -122,6 +125,11 @@ def prepare_sewn_stage(project_root,component_id,recipe_path,stage):
         'source_result':source,'colliders':snapshots,'phase':previous.get('phase'),
         'resume_local_recipe_sha256':None,'contact_recovery':None}
     try:
+        if recipe.get('fitting_pose'):
+            if stage!='fitting':raise StudioError('Prepared common pose belongs to the separate fitting stage')
+            from blender.fitting_pose import apply_pose
+            temporary['a3d_sewing_mesh_sha256']=obj['a3d_sewing_mesh_sha256']
+            record['fitting_pose']=apply_pose(project,temporary,candidate,recipe,mesh_digest(obj))
         if recipe.get('fitting_placement'):
             if stage!='fitting':raise StudioError('Explicit fitting placement belongs to the separate fitting stage')
             from blender.donning import place_for_fitting

@@ -1,5 +1,29 @@
 # Historique
 
+## 0.6.5 — 2026-10-02
+
+- Diagnostic d'enfilage explicite pour un corps seul : enveloppe, collisions,
+  épaisseurs, pose et mesures homologues manquantes ; aucune déclaration de pose
+  inférée de la seule présence d'un corps identifié.
+- `prepare_fitting_envelope` produit un auxiliaire géométrique fermé depuis le
+  reçu natif d'un corps évalué, avec régions explicites, partition par os,
+  padding/voxel bornés, normales, couverture et épaisseurs vérifiés. Le corps
+  cible et la scène live sont conservés ; la silhouette anatomique reste à revoir.
+- `prepare_fitting_pose` mesure les cadres depuis les bords source nommés et
+  les os évalués. Le champ continu respecte les pins fixes et les seuils existants,
+  avec relaxation structurelle facultative bornée. L'artefact est lié au mesh,
+  à sa map et au corps exact, puis appliqué uniquement dans un stage checkpointé.
+- Profils de rigidité partagés et renforts par bord 2D dans chaque phase : groupes
+  natifs structural/shear/bending, maxima et poids réellement exécutés, remappage
+  local source, mutations et coefficients tronqués refusés. Recettes uniformes
+  compatibles ; aucune anisotropie chaîne/trame promise.
+- Documentation du rôle du board (intentions/hypothèses) et de Blender
+  (calibration et qualification), sans réapprobation du découpage inchangé.
+- Tests natifs et MCP officiel isolé ; les originaux consommateur sont préservés.
+  Le champ R21 passe ses contrôles structurels, mais son admission physique avec
+  l'enveloppe révèle un contact profond au haut du buste. Aucun fitting local/full
+  consommateur, drapé final ou résultat Unreal n'est déclaré réussi.
+
 ## 0.6.4 — 2026-10-02
 
 - Reprise vide via `read_homefile(use_empty=True, use_factory_startup=True)` :

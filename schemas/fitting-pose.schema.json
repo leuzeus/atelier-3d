@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "component_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "body_receipt": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "max_displacement_cm": {
+      "type": "number",
+      "minimum": 0.001,
+      "maximum": 100
+    },
+    "steps": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 32
+    },
+    "frames": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "moving_pieces": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "maxItems": 32
+          },
+          "origin_edges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "piece": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "edge": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "piece",
+                "edge"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "maxItems": 8
+          },
+          "axis_edges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "piece": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "edge": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "piece",
+                "edge"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "maxItems": 8
+          },
+          "transverse_edges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "piece": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "edge": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "piece",
+                "edge"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "maxItems": 8
+          },
+          "target_origin": {
+            "type": "object",
+            "properties": {
+              "rig": {
+                "type": "string",
+                "minLength": 1
+              },
+              "bone": {
+                "type": "string",
+                "minLength": 1
+              },
+              "endpoint": {
+                "enum": [
+                  "head_cm",
+                  "tail_cm"
+                ]
+              }
+            },
+            "required": [
+              "rig",
+              "bone",
+              "endpoint"
+            ],
+            "additionalProperties": false
+          },
+          "target_axis": {
+            "type": "object",
+            "properties": {
+              "rig": {
+                "type": "string",
+                "minLength": 1
+              },
+              "bone": {
+                "type": "string",
+                "minLength": 1
+              },
+              "endpoint": {
+                "enum": [
+                  "head_cm",
+                  "tail_cm"
+                ]
+              }
+            },
+            "required": [
+              "rig",
+              "bone",
+              "endpoint"
+            ],
+            "additionalProperties": false
+          },
+          "target_transverse_cm": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "feather_cm": {
+            "type": "number",
+            "minimum": 0.1,
+            "maximum": 100
+          },
+          "max_axis_length_difference_cm": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 20
+          }
+        },
+        "required": [
+          "id",
+          "source_ref",
+          "moving_pieces",
+          "origin_edges",
+          "axis_edges",
+          "transverse_edges",
+          "target_origin",
+          "target_axis",
+          "target_transverse_cm",
+          "feather_cm",
+          "max_axis_length_difference_cm"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 8
+    },
+    "strain_relaxation": {
+      "type": "object",
+      "properties": {
+        "passes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 240
+        },
+        "max_frame_residual_cm": {
+          "type": "number",
+          "minimum": 0.001,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "passes",
+        "max_frame_residual_cm"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "version",
+    "component_id",
+    "body_receipt",
+    "max_displacement_cm",
+    "steps",
+    "frames"
+  ],
+  "additionalProperties": false
+}

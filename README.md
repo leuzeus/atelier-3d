@@ -7,11 +7,21 @@ Plugin Codex pour préparer et produire des assets 3D à partir d'images de réf
 avec un choix de méthode par composant, des données de construction explicites et
 une validation humaine aux étapes déterminantes.
 
-**Version 0.6.4 — reprise compatible avec le MCP interactif et corps source explicite.** Le runtime et ses contrats sont testés.
+**Version 0.6.5 — préparations de fitting natives et rigidité par zone.** Le runtime et ses contrats sont testés.
 Le profil d'installation Windows est testé, avec découverte MCP et diagnostic
 compatibles avec le manifeste Codex. Une
 production complète sur un vrai vêtement ou un asset articulé reste à qualifier.
-Voir [les résultats et limites](VALIDATION.md) et la [release 0.6.4](https://github.com/leuzeus/atelier-3d/releases/tag/v0.6.4).
+Voir [les résultats et limites](VALIDATION.md) et la [release 0.6.5](https://github.com/leuzeus/atelier-3d/releases/tag/v0.6.5).
+
+
+La [préparation native du fitting](references/fitting-preparation.md) peut produire
+une enveloppe auxiliaire depuis la référence évaluée du corps et un champ de
+pose continu depuis les bords nommés des patrons et les os mesurés. Elle conserve
+FlatRest, les pins fixes et les seuils physiques. Les recettes peuvent décrire
+quelques profils de rigidité partagés et des renforts locaux : poids et maxima
+Blender exécutés sont enregistrés et vérifiés. Ces préparations ne constituent
+ni acceptation anatomique, ni simulation portée réussie, ni preuve visuelle.
+Le diagnostic d'enfilage précise désormais les manques même sans collider.
 
 La reprise vide utilise l'opérateur autorisé par le MCP officiel, sans
 réinitialiser les préférences ni perdre ses add-ons ou sa connexion. Le test

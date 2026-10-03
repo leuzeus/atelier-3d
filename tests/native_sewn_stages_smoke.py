@@ -48,6 +48,10 @@ recipe['colliders']=[]
 recipe['no_collision_reason']='Declared free sewing before fitting; visible body excluded';recipe['trial_pieces']=['front','sleeve-left']
 recipe['phases']['mount']['gravity_m_s2']=[0,0,0]
 recipe['phases']['mount']['frames']=32
+from tests.test_regional_cloth import configuration
+regional=configuration()
+regional['ceilings']={k:recipe['phases']['mount'][k.removesuffix('_max')] for k in regional['ceilings']}
+recipe['phases']['mount']['regional_stiffness']=regional
 atomic_json(project.root/'recipe.json',recipe)
 component=project.state()['components']['garment.coat']
 extracted=project.data/'reconstruction/extracted';extract_package(project.root/component['package']['path'],extracted)
@@ -58,6 +62,7 @@ obj=bpy.data.objects[constructed['object']];base=read_json(project.root/construc
 args={'component_id':'garment.coat','recipe_path':'recipe.json','phase':'mount','scope':'local','purpose':'assembly'}
 local=dispatch(str(project.root),'simulate_sewn',args)
 result_path=project.root/local['report'];result=read_json(result_path)
+assert result['mass']['regional_stiffness']['executed_groups']['bending']=='A3D.Stiffness.bending'
 assert result['executed']['collisions']['use_collision'] is False and result['executed']['collection']==[]
 transfer={'component_id':'garment.coat','recipe_path':'recipe.json','result_path':local['report'],'result_sha256':sha(result_path)}
 refused('apply_sewn_result',{**transfer,'result_sha256':'0'*64},'identity changed')
@@ -67,12 +72,15 @@ recipe['phases']['mount']['frames']-=1
 receipt=dispatch(str(project.root),'apply_sewn_result',transfer)
 new=bpy.data.objects[receipt['object']];payload=read_json(project.root/receipt['derived_mesh'])
 for key in ('rest_cm','faces','panels','seams','pins'):assert digest(payload[key])==digest(base[key]),key
+from a3d.regional_cloth import regional_weights
+assert receipt['regional_stiffness']['mount']['weights_sha256']==regional_weights(base,regional)[1]['weights_sha256']
 for i,p in zip(receipt['transferred_source_indices'],result['local_result_cm'],strict=True):assert payload['placed_cm'][i]==p
 archived=bpy.data.objects[constructed['object']]
 assert not archived.get('a3d_component_id') and archived.hide_get()
 refused('prepare_sewn_stage',{'component_id':'garment.coat','recipe_path':'recipe.json','stage':'fitting'},'identified mannequin')
 full=dispatch(str(project.root),'simulate_sewn',{**args,'scope':'full'})
 full_report=read_json(project.root/full['report'])
+assert full_report['mass']['regional_stiffness']['weights_sha256']==receipt['regional_stiffness']['mount']['weights_sha256']
 assert full_report['qualification']=='ASSEMBLY_PHYSICS_ONLY'
 assert full_report['executed']['collisions']['use_collision'] is False
 assert len(full_report['result_cm'])==len(base['rest_cm']) and set(full_report['source_vertex_indices'])==set(range(len(base['rest_cm'])))
@@ -137,6 +145,7 @@ bpy.ops.wm.open_mainfile(filepath=str(assembly_snapshot))
 bpy.ops.wm.save_as_mainfile(filepath=recovered_working)
 entry=dispatch(str(project.root),'prepare_sewn_stage',{'component_id':'garment.coat','recipe_path':'fit.json','stage':'fitting'})
 entry_payload=read_json(project.root/entry['derived_mesh'])
+assert entry['regional_stiffness']['mount']['weights_sha256']==receipt['regional_stiffness']['mount']['weights_sha256']
 assert max(math.dist(a,b) for a,b in zip(entry_payload['placed_cm'],full_report['result_cm'],strict=True))<1e-4
 fitting_args={**args,'recipe_path':'fit.json','purpose':'fitting'}
 fit_local=dispatch(str(project.root),'simulate_sewn',fitting_args)
