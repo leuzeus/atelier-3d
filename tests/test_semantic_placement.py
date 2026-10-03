@@ -20,6 +20,36 @@ def fixture():
 
 
 class SemanticPlacement(unittest.TestCase):
+    def test_real_front_back_cut_preserves_mirrors_and_never_fabricates_panels(self):
+        data,_,profile=fixture()
+        data={'pieces':{pid:data['pieces'][pid] for pid in ('front','back')}}
+        for point in data['pieces']['back']['vertices']:point[0]*=-1
+        semantics={pid:{'role':pid,'side':'left','layer':'outer'} for pid in data['pieces']}
+        before=digest([data,semantics,profile])
+        result=torso_volume_frames(data,semantics,profile)
+        self.assertEqual(set(result['panels']),{'front','back'})
+        self.assertEqual(result['groups'][0]['guide']['fabricated_source_panels'],[])
+        self.assertEqual(result['groups'][0]['guide']['sections'][0]['raw_source']['half_girth_cm'],8.)
+        front=result['panels']['front'];back=result['panels']['back']
+        for a,b in zip(front['arc_sections'],back['arc_sections']):
+            left=sample_curve(a['curve_cm'],a['arc_offset_cm']+front['u_direction']*4.)
+            right=sample_curve(b['curve_cm'],b['arc_offset_cm']+back['u_direction']*(-4.))
+            self.assertEqual(left,right)
+        self.assertEqual(digest([data,semantics,profile]),before)
+        self.assertEqual(result['simulation'],'NOT_EXECUTED')
+
+    def test_paired_cut_does_not_fill_a_real_front_opening_or_accept_shifted_back_center(self):
+        data,_,profile=fixture()
+        data={'pieces':{pid:data['pieces'][pid] for pid in ('front','back')}}
+        for point in data['pieces']['front']['vertices']:
+            if point[0]==0.:point[0]=1.
+        semantics={pid:{'role':pid,'side':'right','layer':'outer'} for pid in data['pieces']}
+        result=torso_volume_frames(data,semantics,profile)
+        section=result['panels']['front']['arc_sections'][0]
+        self.assertNotEqual(sample_curve(section['curve_cm'],1.),sample_curve(section['curve_cm'],0.))
+        for point in data['pieces']['back']['vertices']:point[0]+=1.
+        with self.assertRaises(StudioError):torso_volume_frames(data,semantics,profile)
+
     def test_uses_measured_profile_and_preserves_named_source_metric(self):
         data, semantics, profile = fixture(); before = digest([data, semantics, profile])
         result = torso_volume_frames(data, semantics, profile)

@@ -88,8 +88,12 @@ sans transfert d'approbation artistique à l'utilisateur.
 ## Placement et corrections en cours
 
 Le guide sémantique du torse réutilise `a3d.preform_volume.volume_frames`.
-Chaque côté d'une couche doit identifier les pièces approuvées d'ouverture,
-devant, côté et dos, avec les bords source requis. Le profil mesuré fournit le
+Chaque côté d'une couche peut identifier les pièces approuvées d'ouverture,
+devant, côté et dos, ou une paire réelle devant/dos. Le second cas conserve
+les ouvertures et les coordonnées miroir des patrons, sans créer de panneau
+de côté ou de bande d'ouverture fictifs. Les bords nommés du patron déterminent
+les sections et leur direction ; un centre dos ou un ourlet décalé est refusé.
+Le profil mesuré fournit le
 repère ; aucune coordonnée par vêtement n'est introduite. Les autres rôles sont
 signalés comme pièces encore à traiter. Les manches et poignets utilisent une
 direction anatomique et des guides développables dont la circonférence et la
@@ -147,3 +151,31 @@ après 38 images sur un plafond de 96. L'essai précédent limité à 12 images 
 conservé comme incomplet. Les limites de couture et de qualité sont inchangées.
 La reprise avec checkpoints, les mouvements du corps et le contrôleur complet
 des groupes restent à intégrer et à tester.
+
+## Reprise du développement sous Windows
+
+Le banc interactif utilise une instance Blender dédiée, un port local aléatoire
+différent de 9876, et son propre profil, cache et dossier temporaire. Le processus
+arrêté à la fin doit correspondre au bootstrap du banc ; aucune instance existante
+n'est sollicitée. Une copie identique de l'extension MCP sert seulement de
+dépendance locale d'essai et ne fait pas partie de la distribution du plugin.
+
+Les essais vérifient la protection native, plusieurs demandes après rechargement,
+le retour à l'état initial après erreur et la récupération du checkpoint. Une
+option `--catalog-selection` inspecte puis exporte une référence statique de
+chacun des deux mannequins, avec les empreintes source, dimensions réelles et
+l'invariance de la scène et de la base de données. Cela ne qualifie ni une
+enveloppe de collision, ni le drapé d'un vêtement sur le mannequin.
+
+Le bootstrap indique la racine et la version choisies, les fichiers des modules
+sélectionnés et leurs empreintes. Une réponse de préparation ou de transition
+peut être réduite si elle possède une référence à son reçu complet enregistré.
+Les états de simulation, fitting, comportement, couverture et revue demeurent
+explicites ; les tableaux par image et par sommet restent dans ce reçu.
+L'absence de reçu conserve la réponse complète.
+
+L'épuisement d'un budget reste `INCOMPLETE` dans les diagnostics et projections
+de qualification locale, sans autoriser un essai complet à partir d'un ancien
+succès. Le diagnostic distingue la dernière image réellement évaluée de l'image
+demandée. WSL est indisponible sur la machine d'essai Windows ; les contrôles Linux
+restent non exécutés pour ce candidat.

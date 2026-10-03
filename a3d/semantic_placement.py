@@ -7,7 +7,7 @@ reported before attempting placement; no guessed panel is substituted.
 import math
 
 from .core import StudioError, digest
-from .preform_volume import half_ellipse, volume_frames
+from .preform_volume import half_ellipse, volume_frames, paired_volume_frames
 from .anatomy_profile import unit
 from .contact_geometry import dot, cross
 
@@ -47,8 +47,11 @@ def torso_volume_frames(data, semantics, profile, upper_blend=0.):
                 -point[1]*basis['forward'][i]+point[2]*basis['up'][i] for i in range(3)]
 
     for (layer, side), mapping in sorted(groups.items()):
-        if set(mapping) != {'center', 'front', 'side', 'back'}:
+        paired=set(mapping)=={'front','back'}
+        if not paired and set(mapping) != {'center', 'front', 'side', 'back'}:
             raise StudioError('Torso semantic group is missing approved source roles: '+layer+' / '+side)
+        if paired and upper_blend:
+            raise StudioError('Paired torso shoulder shaping is not yet supported; preserve the approved cut')
         subset = {'pieces': {pid: data['pieces'][pid] for pid in mapping.values()}}
         maximum_v = max(p[1] for piece in subset['pieces'].values() for p in piece['vertices'])
         neck = landmarks['neck']['point_cm']
@@ -69,7 +72,21 @@ def torso_volume_frames(data, semantics, profile, upper_blend=0.):
                       'shoulders_cm': {str(sign): [landmarks['shoulder.'+name]['point_cm'][0],
                             -landmarks['shoulder.'+name]['point_cm'][1], landmarks['shoulder.'+name]['point_cm'][2]]
                             for sign, name in ((1, 'right'), (-1, 'left'))}}
-        panels, report = volume_frames(subset, [group], body_frame, upper_blend=upper_blend)
+        if paired:
+            group['source_edges']={}
+            for role in ('front','back'):
+                piece=subset['pieces'][mapping[role]]
+                declared=dict(semantics[mapping[role]].get('guide_edges',{}))
+                declared.setdefault('side','side');declared.setdefault('hem','hem')
+                if role=='back' and 'center' not in declared:
+                    candidates=[name for name in ('center','center-back') if name in piece['edges']]
+                    if len(candidates)!=1:
+                        raise StudioError('Paired torso needs one explicit named source back center')
+                    declared['center']=candidates[0]
+                group['source_edges'][role]=declared
+            panels,report=paired_volume_frames(subset,group,body_frame)
+        else:
+            panels, report = volume_frames(subset, [group], body_frame, upper_blend=upper_blend)
         for pid, frame in panels.items():
             for section in frame['arc_sections']:
                 section['curve_cm'] = [world(point) for point in section['curve_cm']]
