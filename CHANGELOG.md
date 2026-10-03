@@ -1,5 +1,29 @@
 # Historique
 
+## 0.6.4 — 2026-10-02
+
+- Reprise vide via `read_homefile(use_empty=True, use_factory_startup=True)` :
+  préférences, add-on officiel, timer persistant et connexion MCP conservés.
+  Le garde du MCP refusait `read_factory_settings` en 0.6.3.
+- Journal natif créé avant le changement de scène, avec identités source,
+  témoin et archive de session ; rollback automatique ou
+  `recover_clean_construction` si sa récupération a échoué. Aucun pending fictif.
+- `inspect_body_source` évalue les seuls meshes et dépendances déclarés dans
+  une scène temporaire. `prepare_body_reference` exporte leur pose figée avec
+  provenance, plages de sommets, dimensions et repères d'os mesurés.
+  Dépendances implicites, drivers à contexte arbitraire et géométrie de
+  construction refusés ; scène courante et état du projet inchangés.
+- `introduce_fitting_context` conserve les objets déjà présents dont les
+  identités sont vérifiées et importe uniquement les objets manquants.
+  Corps et collider peuvent ainsi provenir de sources exactes distinctes.
+- Qualification interactive isolée avec le garde officiel actif, erreurs
+  avant/après changement de scène, rollback échoué puis récupération native,
+  source/session/DB conservés et nouvelles requêtes MCP après rechargement.
+- Référence R21 sélectionnée : 28 meshes, rig et deux contrôles, pose évaluée
+  à l'image 1, hauteur 179,9932 cm. Géométrie mondiale et repères du rig identiques
+  à l'évaluation du fichier complet ; aucune ancienne robe importée.
+  Collider auxiliaire, repères homologues et fitting restent à qualifier.
+
 ## 0.6.3 — 2026-10-02
 
 - L'inspection de fit et la proposition de capacité retournent leurs mesures

@@ -1,5 +1,39 @@
 # Validation d’Atelier 3D
 
+## État de la version 0.6.4
+
+| Vérification | Résultat | Portée |
+| --- | --- | --- |
+| Suite Python Windows | PASS : 220 tests | Identités et contrats, source explicite, récupération et sessions remplacées |
+| Contrats PowerShell | PASS : 11 contrôles locaux | Inclut body-source, configuration locale ; CI portable sans configuration machine |
+| Reprise via MCP interactif officiel | PASS sur instance GUI isolée | Garde actif, factory_settings témoin refusé, préférences/add-on/timer/connexion conservés |
+| Erreurs avant/après changement de scène | PASS | Refus dirty/stale, source/témoin/archive/DB conservés, rollback automatique |
+| Échec du rollback et récupération | PASS | Journal ROLLBACK_REQUIRED, opération native dédiée, aucune fabrication de pending |
+| Source synthétique animée | PASS | Image explicitement évaluée, snapshot exact, ancien vêtement et dépendance implicite refusés |
+| Corps R21 choisi | PASS de provenance et d'évaluation | 28 meshes + 3 dépendances, image 1, hauteur 179,9932 cm ; ancien vêtement exclu |
+| Comparaison R21 sélectif/fichier complet | Géométrie mondiale exactement identique | Repères du rig également identiques ; l'original reste inchangé |
+| Reprise réelle isolée | Nouveau local/full PASS | Même package/board, coordonnées finales identiques au témoin ; pas de coupe modifiée |
+| Introduction native du corps R21 | PASS du transport / NOT_QUALIFIED du fitting | Référence exacte importée, enveloppe existante identifiée séparément, vêtement conservé |
+| Fitting, collider anatomique, repères homologues, visuel et Unreal | NOT_EXECUTED / NOT_QUALIFIED | Corps squelettique ajouré ; aucun repère ou collider inventé depuis la hauteur |
+
+Les tests d'intégration utilisent une instance Blender distincte, un port
+localhost distinct de 9876 et un profil privé. Les tests natifs autonomes restent
+des preuves séparées. Le test autonome de 0.6.3 ne couvrait pas le weak_sandbox
+du MCP interactif : son refus au consommateur était une erreur d'intégration,
+pas un échec du vêtement. Ce garde n'est pas désactivé pour qualifier 0.6.4.
+
+L'inspection CLI officielle du R21 avait expiré à 120 s. Le catalogue isolé
+prend 0,42 s, et l'ouverture isolée avec factory-startup/disable-autoexec 8,23 s.
+La cause précise du timeout sous le profil officiel reste non établie ; ces
+mesures ne permettent pas de l'attribuer à l'anatomie ou au fichier seul.
+La voie native sélective évite cet appel complet et préserve la scène ouverte.
+Voir [le corps source](references/body-source.md) et la
+[récupération de reprise](references/clean-construction-fitting.md).
+
+Les succès de fixtures ne sont pas transférés au projet consommateur.
+Sa scène .012 et son historique restent intacts. Aucune nouvelle construction,
+simulation, acceptation visuelle ou modification de coupe n'y a été exécutée.
+
 ## État de la version 0.6.3
 
 | Vérification | Résultat | Portée |

@@ -1,5 +1,6 @@
 """Admission for known Blender entrypoints, not a sandbox for arbitrary Python."""
 import ast
+from pathlib import Path
 from .core import ROOT, StudioError, inside, read_json, sha
 from .planning import require_board
 
@@ -24,10 +25,12 @@ def parse_code(code):
 
 def admit_operation(project, operation, arguments):
     state = project.state()
-    if operation not in ("prepare", "start_clean_construction", "introduce_fitting_context", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn", "apply_sewn_result", "prepare_sewn_stage"):
+    if operation not in ("prepare", "start_clean_construction", "recover_clean_construction", "inspect_body_source", "prepare_body_reference", "introduce_fitting_context", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn", "apply_sewn_result", "prepare_sewn_stage"):
         raise StudioError("Unknown guarded Blender operation")
     required = {"prepare": set(), "resume": set(), "inspect": set(),
         "start_clean_construction":{"working_sha256"},
+        "recover_clean_construction":{"recovery_path"},
+        "inspect_body_source":{"selection_path"},"prepare_body_reference":{"selection_path"},
         "introduce_fitting_context":{"component_id","recipe_path","fit_path","source_blend","source_sha256"},
         "frame_view": {"component_id", "object_name"},
         "inspect_sewing_failure": {"component_id", "attempt_dir"},
@@ -105,8 +108,34 @@ def admit_operation(project, operation, arguments):
         # Inspection must remain possible after a failure or invalidated board.
         # Live scene, object and provenance checks occur inside Blender.
         return
-    if operation not in ("inspect", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment"):
+    if operation not in ("inspect", "inspect_body_source", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment"):
         no_pending_operation(state)
+    if operation=='recover_clean_construction':
+        path=inside(project.root,arguments['recovery_path'])
+        if path.parent!=project.data/'blender' or not path.name.startswith('clean-recovery-'):
+            raise StudioError('Expected a native clean construction recovery receipt')
+        record=read_json(path)
+        if record.get('status')!='ROLLBACK_REQUIRED':raise StudioError('Clean construction does not require recovery')
+        previous=inside(project.root,record['previous_session'])
+        if sha(previous)!=record['previous_session_sha256']:raise StudioError('Clean recovery session archive changed')
+        old=read_json(previous)
+        source=Path(old['working']).resolve(strict=True)
+        if not source.is_relative_to(project.data/'blender') or str(source)!=record['source'] or sha(source)!=record['source_sha256']:
+            raise StudioError('Clean recovery source identity changed')
+        if sha(inside(project.root,record['witness']))!=record['source_sha256']:
+            raise StudioError('Clean recovery witness identity changed')
+        current=read_json(project.data/'blender/session.json')
+        candidate=inside(project.root,record['candidate'],False)
+        if current!=old and Path(current['working']).resolve()!=candidate:
+            raise StudioError('Another construction session supersedes this recovery')
+        return
+    if operation in ('inspect_body_source','prepare_body_reference'):
+        from .body_source import selection
+        selection(project,arguments['selection_path'])
+        if operation=='prepare_body_reference':
+            if state['stage']=='COMPLETE':raise StudioError('Completed project is immutable')
+            require_board(project,state)
+        return
     if operation in ("prepare", "resume", "inspect"):
         if state["stage"] == "COMPLETE" and operation != "inspect":
             raise StudioError("Completed project is immutable")
