@@ -32,6 +32,7 @@ def run(output,project=None):
     atomic_json(project.root/'envelope.json',envelope)
     proxy=dispatch(str(project.root),'prepare_fitting_envelope',{'envelope_path':'envelope.json'})
     assert proxy['nonmanifold_edges']==0 and proxy['body_coverage']['outside_vertices']==0
+    assert proxy['closed_shell_count']==1 and all(c['signed_volume_m3']>0 for c in proxy['closed_shells'])
     assert data_ids()==baseline and live_geometry()==before and sha(project.db)==db and sha(Path(bpy.data.filepath))==file
     # A connected strip (two source panels and seam partners), fixed neck pin,
     # preserved source rest, tiny bounded change of measured endpoint frame.

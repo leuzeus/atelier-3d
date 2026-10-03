@@ -37,6 +37,9 @@ tolérance, épaisseurs réellement assignées et limites natives. Elle écrit u
 couverture, source, pose et empreintes. L'enveloppe est
 `NOT_VALIDATED_GEOMETRIC_PROXY` : la couverture d'un squelette ne prouve pas la
 silhouette d'un corps habillé. Examiner ses pixels avant utilisation.
+Le reçu dénombre les composantes fermées et vérifie le volume positif de chacune.
+Des régions anatomiquement disjointes peuvent rester des shells séparés : ne pas
+les présenter comme une peau corporelle continue ni inventer une liaison sans source.
 
 Après le full libre courant, importer l'auxiliaire avec
 `introduce_fitting_context(component_id,recipe_path,fit_path,source_blend,source_sha256)`.

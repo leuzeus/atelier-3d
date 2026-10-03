@@ -66,7 +66,21 @@ def prepare_fitting_envelope(project_root,envelope_path):
         try:
             bm.from_mesh(union);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.normal_update()
             nonmanifold=sum(not e.is_manifold for e in bm.edges);volume=bm.calc_volume(signed=True)
+            remaining=set(bm.faces);components=[]
+            while remaining:
+                seed=remaining.pop();component={seed};queue=[seed]
+                while queue:
+                    face=queue.pop()
+                    for edge in face.edges:
+                        for adjacent in edge.link_faces:
+                            if adjacent in remaining:remaining.remove(adjacent);component.add(adjacent);queue.append(adjacent)
+                signed=0.
+                for face in component:
+                    a=face.verts[0].co
+                    for b,c in zip(face.verts[1:-1],face.verts[2:]):signed+=a.dot(b.co.cross(c.co))/6
+                components.append({'faces':len(component),'signed_volume_m3':signed})
             if nonmanifold or volume<=0:raise StudioError('Auxiliary envelope must be closed with outward normals')
+            if any(c['signed_volume_m3']<=0 for c in components):raise StudioError('Every auxiliary shell must have outward normals and positive volume')
             bm.to_mesh(union)
         finally:bm.free()
         union.update();v,f=object_mesh(proxy);tree=BVHTree.FromPolygons([Vector(p) for p in v],f)
@@ -87,6 +101,7 @@ def prepare_fitting_envelope(project_root,envelope_path):
         output={'status':'GEOMETRIC_ENVELOPE_PREPARED','object':proxy.name,'geometry_sha256':mesh_digest(proxy),
             'body_receipt':spec['body_receipt'],'target_geometry_sha256':body['geometry_sha256'],'source_sha256':body['source_sha256'],
             'frame':body['frame'],'spec_sha256':sha(project.root/envelope_path),'regions':regions,'nonmanifold_edges':nonmanifold,
+            'closed_shell_count':len(components),'closed_shells':components,'continuous_body_skin':'NOT_CLAIMED',
             'signed_volume_m3':volume,'body_coverage':{'max_outside_cm':max(signed),'outside_vertices':sum(x>spec['max_body_outside_cm'] for x in signed)},
             'bounds_cm':[[min(p[k] for p in v)*100 for k in range(3)],[max(p[k] for p in v)*100 for k in range(3)]],
             'collider':collider,'artifact':{'path':out.relative_to(project.root).as_posix(),'sha256':sha(out)},
