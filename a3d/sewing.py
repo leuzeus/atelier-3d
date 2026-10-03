@@ -165,9 +165,21 @@ def validate_recipe(data, recipe):
             if edge['piece'] not in active or edge['edge'] not in data['pieces'][edge['piece']]['edges']:
                 raise StudioError('Experimental prefit fixed edge must exist on an active source panel')
     recovery=recipe.get('contact_recovery')
+    placement=recipe.get('fitting_placement')
+    if placement:
+        if not recipe.get('fitting_plan') or not any(c['role']=='mannequin' for c in recipe['colliders']):
+            raise StudioError('Explicit fitting placement requires a measurement plan and mannequin')
+        if placement['max_displacement_cm']>recipe['limits']['max_displacement_cm']:
+            raise StudioError('Explicit fitting placement cannot exceed the existing displacement budget')
+        selected=set()
+        for group in placement['groups']:
+            pieces=set(group['pieces'])
+            if not pieces<=data['pieces'].keys() or selected & pieces:
+                raise StudioError('Fitting placement groups must use disjoint existing source panels')
+            selected|=pieces
     mount=recipe.get('panel_mount')
     if mount:
-        if recipe['colliders'] or recipe.get('experimental_prefit') or recipe.get('fitting_tacks'):
+        if recipe['colliders'] or recipe.get('experimental_prefit') or recipe.get('fitting_tacks') or placement:
             raise StudioError('Scoped panel mount requires free assembly without global prefit or tacks')
         if mount['max_displacement_cm']>recipe['limits']['max_displacement_cm']:
             raise StudioError('Scoped panel mount cannot exceed the existing displacement budget')
@@ -182,7 +194,7 @@ def validate_recipe(data, recipe):
                 raise StudioError('Scoped mount cannot select a seam outside its moving panels')
     preparation=recipe.get('interface_preparation')
     if preparation:
-        if recipe['colliders'] or recipe.get('fitting_tacks') or recipe.get('experimental_prefit'):
+        if recipe['colliders'] or recipe.get('fitting_tacks') or recipe.get('experimental_prefit') or placement:
             raise StudioError('Local interfaces require free assembly without global prefit or tacks')
         if preparation['max_displacement_cm']>recipe['limits']['max_displacement_cm']:
             raise StudioError('Local interface preparation cannot exceed the existing displacement budget')

@@ -87,6 +87,34 @@ class FittingTests(unittest.TestCase):
 
 
 class FittingAdmissionTests(Case):
+    def test_clean_start_requires_exact_identity_and_no_pending(self):
+        project=ready_project(self.root,True)
+        admit_operation(project,'start_clean_construction',{'working_sha256':'a'*64})
+        for value in ('invalid',True):
+            with self.assertRaisesRegex(StudioError,'SHA-256'):
+                admit_operation(project,'start_clean_construction',{'working_sha256':value})
+        with project.transaction() as db:
+            state=project.state(db);state['pending_blender_operation']={'operation':'garment','status':'failed'}
+            project.save(db,state,'test-pending',{})
+        with self.assertRaises(StudioError):admit_operation(project,'start_clean_construction',{'working_sha256':'a'*64})
+
+    def test_explicit_pose_group_contract_and_budget(self):
+        data,recipe,_=fitting_sources()
+        recipe['fitting_plan']={'path':'plan.json','sha256':'a'*64}
+        recipe['colliders']=[{'object':'body','geometry_sha256':'a'*64,'dimensions_cm':[1,1,1],
+            'outer_thickness_cm':.1,'inner_thickness_cm':.1,'tolerance_cm':.01,'role':'mannequin'}]
+        group={'pieces':['front'],'source_indices':[0,1,2],'target_indices':[0,1,2],
+            'labels':['shoulder','elbow','wrist'],'landmark_status':'validated','source_ref':'explicit test frame','tolerance_cm':.01}
+        recipe['fitting_placement']={'max_displacement_cm':2,'groups':[group]}
+        validate_recipe(data,recipe)
+        for mutate in ('duplicate','missing','budget','assumed'):
+            bad=copy.deepcopy(recipe)
+            if mutate=='duplicate':bad['fitting_placement']['groups'].append(copy.deepcopy(group))
+            if mutate=='missing':bad['fitting_placement']['groups'][0]['pieces']=['unknown']
+            if mutate=='budget':bad['fitting_placement']['max_displacement_cm']=recipe['limits']['max_displacement_cm']+1
+            if mutate=='assumed':bad['fitting_placement']['groups'][0]['landmark_status']='assumed'
+            with self.subTest(mutate=mutate),self.assertRaises(StudioError):validate_recipe(data,bad)
+
     def test_readonly_fitting_admission_and_plan_hash_changes(self):
         project=ready_project(self.root,True);_,recipe,plan=fitting_sources()
         atomic_json(project.root/'recipe.json',recipe);atomic_json(project.root/'fit.json',plan)

@@ -122,6 +122,10 @@ def prepare_sewn_stage(project_root,component_id,recipe_path,stage):
         'source_result':source,'colliders':snapshots,'phase':previous.get('phase'),
         'resume_local_recipe_sha256':None,'contact_recovery':None}
     try:
+        if recipe.get('fitting_placement'):
+            if stage!='fitting':raise StudioError('Explicit fitting placement belongs to the separate fitting stage')
+            from blender.donning import place_for_fitting
+            record['fitting_placement']=place_for_fitting(project,temporary,candidate,recipe)
         if recipe.get('panel_mount'):
             if stage!='assembly':raise StudioError('Scoped panel mount belongs to free assembly')
             from blender.panel_mount import mount_panels
@@ -141,7 +145,13 @@ def prepare_sewn_stage(project_root,component_id,recipe_path,stage):
             record['initial_error']=str(initial);record['initial_contacts']=getattr(initial,'initial_contacts',[])
             recovery=recipe.get('contact_recovery')
             if stage!='fitting' or not recovery or not record['initial_contacts']:raise
-            coords=copy.deepcopy(before)
+            from blender.sewing import penetration_cm
+            depth=penetration_cm(candidate['placed_cm'],trees)
+            record['contact_recovery']={'status':'REJECTED','initial_depth_cm':depth,
+                'max_local_depth_cm':0.5,'simulation':'NOT_EXECUTED'}
+            if depth>0.5:
+                raise StudioError('Deep contact requires explicit garment/body pose and donning; local contact recovery is limited to 0.5 cm depth') from initial
+            recovery_start=copy.deepcopy(candidate['placed_cm']);coords=copy.deepcopy(recovery_start)
             for attempt in range(recovery['max_passes']):
                 for i,value in enumerate(coords):
                     if payload['pins'].get(str(i),0.)>=1.:continue
@@ -151,15 +161,18 @@ def prepare_sewn_stage(project_root,component_id,recipe_path,stage):
                         if hit is not None and (p-hit).dot(normal)*100<recovery['clearance_cm']:
                             p=hit+normal*(recovery['clearance_cm']/100)
                     coords[i]=[x*100 for x in p]
-                movement=max(distance(a,b) for a,b in zip(before,coords,strict=True))
+                movement=max(distance(a,b) for a,b in zip(recovery_start,coords,strict=True))
                 if movement>recovery['max_displacement_cm']:raise StudioError('Contact recovery exceeded its declared displacement budget')
+                if max(distance(a,b) for a,b in zip(before,coords,strict=True))>recipe['limits']['max_displacement_cm']:
+                    raise StudioError('Combined fitting placement/contact correction exceeded the existing displacement budget')
                 commit_positions(temporary,coords)
                 try:context,_,_=preflight(temporary,candidate,recipe)
                 except StudioError as error:
                     if getattr(error,'initial_contacts',[]) and attempt+1<recovery['max_passes']:continue
                     raise
                 candidate['placed_cm']=coords
-                record['contact_recovery']={**recovery,'max_displacement_cm_measured':movement,'quality':context['quality']}
+                record['contact_recovery']={**recovery,'initial_depth_cm':depth,'max_local_depth_cm':0.5,
+                    'max_displacement_cm_measured':movement,'quality':context['quality']}
                 break
         candidate['placed_cm']=[[x*100 for x in p] for p in object_mesh(temporary)[0]]
         if stage=='fitting':

@@ -48,13 +48,11 @@ def placement_report(obj, payload, recipe, context, trees, project_root):
     return report
 
 
-def inspect_sewing_placement(project_root, component_id, recipe_path):
-    from blender.operations import working
-    from blender.sewing import managed_inputs, structural_inputs, context_colliders, penetration_cm
+def measurement_context(obj,payload,recipe):
+    """Strict structure/context identity, independent geometric measurements."""
+    from blender.sewing import structural_inputs, context_colliders, penetration_cm
     from a3d.sewing import mesh_quality
     from a3d.garment_rejections import seam_directions
-    project, _ = working(project_root)
-    obj, payload, recipe = managed_inputs(project, component_id, recipe_path,check_placement=False)
     if any(m.type == 'CLOTH' for m in obj.modifiers):
         raise StudioError('Inspect initial placement before Cloth; restore the checkpoint after a failed simulation')
     coords,faces=structural_inputs(obj,payload,recipe)
@@ -70,4 +68,13 @@ def inspect_sewing_placement(project_root, component_id, recipe_path):
     context={'quality':quality,'colliders':snapshots,'max_penetration_cm':penetration,
         'status':'REJECTED' if errors else 'PASS','errors':errors,
         'qualification':'MEASUREMENTS_ONLY','accepted':False}
-    return placement_report(obj, payload, recipe, context, trees, project.root)
+    return context,trees
+
+
+def inspect_sewing_placement(project_root, component_id, recipe_path):
+    from blender.operations import working
+    from blender.sewing import managed_inputs
+    project,_=working(project_root)
+    obj,payload,recipe=managed_inputs(project,component_id,recipe_path,check_placement=False)
+    context,trees=measurement_context(obj,payload,recipe)
+    return placement_report(obj,payload,recipe,context,trees,project.root)

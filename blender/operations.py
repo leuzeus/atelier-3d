@@ -210,6 +210,7 @@ def garment(project_root, package_dir, recipe_path=None, rebuild=False, migrate_
         payload = build_mesh(data, recipe)
         payload.update(package_sha256=component["package"]["sha256"],
             source_garment=(data_dir / "garment.json").relative_to(project.root).as_posix())
+        if rec.get('construction_id'):payload['construction_id']=rec['construction_id']
         obj = make_object(payload, "A3D." + data["component_id"])
         obj["a3d_component_id"] = data["component_id"]
         obj["a3d_package_sha256"] = component["package"]["sha256"]
@@ -306,13 +307,15 @@ def _perform(project_root, operation, arguments):
         from blender.viewport import frame_view
         from blender.placement import inspect_sewing_placement
         from blender.fitting import inspect_garment_fit, propose_pattern_adjustment
+        from blender.clean_construction import start_clean_construction,introduce_fitting_context
         from a3d.sewing_diagnostics import inspect_failure
         from a3d.garment_rejections import inspect_rejection
         if operation == 'inspect_garment_failure':
             return inspect_rejection(Project(project_root), **arguments)
         if operation == 'inspect_sewing_failure':
             return inspect_failure(Project(project_root), **arguments)
-        return {"prepare": prepare, "resume": resume, "inspect": inspect, "frame_view": frame_view, "verify_legacy_import": verify_legacy_import,
+        return {"prepare": prepare, "start_clean_construction":start_clean_construction,
+            "introduce_fitting_context":introduce_fitting_context,"resume": resume, "inspect": inspect, "frame_view": frame_view, "verify_legacy_import": verify_legacy_import,
             "garment": garment, "assemble": assemble,
             "inspect_sewing_placement": inspect_sewing_placement,
             "inspect_garment_fit": inspect_garment_fit, "propose_pattern_adjustment": propose_pattern_adjustment,
@@ -408,7 +411,7 @@ def dispatch(project_root, operation, arguments):
     admit_operation(project, operation, arguments)
     if operation == "restore_checkpoint":
         return restore_checkpoint(project_root)
-    if operation in ("prepare", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "verify_legacy_import"):
+    if operation in ("prepare", "start_clean_construction", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "verify_legacy_import"):
         return _perform(project_root, operation, arguments)
     import bpy
     saved = checkpoint(project_root)

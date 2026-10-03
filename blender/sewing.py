@@ -173,6 +173,7 @@ def make_object(payload, name):
     group=obj.vertex_groups.new(name="A3D.Pins")
     for i,w in payload["pins"].items():group.add([int(i)],w,"REPLACE")
     obj["a3d_role"]="simulation"
+    if payload.get('construction_id'):obj['a3d_construction_id']=payload['construction_id']
     if payload.get('fitting_tacks'):
         import json
         obj['a3d_fitting_tacks']=json.dumps(payload['fitting_tacks'],sort_keys=True)
@@ -248,6 +249,8 @@ def structural_inputs(obj,payload,recipe):
     """Identity/rest/topology/pins checks remain mandatory even for diagnostics."""
     import bpy
     from mathutils import Matrix
+    if payload.get('construction_id') and obj.get('a3d_construction_id')!=payload['construction_id']:
+        raise StudioError('Clean construction identity changed')
     if mesh_recipe_digest(recipe)!=payload["recipe_mesh_sha256"]:
         raise StudioError("Meshing, seams, pins or placement changed; rebuild a derived toile without changing the approved package")
     if any(abs(obj.matrix_world[i][j]-Matrix.Identity(4)[i][j])>1e-7 for i in range(4) for j in range(4)):
@@ -615,8 +618,12 @@ def managed_inputs(project,component_id,recipe_path,check_placement=True):
 
 def trial_binding(obj,payload,recipe,phase,context):
     import bpy
-    return digest({'recipe':recipe,'phase':phase,'mesh':mesh_digest(obj),'map':obj['a3d_sewing_mesh_sha256'],
-        'blender':bpy.app.version_string,'colliders':context['colliders'],'fit_binding':context.get('fit_binding')})
+    binding={'recipe':recipe,'phase':phase,'mesh':mesh_digest(obj),'map':obj['a3d_sewing_mesh_sha256'],
+        'blender':bpy.app.version_string,'colliders':context['colliders'],'fit_binding':context.get('fit_binding')}
+    if payload.get('construction_id'):
+        if obj.get('a3d_construction_id')!=payload['construction_id']:raise StudioError('Clean construction identity changed')
+        binding['construction_id']=payload['construction_id']
+    return digest(binding)
 
 
 def simulate_sewn(project_root,component_id,recipe_path,phase,scope,purpose='fitting'):
