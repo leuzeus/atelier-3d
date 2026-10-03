@@ -1,7 +1,7 @@
 import copy
 import unittest
 from a3d.core import StudioError, digest
-from a3d.semantic_placement import torso_volume_frames, limb_volume_frames
+from a3d.semantic_placement import torso_volume_frames, limb_volume_frames, belt_volume_frames
 from a3d.preform_volume import sample_curve
 from tests.test_preform_volume import source_fixture
 
@@ -20,6 +20,28 @@ def fixture():
 
 
 class SemanticPlacement(unittest.TestCase):
+    def test_open_belt_guide_preserves_material_length_height_and_closure_type(self):
+        import math
+        _,_,profile=fixture()
+        profile['landmarks']['waist']={'point_cm':[0.,0.,80.],'girth_cm':70.,
+            'section':{'bounds_xy_cm':[[-15.,-10.],[15.,10.]]}}
+        data={'pieces':{'belt':{'vertices':[[4.,2.],[100.,2.],[100.,8.],[4.,8.]]}},
+              'seams':[{'id':'ends','kind':'closure'}]}
+        semantics={'belt':{'role':'belt','longitudinal_uv_axis':'u'}}
+        before=digest([data,semantics,profile]);result=belt_volume_frames(data,semantics,profile)
+        sections=result['panels']['belt']['arc_sections']
+        compiled_length=sum(math.dist(a,b) for a,b in zip(sections[0]['curve_cm'],sections[0]['curve_cm'][1:]))
+        self.assertAlmostEqual(compiled_length,96.5)
+        self.assertGreater(math.dist(sample_curve(sections[0]['curve_cm'],0.),
+                                     sample_curve(sections[0]['curve_cm'],96.)),.4)
+        for material in (0.,20.,60.,96.):
+            self.assertAlmostEqual(math.dist(sample_curve(sections[0]['curve_cm'],material),
+                                            sample_curve(sections[1]['curve_cm'],material)),6.)
+        self.assertEqual(result['evidence'][0]['closure'],'NOT_EXECUTED')
+        self.assertEqual(digest([data,semantics,profile]),before)
+        semantics['belt']['longitudinal_uv_axis']='v'
+        with self.assertRaises(StudioError):belt_volume_frames(data,semantics,profile)
+
     def test_real_front_back_cut_preserves_mirrors_and_never_fabricates_panels(self):
         data,_,profile=fixture()
         data={'pieces':{pid:data['pieces'][pid] for pid in ('front','back')}}

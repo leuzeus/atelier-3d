@@ -158,3 +158,55 @@ def limb_volume_frames(data, semantics, profile):
             'source_sha256': digest(data), 'semantics_sha256': digest(semantics),
             'profile_cache_key': profile['cache_key'], 'source_mutated': False,
             'source_uv_scaled': False, 'qualification': 'NONE', 'simulation': 'NOT_EXECUTED'}
+
+
+def belt_volume_frames(data,semantics,profile,opening_clearance_cm=.5):
+    """Open waist guides with the source material length, preserving closures.
+
+    The extra arc is empty space between the ends, not extra source material.
+    It avoids assigning coincident ends before a declared closure is evaluated.
+    No buckle, closed seam, body fit or collider is invented by this guide.
+    """
+    if (profile.get('status')!='PROFILE_MEASURED' or profile.get('segmentation')!='EXPLICIT_SOURCE'
+            or not profile.get('cache_key') or set(semantics)!=set(data['pieces'])):
+        raise StudioError('Belt guides require a segmented body profile and exact source semantic coverage')
+    if (type(opening_clearance_cm) not in (int,float) or not math.isfinite(opening_clearance_cm)
+            or not 0<opening_clearance_cm<=5.):
+        raise StudioError('Belt opening clearance must be finite, positive and at most 5 cm')
+    waist=profile['landmarks']['waist'];low,high=waist['section']['bounds_xy_cm']
+    width,depth=high[0]-low[0],high[1]-low[1]
+    if min(width,depth)<=0:raise StudioError('Measured waist has no usable transverse frame')
+    basis=profile['frame'];panels={};pending=[];evidence=[]
+    def world(point):
+        return [basis['origin_cm'][i]+point[0]*basis['right'][i]-point[1]*basis['forward'][i]
+                +point[2]*basis['up'][i] for i in range(3)]
+    for pid,row in sorted(semantics.items()):
+        if row.get('role')!='belt':pending.append(pid);continue
+        if row.get('longitudinal_uv_axis')!='u':
+            raise StudioError('Belt material direction must be explicitly declared along source u: '+pid)
+        vertices=data['pieces'][pid]['vertices']
+        if not vertices or any(len(p)!=2 or any(not math.isfinite(x) for x in p) for p in vertices):
+            raise StudioError('Belt source requires finite metric UV coordinates')
+        lo=[min(p[i] for p in vertices) for i in (0,1)]
+        hi=[max(p[i] for p in vertices) for i in (0,1)]
+        length,height=hi[0]-lo[0],hi[1]-lo[1]
+        if min(length,height)<=0 or opening_clearance_cm>=length:
+            raise StudioError('Belt source or opening is outside the supported longitudinal domain')
+        center=[waist['point_cm'][0],-waist['point_cm'][1]];sections=[]
+        for v in (lo[1],hi[1]):
+            z=waist['point_cm'][2]+v-(lo[1]+hi[1])/2
+            half=(length+opening_clearance_cm)/2
+            curve=half_ellipse(half,width/depth,center,z,1)
+            curve+=list(reversed(half_ellipse(half,width/depth,center,z,-1)))[1:]
+            sections.append({'v_cm':v,'arc_offset_cm':-lo[0],'curve_cm':[world(p) for p in curve]})
+        panels[pid]={'source_ref':'measured-body-profile:'+profile['cache_key']+'; source-role:'+pid,
+                     'arc_sections':sections,'u_direction':1}
+        evidence.append({'piece':pid,'source_material_length_cm':length,'source_height_cm':height,
+                         'measured_waist_girth_cm':waist['girth_cm'],
+                         'empty_guide_arc_cm':opening_clearance_cm,'closure':'NOT_EXECUTED',
+                         'rigid_buckle':'NOT_CREATED','contact_assessment':'REQUIRED'})
+    return {'status':'PARTIAL_GUIDES' if pending else 'BELT_GUIDES_PREPARED','panels':panels,
+            'pending_pieces':pending,'evidence':evidence,'source_sha256':digest(data),
+            'semantics_sha256':digest(semantics),'profile_cache_key':profile['cache_key'],
+            'source_uv_scaled':False,'source_mutated':False,'simulation':'NOT_EXECUTED',
+            'fitting':'NOT_EXECUTED','qualification':'NONE'}
