@@ -135,3 +135,5 @@ Après un placement admissible, qualifier un nouveau local/full de fitting.
 Le fitting réel, la stabilité longue, les UV/matériaux, rig, LODs, Unreal et
 acceptation humaine restent des étapes séparées. Aucun PASS de fixture n'est
 importé comme qualification du projet consommateur.
+
+Voir [les préparations natives de fitting et de rigidité régionale](fitting-preparation.md) pour 0.6.5.

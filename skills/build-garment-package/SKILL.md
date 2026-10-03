@@ -16,3 +16,15 @@ Le board de préparation est construit à partir des images de référence origi
 Pour le board à valider, appliquer le [contrat des trois volets](../../references/fabrication-board.md). La vue éclatée du volet 2 est générée avec Codex Image intégré à partir des originaux et de la demande retournée par studio_prepare_exploded_view ; conserver la sortie réelle via studio_register_exploded_view, puis placer les repères sur les pièces visibles. Le compositeur ajoute leurs noms et caractéristiques exacts. Le volet 3 utilise les contours du package avec coupe, couture, plis/milieu, droit-fil et crans appariés à une échelle commune. Mesurer les proportions contre les images sources, ouvrir le résultat, puis attendre l'approbation humaine du découpage. Une vue éclatée indisponible ou erronée ne doit pas être remplacée discrètement par un autre backend.
 
 Pour PATTERN_SEWN, suivre [la recette native de toile](../../references/sewn-toile.md) après approbation du board : contours source conservés, maillage dérivé, mannequin auxiliaire vérifié, essais gravité/couture/contact puis sous-ensemble local, simulation complète bornée et consolidation des seules coutures permanentes. Préparer les données techniques pour l’utilisateur ; ne pas lui imposer un nouveau formulaire ni faire réapprouver un board inchangé pour ajuster la physique. Après deux échecs complets, diagnostiquer le petit cas et refaire l’essai local. Examiner les rendus avant toute conclusion artistique.
+
+
+Pour les vêtements, suivre [les préparations de fitting et profils régionaux](../../references/fitting-preparation.md).
+Le board décrit l'intention de matière/renfort et de plis par patron depuis les
+références originales ; quelques profils partagés restent des hypothèses.
+Calibrer dans Blender après pose commune qualifiée, sans coefficient arbitraire
+par panneau ni chaîne/trame indépendante promise par un backend qui ne la simule
+pas. Préparer les données techniques sans formulaire utilisateur. Une modification
+de recette physique requalifie ses preuves techniques ; elle ne réclame pas de
+nouvelle approbation d'un découpage inchangé. Les opérations natives
+`prepare_fitting_envelope` et `prepare_fitting_pose` préservent la scène live ;
+la mutation de stage et le local/full gardent leurs admissions et checkpoints.
