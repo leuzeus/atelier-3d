@@ -1,35 +1,44 @@
-# Raffinement CDT au voisinage des bords protégés
+# Raffinement des bords protégés : expérimentation V4 rejetée et restauration
 
-La préparation régulière conserve tous les arrêts physiques requis par les deux bords homologues d’une couture. Deux coins source distincts peuvent donc produire un intervalle court sur le partenaire. Le raffinement ajoute des sommets dérivés à l’intérieur du patron ; il ne supprime, ne rapproche et ne déplace aucun arrêt de contour.
+**Statut : régression V4 corrigée par restauration de la trajectoire V3. La qualité régulière de 15° reste non atteinte sur le manteau réel.**
 
-## Cause mesurée et correction
+Les deux vrais coins portés par les bords homologues restent distincts. Aucun arrêt source n’est supprimé, rapproché, déplacé ou fusionné. Le manteau, la variante de manches acceptée, le mannequin et les patrons conservent leurs identités et leurs décisions.
 
-L’investigation de la source 53 a observé un intervalle matériel de `0,010898330561834733 cm` sur le devant gauche. Ses extrémités portent deux vrais coins de partenaires distincts. Sur la face incidente 2607, le candidat équilatéral calculé depuis cet intervalle se trouve dans le patron et dans la face. Sa distance au bord est `0,009438231125385613 cm`, supérieure à la séparation déjà requise de `0,0021796661123669466 cm`.
+## Résultat natif qui invalide V4
 
-La règle précédente remplaçait ce candidat par un circoncentre dès que celui-ci appartenait au patron complet. Le circoncentre de cette face était pourtant extérieur à la face incidente. Le petit triangle formé avec le bord court mesurait alors `13,947824987171709°`, contre environ `60°` pour la proposition locale. Ces deux mesures décrivent des propositions géométriques isolées ; elles ne prédisent pas le résultat du CDT et de son conditionnement.
+La règle expérimentale V4 donnait la priorité à un apex local lorsque le plus court côté appartenait au contour. Elle excluait aussi les circoncentres extérieurs à leur face incidente, même lorsqu’ils étaient dans le patron complet. Cette restriction concernait toutes les faces de ce type, au-delà du seul petit intervalle étudié sur le devant.
 
-Preuve de diagnostic conservée : [rapport de la source 53](G:/projets/atelier-3d/work/garment-automation-v1/program-native-full-source-quality-investigation-v1/report.json), SHA-256 `f9b2016f3d0e36fd39c23523011058bb53519ee3f80c53e6df76f28f3067933d`.
+Sur la variante acceptée, les premiers candidats conditionnés des manches sont identiques entre V3 et V4. Les deux stratégies ajoutent sept points à leur première passe, puis leurs trajectoires divergent :
 
-`blender/sewing.py` calcule désormais au plus trois propositions par face refusée :
+| Manche | Candidat initial | Première passe V3 | Première passe V4 | Meilleur V3 conservé |
+|---|---:|---:|---:|---:|
+| Gauche | 1,490443406° | 2,968378532° | 1,046645922° | 4,061236942° |
+| Droite | 1,577553382° | 3,144790262° | 1,062032945° | 4,057463148° |
 
-1. Lorsque le plus court côté est un segment du contour contraint, l’apex équilatéral tourné vers l’intérieur de la face est essayé en premier.
-2. Le circoncentre n’est proposé que s’il appartient à sa face incidente. Pour un côté non contraint, il garde la priorité lorsqu’il est admissible.
-3. Le centroïde de la face constitue la dernière proposition.
+Le retour au meilleur candidat fonctionne : V4 refuse la dégradation et conserve son candidat initial. Cette conservation laisse toutefois la variante complète sous le seuil de construction de 2°. Elle reste également très loin du critère régulier de 15°. V3 dépassait le seuil de construction de 2° sur ces manches, mais ne satisfaisait pas le critère régulier de 15° ; sa restauration ne constitue donc aucune admission textile ou de fitting.
 
-Toutes les propositions sont calculées depuis la géométrie matérielle courante. Dans le parcours régulier, les coordonnées exactes des arrêts source ont déjà été restaurées. Le calcul du circoncentre utilise un repère translaté à une extrémité du côté court afin de réduire les soustractions de carrés de grandes coordonnées absolues.
+La cause ciblée est conservée dans le [rapport de régression](G:/projets/atelier-3d/work/garment-automation-v1/program-protected-boundary-native-failure-investigation-v1/cause-report.json), SHA-256 `3e7c2449c1b9312a47646137ce3059a44936668220036de43b759f11c97fc1e8`. Les payloads, sources gelées et historiques natifs V3/V4 restent séparés et conservés. Le rapport ne remplace pas une revue globale de ces payloads.
 
-La proposition est convertie en vecteur Blender, puis ses coordonnées représentables sont de nouveau contrôlées dans la face et dans le patron. Une proposition en double précision située dans la face peut sortir de celle-ci après conversion en float32 ; ce cas est refusé avant transmission au CDT. Au plus une proposition admissible est ajoutée pour une face pendant une passe.
+## Pourquoi le petit triangle à 60° ne suffisait pas
 
-## Contrôles et budgets conservés
+L’intervalle du devant étudié mesure `0,010898330561834733 cm`. Son apex équilatéral peut appartenir au patron et à la face incidente, tout en respectant la séparation existante. Le triangle formé directement avec le petit bord approche 60°.
 
-La séparation reste `max(min_edge_cm, 0,2 × longueur_du_côté_court)`. Elle s’applique aux points déjà présents, aux insertions de la passe et au contour. Une proposition trop proche est refusée ; aucun espacement n’a été diminué et aucun point existant n’est déplacé pour lui faire une place.
+Les deux autres triangles d’une subdivision de la face peuvent pourtant se dégrader. Pour le témoin matériel 2607, l’angle minimal des trois triangles induits descend à environ `2,395018°`, contre `6,973912°` pour la face avant subdivision. Il s’agit d’un calcul géométrique pur, qui ne prédit pas la topologie finale du CDT global.
 
-Le nombre de passes, le nombre de sommets ajoutés et le budget total de sommets restent ceux de la recette existante. Les propositions supplémentaires représentent un coût constant borné par face ; elles n’ajoutent ni passe ni essai CDT. Le lissage intérieur borné, la restauration exacte des arrêts source, la comparaison du candidat conditionné au meilleur candidat et le retour complet au meilleur candidat restent en place.
+Une insertion strictement intérieure subdivise chacun des trois angles source. En particulier, elle partage l’angle source minimal en deux angles strictement plus petits. Exiger que les trois triangles de cette subdivision simple conservent tous l’angle minimal initial ne fournit donc aucun cas admissible. Ce filtre ne devient pas une branche toujours inactive du logiciel ; aucun cas positif artificiel n’a été créé pour le justifier.
 
-L’admission finale est toujours recalculée sur les coordonnées matérielles exactement retournées. Pour le profil régulier courant, la limite reste `15°` avec des arêtes d’au moins `0,001 cm`. La limite plus permissive d’une recette de construction ne remplace pas ce contrôle régulier. Une impossibilité locale, une absence de point admissible, un budget épuisé ou une dégradation du meilleur candidat donnent toujours `NEEDS_CORRECTION` avec la raison correspondante.
+## Correctif de restauration
 
-## Vérification et portée
+Le bloc de proposition retrouve exactement son comportement V3, avec la même arithmétique et les mêmes opérations float32. Un circoncentre peut servir de proposition globale du CDT lorsqu’il appartient au patron complet, même s’il est extérieur à la face qui l’a proposé. L’ajout local automatique, son helper expérimental et l’exclusion globale des circoncentres hors face sont retirés.
 
-Les 23 tests ciblés exécutés couvrent les dix nouveaux cas de proposition et les treize tests existants du conditionnement et du lissage intérieur. Ils vérifient notamment le témoin matériel décalé, les deux orientations, la translation, le circoncentre dans ou hors de la face, la densité des points, la conversion float32 qui sort de la face, les budgets, un vrai angle source aigu, le refus `REFINEMENT_STALLED`, la répétabilité et la conservation exacte des coins source.
+Le fichier `blender/sewing.py` restauré est identique, octet par octet, au fichier de la source 53 : SHA-256 `24372dc8e3e2d9b608a125697cfea2a45c3f2de0253d984a62ae0caf46e3badc`.
 
-Ces tests utilisent une doublure de transport float32 et des sorties CDT contrôlées. Ils ne qualifient pas le triangulateur natif ni le vêtement. Le prochain contrôle minimal est un essai Blender isolé sur un contour à intervalle court protégé, suivi de la mesure des préparations régulières des dix pièces du manteau original et de la variante de manches acceptée. Le coordinateur exécute les essais natifs sur le code gelé. Aucune mesure corporelle, preuve de fitting, simulation Cloth, revue artistique ou autorisation Blender n’est accordée par ce raffinement.
+Les contrôles de point transporté dans le patron, de séparation, de budgets, de lissage intérieur, de restauration exacte des arrêts source, de comparaison du candidat conditionné et de retour complet au meilleur candidat restent ceux de V3. Aucun seuil, espacement ou budget n’est augmenté. Le contrôle final porte toujours sur les coordonnées matérielles exactement retournées ; le profil régulier courant exige 15° et des arêtes d’au moins 0,001 cm.
+
+## Vérification et prochaine unité
+
+Les 21 tests ciblés exécutés comprennent huit tests révisés de restauration et treize tests existants du conditionnement et du lissage. Ils contrôlent notamment un circoncentre hors face admissible dans le patron, le contre-exemple du petit triangle équilatéral, les arrêts source distincts et exacts après transport float32, la densité, la répétabilité, les budgets, un véritable angle source aigu, `REFINEMENT_STALLED` et la conservation exacte du meilleur candidat après dégradation.
+
+Ces tests utilisent une doublure de transport float32 et des sorties CDT contrôlées. La fixture native comparative est préparée séparément pour les sources historiques 53, 54 et le candidat corrigé : les bords homologues sont préparés depuis les dix pièces exactes de la variante acceptée, puis seules les deux manches et le devant gauche sont triangulés. Le coordinateur exécutera cet essai isolé après gel et revue. Le résultat attendu est la restauration des trajectoires V3 ; un fichier construit ne devient pas un maillage admis à 15°.
+
+Une future proposition locale devra être évaluée par une retriangulation réelle de plusieurs faces sous les budgets déclarés, avec conservation du meilleur candidat et contrôle final complet. Cette comparaison n’est pas intégrée au correctif de restauration. Aucune simulation Cloth, preuve de fitting, revue artistique ou autorisation Blender n’est accordée par cette unité.
