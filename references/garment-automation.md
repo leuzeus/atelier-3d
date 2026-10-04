@@ -122,6 +122,20 @@ géométriques des recettes sources sont conservées et passent dans ces cas.
 Ces reçus portent sur la géométrie des guides ; les autres panneaux, les
 contacts, les coutures fermées et la simulation complète n'en héritent pas.
 
+Pour une paire devant/dos, le guide lissé doit couvrir le demi-tour brut
+des deux contours et borner sa variation. La majorante conserve cette couverture
+sans réduire le patron ni détendre les gates. Le contrôle natif vérifie ensuite
+la métrique et les contacts ; un guide produit ne constitue aucune admission.
+
+L'essai ciblé des quatre panneaux n'a plus de chevauchement entre panneaux après
+cette correction, et sa métrique passe sur les deux corps. Le contact initial
+avec le corps reste refusé près des épaules. Les cinq corrections rigides
+coordonnées testées par corps restent inadmissibles ; le raccord maximal initial
+reste supérieur au plafond de 12 cm de la recette du cas. Les patrons et seuils
+sont conservés. Une préparation adaptée du haut du torse est encore nécessaire.
+Les pièces non traitées et les raccords omis du coupon ciblé restent nommés
+dans ses reçus ; aucune qualification ne s'étend au vêtement complet.
+
 `a3d.placement_correction.correct_placement` évalue des déplacements/rotations
 rigides de panneaux dans des copies temporaires. Les métriques et seuils restent
 fixes. Le meilleur candidat mesuré est conservé ; les propositions moins bonnes,
