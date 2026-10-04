@@ -8,11 +8,39 @@ import copy
 import math
 import time
 
-from .cloth_metrics import evaluate_metrics,face_sources,validate_linear_motion,validate_metrics
+from .cloth_metrics import evaluate_metrics,face_sources,principal_stretches,validate_linear_motion,validate_metrics
 from .core import StudioError,digest
 
 
 def _dot(a,b):return sum(x*y for x,y in zip(a,b))
+
+
+def _definite_principal_violation(payload,coordinates,quality,binding):
+    """Return only a certain existing principal-strain failure, never admission.
+
+    ``binding`` is the immutable per-face UV correspondence already prepared
+    by ``face_sources`` for this recovery. Ambiguous or nonfinite observations
+    defer to the complete validator. The same scalar helper is used by that
+    validator; there is no approximate bound or additional tolerance here.
+    """
+    if (binding['binding_issues']or len(binding['source_rest_triangles_cm'])!=len(payload['faces'])or
+            len(coordinates)!=len(payload['rest_cm']) or
+            any(len(point)!=3 or any(not math.isfinite(value)for value in point)for point in coordinates)):
+        return False
+    for face,uv in zip(payload['faces'],binding['source_rest_triangles_cm'],strict=True):
+        principal=principal_stretches(uv,[coordinates[index]for index in face])
+        if principal is None or any(not math.isfinite(value)for value in principal):
+            return False
+        if principal[0]<quality['min_stretch']or principal[1]>quality['max_stretch']:
+            return True
+    return False
+
+
+def _metric_admitted(payload,coordinates,quality,binding):
+    if _definite_principal_violation(payload,coordinates,quality,binding):return False
+    try:validate_metrics(payload,coordinates,quality,include_faces=False,include_bending=False)
+    except StudioError:return False
+    return True
 
 
 def _pcg(rows,diagonal,rhs,initial,maximum,tolerance,deadline,clock):
@@ -323,9 +351,7 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         return total
     best=copy.deepcopy(baseline);best_energy=residual(best);history=[];stagnant=0;stop='ITERATION_BUDGET';iterations=0
     def admitted(points):
-        try:validate_metrics(payload,points,quality,include_faces=False,include_bending=False)
-        except StudioError:return False
-        return True
+        return _metric_admitted(payload,points,quality,binding)
     initial_valid=admitted(initial)
     stop_bounds=_fixed_stop_bounds(payload,initial,quality,protected_edges,binding,fixed_stop_stretch_margin,deadline,clock)
     impossible_stops=stop_bounds['status']=='IMPOSSIBLE_FIXED_STOPS'
@@ -398,7 +424,16 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
             'max_displacement_cm':max(math.dist(a,b) for a,b in zip(initial,best))})
         stagnant=0 if accepted else stagnant+1
         if stagnant>=stagnation_iterations:stop='STAGNATION';break
-    valid=not impossible_stops and not immutable_source_violations and admitted(best)
+    # A rejection witness only saves repeated boolean checks during recovery.
+    # Every returned candidate still receives the complete final validator,
+    # including the immutable-source and fixed-stop early exits above.
+    try:
+        final=validate_metrics(payload,best,quality,include_faces=False,include_bending=False)
+        final_valid=True
+    except StudioError as error:
+        if not hasattr(error,'quality_metrics'):raise
+        final=error.quality_metrics;final_valid=False
+    valid=not impossible_stops and not immutable_source_violations and final_valid
     if valid:stop='SOURCE_METRIC_RECOVERED'
     if digest([payload,coordinates,quality,piece_ids,protected_edges,protected_indices,seam_ids,max_initial_seam_gap_cm,fixed_stop_stretch_margin,anchor_scope])!=before:
         raise StudioError('Guide metric recovery changed an immutable input')
@@ -412,7 +447,9 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         coupling['quotient_unknown_count']=len(free)
         coupling['free_vertex_count']=len(lookup)
         coupling['fixed_cohort_indices']=sorted(i for root in fixed_roots for i in groups[root])
-    final=evaluate_metrics(payload,best,include_faces=False,include_bending=False)
+    # Keep the existing unqualified metric-report shape. Admission metadata
+    # belongs to the recovery status; its thresholds have not been changed.
+    final={key:value for key,value in final.items()if key not in('limits','violations')}
     result={'version':1,'status':'SOURCE_METRIC_RECOVERED' if valid else 'NEEDS_CORRECTION','stop_reason':stop,
         'coordinates_cm':best,'source_payload_sha256':digest(payload),'initial_candidate_sha256':digest(initial),
         'candidate_sha256':digest(best),'initial_metric_valid':initial_valid,'metric':final,
