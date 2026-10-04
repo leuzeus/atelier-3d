@@ -60,31 +60,65 @@ def triangulate(boundary, recipe, regular_mesh=None):
     ids=list(range(len(polygon)))
     if signed_area(polygon)<0:ids.reverse()
     refinement=recipe['mesh'].get('quality_refinement');added=0;passes=0;refusal=None;best=None;rejected_candidate=None
+    conditioning_history=[];smoothing=None;coordinates=None
     if regular_mesh:
         refinement={**(refinement or {'max_passes':8,'max_added_vertices':4000}),
             'target_min_angle_degrees':max(regular_mesh.get('target_min_angle_degrees',15.),
                 recipe['mesh']['min_angle_degrees'],(refinement or {}).get('target_min_angle_degrees',0.))}
-    def angle(face):
-        lengths=[distance(verts[a],verts[b]) for a,b in zip(face,face[1:]+face[:1])]
+    def angle(face,points_override=None):
+        values=verts if points_override is None else points_override
+        lengths=[distance(values[a],values[b]) for a,b in zip(face,face[1:]+face[:1])]
         if min(lengths)<1e-10:return 0.
         return min(math.degrees(math.acos(max(-1.,min(1.,(x*x+y*y-z*z)/(2*x*y)))))
             for x,y,z in ((lengths[0],lengths[1],lengths[2]),(lengths[1],lengths[2],lengths[0]),(lengths[2],lengths[0],lengths[1])))
+    def exact_source_coordinates(vertices,triangles,origins):
+        mapping={j:i for i,inputs in enumerate(origins) for j in inputs}
+        if any(i not in mapping for i in range(len(polygon))) or len({mapping[i] for i in range(len(polygon))})!=len(polygon):
+            raise StudioError("Triangulator collapsed a boundary anchor")
+        if any(distance(vertices[mapping[i]],polygon[i])>1e-4 for i in range(len(polygon))):
+            raise StudioError("Triangulator moved a boundary anchor")
+        if any(len(f)!=3 for f in triangles):raise StudioError("Constrained triangulation did not produce triangles")
+        restored=[list(v) for v in vertices]
+        for source_index,point in enumerate(polygon):restored[mapping[source_index]]=list(point)
+        if any(signed_area([vertices[i] for i in face])*signed_area([restored[i] for i in face])<=0
+               for face in triangles):
+            raise StudioError("Exact source anchor restoration inverted or collapsed a derived triangle")
+        return restored,mapping
+
     while True:
         verts,edges,faces,orig,_,_=delaunay_2d_cdt(points,[],[ids],1,1e-6,True)
         if not refinement:break
-        bad=[f for f in faces if angle(f)<refinement['target_min_angle_degrees']]
         if regular_mesh:
-            measured_angle=min((angle(f) for f in faces),default=0.)
-            measured_edge=min((distance(verts[a],verts[b]) for f in faces for a,b in zip(f,f[1:]+f[:1])),default=0.)
+            from a3d.mesh_refinement import improve_interior
+            raw_angle=min((angle(f) for f in faces),default=0.)
+            anchors={i for i,inputs in enumerate(orig) if any(j<len(polygon) for j in inputs)}
+            # Judge complete candidates, not an intermediate CDT result. Each
+            # candidate has the same bounded smoothing and fixed source anchors.
+            improved,smoothing=improve_interior([list(v) for v in verts],faces,anchors,
+                target_angle=refinement['target_min_angle_degrees'],min_edge=recipe['mesh']['min_edge_cm'],
+                max_displacement=regular_mesh['min_spacing_cm']*.5)
+            verts=[Vector(p) for p in improved]
+            coordinates,mapping=exact_source_coordinates(verts,faces,orig)
+            measured_angle=min((angle(f,coordinates) for f in faces),default=0.)
+            measured_edge=min((distance(coordinates[a],coordinates[b]) for f in faces for a,b in zip(f,f[1:]+f[:1])),default=0.)
+            conditioning={'passes':passes,'added_vertices':added,'raw_cdt_min_angle_degrees':raw_angle,
+                'conditioned_min_angle_degrees':measured_angle,'conditioned_min_edge_cm':measured_edge,
+                'interior_smoothing':smoothing,'exact_source_anchors_restored':True}
+            conditioning_history.append(conditioning)
             if best and (measured_angle<best['min_angle_degrees']-1e-7 or
                     measured_edge<min(best['min_edge_cm'],recipe['mesh']['min_edge_cm'])-1e-9):
-                rejected_candidate={'min_angle_degrees':measured_angle,'min_edge_cm':measured_edge,
-                    'added_vertices':added,'passes':passes}
+                rejected_candidate={**conditioning,'min_angle_degrees':measured_angle,'min_edge_cm':measured_edge}
+                conditioning['decision']='ROLLED_BACK_AFTER_CONDITIONING'
                 verts,edges,faces,orig=best['triangulation']
+                coordinates,mapping=best['coordinates'],best['mapping']
+                smoothing=best['smoothing']
                 added,passes=best['added_vertices'],best['passes']
                 refusal='NON_MONOTONIC_REFINEMENT_ROLLED_BACK';break
+            conditioning['decision']='BEST_CONDITIONED_CANDIDATE_PRESERVED'
             best={'triangulation':(verts,edges,faces,orig),'min_angle_degrees':measured_angle,
-                'min_edge_cm':measured_edge,'added_vertices':added,'passes':passes}
+                'min_edge_cm':measured_edge,'added_vertices':added,'passes':passes,
+                'coordinates':coordinates,'mapping':mapping,'smoothing':smoothing}
+        bad=[f for f in faces if angle(f,coordinates if regular_mesh else None)<refinement['target_min_angle_degrees']]
         if not bad:break
         if passes>=refinement['max_passes']:
             if regular_mesh:
@@ -129,42 +163,28 @@ def triangulate(boundary, recipe, regular_mesh=None):
                 refusal='VERTEX_BUDGET_EXHAUSTED';break
             raise StudioError('Derived mesh refinement exceeds the declared vertex budget')
         points.extend(insert);added+=len(insert);passes+=1
+    coordinates,mapping=exact_source_coordinates(verts,faces,orig)
     if regular_mesh:
-        from a3d.mesh_refinement import improve_interior
-        anchors={i for i,inputs in enumerate(orig) if any(j<len(polygon) for j in inputs)}
-        improved,smoothing=improve_interior([list(v) for v in verts],faces,anchors,
-            target_angle=refinement['target_min_angle_degrees'],min_edge=recipe['mesh']['min_edge_cm'],
-            max_displacement=regular_mesh['min_spacing_cm']*.5)
-        verts=[Vector(p) for p in improved]
-        if smoothing['target_reached']:refusal=None
+        # Use the exact returned material coordinates, including restored source
+        # anchors, for success. A smoothing report alone cannot grant this gate.
+        final_angle=min((angle(f,coordinates) for f in faces),default=0.)
+        final_edge=min((distance(coordinates[a],coordinates[b]) for f in faces for a,b in zip(f,f[1:]+f[:1])),default=0.)
+        if faces and final_angle>=refinement['target_min_angle_degrees'] and final_edge>=recipe['mesh']['min_edge_cm']:refusal=None
         elif refusal is None:refusal='INTERIOR_QUALITY_TARGET_NOT_REACHED'
         boundary['preparation_refinement']={'status':'NEEDS_CORRECTION' if refusal else 'TARGET_REACHED',
             'refusal':refusal,'target_min_angle_degrees':refinement['target_min_angle_degrees'],
-            'min_angle_degrees':min((angle(f) for f in faces),default=0.),'passes':passes,'added_vertices':added,
+            'min_angle_degrees':final_angle,'min_edge_cm':final_edge,'passes':passes,'added_vertices':added,
             'max_passes':refinement['max_passes'],'max_added_vertices':refinement['max_added_vertices'],
             'source_anchors_changed':False,'rejected_candidate':rejected_candidate,
             'interior_smoothing':smoothing,
+            'conditioning_policy':'BOUNDED_SMOOTHING_AND_EXACT_ANCHOR_RESTORATION_BEFORE_MONOTONE_COMPARISON',
+            'conditioning_history':conditioning_history,
             'best_safe_candidate_preserved':True,
-            'bad_faces':[list(f) for f in faces if angle(f)<refinement['target_min_angle_degrees']]}
-    mapping={j:i for i,inputs in enumerate(orig) for j in inputs}
-    if any(i not in mapping for i in range(len(polygon))) or len({mapping[i] for i in range(len(polygon))})!=len(polygon):
-        raise StudioError("Triangulator collapsed a boundary anchor")
-    if any(distance(verts[mapping[i]],polygon[i])>1e-4 for i in range(len(polygon))):
-        raise StudioError("Triangulator moved a boundary anchor")
-    if any(len(f)!=3 for f in faces):raise StudioError("Constrained triangulation did not produce triangles")
+            'bad_faces':[list(f) for f in faces if angle(f,coordinates)<refinement['target_min_angle_degrees']]}
     # CDT faces are CCW. Preserve the source boundary's orientation, corrected by
     # the explicit seam graph rather than by arbitrary proximity of panels.
     if bool(boundary["flip"]) ^ (signed_area(boundary["source"])<0):
         faces=[list(reversed(f)) for f in faces]
-    coordinates=[list(v) for v in verts]
-    # The CDT uses float32 vectors. Keep its topology and interior points, but
-    # recover boundary material coordinates from the exact source sampling.
-    # This prevents numerical rounding from inventing an off-pattern seam end.
-    for source_index,point in enumerate(polygon):
-        coordinates[mapping[source_index]]=list(point)
-    if any(signed_area([verts[i] for i in face])*signed_area([coordinates[i] for i in face])<=0
-           for face in faces):
-        raise StudioError("Exact source anchor restoration inverted or collapsed a derived triangle")
     return coordinates,faces,mapping
 
 
