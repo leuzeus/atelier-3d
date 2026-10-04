@@ -1,6 +1,30 @@
 # Historique
 
-## Non publié
+## 0.7.0-rc.1 — 2026-10-03, préversion textile
+
+- Catalogue hors ligne de deux bases réalistes CC0 de Dan Ulrich, import et
+  sélection explicites, adaptateurs anatomiques mesurés et rig préparatoire.
+- Planificateur séparant groupes cousus, couches spatiales, fermetures,
+  attaches amovibles et contacts libres, avec provenance et refus explicites.
+- Guides sémantiques du torse, des membres et d’une ceinture source unique ;
+  patrons et métriques conservés. Corrections rigides bornées, dont mouvements
+  coordonnés évalués atomiquement, sans assouplir les seuils.
+- Simulation sur coupon couplé, contrôle de convergence et conservation des
+  budgets incomplets ; réponses MCP compactes liées aux reçus complets et
+  empreintes des modules chargés.
+- Documentation réorganisée issue de la PR 21 intégrée dans cette branche.
+- Limites : fitting complet non qualifié, intersections du haut du torse encore
+  présentes, guides du col/devant intérieur/capuche/empiècements et orchestration
+  complète à terminer. Le rig est préparatoire, sans contrôles indépendants de
+  mensurations. Les PASS des coupons ne valent pas acceptation du vêtement.
+- Cette préversion GitHub est publiée depuis la branche isolée ; aucune
+  nouvelle installation Codex ni qualification artistique n’est revendiquée.
+  [Contrat et limites](references/garment-automation.md).
+
+## Notes historiques du correctif 0.6.9
+
+Ces notes conservent l’état au moment de leurs essais, avant publication
+de 0.6.9. Elles ne décrivent pas le statut de publication actuel.
 
 - Correctif local 0.6.9 : essai explicite `single_panel` pour une pièce source
   unique sans couture permanente, avec provenance liée aux empreintes et

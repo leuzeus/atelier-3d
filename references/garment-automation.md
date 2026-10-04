@@ -8,7 +8,9 @@ et la revue artistique gardent des preuves distinctes.
 Point de départ : Atelier 3D 0.6.9, commit
 `a7efe4ee9cc3bfe6b6c91ea4798e7b4854d59900`. Développement isolé sur G:, branche
 `codex/garment-automation-v1`. La scène et le checkout de production sont conservés.
-Installation autorisée après les gates ; publication supplémentaire non autorisée.
+La publication de cette branche en préversion a été autorisée le 3 octobre 2026.
+La préversion 0.7.0-rc.1 conserve les gates et ne qualifie pas le vêtement complet.
+Aucune nouvelle installation dans Codex ni acceptation artistique n’est revendiquée.
 
 ## Contrat du planificateur
 

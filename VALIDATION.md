@@ -1,5 +1,38 @@
 # Validation d’Atelier 3D
 
+## Préversion textile 0.7.0-rc.1 — 2026-10-03
+
+La préversion conserve les contrôles et les patrons approuvés. Les vérifications
+logicielles du candidat versionné sont consignées avec la release et la CI du
+commit publié. Les essais natifs ci-dessous précèdent le changement de version :
+ils restent limités aux fichiers et scénarios effectivement contrôlés. Une
+installation du paquet versionné dans Codex n’est pas revendiquée.
+
+Sur le candidat versionné du 3 octobre 2026 : **443 tests Windows PASS**
+(58,174 s) et **14 contrats JSON PASS** par PowerShell `Test-Json`.
+Le journal reste local dans `work/release-0.7.0-rc.1-20261003/` du checkout
+principal. Linux est vérifié séparément par la CI GitHub ; aucun WSL local
+n’a été utilisé.
+
+- Catalogue : sélection et référence statique des deux bases CC0 vérifiées dans
+  une instance Blender isolée ; repos et mouvement court du rig préparatoire.
+  Qualité générale des déformations et fitting non qualifiés.
+- Coupon couplé : convergence après 38 images sur un plafond de 96, portée
+  COUPLED_COUPON_ONLY. Aucun transfert de ce PASS au vêtement complet.
+- Torse : métrique des quatre panneaux PASS sur les deux mannequins, aucun
+  chevauchement entre panneaux dans le scénario ciblé. Les contacts avec le
+  corps restent refusés : distance signée minimale -5,584 cm / -4,204 cm et
+  raccord maximal 24,914 cm / 26,961 cm, au-delà du plafond initial de 12 cm.
+  Les corrections rigides coordonnées testées sont rejetées.
+- Ceinture : métrique du panneau source unique PASS sur les deux bases ;
+  fermeture, boucle rigide, enfilage et fitting non exécutés.
+- Limites : montage complet des 15 pièces textiles, fitting, stabilité longue,
+  animation, revue humaine et import Unreal restent non qualifiés.
+
+Les reçus natifs restent locaux sous `work/garment-automation-v1/` ; ils ne sont
+pas inclus dans le paquet public. Les détails et étapes restantes sont dans
+[le contrat de développement](references/garment-automation.md).
+
 ## Release 0.6.8 — 2026-10-03
 
 La version 0.6.8 inclut la préparation et l'assemblage PATTERN_SEWN, les
