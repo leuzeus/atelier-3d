@@ -197,7 +197,8 @@
     "trial_mode": {
       "enum": [
         "sewn",
-        "single_panel"
+        "single_panel",
+        "seam_free"
       ],
       "description": "Single-panel mode is explicit and applies only to a complete one-panel source with no permanent seams."
     },
@@ -1353,6 +1354,58 @@
         "sha256"
       ],
       "additionalProperties": false
+    },
+    "physics_purpose": {
+      "enum": [
+        "TEST_ONLY",
+        "GARMENT_CANDIDATE"
+      ]
+    },
+    "fit_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "compiled_dossier_ref",
+        "fit_profile_ref"
+      ],
+      "properties": {
+        "compiled_dossier_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        },
+        "fit_profile_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        }
+      }
     }
   },
   "required": [
@@ -1392,6 +1445,20 @@
         },
         "trial_pieces": {
           "minItems": 2
+        }
+      }
+    },
+    {
+      "required": [
+        "trial_mode"
+      ],
+      "properties": {
+        "trial_mode": {
+          "const": "seam_free"
+        },
+        "trial_pieces": {
+          "minItems": 2,
+          "uniqueItems": true
         }
       }
     }

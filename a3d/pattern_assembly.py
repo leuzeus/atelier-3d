@@ -570,10 +570,98 @@ def consolidate(payload, coords, plan):
         'source_rest_mode': 'immutable_source_uv_per_face', 'simulation_rest_mode': 'assembled_3d',
         'quality': result['quality'], 'preserved_links': [sid for sid, s in payload['seams'].items() if s['kind'] != 'permanent'],
         'requires': ['continuous_cloth_relaxation', 'body_fitting', 'behaviour_qualification', 'artistic_review']}
+    if any(seam['kind']=='permanent' for seam in payload['seams'].values()):
+        source={key:copy.deepcopy(payload[key]) for key in ('version','component_id','source_garment_sha256',
+            'rest_cm','faces','panels','seams')}
+        for key in ('trial_mode','single_panel_source','source_vertex_indices','source_rest_triangles_cm',
+                    'source_face_pieces','source_face_vertex_ids'):
+            if key in payload:source[key]=copy.deepcopy(payload[key])
+        proof={'version':1,'scope':'EXPLICIT_SOURCE_PERMANENT_UNIONS','source':source,
+            'source_mapping_sha256':map_digest(payload),'result_mapping_sha256':map_digest(result),
+            'coordinates_before_cm':copy.deepcopy(coords),'plan_sha256':digest(plan),
+            'verified_weld_gap_cm':tolerance,'observed_pair_gap_cm':_gap(coords,_pairs(payload)),
+            'explicit_unions':count,'qualification':'GEOMETRY_ONLY'}
+        proof['proof_sha256']=digest(proof)
+        result['permanent_consolidation']=proof
+        report['permanent_continuity']=verify_permanent_continuity(result,tolerance)
     if single_panel:
         report.update(operation='SINGLE_PANEL_NO_OP', sewing_executed=False,
             welding_executed=False, closure_behavior='NOT_QUALIFIED', verified_weld_gap_cm=None)
     return result, report
+
+
+def verify_permanent_continuity(payload,weld_limit_cm):
+    """Reconstruct explicit source unions; a consolidated flag is insufficient.
+
+    This is geometry evidence. It does not transfer the earlier Cloth result
+    or waive the current frame, contact, metric and movement checks.
+    """
+    permanent={sid:seam for sid,seam in payload['seams'].items() if seam['kind']=='permanent'}
+    if not permanent:return None
+    proof=payload.get('permanent_consolidation')
+    if payload.get('rest_mode')!='assembled_3d' or not isinstance(proof,dict):
+        _refuse('Permanent continuity requires its exact source consolidation proof')
+    if (proof.get('version')!=1 or proof.get('scope')!='EXPLICIT_SOURCE_PERMANENT_UNIONS'
+            or proof.get('qualification')!='GEOMETRY_ONLY'
+            or proof.get('proof_sha256')!=digest({k:v for k,v in proof.items() if k!='proof_sha256'})):
+        _refuse('Permanent consolidation proof changed or has an unsupported scope')
+    source=proof['source'];coords=proof['coordinates_before_cm'];tolerance=proof['verified_weld_gap_cm']
+    if (not math.isfinite(tolerance) or tolerance<0 or tolerance>weld_limit_cm+1e-8
+            or source['component_id']!=payload['component_id']
+            or source['source_garment_sha256']!=payload['source_garment_sha256']
+            or map_digest(source)!=proof['source_mapping_sha256']
+            or payload.get('source_mapping_sha256')!=proof['source_mapping_sha256']
+            or map_digest(payload)!=proof['result_mapping_sha256']):
+        _refuse('Permanent consolidation source, current map or weld budget changed')
+    _coordinates(source,coords)
+    source_permanent={sid:seam for sid,seam in source['seams'].items() if seam['kind']=='permanent'}
+    if set(source['seams'])!=set(payload['seams']) or set(source_permanent)!=set(permanent) or not _pairs(source):
+        _refuse('Permanent continuity lost actual source sewing pairs')
+    for group in permanent_support_groups(source):
+        if max(math.dist(coords[a],coords[b]) for a in group for b in group)>tolerance:
+            _refuse('Permanent source cohort exceeds its verified weld tolerance')
+    vertices,faces,mapping,count=weld_permanent(coords,source['faces'],source['seams'],tolerance)
+    if (payload['faces']!=faces or len(payload['rest_cm'])!=len(vertices)
+            or payload.get('source_vertex_map')!={str(old):new for old,new in mapping.items()}
+            or proof['explicit_unions']!=count
+            or proof['observed_pair_gap_cm']!=_gap(coords,_pairs(source))):
+        _refuse('Permanent continuity does not match the reconstructed explicit source unions')
+    source_ids=source.get('source_vertex_indices',list(range(len(coords))))
+    cohorts={str(new):[] for new in range(len(vertices))}
+    for old,new in mapping.items():cohorts[str(new)].append(source_ids[old])
+    if payload.get('source_vertex_cohorts')!=cohorts:
+        _refuse('Permanent continuity source vertex cohorts changed')
+    for old,new in mapping.items():
+        if math.dist(coords[old],payload['rest_cm'][new])>tolerance+1e-8:
+            _refuse('Consolidated rest vertex lies outside its explicit source cohort tolerance')
+    panels=copy.deepcopy(source['panels'])
+    for panel in panels.values():
+        panel['indices']=sorted({mapping[index] for index in panel['indices']})
+        panel['boundary']=[mapping[index] for index in panel['boundary']]
+        panel['edges']={name:[mapping[index] for index in ids] for name,ids in panel['edges'].items()}
+    if payload['panels']!=panels:
+        _refuse('Permanent continuity source panel boundaries or support edges changed')
+    for sid,seam in source['seams'].items():
+        current=payload['seams'].get(sid)
+        expected=copy.deepcopy(seam);expected['pairs']=[[mapping[a],mapping[b]] for a,b in seam['pairs']]
+        if seam['kind']=='permanent':expected['consolidated']=True
+        if current!=expected:
+            _refuse('Permanent continuity source seam mapping or relation kind changed: '+sid)
+        if seam['kind']=='permanent' and any(a!=b for a,b in current['pairs']):
+            _refuse('A permanent source pair is still open after consolidation: '+sid)
+        if seam['kind']!='permanent' and any(a!=b and mapping[a]==mapping[b] for a,b in seam['pairs']):
+            _refuse('A source opening or detachable relation was consolidated: '+sid)
+    source_metrics=face_sources(source);current_metrics=face_sources(payload)
+    keys=('source_rest_triangles_cm','source_face_pieces','source_face_vertex_ids')
+    if source_metrics['binding_issues'] or current_metrics['binding_issues'] or any(source_metrics[k]!=current_metrics[k] for k in keys):
+        _refuse('Permanent continuity lost exact source face material coordinates')
+    _vertex_manifold(payload['faces'])
+    return {'status':'CONTINUITY_VERIFIED','scope':'EXPLICIT_PERMANENT_SOURCE_PAIRS_AND_SHARED_CURRENT_VERTICES',
+        'proof_sha256':proof['proof_sha256'],'source_mapping_sha256':proof['source_mapping_sha256'],
+        'result_mapping_sha256':proof['result_mapping_sha256'],'source_permanent_pair_count':len(_pairs(source)),
+        'explicit_unions':count,'verified_weld_gap_cm':tolerance,'observed_before_weld_gap_cm':proof['observed_pair_gap_cm'],
+        'measured_current_gap_cm':_gap(payload['placed_cm'],_pairs(payload)),
+        'qualification':'GEOMETRY_ONLY','current_physics_validation_required':True}
 
 
 def migrate_legacy_receipt(receipt):

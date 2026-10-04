@@ -225,6 +225,13 @@ def validate_recipe(data, recipe):
         if any(s.get('kind', recipe['seams'][s['id']]['kind']) == 'permanent'
                or recipe['seams'][s['id']]['kind'] == 'permanent' for s in data['seams']):
             raise StudioError('Single-panel trial cannot contain or hide a permanent source seam')
+    elif recipe.get('trial_mode') == 'seam_free':
+        selected = recipe['trial_pieces']
+        if len(selected) < 2 or len(set(selected)) != len(selected) or set(selected) != set(data['pieces']):
+            raise StudioError('Seam-free trial requires every panel of the complete source component exactly once')
+        if any(s.get('kind', recipe['seams'][s['id']]['kind']) == 'permanent'
+               or recipe['seams'][s['id']]['kind'] == 'permanent' for s in data['seams']):
+            raise StudioError('Seam-free trial cannot contain or hide a permanent source seam')
     else:
         if set(recipe["trial_pieces"]) - data["pieces"].keys() or len(set(recipe["trial_pieces"])) < 2:
             raise StudioError("Local trial needs at least two declared panels")
@@ -299,7 +306,7 @@ def permanent_support_groups(payload):
     return sorted(group for group in groups.values() if len(group) > 1)
 
 
-def prepare_boundaries(data, recipe, seam_parameters=None):
+def prepare_boundaries(data, recipe, seam_parameters=None, regular_boundary_spacing_cm=None):
     reports, flips = validate_recipe(data, recipe)
     seam_parameters = {} if seam_parameters is None else seam_parameters
     if not isinstance(seam_parameters, dict) or set(seam_parameters) - {s['id'] for s in data['seams']}:
@@ -335,26 +342,42 @@ def prepare_boundaries(data, recipe, seam_parameters=None):
                 return key
         raise StudioError("Boundary sampling failed")
 
-    paired_chains, parameters = {}, {}
+    paired_chains, parameters, required_parameters = {}, {}, {}
     for seam in data["seams"]:
         pa, pb = seam["piece_a"], seam["piece_b"]
         ca, a, _ = edge_chain(data["pieces"][pa], seam["edge_a"])
         cb, b, _ = edge_chain(data["pieces"][pb], seam["edge_b"])
         if seam["orientation"] == "reverse":
             cb, b = list(reversed(cb)), list(reversed(b))
-        ts = sorted(set(resample_parameters([a,b],spacing,error)) | set(seam_parameters.get(seam['id'], [])))
+        sampled = set(resample_parameters([a,b],spacing,error))
+        count = max(1, math.ceil(max(chain_lengths(points)[-1] for points in (a,b))/spacing))
+        grid = {i/count for i in range(count+1)}
+        required = (sampled-grid) | {0.,1.} | set(seam_parameters.get(seam['id'], []))
+        ts = sorted(sampled | required)
         # Preserve named-edge endpoints used by pin groups, while carrying every
         # inserted parameter to both sides of this seam.
         for pid, chain, points in ((pa,ca,a),(pb,cb,b)):
             lengths = chain_lengths(points)
             endpoints = {i for e in data["pieces"][pid]["edges"].values() for i in (e[0],e[-1])}
-            ts = sorted(set(ts) | {lengths[j]/lengths[-1] for j,i in enumerate(chain) if i in endpoints})
+            stops = {lengths[j]/lengths[-1] for j,i in enumerate(chain) if i in endpoints}
+            required.update(stops)
+            # An exact source corner coinciding with a grid sample remains a
+            # source constraint, never an optional point eligible for removal.
+            required.update(t for t in sampled if any(abs(t-s/lengths[-1]) < 1e-14 for s in lengths))
+            ts = sorted(set(ts) | stops)
         paired_chains[seam['id']] = ((pa, ca), (pb, cb))
         parameters[seam['id']] = ts
+        required_parameters[seam['id']] = sorted(required)
         for pid, chain in ((pa,ca),(pb,cb)):
             covered[pid].update(tuple(sorted((a,b))) for a,b in zip(chain,chain[1:]))
     from .shared_seam_sampling import shared_parameters
-    parameters = shared_parameters(data['pieces'], paired_chains, parameters)
+    sampling_report = None
+    if regular_boundary_spacing_cm is None:
+        parameters = shared_parameters(data['pieces'], paired_chains, parameters)
+    else:
+        from .pattern_preparation import regular_shared_parameters
+        parameters, sampling_report = regular_shared_parameters(data['pieces'], paired_chains,
+            parameters, required_parameters, regular_boundary_spacing_cm, error)
     for seam in sorted(data['seams'], key=lambda item: item['id']):
         sid = seam['id']
         (pa, ca), (pb, cb) = paired_chains[sid]
@@ -389,7 +412,11 @@ def prepare_boundaries(data, recipe, seam_parameters=None):
                 continue
             if any(tuple(sorted((a,b))) in covered[pid] for a,b in zip(chain,chain[1:])):
                 raise StudioError("Overlapping source boundary declarations")
-            ts=resample_parameters([[piece["vertices"][i] for i in chain]],spacing,error)
+            points = [piece["vertices"][i] for i in chain]
+            ts=resample_parameters([points],spacing,error)
+            if regular_boundary_spacing_cm is not None:
+                from .pattern_preparation import regular_chain_parameters
+                ts = regular_chain_parameters(points,ts,regular_boundary_spacing_cm,error)
             for t in ts:put(pid,chain,t)
         keys=sorted(samples[pid]["points"])
         polygon=[samples[pid]["points"][s] for s in keys]
@@ -405,6 +432,8 @@ def prepare_boundaries(data, recipe, seam_parameters=None):
             edge_ids[name]=[i for along,i in selected if along<=length+1e-6 or total-along<1e-6]
             edge_ids[name].sort(key=lambda i:0 if total-((keys[i]-start)*sign)%total<1e-6 else ((keys[i]-start)*sign)%total)
         samples[pid]["edges"]=edge_ids
+        if sampling_report is not None:
+            samples[pid]['regular_sampling_report'] = sampling_report
     for seam in seam_samples.values():
         for side in ("a","b"):
             lookup={v:i for i,v in enumerate(samples[seam["piece_"+side]]["keys"])}

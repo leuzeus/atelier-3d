@@ -98,9 +98,13 @@
     "migration": {
       "type": "object",
       "properties": {
-        "retire_legacy_preparations": {"const": true}
+        "retire_legacy_preparations": {
+          "const": true
+        }
       },
-      "required": ["retire_legacy_preparations"],
+      "required": [
+        "retire_legacy_preparations"
+      ],
       "additionalProperties": false
     },
     "material_profiles": {
@@ -130,7 +134,12 @@
             "maximum": 10
           },
           "category": {
-            "enum": ["main", "lining", "reinforcement", "accessory"]
+            "enum": [
+              "main",
+              "lining",
+              "reinforcement",
+              "accessory"
+            ]
           },
           "cloth_profile": {
             "type": "string",
@@ -151,6 +160,194 @@
         ],
         "additionalProperties": false
       }
+    },
+    "source_preform_budget": {
+      "type": "object",
+      "description": "Recomputed flat source seed to declared guide staging bound. Does not change assembly, Cloth, metric, contact or correction limits.",
+      "properties": {
+        "version": {"const": 1},
+        "basis": {"const": "SOURCE_FLAT_SEED_TO_DECLARED_GUIDE_BEFORE_EXECUTION"},
+        "source_garment_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "guides_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "placements_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "max_displacement_cm": {"type": "number", "minimum": 0.01, "maximum": 10000},
+        "physical_budgets_changed": {"const": false},
+        "panels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "bound_cm": {"type": "number", "minimum": 0.01, "maximum": 10000},
+              "method": {"enum": ["AFFINE_SOURCE_BOUNDARY_AND_CONVEX_ARC_SECTION_ENVELOPE", "CORRESPONDING_AFFINE_SOURCE_BOUNDARY_EXTREMA"]},
+              "guide_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+              "source_contour_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+              "native_float32_guard_cm": {"type": "number", "minimum": 0.0001, "maximum": 1},
+              "budget_rounding_cm": {"const": 0.01},
+              "gate_thresholds_changed": {"const": false}
+            },
+            "required": ["bound_cm", "method", "guide_sha256", "source_contour_sha256", "native_float32_guard_cm", "budget_rounding_cm", "gate_thresholds_changed"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["version", "basis", "source_garment_sha256", "guides_sha256", "placements_sha256", "max_displacement_cm", "panels", "physical_budgets_changed"],
+      "additionalProperties": false
+    },
+    "metric_recovery": {
+      "type": "object",
+      "properties": {
+        "version": {"const": 1},
+        "piece_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "protected_edges": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": {
+            "type": "object", "properties": {"piece": {"type": "string", "minLength": 1}, "edge": {"type": "string", "minLength": 1}},
+            "required": ["piece", "edge"], "additionalProperties": false
+          }
+        },
+        "budgets": {
+          "type": "object",
+          "properties": {
+            "max_iterations": {"type": "integer", "minimum": 1, "maximum": 1000},
+            "max_seconds": {"type": "number", "minimum": 0.001, "maximum": 3600},
+            "max_displacement_cm": {"type": "number", "minimum": 1e-9, "maximum": 1000},
+            "max_step_cm": {"type": "number", "minimum": 1e-9, "maximum": 100},
+            "cg_iterations": {"type": "integer", "minimum": 1, "maximum": 1000},
+            "cg_tolerance": {"type": "number", "minimum": 1e-12, "maximum": 0.1},
+            "stagnation_iterations": {"type": "integer", "minimum": 1, "maximum": 100}
+          },
+          "required": ["max_iterations", "max_seconds", "max_displacement_cm", "max_step_cm", "cg_iterations", "cg_tolerance", "stagnation_iterations"],
+          "additionalProperties": false
+        },
+        "strain_weight": {"type": "number", "minimum": 1e-9, "maximum": 1000000}
+      },
+      "required": ["version", "piece_ids", "protected_edges", "budgets", "strain_weight"],
+      "additionalProperties": false,
+      "description": "Opt-in recovery of source UV metric before contact search; its displacement budget is shared with contact correction from the original guide, and all downstream gates remain required."
+    },
+    "placement_correction": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "kernels": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "rigid",
+              "relaxation"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "budgets": {
+          "type": "object",
+          "properties": {
+            "max_iterations": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            },
+            "max_seconds": {
+              "type": "number",
+              "minimum": 0.001,
+              "maximum": 3600
+            },
+            "max_proposals_per_iteration": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "max_displacement_cm": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1000
+            },
+            "max_step_cm": {
+              "type": "number",
+              "minimum": 1e-06,
+              "maximum": 100
+            },
+            "stagnation_iterations": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "min_improvement": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "target_score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1000000
+            }
+          },
+          "required": [
+            "max_iterations",
+            "max_seconds",
+            "max_proposals_per_iteration",
+            "max_displacement_cm",
+            "max_step_cm",
+            "stagnation_iterations",
+            "min_improvement",
+            "target_score"
+          ],
+          "additionalProperties": false
+        },
+        "quality": {
+          "type": "object",
+          "properties": {
+            "min_angle_degrees": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 60
+            },
+            "min_edge_cm": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "min_stretch": {
+              "type": "number",
+              "minimum": 0.001,
+              "maximum": 1
+            },
+            "max_stretch": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 10
+            }
+          },
+          "required": [
+            "min_angle_degrees",
+            "min_edge_cm",
+            "min_stretch",
+            "max_stretch"
+          ],
+          "additionalProperties": false
+        },
+        "protected_indices": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000000
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "version",
+        "kernels",
+        "budgets",
+        "quality"
+      ],
+      "additionalProperties": false,
+      "description": "Explicit bounded native source-preserving contact correction before Cloth; final readiness still uses unchanged preparation gates."
     }
   },
   "required": [

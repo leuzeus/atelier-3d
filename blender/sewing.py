@@ -156,7 +156,16 @@ def triangulate(boundary, recipe, regular_mesh=None):
     # the explicit seam graph rather than by arbitrary proximity of panels.
     if bool(boundary["flip"]) ^ (signed_area(boundary["source"])<0):
         faces=[list(reversed(f)) for f in faces]
-    return [list(v) for v in verts],faces,mapping
+    coordinates=[list(v) for v in verts]
+    # The CDT uses float32 vectors. Keep its topology and interior points, but
+    # recover boundary material coordinates from the exact source sampling.
+    # This prevents numerical rounding from inventing an off-pattern seam end.
+    for source_index,point in enumerate(polygon):
+        coordinates[mapping[source_index]]=list(point)
+    if any(signed_area([verts[i] for i in face])*signed_area([coordinates[i] for i in face])<=0
+           for face in faces):
+        raise StudioError("Exact source anchor restoration inverted or collapsed a derived triangle")
+    return coordinates,faces,mapping
 
 
 def placed_point(point, placement):
@@ -471,9 +480,18 @@ def apply_physics(obj,payload,recipe,phase,colliders):
         ('tension_damping','compression_damping','shear_damping','bending_damping')})
     assigned['air_damping']=profile['air_damping']*damping_scale
     contacts={'distance_min':profile['collision_distance_cm']/100,'self_distance_min':profile['self_distance_cm']/100}
-    if any(not math.isclose(getattr(settings,k),v,rel_tol=1e-5,abs_tol=1e-9) for k,v in assigned.items()) or any(
-        not math.isclose(getattr(collision,k),v,rel_tol=1e-5,abs_tol=1e-9) for k,v in contacts.items()):
-        raise StudioError('Blender clamped stiffness, damping or contact distances; revise the technical recipe')
+    mismatches=[]
+    for owner,expected in ((settings,assigned),(collision,contacts)):
+        for key,value in expected.items():
+            observed=getattr(owner,key)
+            if not math.isclose(observed,value,rel_tol=1e-5,abs_tol=1e-9):
+                rna=owner.bl_rna.properties[key]
+                mismatches.append({'parameter':key,'expected':value,'observed':observed,
+                    'rna_hard_min':getattr(rna,'hard_min',None),'rna_hard_max':getattr(rna,'hard_max',None)})
+    if mismatches:
+        error=StudioError('Blender clamped stiffness, damping or contact distances; revise the technical recipe: '+repr(mismatches))
+        error.physical_parameter_mismatches=mismatches
+        raise error
     return cloth,calculated,collection
 
 
@@ -598,6 +616,11 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
             'contact_scope':'STATIC_COLLIDERS_DISCRETE_LINEAR_INTERVAL_SAMPLES_NOT_EXHAUSTIVE_CCD',
             'motion_max_step_cm':contact_step,'motion_max_subdivisions':128,
             'temporary_supports_active':payload.get('pattern_assembly',{}).get('temporary_supports_active','NOT_RECORDED')}
+        permanent_continuity=None
+        if payload.get('rest_mode')=='assembled_3d' and any(seam['kind']=='permanent' for seam in payload['seams'].values()):
+            from a3d.pattern_assembly import verify_permanent_continuity
+            permanent_continuity=verify_permanent_continuity(payload,recipe['limits']['weld_gap_cm'])
+            evidence['permanent_continuity']=permanent_continuity
         if payload.get('rest_mode')=='assembled_3d' and (expected['settings']['use_sewing_springs'] or
                 evidence['temporary_supports_active'] is True):
             raise StudioError('Continuous relaxation requires zero sewing springs and no temporary supports')
@@ -649,8 +672,15 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
                 'violations':getattr(quality_error,'quality_violations',[])},
             'penetration':{'measured_cm':penetration,'limit_cm':recipe['limits']['max_penetration_cm'],
                 'status':'FAIL' if penetration>recipe['limits']['max_penetration_cm'] else 'PASS'},
-            'seams':{'measured_max_gap_cm':final_gap,'limit_cm':recipe['limits']['max_seam_gap_cm'],
-                'status':'FAIL' if pairs and final_gap>recipe['limits']['max_seam_gap_cm'] else 'PASS'}}
+            'seams':{'measured_max_gap_cm':final_gap if pairs else None,'limit_cm':recipe['limits']['max_seam_gap_cm'],
+                'status':('FAIL' if final_gap>recipe['limits']['max_seam_gap_cm'] else 'PASS') if pairs else 'CONTINUITY_VERIFIED' if permanent_continuity else 'NOT_APPLICABLE',
+                'active_pair_count':len(pairs),
+                'source_seam_kinds':{sid:seam['kind'] for sid,seam in payload['seams'].items()},
+                'scope':'ACTIVE_PERMANENT_AND_EXPLICIT_TEMPORARY_PAIRS',
+                'reason':None if pairs else 'EXPLICIT_PERMANENT_SOURCE_UNIONS_VERIFIED' if permanent_continuity else 'NO_ACTIVE_SEWING_PAIRS_IN_SOURCE_SCOPE',
+                'permanent_continuity':permanent_continuity}}
+        if not pairs and any(seam['kind']=='permanent' for seam in payload['seams'].values()) and not permanent_continuity:
+            raise StudioError('Permanent source sewing cannot be qualified without actual mapped pairs')
         if quality_error:raise quality_error
         if maximum_displacement<recipe["limits"]["min_movement_cm"]:
             raise StudioError("No measured cloth response; a successful API call is not a simulation")
@@ -851,7 +881,11 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope,purpose='fit
     from blender.operations import working
     project,session=working(project_root)
     obj,payload,recipe=managed_inputs(project,component_id,recipe_path)
+    from a3d.physics_admission import require_recipe_fit_intent
+    require_recipe_fit_intent(project, recipe)
     context,colliders,trees=preflight(obj,payload,recipe)
+    from blender.physics_admission import require_native_recipe_fit_intent
+    fit_admission = require_native_recipe_fit_intent(project, recipe, colliders, payload)
     from blender.piece_inventory import require_live
     require_live(project, component_id)
     from blender.fitting import recipe_fit
@@ -938,7 +972,7 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope,purpose='fit
             lambda rows:atomic_json(progress_path,{'frames':rows}),save_diagnostic)
         if context_colliders(recipe)[2]!=context['colliders']:
             raise StudioError('Auxiliary mannequin pose changed during simulation')
-        report.update(binding=binding,scope=scope,component_id=component_id,recipe_path=recipe_path,recipe_sha256=digest(recipe),
+        report.update(fit_intent_admission=fit_admission,binding=binding,scope=scope,component_id=component_id,recipe_path=recipe_path,recipe_sha256=digest(recipe),
             context=context,package_sha256=payload['package_sha256'],trial_pieces=recipe['trial_pieces'],placement=placement_ref,
             fitting=fitting,fitting_tacks=payload_for_run.get('fitting_tacks',[]),
             qualification='CONSTRUCTION_FITTING_ONLY' if payload_for_run.get('fitting_tacks') else 'PHYSICS_ONLY')
@@ -989,6 +1023,13 @@ def freeze_sewn(project_root,component_id,recipe_path):
     from blender.operations import working
     project,session=working(project_root)
     obj,payload,recipe=managed_inputs(project,component_id,recipe_path)
+    if recipe.get('physics_purpose') == 'TEST_ONLY':
+        raise StudioError('TEST_ONLY physics cannot become a production frozen fitting result')
+    from a3d.physics_admission import require_recipe_fit_intent
+    require_recipe_fit_intent(project, recipe)
+    from blender.physics_admission import require_native_recipe_fit_intent
+    colliders, _, _ = context_colliders(recipe)
+    fit_admission = require_native_recipe_fit_intent(project, recipe, colliders, payload)
     if payload.get('rest_mode')=='assembled_3d':
         from blender.pattern_assembly import freeze_continuous
         return freeze_continuous(project,session,obj,payload,recipe)
@@ -1016,7 +1057,7 @@ def freeze_sewn(project_root,component_id,recipe_path):
         'vertices_after':len(vertices),'explicit_unions':count,'mapping':mapping,
         'preserved_links':[sid for sid,s in payload['seams'].items() if s['kind']!='permanent'],
         'source_simulation_report':report_path.relative_to(project.root).as_posix(),'source_simulation_sha256':sha(report_path),
-        'visual_validation':'NOT_EXECUTED'}
+        'fit_intent_admission':fit_admission,'visual_validation':'NOT_EXECUTED'}
     atomic_json(project.data/'blender/sewing'/(component_id+'-frozen.json'),receipt)
     bpy.ops.wm.save_as_mainfile(filepath=session['working'],check_existing=False)
     return {k:v for k,v in receipt.items() if k!='mapping'}

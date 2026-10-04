@@ -1,0 +1,150 @@
+"""Reconstruct guide hypotheses from declared inputs, never qualify a fit.
+
+Only the existing garment_volume_frames dispatcher generates coordinates.
+Source packages, the measured native body and optional skin sections retain
+their own exact identities. A reproducible hypothesis still needs metric,
+contact, donning, physical and human checks on its actual candidate.
+"""
+import copy
+import hashlib
+import json
+import zipfile
+
+from .core import ROOT,StudioError,contract,digest,inside,read_json,sha
+from .garment_guides import garment_volume_frames,measured_native_skin_sections
+
+
+CODE_SOURCES=('garment_guide_policy','garment_guides','semantic_placement','torso_sections',
+    'shoulder_guides','preform_volume','anatomy_profile','shoulder_surface','head_surface','contact_geometry','sewing','core')
+
+
+def guide_generator_identity():
+    return {name:sha(ROOT/('a3d/'+name+'.py'))for name in CODE_SOURCES}
+
+
+def _owners(compiled):
+    return {row['id']:row for row in compiled['components']if row['pipeline']=='PATTERN_SEWN'}
+
+
+def prepare_guide_policy(compiled,profile,geometry,geometry_ref,component_parameters):
+    """Prepare a policy from explicit parameters; pure callers supply trusted inputs."""
+    owners=_owners(compiled)
+    if set(component_parameters)!=set(owners):
+        raise StudioError('Guide policy must declare parameters for every actual textile component exactly once')
+    if (geometry.get('source_sha256')!=profile.get('source_sha256')or geometry.get('pose_sha256')!=profile.get('pose_sha256')
+            or digest([geometry['vertices_cm'],geometry['faces']])!=profile.get('geometry_sha256')):
+        raise StudioError('Guide policy needs its exact measured body geometry, source and pose')
+    components={}
+    for cid,parameters in sorted(component_parameters.items()):
+        if set(parameters)!={'upper_blend','surface_sections','skin_section_heights_cm'}:
+            raise StudioError('Guide parameters must explicitly declare blend, measured surfaces and skin heights without overrides')
+        row={**copy.deepcopy(parameters),'package_source_ref':copy.deepcopy(owners[cid]['package_source_ref'])}
+        if parameters['skin_section_heights_cm']:
+            if not parameters['surface_sections']:
+                raise StudioError('Guide policy skin heights need explicitly enabled surfaces')
+            skin=measured_native_skin_sections(profile,geometry,parameters['skin_section_heights_cm'])
+            row['skin_sections_sha256']=digest(skin)
+        components[cid]=row
+    policy={'version':1,'generator':'GARMENT_VOLUME_FRAMES_V1','compiled_sha256':digest(compiled),
+        'dossier_ref':copy.deepcopy(compiled['source_ref']),
+        'specification_ref':copy.deepcopy(compiled['specification_source_ref']),
+        'body_ref':copy.deepcopy(compiled['assembly_spec']['body_ref']),'geometry_ref':copy.deepcopy(geometry_ref),
+        'generator_code_sha256':guide_generator_identity(),'components':components}
+    return contract('garment-guide-policy',policy)
+
+
+def reconstruct_guide_policy(compiled,profile,geometry,geometry_ref,source_data,policy):
+    """Recompute every coordinate with the sole existing generator."""
+    contract('garment-guide-policy',policy);owners=_owners(compiled)
+    if policy['generator_code_sha256']!=guide_generator_identity():
+        raise StudioError('Guide policy generator code is stale or has unrecognized dependency bindings')
+    if (policy['compiled_sha256']!=digest(compiled)or policy['dossier_ref']!=compiled['source_ref']
+            or policy['specification_ref']!=compiled['specification_source_ref']):
+        raise StudioError('Guide policy belongs to another exact approved source compilation')
+    if policy['body_ref']!=compiled['assembly_spec']['body_ref']or policy['geometry_ref']!=geometry_ref:
+        raise StudioError('Guide policy belongs to another measured native body profile or canonical geometry reference')
+    if (geometry.get('source_sha256')!=profile.get('source_sha256')or geometry.get('pose_sha256')!=profile.get('pose_sha256')
+            or digest([geometry['vertices_cm'],geometry['faces']])!=profile.get('geometry_sha256')):
+        raise StudioError('Guide policy body, evaluated skin geometry, source or pose changed')
+    if set(policy['components'])!=set(owners)or set(source_data)!=set(owners):
+        raise StudioError('Guide policy must cover the exact actual textile component inventory')
+    before=digest([compiled,profile,geometry,geometry_ref,source_data,policy]);guides={};skins={}
+    for cid,row in sorted(policy['components'].items()):
+        if row['package_source_ref']!=owners[cid]['package_source_ref']:
+            raise StudioError('Guide policy source package identity changed')
+        data=source_data[cid]
+        if data.get('component_id')!=cid:
+            raise StudioError('Guide policy source package has another component owner')
+        owned={pid:item for pid,item in compiled['textiles'].items()if item['component_id']==cid}
+        if set(owned)!=set(data['pieces'])or any(item['source_geometry']!=data['pieces'][pid]for pid,item in owned.items()):
+            raise StudioError('Guide policy immutable material geometry differs from its exact source compilation')
+        semantics={pid:copy.deepcopy(item['semantics'])for pid,item in owned.items()};skin=None
+        heights=row['skin_section_heights_cm']
+        if heights:
+            if not row['surface_sections']or 'skin_sections_sha256'not in row:
+                raise StudioError('Guide policy skin heights need explicitly enabled surfaces and their exact remeasurement identity')
+            skin=measured_native_skin_sections(profile,geometry,heights)
+            if row['skin_sections_sha256']!=digest(skin):
+                raise StudioError('Guide policy skin-section evidence differs from exact source remeasurement')
+            skins[cid]={'sections_sha256':digest(skin),'geometry_sha256':skin['geometry_sha256'],
+                'qualification':skin['qualification'],'anatomical_girths_replaced':False}
+        elif 'skin_sections_sha256'in row:
+            raise StudioError('Guide policy cannot supply unrequested skin-section evidence')
+        guides[cid]=garment_volume_frames(data,semantics,profile,upper_blend=row['upper_blend'],
+            surface_sections=row['surface_sections'],skin_sections=skin)
+    if digest([compiled,profile,geometry,geometry_ref,source_data,policy])!=before:
+        raise StudioError('Guide reconstruction changed immutable source, body or declared policy inputs')
+    return guides,{'status':'GUIDE_HYPOTHESES_RECONSTRUCTED','policy_sha256':digest(policy),
+        'generator_code_sha256':copy.deepcopy(policy['generator_code_sha256']),
+        'source_compilation_sha256':digest(compiled),'body_profile_sha256':digest(profile),
+        'geometry_ref':copy.deepcopy(geometry_ref),'guides_sha256':digest(guides),'skin_sections':skins,
+        'comparison':'FULL_UNROUNDED_GUIDE_REPORT','qualification':'NONE','admissible_for_fit':False,
+        'placement':'NOT_QUALIFIED','simulation':'NOT_EXECUTED','acceptance':'NOT_GRANTED'}
+
+
+def verify_guide_policy(compiled,profile,geometry,geometry_ref,source_data,policy,guides):
+    expected,evidence=reconstruct_guide_policy(compiled,profile,geometry,geometry_ref,source_data,policy)
+    if expected!=guides:
+        raise StudioError('Guide coordinates or reports differ from reconstruction of their exact declared source/body/skin/code policy')
+    evidence['comparison']='FULL_UNROUNDED_GUIDE_REPORT_IDENTICAL'
+    return evidence
+
+
+def _project_inputs(project,compiled):
+    from .production_dossier import compile_project_dossier
+    if compile_project_dossier(project,compiled['source_ref']['path'],compiled['specification_source_ref']['path'])!=compiled:
+        raise StudioError('Guide source compilation differs from current exact source reconstruction')
+    def load(ref):
+        path=inside(project.root,ref['path'])
+        if sha(path)!=ref['sha256']:raise StudioError('Guide policy source artifact changed')
+        return read_json(path)
+    body_ref=compiled['assembly_spec']['body_ref'];profile=load(body_ref)
+    from .native_evidence import native_origin
+    native,origin=native_origin(project,lambda doc:
+        (doc.get('operation')=='prepare_body_target'and doc.get('result',{}).get('artifacts',{}).get('profile')==body_ref)or
+        (doc.get('operation')=='introduce_body_target'and doc.get('result',{}).get('profile_ref')==body_ref))
+    geometry_ref=(native['result']['artifacts']['geometry']if native['operation']=='prepare_body_target'else native['result']['geometry_ref'])
+    if body_ref not in native['files']or geometry_ref not in native['files']or native['result'].get('profile_cache_key')!=profile['cache_key']:
+        raise StudioError('Guide policy needs its exact canonical completed native body profile and geometry')
+    geometry=load(geometry_ref);data={}
+    for cid,row in sorted(_owners(compiled).items()):
+        ref=row['package_source_ref'];path=inside(project.root,ref['path'])
+        if sha(path)!=ref['sha256']:raise StudioError('Guide policy source package changed')
+        with zipfile.ZipFile(path)as archive:data[cid]=json.loads(archive.read('garment.json'))
+    return profile,geometry,geometry_ref,data,origin
+
+
+def prepare_project_guide_policy(project,compiled,component_parameters):
+    profile,geometry,ref,_,origin=_project_inputs(project,compiled)
+    policy=prepare_guide_policy(compiled,profile,geometry,ref,component_parameters)
+    return policy,{'native_body_origin':origin,'qualification':'NONE','admissible_for_fit':False}
+
+
+def verify_project_guides(project,compiled,guides,policy_path):
+    path=inside(project.root,policy_path);policy_bytes=path.read_bytes()
+    policy_sha256=hashlib.sha256(policy_bytes).hexdigest();policy=json.loads(policy_bytes)
+    profile,geometry,ref,data,origin=_project_inputs(project,compiled)
+    evidence=verify_guide_policy(compiled,profile,geometry,ref,data,policy,guides)
+    if sha(path)!=policy_sha256:raise StudioError('Guide policy artifact changed during source reconstruction')
+    evidence.update(policy_ref={'path':policy_path,'sha256':policy_sha256},native_body_origin=origin)
+    return evidence

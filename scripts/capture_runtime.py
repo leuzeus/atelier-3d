@@ -7,9 +7,6 @@ import shutil
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DIRECTORIES = ('a3d', 'blender', 'schemas', 'templates', 'assets', 'tests',
-               'workflows', '.codex-plugin', 'scripts')
-FILES = ('plugin.json', 'pyproject.toml', 'mcp.json', 'README.md')
 
 
 def sha(path):
@@ -20,12 +17,10 @@ def capture(destination):
     destination = Path(destination).resolve()
     if destination.exists() or destination.drive.upper() != 'G:':
         raise ValueError('Use a new absolute directory on the approved G: workspace')
-    paths = [ROOT/name for name in FILES if (ROOT/name).is_file()]
-    for name in DIRECTORIES:
-        directory = ROOT/name
-        if directory.is_dir():
-            paths.extend(path for path in directory.rglob('*') if path.is_file()
-                         and '__pycache__' not in path.parts and path.suffix != '.pyc')
+    # Match the complete distribution so hooks, MCP entrypoints, skills and
+    # documentation contracts can also be tested on the immutable candidate.
+    from package_plugin import inventory
+    paths = inventory(ROOT)
     paths = sorted(set(paths), key=lambda path: path.relative_to(ROOT).as_posix())
     identities = {path.relative_to(ROOT).as_posix(): sha(path) for path in paths}
     destination.mkdir(parents=True)

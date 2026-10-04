@@ -132,3 +132,38 @@ class SemanticPlacement(unittest.TestCase):
         self.assertEqual(result['qualification'], 'NONE')
         del semantics['sleeve']['longitudinal_uv_axis']
         with self.assertRaises(StudioError): limb_volume_frames(data, semantics, profile)
+
+    def test_cuff_explicit_distal_ring_is_at_wrist_and_proximal_points_toward_elbow(self):
+        import math
+        from a3d.anatomy_profile import unit
+        _,_,profile=fixture();profile['landmarks']['wrist.right']={'point_cm':[40.,0.,85.]}
+        data={'pieces':{'cuff':{'vertices':[[0.,5.],[20.,5.],[20.,25.],[0.,25.]],
+            'edges':{'hand-ring':[0,1],'sleeve-ring':[3,2]}}}}
+        semantics={'cuff':{'role':'cuff','side':'right','longitudinal_uv_axis':'v',
+            'guide_edges':{'distal':'hand-ring','proximal':'sleeve-ring'}}}
+        before=digest([data,semantics,profile]);result=limb_volume_frames(data,semantics,profile)
+        sections=result['panels']['cuff']['arc_sections'];basis=profile['frame']
+        wrist=profile['landmarks']['wrist.right']['point_cm'];shoulder=profile['landmarks']['shoulder.right']['point_cm']
+        outward=unit([b-a for a,b in zip(shoulder,wrist)])
+        world=lambda p:[basis['origin_cm'][k]+sum(p[j]*basis[name][k]
+            for j,name in enumerate(('right','forward','up'))) for k in range(3)]
+        def center(section):
+            # Opposite points of the sourced circular ring cancel its radius.
+            a=sample_curve(section['curve_cm'],0.);b=sample_curve(section['curve_cm'],10.)
+            return [(x+y)/2 for x,y in zip(a,b)]
+        self.assertLess(math.dist(center(sections[0]),world(wrist)),1e-10)
+        expected=world([wrist[k]-20*outward[k] for k in range(3)])
+        self.assertLess(math.dist(center(sections[1]),expected),1e-10)
+        for arc in (0.,5.,10.,15.,20.):
+            self.assertAlmostEqual(math.dist(sample_curve(sections[0]['curve_cm'],arc),
+                sample_curve(sections[1]['curve_cm'],arc)),20.)
+        self.assertEqual(digest([data,semantics,profile]),before)
+        self.assertEqual(result['evidence'][0]['source_longitudinal_anchor_policy']['distal_source_v_cm'],5.)
+        # Inverting V in the source changes neither the anatomical direction
+        # nor the meaning of its explicit named anchor rings.
+        inverted=copy.deepcopy(data)
+        for p in inverted['pieces']['cuff']['vertices']:p[1]=30-p[1]
+        again=limb_volume_frames(inverted,semantics,profile)['panels']['cuff']['arc_sections']
+        self.assertLess(math.dist(center(again[1]),world(wrist)),1e-10)
+        del semantics['cuff']['guide_edges']['distal']
+        with self.assertRaisesRegex(StudioError,'explicit'):limb_volume_frames(data,semantics,profile)

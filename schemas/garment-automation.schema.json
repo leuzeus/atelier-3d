@@ -134,6 +134,14 @@
               "opening": {
                 "type": "string",
                 "minLength": 1
+              },
+              "distal": {
+                "type": "string",
+                "minLength": 1
+              },
+              "proximal": {
+                "type": "string",
+                "minLength": 1
               }
             },
             "additionalProperties": false

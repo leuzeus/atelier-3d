@@ -47,6 +47,9 @@ OPERATION_MODULES = {
     'prepare_reconstructed_part': ['blender/part_preparation.py'],
     'introduce_body_target': ['blender/body_context.py'],
     'compose_animated_delivery': ['blender/animated_delivery.py'],
+    'attach_reconstructed_part': ['blender/rigid_attachment.py'],
+    'render_motion_review': ['blender/review_motion.py'],
+    'run_dressing_program': ['blender/dressing_executor.py'],
 }
 COMMON_CODE_PATHS = ['a3d/runs.py', 'a3d/run_diagnostics.py', 'a3d/core.py', 'a3d/store.py',
     'a3d/guard.py', 'a3d/planning.py', 'a3d/lifecycle.py', 'blender/bootstrap.py',
@@ -310,6 +313,8 @@ def _verified_receipt(project, db, run, unit, attempt):
             or receipt.get('arguments') != attempt['arguments'] or receipt.get('runtime_sha256') != unit['runtime_sha256']
             or receipt.get('orchestrator_sha256') != run['runtime_sha256']):
         raise StudioError('Native run receipt is stale or belongs to another unit')
+    from .run_projection_archive import verify_projection_archives
+    verify_projection_archives(project, receipt)
     for artifact in receipt['files']: _reference(project, artifact)
     if receipt.get('entry_checkpoint'): _reference(project, receipt['entry_checkpoint'])
     return receipt
@@ -799,7 +804,14 @@ def _ready_event(project, db, run, unit, attempt):
             if not module.startswith(('a3d', 'blender')) or not (ROOT/path).is_file() or path in required_sources and required_sources[path] != identity:
                 raise StudioError('Native completion loaded code differs from the current installation')
         _verify_run(project, run); _verify_unit(project, unit)
-        _references(project, result)
+        verification_result = result
+        if attempt.get('receipt'):
+            receipt = _verified_receipt(project, db, run, unit, attempt)
+            if receipt['result'] != result:
+                raise StudioError('Registered receipt contradicts the canonical native completion')
+            from .run_projection_archive import archived_result_view
+            verification_result = archived_result_view(project, receipt, result)
+        _references(project, verification_result)
         if ready.get('entry_checkpoint'): _reference(project, ready['entry_checkpoint'])
         return dict(ready, event_id=event_id)
     return None
@@ -874,6 +886,8 @@ def _record_native(project, operation, arguments, result, checkpoint, failed, el
         _verify_unit(project, unit)
         for reference in attempt['inputs']: _reference(project, reference)
         files = _references(project, _references(project, result)+_argument_inputs(project, result))
+        from .run_projection_archive import archive_projection_references
+        files, project_projections = archive_projection_references(project, attempt['id'], files)
         checkpoint_ref = _reference(project, checkpoint) if checkpoint else None
         receipt = {'version': 1, 'origin': 'NATIVE_DISPATCH', 'run_id': run['run_id'], 'unit_id': unit['id'],
                    'attempt_id': attempt['id'], 'binding_sha256': attempt['binding_sha256'],
@@ -883,6 +897,8 @@ def _record_native(project, operation, arguments, result, checkpoint, failed, el
                    'execution': 'FAILED' if failed else 'RETURNED', 'created_at': now(),
                    'elapsed_seconds': elapsed_seconds, 'budget': copy.deepcopy(attempt['budgets']),
                    'accepted': False, 'qualification': result.get('qualification', 'NOT_GRANTED')}
+        if project_projections:
+            receipt['project_projections'] = project_projections
         path = project.data/'runs'/'native'/(attempt['id']+'.json')
         if path.exists():
             orphan = json.loads(path.read_text(encoding='utf-8-sig'))

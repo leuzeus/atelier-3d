@@ -5,7 +5,7 @@ import unittest
 from a3d.core import StudioError, digest
 from a3d.pattern_preparation import (assess_preparation, audit_source,
     preparation_statistics, prepare_regular_boundaries, regular_interior_points)
-from a3d.sewing import point_inside, edge_chain, sample_chain, prepare_boundaries
+from a3d.sewing import point_inside, edge_chain, sample_chain, prepare_boundaries, segment_distance
 from tests.test_pattern_assembly import example
 from tests.test_sewing import sources
 
@@ -129,6 +129,55 @@ class RegularMeshing(unittest.TestCase):
             observed = boundaries[pid]['polygon'][notch['derived_boundary_vertex']]
             self.assertLess(math.dist(expected, observed), 1e-8)
         self.assertTrue(all(s['parameters'][0] == 0 and s['parameters'][-1] == 1 for s in seams.values()))
+
+    def test_optional_grid_point_near_source_stop_is_removed_on_both_partners(self):
+        data,recipe=sources()
+        piece=data['pieces']['front'];piece['vertices'].insert(2,[20.,20.006905])
+        piece['edges']={'right':[1,2,3],'left':[0,4],'top':[4,3],'source-stop':[2,3]}
+        piece['faces']=[[0,1,2],[0,2,3],[0,3,4]]
+        dossier=source_dossier(data);before=digest([data,recipe,dossier])
+        config={**self.config,'spacing_cm':2.,'min_spacing_cm':1.}
+        boundaries,seams,report=prepare_regular_boundaries(data,recipe,config,dossier)
+        seam_id=next(s['id'] for s in data['seams'] if s['piece_a']=='front' and s['edge_a']=='right')
+        seam=seams[seam_id];parameter=20.006905/40.
+        self.assertIn(parameter,seam['parameters'])
+        self.assertNotIn(.5,seam['parameters'])
+        common=seam['parameters'].index(parameter)
+        self.assertLess(math.dist(boundaries['front']['polygon'][seam['a'][common]],[20.,20.006905]),1e-10)
+        self.assertEqual(len(seam['a']),len(seam['b']))
+        self.assertEqual(digest([data,recipe,dossier]),before)
+        self.assertTrue(report['boundary_sampling_policy']['removed_optional_seeds'])
+        for side in ('a','b'):
+            points=[boundaries[seam['piece_'+side]]['polygon'][index] for index in seam[side]]
+            self.assertGreater(min(math.dist(a,b) for a,b in zip(points,points[1:])),.49)
+
+    def test_source_contour_error_and_two_near_required_marks_remain_protected(self):
+        data,recipe=sources();piece=data['pieces']['front']
+        piece['vertices'].insert(2,[19.7,20.006905]);piece['edges']={'right':[1,2,3],'left':[0,4],'top':[4,3]}
+        piece['faces']=[[0,1,2],[0,2,3],[0,3,4]]
+        # The contour changes seam length slightly; declare the exact source
+        # ratio rather than relaxing the seam's tolerance.
+        source=next(s for s in data['seams'] if s['piece_a']=='front' and s['edge_a']=='right')
+        from a3d.sewing import chain_lengths
+        _,a,_=edge_chain(piece,source['edge_a']);_,b,_=edge_chain(data['pieces'][source['piece_b']],source['edge_b'])
+        recipe['seams'][source['id']]['ease_b_over_a']=chain_lengths(b)[-1]/chain_lengths(a)[-1]-1
+        dossier=source_dossier(data)
+        for info in dossier['components'][data['component_id']]['pieces']:
+            if info['id'] in (source['piece_a'],source['piece_b']):
+                # Keep a source-mandated near pair; only optional grid seeds
+                # may disappear, never crans merely to improve mesh quality.
+                reverse=info['id']==source['piece_b'] and source['orientation']=='reverse'
+                info['pattern']['assembly_marks'].extend({'id':'close-'+str(i),'seam_id':source['id'],
+                    'symbol':'notch','position':1-t if reverse else t} for i,t in enumerate((.5001,.5002)))
+        before=digest([data,recipe,dossier]);boundaries,seams,report=prepare_regular_boundaries(data,recipe,self.config,dossier)
+        self.assertEqual(digest([data,recipe,dossier]),before)
+        self.assertTrue(report['boundary_sampling_policy']['close_required_parameters_preserved'])
+        for t in (.5001,.5002):self.assertIn(t,seams[source['id']]['parameters'])
+        for pid,panel in data['pieces'].items():
+            contour=boundaries[pid]['polygon']
+            for vertex in panel['vertices']:
+                deviation=min(segment_distance(vertex,a,b) for a,b in zip(contour,contour[1:]+contour[:1]))
+                self.assertLessEqual(deviation,recipe['mesh']['max_boundary_error_cm']+1e-8)
 
     def test_additional_arc_parameters_cannot_hide_wrong_topology_or_unknown_ids(self):
         data, recipe = sources()

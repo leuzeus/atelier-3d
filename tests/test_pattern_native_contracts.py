@@ -4,13 +4,27 @@ import copy
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from a3d.core import StudioError,atomic_json,digest,sha
+from a3d.core import ROOT,StudioError,atomic_json,digest,sha,read_json
 from blender.pattern_assembly import freeze_continuous,validate_envelope_review
 from tests.test_core import Case
 
 
 class GeometryBoundaryReached(RuntimeError):
     pass
+
+
+class RefusedPreformSupportContracts(Case):
+    def test_initial_metric_refusal_does_not_hide_declared_source_supports(self):
+        from blender.pattern_preparation import preform_supports
+        payload={'panels':{'a':{'indices':[0,1],'edges':{'top':[0,1]}}},
+            'seams':{'join':{'kind':'permanent','pairs':[[0,1]]}},'source_pins':{'0':.25}}
+        plan={'supports':{'temporary':[{'id':'shoulder','piece':'a','edge':'top','weight':1.,'source_ref':'actual:source-edge'}],
+            'drape':[],'functional':[]},'consolidation':{'weld_gap_cm':.15}}
+        before=digest([payload,plan]);weights,observations=preform_supports(payload,plan,[[0.,0.,0.],[1.,0.,0.]])
+        self.assertEqual(weights,{'0':1.,'1':1.})
+        self.assertEqual(observations['contradictory_fixed_cohorts'],[[0,1]])
+        self.assertEqual(observations['source_pin_transition']['0'],{'source_weight':.25,'prepared_weight':1.})
+        self.assertEqual(digest([payload,plan]),before)
 
 
 class ContactOutcomeContracts(Case):
@@ -33,7 +47,7 @@ class ContinuousFreezeContracts(Case):
         super().setUp()
         self.project=SimpleNamespace(root=self.root)
         self.payload={'component_id':'coat','package_sha256':'package'}
-        self.recipe={'component_id':'coat'}
+        self.recipe=read_json(ROOT/'templates/sewing-recipe.json');self.recipe['component_id']='coat'
         atomic_json(self.root/'plan.json',{'synthetic':True})
         atomic_json(self.root/'map.json',{'synthetic':True})
         self.record={'component_id':'coat','package_sha256':'package','recipe_sha256':digest(self.recipe),
@@ -60,6 +74,13 @@ class ContinuousFreezeContracts(Case):
     def test_exact_qualified_receipt_reaches_geometry_without_claiming_native_execution(self):
         with self.assertRaisesRegex(GeometryBoundaryReached,'admitted to native geometry'):
             self.invoke()
+
+    def test_test_only_cannot_freeze_via_internal_entrypoint(self):
+        self.recipe['physics_purpose']='TEST_ONLY'
+        with patch('blender.pattern_assembly.object_mesh') as geometry:
+            with self.assertRaisesRegex(StudioError,'TEST_ONLY'):
+                self.invoke()
+            geometry.assert_not_called()
 
     def test_assembly_consolidation_relaxation_and_unqualified_drape_do_not_freeze(self):
         for stage in ('mount','close','consolidate','relax'):

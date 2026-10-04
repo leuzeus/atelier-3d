@@ -5,6 +5,7 @@ opening strip, front, side and back per side. Unsupported or missing roles are
 reported before attempting placement; no guessed panel is substituted.
 """
 import math
+import copy
 
 from .core import StudioError, digest
 from .preform_volume import half_ellipse, volume_frames, paired_volume_frames
@@ -12,7 +13,7 @@ from .anatomy_profile import unit
 from .contact_geometry import dot, cross
 
 
-def torso_volume_frames(data, semantics, profile, upper_blend=0., surface_sections=False):
+def torso_volume_frames(data, semantics, profile, upper_blend=0., surface_sections=False, skin_sections=None):
     if (profile.get('status') != 'PROFILE_MEASURED' or profile.get('segmentation') != 'EXPLICIT_SOURCE'
             or not profile.get('cache_key')):
         raise StudioError('Semantic placement requires a complete source-bound segmented body profile')
@@ -60,6 +61,19 @@ def torso_volume_frames(data, semantics, profile, upper_blend=0., surface_sectio
         neck = landmarks['neck']['point_cm']
         group = dict(mapping, pieces=sorted(mapping.values()), side_sign=1 if side == 'right' else -1,
                      uv_origin_cm=[0., 0.])
+        opening_edge=semantics[mapping['front']].get('guide_edges',{}).get('opening')
+        if opening_edge:
+            front=mapping['front']; source=data['pieces'][front]
+            centers=[pid for pid,row in semantics.items() if row.get('role')=='inner_front' and row.get('side')=='center']
+            attachments=[s for s in data.get('seams',[]) if s.get('kind')=='permanent' and
+                         {s['piece_a'],s['piece_b']}=={front,centers[0] if len(centers)==1 else None}]
+            owned=[s for s in data.get('seams',[]) if any(s['piece_'+side]==front and s['edge_'+side]==opening_edge for side in ('a','b'))]
+            if (len(centers)!=1 or not attachments or opening_edge not in source['edges'] or owned):
+                raise StudioError('Open torso guide needs one sourced central inner-front, actual permanent upper attachments and an unsewn declared free edge')
+            values=[source['vertices'][i][1] for i in source['edges'][opening_edge]]
+            group['source_open_front']={'piece':front,'free_edge':opening_edge,'inner_front_piece':centers[0],
+                'permanent_attachment_ids':sorted(s['id'] for s in attachments),
+                'source_sha256':digest(data),'free_edge_v_domain_cm':[min(values),max(values)]}
         for role in ('front', 'back'):
             piece = subset['pieces'][mapping[role]]
             if upper_blend:
@@ -95,10 +109,17 @@ def torso_volume_frames(data, semantics, profile, upper_blend=0., surface_sectio
                         raise StudioError('Paired torso needs one explicit named source back center')
                     declared['center']=candidates[0]
                 group['source_edges'][role]=declared
+            if upper_blend:
+                transition=min(max(data['pieces'][group[role]]['vertices'][i][1]
+                    for i in data['pieces'][group[role]]['edges'][group['source_edges'][role]['side']]) for role in ('front','back'))
+                group['measured_shoulder_transition']={'source_start_v_cm':transition,
+                    'source_edges':copy.deepcopy(group['source_edges']),
+                    'source_skin_anchors_cm':copy.deepcopy(skin_shoulders),'source_profile_cache_key':profile['cache_key'],
+                    'upper_blend':upper_blend,'method':'SOURCE_MATERIAL_PLANES_FROM_MEASURED_SKIN_SHOULDERS'}
             panels,report=paired_volume_frames(subset,group,body_frame)
             if surface_sections:
                 from .torso_sections import apply_measured_sections
-                panels,report=apply_measured_sections(panels,report,group,profile)
+                panels,report=apply_measured_sections(panels,report,group,profile,skin_sections=skin_sections)
             if upper_blend:
                 from .shoulder_guides import shape_paired_shoulders
                 panels,report=shape_paired_shoulders(subset,group,body_frame,panels,report,upper_blend)
@@ -159,9 +180,28 @@ def limb_volume_frames(data, semantics, profile):
         arc = half_ellipse(width/2, 1., [0., 0.], 0., 1)
         arc += list(reversed(half_ellipse(width/2, 1., [0., 0.], 0., -1)))[1:]
         anchor = shoulder if row['role'] == 'sleeve' else wrist
+        cuff_policy = None
+        if row['role']=='cuff':
+            declared=row.get('guide_edges',{});stops={}
+            for key in ('distal','proximal'):
+                edge=declared.get(key);indices=data['pieces'][pid].get('edges',{}).get(edge)
+                if not indices or len(indices)<2 or any(type(i)is not int or not 0<=i<len(vertices) for i in indices):
+                    raise StudioError('Cuff guide requires explicit existing distal/proximal named source edges: '+pid)
+                values=[vertices[i][1] for i in indices]
+                if max(values)-min(values)>1e-7:
+                    raise StudioError('Cuff anchor rings require constant source V; unsupported edge: '+str(edge))
+                stops[key]=values[0]
+            if abs(stops['proximal']-stops['distal'])<1e-8:
+                raise StudioError('Cuff distal/proximal source anchors must have a nonzero longitudinal span')
+            cuff_sign=1 if stops['proximal']>stops['distal'] else -1
+            cuff_policy={'distal_edge':declared['distal'],'proximal_edge':declared['proximal'],
+                'distal_source_v_cm':stops['distal'],'proximal_source_v_cm':stops['proximal'],
+                'body_distal_anchor':'wrist.'+side,'proximal_direction':'TOWARD_SOURCE_SHOULDER',
+                'source_orientation':'EXPLICIT_NAMED_EDGES','source_v_sign':cuff_sign}
         sections = []
         for v in (lo[1], hi[1]):
-            center = [anchor[i]+downward[i]*(hi[1]-v) for i in range(3)]
+            offset=(hi[1]-v) if cuff_policy is None else -(v-stops['distal'])*cuff_sign
+            center = [anchor[i]+downward[i]*offset for i in range(3)]
             curve = [world([center[i]+p[0]*tangent[i]+p[1]*transverse[i] for i in range(3)]) for p in arc]
             sections.append({'v_cm': v, 'arc_offset_cm': -lo[0], 'curve_cm': curve})
         frames[pid] = {'source_ref': 'measured-body-profile:'+profile['cache_key']+'; source-role:'+pid,
@@ -169,6 +209,7 @@ def limb_volume_frames(data, semantics, profile):
         evidence.append({'piece': pid, 'role': row['role'], 'side': side,
                          'source_circumference_cm': width, 'source_longitudinal_length_cm': height,
                          'shoulder_wrist_axis_length_cm': math.dist(shoulder, wrist),
+                         **({'source_longitudinal_anchor_policy':cuff_policy} if cuff_policy else {}),
                          'body_rescaling': False, 'native_contact_check': 'REQUIRED'})
     return {'status': 'PARTIAL_GUIDES' if pending else 'LIMB_GUIDES_PREPARED',
             'panels': frames, 'pending_pieces': pending, 'evidence': evidence,

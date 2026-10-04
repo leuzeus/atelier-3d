@@ -80,6 +80,7 @@ def surface_section(vertices, faces, height_cm, seed_xy_cm):
                       'curve': curve})
     selected = [loop for loop in loops if loop['closed'] and loop['contains_seed']]
     result = {'height_cm': height_cm, 'loop_count': len(loops),
+              'open_loop_count': sum(not loop['closed'] for loop in loops),
               'excluded_loops': len(loops)-len(selected),
               'status': 'MEASURED' if len(selected) == 1 and not coplanar else 'NOT_QUALIFIED'}
     if result['status'] != 'MEASURED':

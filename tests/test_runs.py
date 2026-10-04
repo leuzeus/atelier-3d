@@ -149,6 +149,94 @@ class Runs(unittest.TestCase):
         self.assertEqual(receipt['status'], 'NEEDS_CORRECTION')
         self.assertEqual(next_run_step(self.project, run['run_id'])['status'], 'NEEDS_CORRECTION')
         self.assertEqual(run_status(self.project, run['run_id'])['units'][1]['attempts'], [])
+        from a3d.native_evidence import native_origin, native_observation_origin
+        before = sha(self.project.db)
+        with self.assertRaisesRegex(StudioError, 'canonical completed attempt'):
+            native_origin(self.project, lambda doc:doc['operation']=='inspect')
+        observed, origin = native_observation_origin(self.project, lambda doc:doc['operation']=='inspect')
+        self.assertEqual(observed['result']['status'], 'NEEDS_CORRECTION')
+        self.assertEqual(origin['scope'], 'OBSERVATION_ONLY')
+        self.assertEqual(origin['attempt_status'], 'NEEDS_CORRECTION')
+        self.assertFalse(origin['accepted'])
+        self.assertEqual(origin['product_acceptance'], 'NOT_GRANTED')
+        self.assertEqual(sha(self.project.db), before)
+
+    def test_diagnostic_origin_still_refuses_changed_outputs_and_unreturned_work(self):
+        from a3d.native_evidence import native_observation_origin
+        run = self.create(); next_run_step(self.project, run['run_id'])
+        with self.assertRaises(StudioError):
+            native_observation_origin(self.project, lambda doc:True)
+        output = self.root/'observed.json'; output.write_text('{}')
+        record_native_run_result(self.project, 'inspect', {}, {'status':'NEEDS_CORRECTION',
+            'artifact':{'path':'observed.json','sha256':sha(output)}})
+        native_observation_origin(self.project, lambda doc:doc['operation']=='inspect')
+        output.write_text('changed')
+        before = sha(self.project.db)
+        with self.assertRaisesRegex(StudioError, 'reference changed'):
+            native_observation_origin(self.project, lambda doc:doc['operation']=='inspect')
+        self.assertEqual(sha(self.project.db), before)
+
+    def test_legacy_targeted_observation_traces_stale_continuation_but_never_admits_it(self):
+        from a3d.native_evidence import native_origin, native_observation_origin
+        run = self.create(); next_run_step(self.project, run['run_id'])
+        mesh = self.root/'observed.json'; mesh.write_text('{}')
+        projection = self.project.data/'blender/piece-candidates.json'
+        projection.parent.mkdir(parents=True, exist_ok=True); projection.write_text('{}')
+        mesh_ref = {'path':'observed.json', 'sha256':sha(mesh)}
+        # Emulate an older native receipt produced before projection archival.
+        with patch('a3d.run_projection_archive.archive_projection_references',
+                   side_effect=lambda project,attempt,refs:(refs,[])):
+            record_native_run_result(self.project, 'inspect', {}, {'status':'NEEDS_CORRECTION',
+                'artifact':mesh_ref, 'projection':{'path':'.a3d/blender/piece-candidates.json','sha256':sha(projection)}})
+        projection.write_text('{"newer_component":true}')
+        before = sha(self.project.db)
+        with self.assertRaises(StudioError): native_origin(self.project, lambda doc:True)
+        with self.assertRaisesRegex(StudioError,'reference changed'):
+            native_observation_origin(self.project, lambda doc:True)
+        _, observed = native_observation_origin(self.project, lambda doc:True, mesh_ref)
+        self.assertEqual(observed['stale_project_projections'][0]['current_ref']['sha256'],sha(projection))
+        self.assertEqual(observed['scope'],'OBSERVATION_ONLY');self.assertFalse(observed['accepted'])
+        with self.assertRaisesRegex(StudioError,'not bound'):
+            native_observation_origin(self.project,lambda doc:True,{'path':'observed.json','sha256':'f'*64})
+        mesh.write_text('changed')
+        with self.assertRaisesRegex(StudioError,'reference changed'):
+            native_observation_origin(self.project,lambda doc:True,mesh_ref)
+        self.assertEqual(sha(self.project.db),before)
+
+    def test_registered_projection_archive_survives_live_changes_but_not_artifact_changes(self):
+        from a3d.native_evidence import native_origin
+        run=self.create();next_run_step(self.project,run['run_id'])
+        mesh=self.root/'observed.json';mesh.write_text('{}')
+        projection=self.project.data/'blender/piece-candidates.json'
+        projection.parent.mkdir(parents=True,exist_ok=True);projection.write_text('{}')
+        result={'status':'PASS','qualification':'COUPON_ONLY',
+            'artifact':{'path':'observed.json','sha256':sha(mesh)},
+            'projection':{'path':'.a3d/blender/piece-candidates.json','sha256':sha(projection)}}
+        record_native_run_result(self.project,'inspect',{},result)
+        projection.unlink();before=sha(self.project.db)
+        receipt,origin=native_origin(self.project,lambda doc:doc['operation']=='inspect')
+        self.assertEqual(receipt['result'],result)
+        self.assertFalse(receipt['accepted']);self.assertEqual(receipt['qualification'],'COUPON_ONLY')
+        self.assertEqual(origin['archived_project_projections'][0]['current_projection_status'],'ABSENT')
+        self.assertEqual(sha(self.project.db),before)
+        self.assertEqual(next_run_step(self.project,run['run_id'])['status'],'COMPLETED')
+        before=sha(self.project.db)
+        mesh.write_text('changed')
+        with self.assertRaisesRegex(StudioError,'reference changed'):native_origin(self.project,lambda doc:True)
+        self.assertEqual(sha(self.project.db),before)
+
+    def test_archive_orphan_without_registered_callback_never_creates_native_origin(self):
+        from a3d.native_evidence import native_origin
+        run=self.create();next_run_step(self.project,run['run_id'])
+        record_native_run_started(self.project,'inspect',{})
+        projection=self.project.data/'blender/piece-candidates.json'
+        projection.parent.mkdir(parents=True,exist_ok=True);projection.write_text('{}')
+        result={'status':'PASS','projection':{'path':'.a3d/blender/piece-candidates.json','sha256':sha(projection)}}
+        with patch('a3d.runs._save',side_effect=RuntimeError('journal rollback')):
+            with self.assertRaises(RuntimeError):record_native_run_result(self.project,'inspect',{},result)
+        self.assertTrue(list((self.project.data/'runs/native/projections').rglob('*.json')))
+        with self.assertRaisesRegex(StudioError,'canonically registered'):native_origin(self.project,lambda doc:True)
+        self.assertEqual(next_run_step(self.project,run['run_id'])['status'],'UNKNOWN_COMPLETION')
 
     def test_pending_recovery_and_recorded_restore_before_replay(self):
         run = self.create(); prepared = next_run_step(self.project, run['run_id'])
@@ -415,7 +503,10 @@ class Runs(unittest.TestCase):
         ref = {'path':checkpoint.relative_to(self.root).as_posix(), 'sha256':sha(checkpoint)}
         binding = record_native_run_started(self.project, 'inspect', {}, ref)
         modules = {'a3d.runs':sha(ROOT/'a3d/runs.py')}
-        result = {'status':'PASS', 'runtime':{'loaded_modules':modules, 'loaded_source_sha256':digest(modules)}}
+        projection=self.project.data/'blender/piece-candidates.json'
+        projection.parent.mkdir(parents=True,exist_ok=True);projection.write_text('{}')
+        result = {'status':'PASS', 'runtime':{'loaded_modules':modules, 'loaded_source_sha256':digest(modules)},
+            'projection':{'path':'.a3d/blender/piece-candidates.json','sha256':sha(projection)}}
         event = {**{key:binding[key] for key in ('run_id','unit_id','attempt_id','binding_sha256')},
             'operation':'inspect', 'arguments':{}, 'result':result, 'result_sha256':digest(result),
             'entry_checkpoint':ref, 'elapsed_seconds':1., 'runtime_sha256':digest(modules)}
@@ -424,6 +515,7 @@ class Runs(unittest.TestCase):
                 'operation':'inspect', 'arguments':{}, 'checkpoint':ref, 'status':'RESULT_READY'}
             self.project.save(db,state,'run_native_result_ready',event)
         record_native_run_result(self.project,'inspect',{},result,ref,1.)
+        projection.write_text('{"newer_projection":true}')
         reconciled=next_run_step(self.project,run['run_id'])
         self.assertTrue(reconciled['reconciled'])
         self.assertNotIn('pending_blender_operation',self.project.state())

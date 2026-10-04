@@ -12,6 +12,24 @@ RETIRED_PREPARATIONS=('experimental_prefit','interface_preparation','panel_mount
     'fitting_placement','contact_recovery','fitting_pose','fitting_tacks')
 
 
+def preform_supports(payload,plan,coordinates):
+    """Resolve the same source supports even when an initial guide is refused."""
+    from a3d.pattern_assembly import support_weights
+    from a3d.sewing import permanent_support_groups,distance
+    weights,report=support_weights(payload,plan,'assembly',release=0.)
+    source=payload.get('source_pins',{})
+    report['source_pin_transition']={key:{'source_weight':source.get(key,0.),'prepared_weight':weights.get(key,0.)}
+        for key in source.keys()|weights.keys() if source.get(key,0.)!=weights.get(key,0.)}
+    variations=[];conflicts=[]
+    for group in permanent_support_groups(payload):
+        cohort={str(i):weights.get(str(i),0.) for i in group}
+        if len(set(cohort.values()))>1:variations.append(cohort)
+        fixed=[i for i in group if cohort[str(i)]>=1.]
+        if any(distance(coordinates[a],coordinates[b])>plan['consolidation']['weld_gap_cm'] for a in fixed for b in fixed):conflicts.append(fixed)
+    report.update(permanent_cohort_weight_variations=variations,contradictory_fixed_cohorts=conflicts)
+    return weights,report
+
+
 def migrate_preparation_recipe(source_recipe,spec):
     """Retire only redundant mechanics in a copy; never transfer qualification."""
     requested=spec.get('migration',{}).get('retire_legacy_preparations') is True
@@ -45,6 +63,13 @@ def prepared_receipt(project,obj,payload,recipe,plan_ref):
             or record.get('mesh_sha256')!=mesh_digest(obj)):
         raise StudioError('Prepared geometry, recipe, source mapping or plan changed; prepare again')
     verified_reference(project,record['derived_mesh'])
+    correction=record.get('placement_correction')
+    if correction:
+        observed=read_json(verified_reference(project,correction['receipt']))
+        if (correction.get('candidate_sha256')!=digest(payload['placed_cm'])
+                or observed.get('candidate_sha256')!=digest(payload['placed_cm'])
+                or observed.get('status')!='GEOMETRIC_GATES_PASSED'):
+            raise StudioError('Prepared native placement correction changed or was not geometrically admitted')
     spec=read_json(verified_reference(project,record['preparation_spec']))
     for key in ('assembly_plan','construction_dossier'):
         if spec.get(key):verified_reference(project,spec[key])
@@ -168,7 +193,7 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
         source_audit={'status':'NEEDS_CORRECTION','source_sha256':digest(data),'error':str(exc),
             'issues':[{'category':'source_contract','code':'SOURCE_AUDIT_ERROR','message':str(exc)}]}
         problem('NEEDS_CORRECTION','source_pattern',exc)
-    payload=None;plan=None;plan_ref=None;obj=None;preform=None;collision=None;statistics=None;dressing=None;layer_migration=None
+    payload=None;plan=None;plan_ref=None;obj=None;preform=None;collision=None;statistics=None;dressing=None;layer_migration=None;placement_correction=None
     try:
         payload=build_mesh(data,recipe,regular_mesh=spec['regular_mesh'],dossier=dossier)
     except StudioError as exc:
@@ -179,6 +204,8 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
             source_pins=copy.deepcopy(payload['pins']),full_rest_area_cm2=_area(payload))
         if session.get('construction_id'):payload['construction_id']=session['construction_id']
         source_placement=copy.deepcopy(payload['placed_cm'])
+        initial_preform_problem=None
+        initial_preform_can_reconcile=False
         if spec.get('assembly_plan'):
             original_plan=contract('pattern-assembly',read_json(verified_reference(project,spec['assembly_plan'])))
             if original_plan['component_id']!=component_id:raise StudioError('Preparation assembly plan component mismatch')
@@ -192,30 +219,34 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
                 if layer_migration['layers']:plan['layers']=layer_migration['layers']
                 else:problem('NEEDS_CLARIFICATION','layer_order',layer_migration['reason'])
             try:
+                if spec.get('source_preform_budget'):
+                    from a3d.textile_executor import verify_source_preform_budget
+                    verify_source_preform_budget(data,plan['preform']['panels'],recipe['placements'],spec['source_preform_budget'])
                 coords,preform=preform_coordinates(payload,plan)
                 payload['placed_cm']=coords
-                payload['pins'],support=support_weights(payload,plan,'assembly',release=0.)
-                support['source_pin_transition']={key:{'source_weight':payload['source_pins'].get(key,0.),'prepared_weight':payload['pins'].get(key,0.)}
-                    for key in payload['source_pins'].keys()|payload['pins'].keys() if payload['source_pins'].get(key,0.)!=payload['pins'].get(key,0.)}
-                from a3d.sewing import permanent_support_groups,distance
-                variations=[];fixed_conflicts=[]
-                for group in permanent_support_groups(payload):
-                    weights={str(i):payload['pins'].get(str(i),0.) for i in group}
-                    if len(set(weights.values()))>1:variations.append(weights)
-                    fixed=[i for i in group if weights[str(i)]>=1.]
-                    if any(distance(coords[a],coords[b])>plan['consolidation']['weld_gap_cm'] for a in fixed for b in fixed):fixed_conflicts.append(fixed)
-                support.update(permanent_cohort_weight_variations=variations,contradictory_fixed_cohorts=fixed_conflicts)
-                if fixed_conflicts:problem('NEEDS_CORRECTION','support_conflict','Fixed declared supports prevent their permanent seam partners from closing within tolerance')
+                payload['pins'],support=preform_supports(payload,plan,coords)
+                if support['contradictory_fixed_cohorts']:problem('NEEDS_CORRECTION','support_conflict','Fixed declared supports prevent their permanent seam partners from closing within tolerance')
                 preform['supports']=support
                 # The regular derivation is checked in its actual preform below.
                 problems[:]=[p for p in problems if p['category']!='derived_mesh_or_initial_placement']
             except StudioError as exc:
                 if getattr(exc,'preform_coordinates_cm',None):payload['placed_cm']=exc.preform_coordinates_cm
+                initial_preform_can_reconcile=bool(getattr(exc,'preform_coordinates_cm',None))
                 preform={'status':'NEEDS_CORRECTION','error':str(exc),
                     'correspondence':getattr(exc,'preform_correspondence',None),
                     'native_backends':getattr(exc,'preform_native_backends',{})}
-                problem('NEEDS_CORRECTION',getattr(exc,'reason_category','preform'),exc)
-            displacement=_placement_displacement(payload,source_placement,payload['placed_cm'],plan['assembly']['max_displacement_cm'])
+                initial_preform_problem={'readiness':'NEEDS_CORRECTION','category':getattr(exc,'reason_category','preform'),'message':str(exc)}
+                problems.append(initial_preform_problem)
+                if getattr(exc,'preform_coordinates_cm',None):
+                    try:
+                        payload['pins'],support=preform_supports(payload,plan,payload['placed_cm']);preform['supports']=support
+                        if support['contradictory_fixed_cohorts']:
+                            problem('NEEDS_CORRECTION','support_conflict','Fixed declared supports prevent their permanent seam partners from closing within tolerance')
+                    except StudioError as support_error:problem('NEEDS_CORRECTION','support_conflict',support_error)
+            preform_limit=spec.get('source_preform_budget',{}).get('max_displacement_cm',plan['assembly']['max_displacement_cm'])
+            displacement=_placement_displacement(payload,source_placement,payload['placed_cm'],preform_limit)
+            displacement['budget_basis']='SOURCE_GUIDE_STAGING' if spec.get('source_preform_budget') else 'LEGACY_ASSEMBLY_DISPLACEMENT'
+            displacement['physical_assembly_limit_cm']=plan['assembly']['max_displacement_cm']
             preform['placement_displacement']=displacement
             if not displacement['within_budget']:
                 problem('NEEDS_CORRECTION','placement_budget',f"Preform displacement {displacement['max_cm']:.6g} cm exceeds its declared {displacement['limit_cm']:.6g} cm budget at source vertex {displacement['vertex']}")
@@ -235,6 +266,46 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
                 else:problem('NEEDS_CLARIFICATION','layer_order',selection['reason'])
             inward=[(o,t,s) for o,t,s in zip(colliders,trees,snapshots,strict=True) if o.name in selected]
             collision_plan=copy.deepcopy(plan) if plan else {'collision':{'required':bool(recipe['colliders']),'clearance_cm':0.},'consolidation':{'weld_gap_cm':recipe['limits']['weld_gap_cm']}}
+            if plan and spec.get('placement_correction'):
+                from blender.placement_correction import correct_preparation
+                before_correction=copy.deepcopy(payload['placed_cm'])
+                try:
+                    placement_correction=correct_preparation(payload,recipe,plan,spec,[item[0] for item in inward])
+                    payload['placed_cm']=copy.deepcopy(placement_correction['coordinates_cm'])
+                    if placement_correction['status']!='GEOMETRIC_GATES_PASSED':
+                        problem('NEEDS_CORRECTION','placement_correction',placement_correction['stop_reason'])
+                    elif initial_preform_problem and initial_preform_can_reconcile:
+                        # Only the precise initial-guide error is superseded.
+                        # Source/support/layer/audit issues and the final native
+                        # preparation validator remain independently required.
+                        problems[:]=[row for row in problems if row is not initial_preform_problem]
+                        preform['initial_guide_failure']=copy.deepcopy(initial_preform_problem)
+                        preform.update(status='CORRECTED_CANDIDATE_PREPOSITIONED',
+                            corrected_candidate_sha256=digest(payload['placed_cm']),
+                            correspondence_domain='ORIGINAL_SOURCE_GUIDE_BEFORE_CORRECTION')
+                except StudioError as exc:
+                    placement_correction={'status':'NEEDS_CORRECTION','error':str(exc),
+                        'quality_violations':getattr(exc,'quality_violations',[]),
+                        'contact_report':getattr(exc,'contact_report',None),'qualification':'NONE','simulation':'NOT_EXECUTED'}
+                    problem('NEEDS_CORRECTION','placement_correction',exc)
+                if spec.get('source_preform_budget'):
+                    correction_limit=min(plan['assembly']['max_displacement_cm'],spec['placement_correction']['budgets']['max_displacement_cm'])
+                    correction_delta=_placement_displacement(payload,before_correction,payload['placed_cm'],correction_limit)
+                    correction_delta.update(source='SOURCE_GUIDE_PREFORM',target='CORRECTED_PREFORM',budget_basis='UNCHANGED_CORRECTION_AND_ASSEMBLY_LIMITS')
+                    placement_correction['displacement_from_source_guide']=correction_delta
+                    total_limit=preform_limit+correction_limit
+                    if not correction_delta['within_budget']:
+                        problem('NEEDS_CORRECTION','placement_budget','Correction exceeds its unchanged displacement budget from the declared source guide')
+                else:total_limit=plan['assembly']['max_displacement_cm']
+                corrected_displacement=_placement_displacement(payload,source_placement,payload['placed_cm'],total_limit)
+                corrected_displacement['budget_basis']='SOURCE_GUIDE_BOUND_PLUS_UNCHANGED_CORRECTION_LIMIT' if spec.get('source_preform_budget') else 'LEGACY_ASSEMBLY_DISPLACEMENT'
+                placement_correction['total_source_placement_displacement']=corrected_displacement
+                if not corrected_displacement['within_budget']:
+                    problem('NEEDS_CORRECTION','placement_budget','Corrected preform exceeds its declared total source-placement bound')
+                correction_path=directory/'placement-correction.json';atomic_json(correction_path,placement_correction)
+                placement_correction={'assessment':placement_correction['status'],'receipt':reference(project,correction_path),
+                    'candidate_sha256':digest(payload['placed_cm']),'qualification':'NONE',
+                    'final_readiness':'UNCHANGED_PREPARATION_VALIDATOR_REQUIRED'}
             # Preparation inspects the declared target even if assembly later
             # elects a collider-free mounting phase. No deep contact is hidden.
             collision=collision_guard(payload,[item[1] for item in inward],[item[2] for item in inward],collision_plan,self_contacts=True)(payload['placed_cm'])
@@ -281,6 +352,7 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
         'source_package':reference(project,package),'preparation_spec':reference(project,spec_path),
         'construction_dossier':dossier_ref,
         'source_recipe':reference(project,recipe_file),'recipe':reference(project,output_recipe),
+        'placement_correction':placement_correction,
         'recipe_sha256':digest(recipe),'derived_mesh':derived,
         'recipe_migration':migration,
         'assembly_plan':plan_ref,'mapping_rebind':rebind,'source_audit':source_audit,'preform':preform,

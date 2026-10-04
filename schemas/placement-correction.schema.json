@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Measured source-metric constrained placement correction",
+  "type": "object",
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "kernels": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "rigid",
+          "relaxation"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "budgets": {
+      "type": "object",
+      "properties": {
+        "max_iterations": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "max_seconds": {
+          "type": "number",
+          "minimum": 0.001,
+          "maximum": 3600
+        },
+        "max_proposals_per_iteration": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "max_displacement_cm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "max_step_cm": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 100
+        },
+        "stagnation_iterations": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "min_improvement": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "target_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000000
+        }
+      },
+      "required": [
+        "max_iterations",
+        "max_seconds",
+        "max_proposals_per_iteration",
+        "max_displacement_cm",
+        "max_step_cm",
+        "stagnation_iterations",
+        "min_improvement",
+        "target_score"
+      ],
+      "additionalProperties": false
+    },
+    "quality": {
+      "type": "object",
+      "properties": {
+        "min_angle_degrees": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60
+        },
+        "min_edge_cm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "min_stretch": {
+          "type": "number",
+          "minimum": 0.001,
+          "maximum": 1
+        },
+        "max_stretch": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10
+        }
+      },
+      "required": [
+        "min_angle_degrees",
+        "min_edge_cm",
+        "min_stretch",
+        "max_stretch"
+      ],
+      "additionalProperties": false
+    },
+    "protected_indices": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 100000000
+      },
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "version",
+    "kernels",
+    "budgets",
+    "quality"
+  ],
+  "additionalProperties": false
+}

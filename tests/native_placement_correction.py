@@ -1,57 +1,55 @@
-"""Measured native contact/metric gates for a disposable sewing coupon."""
+"""Actual source-metric contact correction on a synthetic native coupon only."""
 import copy
-import math
+import os
 from pathlib import Path
 import sys
+ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
 import bpy
-ROOT = Path(__file__).resolve().parents[1]; sys.path.insert(0, str(ROOT))
-from a3d.core import StudioError, atomic_json, digest
-from a3d.cloth_metrics import validate_metrics
-from a3d.placement_correction import correct_placement
-from blender.cloth_contacts import build_contact_context, check_contacts
-from tests.native_cloth_contacts import box
-from tests.test_placement_correction import fixture, motion
+from a3d.core import atomic_json,digest
+from blender.placement_correction import correct_preparation
+from blender.sewing import mesh_digest
 
-
-def run(output):
-    output = Path(output); output.mkdir(parents=True, exist_ok=True)
-    payload, coordinates, budgets, seam_measurement = fixture(); source_sha = digest(payload)
-    budgets['max_displacement_cm'] = 20.
-    criteria = {'quality': {'min_angle_degrees': 10., 'min_edge_cm': .05,
-                            'min_stretch': .99, 'max_stretch': 1.01},
-                'clearance_cm': .05, 'budgets': budgets, 'qualification': 'NATIVE_COUPON_ONLY'}
-    atomic_json(output/'criteria.json', criteria)
-    body = box(); body.location.x = -.05; body.location.y = .01
-    bpy.context.view_layer.update()
-    context = build_contact_context(payload, [body], clearance_cm=.05)
-    def evaluate(source, points):
-        try: metrics = validate_metrics(source, points, criteria['quality'])
-        except StudioError as error:
-            if not hasattr(error, 'quality_metrics'): raise
-            metrics = error.quality_metrics
-        contacts = check_contacts(context, points)
-        return dict(seam_measurement(source, points), hard_valid=not metrics['violations'] and contacts['ok'],
-                    quality=metrics, contacts=contacts)
-    def propose(source, points, report):
-        # First trial intersects the measured body; second follows the actual
-        # seam partner vector by a bounded rigid translation.
-        yield motion(-10.)
-        gaps = [[points[b][i]-points[a][i] for i in range(3)] for a, b in source['seams']['join']['pairs']]
-        translation = [-sum(row[i] for row in gaps)/len(gaps) for i in range(3)]
-        size = math.sqrt(sum(x*x for x in translation))
-        if size:
-            proposal = motion(0.); proposal['translation_cm'] = [x*min(1., .5/size) for x in translation]
-            yield proposal
-    result = correct_placement(payload, coordinates, evaluate, propose, budgets)
-    assert result['stop_reason'] == 'TARGET_REACHED'
-    assert not result['measurement']['quality']['violations'] and result['measurement']['contacts']['ok']
-    assert any(row['reason'] == 'HARD_GATE_OR_NO_IMPROVEMENT' and not row['measurement']['contacts']['ok'] for row in result['history'])
-    assert digest(payload) == source_sha
-    atomic_json(output/'correction.json', result)
-    atomic_json(output/'receipt.json', {'status': 'NATIVE_COUPON_CORRECTION_PASS',
-        'source_unchanged': True, 'metric_and_contact_gates': 'PASS', 'unsafe_trial_rejected': True,
-        'blender_version': bpy.app.version_string, 'qualification': 'NATIVE_COUPON_ONLY',
-        'full_garment': 'NOT_EXECUTED', 'production_connection': False})
-
-
-if __name__ == '__main__': run(sys.argv[sys.argv.index('--')+1])
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_cube_add(size=.1,location=(.01,.01,-.04))
+body=bpy.context.object;body.name='SYNTHETIC_FIXED_BODY'
+unchanged=mesh_digest(body,True)
+points=[[0.,0.,0.],[2.,0.,0.],[2.,2.,0.],[0.,2.,0.]]
+payload={'version':1,'component_id':'synthetic.coupon','rest_cm':points,'placed_cm':[[x,y,.8] for x,y,_ in points],
+    'faces':[[0,1,2],[0,2,3]],'panels':{'coupon':{'indices':[0,1,2,3]}},'pins':{},'seams':{},
+    'package_sha256':digest('synthetic-unmodified-source')}
+quality={'min_angle_degrees':15.,'min_edge_cm':.01,'min_stretch':.9,'max_stretch':1.1}
+recipe={'mesh':quality}
+plan={'quality':quality,'assembly':{'max_displacement_cm':2.,'max_step_cm':.05,'iterations':50,'max_initial_gap_cm':.5},
+    'collision':{'required':True,'clearance_cm':.1},'consolidation':{'weld_gap_cm':.05}}
+spec={'regular_mesh':{'target_min_angle_degrees':15.},'placement_correction':{'version':1,'kernels':['rigid','relaxation'],
+    'quality':quality,'budgets':{'max_iterations':50,'max_seconds':60.,'max_proposals_per_iteration':4,
+        'max_displacement_cm':2.,'max_step_cm':.05,'stagnation_iterations':2,'min_improvement':1e-8,'target_score':1e-8}}}
+before=digest([payload,recipe,plan,spec])
+solved=correct_preparation(payload,recipe,plan,spec,[body])
+assert solved['status']=='GEOMETRIC_GATES_PASSED',solved
+assert solved['measurement']['static_contact']['ok'] is True
+assert solved['history'][0]['measurement']['hard_valid'] is False
+assert digest([payload,recipe,plan,spec])==before and mesh_digest(body,True)==unchanged
+protected=copy.deepcopy(payload);protected['pins']={str(i):1. for i in range(4)}
+refused=correct_preparation(protected,recipe,plan,spec,[body])
+assert refused['status']=='NEEDS_CORRECTION' and refused['stop_reason']=='STAGNATION'
+assert refused['coordinates_cm']==protected['placed_cm'] and mesh_digest(body,True)==unchanged
+compressed=copy.deepcopy(payload);compressed['placed_cm']=[[x*.5,y,1.2] for x,y,_ in points]
+compressed['panels']['coupon']['edges']={'anchor':[0,3],'opposite':[1,2]}
+recovery_spec=copy.deepcopy(spec)
+recovery_spec.update(version=1,component_id='synthetic.coupon',source_ref='fixture:immutable-flat-source',
+    regular_mesh={'spacing_cm':1.,'min_spacing_cm':.2,'refinement_distance_cm':1.,'max_vertices':20,'target_min_angle_degrees':15.},
+    metric_recovery={'version':1,'piece_ids':['coupon'],'protected_edges':[{'piece':'coupon','edge':'anchor'}],
+        'strain_weight':100.,'budgets':{'max_iterations':20,'max_seconds':30.,'max_displacement_cm':2.,'max_step_cm':.5,
+            'cg_iterations':80,'cg_tolerance':1e-5,'stagnation_iterations':3}})
+recovery_before=digest([compressed,recovery_spec]);recovered=correct_preparation(compressed,recipe,plan,recovery_spec,[body])
+assert recovered['status']=='GEOMETRIC_GATES_PASSED',recovered
+assert recovered['metric_recovery']['status']=='SOURCE_METRIC_RECOVERED'
+assert recovered['measurement']['static_contact']['ok']is True
+assert recovered['displacement_reference_sha256']==digest(compressed['placed_cm'])
+assert recovered['max_displacement_cm']<=2.
+assert digest([compressed,recovery_spec])==recovery_before and mesh_digest(body,True)==unchanged
+out=Path(os.environ['A3D_VALIDATION_OUTPUT']);out.mkdir(parents=True,exist_ok=True)
+atomic_json(out/'result.json',{'status':'PASS_SYNTHETIC_STATIC_CORRECTION_ONLY','solved':solved,'protected':refused,'metric_recovery':recovered,
+    'qualification':'NATIVE_SYNTHETIC_COUPON_ONLY','simulation':'NOT_EXECUTED','fitting':'NOT_QUALIFIED','body_sha256':unchanged})
+print('NATIVE_PLACEMENT_CORRECTION_RESULT='+str(out/'result.json'),flush=True)

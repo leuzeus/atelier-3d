@@ -38,6 +38,30 @@ def fixture():
 
 
 class GarmentFit(unittest.TestCase):
+    def test_second_declared_component_without_its_measurement_is_not_admitted(self):
+        from unittest.mock import patch
+        from a3d.garment_fit import require_fit_intent
+        compiled, body, spec = fixture()
+        compiled['components'].append({'id': 'garment.hood', 'pipeline': 'PATTERN_SEWN'})
+        spec['component_ids'].append('garment.hood')
+        report = assess_source_fit(compiled, body, spec)
+        self.assertEqual(report['status'], 'FIT_PREFLIGHT_INCOMPLETE')
+        self.assertIn({'code': 'FIT_COMPONENT_MEASUREMENTS_REQUIRED', 'component_id': 'garment.hood'}, report['diagnostics'])
+        report['human_reviews'] = [{'component_id': cid, 'numeric_ease': {'status': 'REVIEWED'}}
+                                  for cid in spec['component_ids']]
+        with patch('a3d.garment_fit.assess_project_fit', return_value=report), self.assertRaises(StudioError):
+            require_fit_intent(None, 'compiled.json', 'fit.json')
+        # Even a malformed preflight that drops the missing-owner diagnostic
+        # must not let a second component inherit another component's checks.
+        report['diagnostics'] = []
+        with patch('a3d.garment_fit.assess_project_fit', return_value=report), self.assertRaisesRegex(StudioError, 'its own measured source path'):
+            require_fit_intent(None, 'compiled.json', 'fit.json')
+        undeclared = copy.deepcopy(spec)
+        undeclared['required_measurements'].append({'id': 'foreign', 'component_id': 'garment.foreign',
+                                                   'layer': 'outer', 'body_landmark': 'chest'})
+        with self.assertRaisesRegex(StudioError, 'undeclared components'):
+            assess_source_fit(compiled, body, undeclared)
+
     def test_nominal_capacity_ease_breakdown_and_sources_without_acceptance(self):
         compiled, body, spec = fixture(); before = digest([compiled, body, spec])
         report = assess_source_fit(compiled, body, spec); row = report['checks'][0]
@@ -185,6 +209,114 @@ class GarmentFit(unittest.TestCase):
                 with self.assertRaisesRegex(StudioError,'canonical native run origin'):
                     assess_project_fit(project,'compiled.json','fit.json')
             self.assertEqual(sha(project.db),database_sha)
+
+    def test_silhouette_review_does_not_review_numeric_ease_and_stale_sources_refuse(self):
+        import tempfile
+        from pathlib import Path
+        from a3d.core import ROOT, atomic_json, sha
+        from a3d.garment_fit import _fit_reviews
+        from tests.support import ready_project
+        (ROOT/'work/test-runs').mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=ROOT/'work/test-runs') as directory:
+            project = ready_project(Path(directory), True)
+            _, _, spec = fixture(); cid = spec['component_ids'][0]
+            refs = {}
+            for name in ('dossier', 'body'):
+                atomic_json(project.root/(name+'.json'), {'purpose': 'PORTABLE_TEST_ONLY', 'id': name})
+                refs[name] = {'path': name+'.json', 'sha256': sha(project.root/(name+'.json'))}
+                project.evidence('fit.'+name, refs[name]['path'])
+            spec.update(dossier_ref=refs['dossier'], body_ref=refs['body'])
+            decision = {'component_ids': [cid], 'dossier_ref': refs['dossier'], 'body_ref': refs['body'],
+                'category': spec['classification']['category'],
+                'silhouette_intent': spec['classification']['silhouette_intent'],
+                'approved_scope': ['category', 'silhouette_intent'], 'purpose': 'SYNTHETIC_DECISION_TEST_ONLY'}
+            atomic_json(project.root/'decision.json', decision)
+            spec['source_ref'] = {'path': 'decision.json', 'sha256': sha(project.root/'decision.json')}
+            project.evidence('fit.silhouette', 'decision.json')
+            project.gate('fit-silhouette.'+cid, True, 'SYNTHETIC_TEST_ONLY', ['fit.silhouette'], 'portable:test')
+            atomic_json(project.root/'fit.json', spec)
+            spec_ref = {'path': 'fit.json', 'sha256': sha(project.root/'fit.json')}
+            rows = _fit_reviews(project, spec, spec_ref)
+            self.assertEqual(rows[0]['silhouette']['status'], 'REVIEWED')
+            self.assertEqual(rows[0]['numeric_ease']['status'], 'PENDING')
+            # Approving the same silhouette under the numeric gate name still
+            # cannot approve a fit specification, dossier and exact body.
+            project.gate('fit-intent.'+cid, True, 'SYNTHETIC_TEST_ONLY', ['fit.silhouette'], 'portable:test')
+            self.assertEqual(_fit_reviews(project, spec, spec_ref)[0]['numeric_ease']['status'], 'PENDING_EXACT_REFERENCES')
+            project.evidence('fit.numeric', 'fit.json')
+            project.gate('fit-intent.'+cid, True, 'SYNTHETIC_TEST_ONLY',
+                ['fit.numeric', 'fit.dossier', 'fit.body'], 'portable:test')
+            self.assertEqual(_fit_reviews(project, spec, spec_ref)[0]['numeric_ease']['status'], 'REVIEWED')
+            atomic_json(project.root/'body.json', {'purpose': 'CHANGED_SOURCE_TEST_ONLY'})
+            with self.assertRaises(StudioError): _fit_reviews(project, spec, spec_ref)
+
+    def test_production_intent_admission_keeps_open_coverage_unqualified(self):
+        from unittest.mock import patch
+        from a3d.garment_fit import require_fit_intent
+        compiled, body, spec = fixture()
+        report = assess_source_fit(compiled, body, spec)
+        report['human_reviews'] = [{'numeric_ease': {'status': 'PENDING'}}]
+        with patch('a3d.garment_fit.assess_project_fit', return_value=report):
+            with self.assertRaisesRegex(StudioError, 'exact human review'):
+                require_fit_intent(None, 'compiled.json', 'fit.json')
+
+        report['human_reviews'][0]['numeric_ease']['status'] = 'REVIEWED'
+        report['checks'][0]['status'] = 'OPEN_SPATIAL_COVERAGE_REQUIRED'
+        with patch('a3d.garment_fit.assess_project_fit', return_value=report):
+            result = require_fit_intent(None, 'compiled.json', 'fit.json')
+        self.assertEqual(result['admission'], 'EXPLORATORY_PHYSICS_ONLY')
+        self.assertEqual(result['acceptance'], 'NOT_GRANTED')
+        self.assertEqual(result['spatial_coverage'], 'NOT_MEASURED')
+        for mutation in ('missing_path', 'missing_body', 'deficit'):
+            changed = copy.deepcopy(report)
+            if mutation == 'missing_path': changed['diagnostics'] = [{'code': 'FIT_MEASUREMENT_PATH_REQUIRED'}]
+            if mutation == 'missing_body': changed['checks'][0]['status'] = 'MISSING_BODY_MEASUREMENT'
+            if mutation == 'deficit': changed['checks'][0]['status'] = 'BELOW_DECLARED_EASE'
+            with patch('a3d.garment_fit.assess_project_fit', return_value=changed), self.assertRaises(StudioError):
+                require_fit_intent(None, 'compiled.json', 'fit.json')
+
+    def test_oblique_skin_section_is_separate_and_cannot_be_relabelled_as_a_hand_hull(self):
+        import math
+        compiled, body, spec = fixture()
+        landmark = 'wrist.left'; section_id = 'forearm.left.section.0'
+        body['frame'] = {'origin_cm': [0.,0.,0.], 'right': [1.,0.,0.],
+                         'forward': [0.,1.,0.], 'up': [0.,0.,1.]}
+        body['landmarks'][landmark] = {'point_cm': [0.,0.,0.], 'source_ref': 'PORTABLE_TEST_ONLY'}
+        for row in (spec['measurements'][0], spec['required_measurements'][0]): row['body_landmark'] = landmark
+        refs = {'specification_ref': {'path': 'region-policy.json', 'sha256': 'd'*64},
+                'supplement_ref': {'path': 'region-supplement.json', 'sha256': 'e'*64}}
+        spec['body_regions'] = {**refs, 'landmark_sections': [{'body_landmark': landmark, 'section_id': section_id}]}
+        h = math.sqrt(.5)
+        curve = [[x, y*h, -y*h] for x, y in ((-4.5,-4.5),(4.5,-4.5),(4.5,4.5),(-4.5,4.5))]
+        section = {'status': 'MEASURED', 'ok': True, 'parameter': 0, 'center_cm': [0.,0.,0.],
+                   'plane': {'normal_world': [0.,h,h]}, 'curve_cm': curve, 'girth_cm': 36.}
+        descriptor = {**refs, 'identity': {'profile_sha256': digest(body), 'profile_cache_key': body['cache_key']},
+            'sections': {section_id: {'region': {'side': 'left', 'domain': 'WRIST_TO_ELBOW_ONLY',
+                                                'axis_start_cm': [0.,0.,0.]}, 'section': section}}}
+        before = digest(body)
+        result = assess_source_fit(compiled, body, spec, descriptor)
+        self.assertEqual(result['checks'][0]['body_girth_cm'], 36.)
+        self.assertEqual(result['checks'][0]['ease_cm'], 4.)
+        self.assertEqual(digest(body), before)
+        for mutation in ('other_body', 'other_side', 'other_domain', 'other_parameter', 'elbow_as_wrist', 'off_plane', 'hull', 'unmeasured'):
+            altered = copy.deepcopy(descriptor); entry = altered['sections'][section_id]
+            if mutation == 'other_body': altered['identity']['profile_sha256'] = 'f'*64
+            if mutation == 'other_side': entry['region']['side'] = 'right'
+            if mutation == 'other_domain': entry['region']['domain'] = 'SHOULDER_TO_ELBOW_ONLY'
+            if mutation == 'other_parameter': entry['section']['parameter'] = .5
+            if mutation == 'elbow_as_wrist':
+                entry['region']['axis_start_cm'] = [0.,10.,0.]
+                entry['section']['center_cm'] = [0.,10.,0.]
+                entry['section']['curve_cm'] = [[p[0],p[1]+10,p[2]] for p in curve]
+            if mutation == 'off_plane': entry['section']['curve_cm'][0][2] += 1
+            if mutation == 'hull': altered['sections'] = {}; altered['hand_envelopes'] = {section_id: section}
+            if mutation == 'unmeasured':
+                entry['section']['ok'] = False; entry['section']['status'] = 'NEEDS_DATA'
+                self.assertEqual(assess_source_fit(compiled, body, spec, altered)['checks'][0]['status'], 'MISSING_BODY_MEASUREMENT')
+                continue
+            with self.subTest(mutation=mutation), self.assertRaises(StudioError):
+                assess_source_fit(compiled, body, spec, altered)
+
 
 
 if __name__ == '__main__':

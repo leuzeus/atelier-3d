@@ -25,6 +25,123 @@ def parse_code(code):
 
 def admit_operation(project, operation, arguments):
     state = project.state()
+    if operation == 'introduce_body_target':
+        from .lifecycle import no_pending_operation
+        from .body_context import body_context_descriptor
+        no_pending_operation(state)
+        if set(arguments) != {'context_path'}:
+            raise StudioError('Unexpected/missing measured body context arguments')
+        if state['stage'] != 'RECONSTRUCTING':
+            raise StudioError('Measured body introduction requires active garment reconstruction')
+        require_board(project, state)
+        body_context_descriptor(project, arguments['context_path'])
+        return
+    if operation in ('inspect_reconstructed_part', 'prepare_reconstructed_part', 'run_garment_motion', 'attach_reconstructed_part', 'run_dressing_program'):
+        from .lifecycle import no_pending_operation
+        no_pending_operation(state)
+        if state['stage'] == 'COMPLETE': raise StudioError('Completed project is immutable')
+        if set(arguments) != {'profile_path'}:
+            raise StudioError('Unexpected/missing native candidate profile arguments')
+        if operation in ('inspect_reconstructed_part', 'prepare_reconstructed_part'):
+            from .part_preparation import part_descriptor
+            part_descriptor(project, arguments['profile_path'], normalize=operation == 'prepare_reconstructed_part')
+        elif operation == 'attach_reconstructed_part':
+            from .rigid_attachment import rigid_attachment_descriptor
+            rigid_attachment_descriptor(project, arguments['profile_path'])
+        elif operation == 'run_dressing_program':
+            from .dressing_paths import dressing_execution_descriptor
+            dressing_execution_descriptor(project, arguments['profile_path'])
+        else:
+            from .garment_motion import motion_inputs
+            motion_inputs(project, arguments['profile_path'])
+        return
+    if operation in ('export_blender_animation', 'prepare_asset_finishing', 'compose_animated_delivery', 'render_motion_review'):
+        from .lifecycle import no_pending_operation
+        no_pending_operation(state)
+        if set(arguments) != {'profile_path'}:
+            raise StudioError('Unexpected/missing asset delivery profile arguments')
+        if operation == 'export_blender_animation':
+            from .export_profiles import export_descriptor
+            export_descriptor(project, arguments['profile_path'])
+        elif operation == 'prepare_asset_finishing':
+            from .asset_finishing import finishing_descriptor
+            finishing_descriptor(project, arguments['profile_path'])
+        elif operation == 'render_motion_review':
+            from .review_motion import review_motion_descriptor
+            review_motion_descriptor(project, arguments['profile_path'])
+        else:
+            from .animated_delivery import animated_delivery_descriptor
+            animated_delivery_descriptor(project, arguments['profile_path'])
+        return
+    if operation in ('run_material_bench', 'inspect_dressing_plan'):
+        from .lifecycle import no_pending_operation
+        no_pending_operation(state)
+        if state['stage'] == 'COMPLETE': raise StudioError('Completed project is immutable')
+        if operation == 'run_material_bench':
+            from .material_bench import _load_compiled
+            if set(arguments) != {'bench_path', 'output_dir'}:
+                raise StudioError('Unexpected/missing material benchmark arguments')
+            _load_compiled(project, arguments['bench_path'])
+            if inside(project.root, arguments['output_dir'], False).exists():
+                raise StudioError('Material benchmark output must be a new directory')
+        else:
+            from .dressing import _compiled_dressing
+            if set(arguments) != {'component_id', 'recipe_path', 'dressing_path'}:
+                raise StudioError('Unexpected/missing dressing inspection arguments')
+            if state['stage'] != 'RECONSTRUCTING': raise StudioError('Dressing inspection requires active reconstruction')
+            require_board(project, state)
+            _, component = project.ready(arguments['component_id'])
+            if component['route']['selected'] != 'PATTERN_SEWN' or component['stage'] == 'RECONSTRUCTED':
+                raise StudioError('Dressing inspection requires an unaccepted sewn component')
+            document = _compiled_dressing(project, arguments['dressing_path'])
+            if (document['component_id'] != arguments['component_id']
+                    or document['bindings']['recipe']['path'] != arguments['recipe_path']):
+                raise StudioError('Dressing operation differs from its exact compiled target')
+        return
+    if operation in ('advance_textile_program', 'transition_textile_group'):
+        from .lifecycle import no_pending_operation
+        from .textile_executor import load_textile_program, require_textile_program_admission, STAGES
+        from blender.textile_executor import _source_relations
+        expected = {'program_path'} if operation == 'advance_textile_program' else {'program_path','group_id','stage'}
+        if set(arguments) != expected: raise StudioError('Unexpected/missing textile program arguments')
+        no_pending_operation(state)
+        if state['stage'] != 'RECONSTRUCTING': raise StudioError('Textile execution requires active reconstruction')
+        require_board(project, state)
+        specification, compiled = load_textile_program(project, arguments['program_path'])
+        assembly = read_json(inside(project.root, specification['assembly_plan_ref']['path']))
+        require_textile_program_admission(project, specification, assembly)
+        _source_relations(state, assembly)
+        for component in specification['components']:
+            project.ready(component['component_id'])
+        if operation == 'transition_textile_group':
+            if arguments['stage'] not in STAGES: raise StudioError('Unknown textile group stage')
+            if arguments['group_id'] not in {row['group']['id'] for row in compiled['groups']}:
+                raise StudioError('Unknown source-bound textile group')
+        return
+    if operation in ('prepare_body_motion', 'render_asset_review'):
+        from .lifecycle import no_pending_operation
+        no_pending_operation(state)
+        if operation == 'prepare_body_motion':
+            from blender.body_motion import prepare_motion_inputs
+            if set(arguments) != {'body_target_receipt_path', 'motion_profile_path'}:
+                raise StudioError('Unexpected/missing body motion arguments')
+            if state['stage'] == 'COMPLETE': raise StudioError('Completed project is immutable')
+            prepare_motion_inputs(project, **arguments)
+        else:
+            from .delivery import delivery_profile
+            if set(arguments) != {'profile_path'}: raise StudioError('Unexpected/missing review arguments')
+            delivery_profile(project, arguments['profile_path'])
+        return
+    if operation == 'prepare_body_target':
+        from .body_target import target_descriptor
+        from .lifecycle import no_pending_operation
+        if set(arguments) != {'selection_path', 'target_path'}:
+            raise StudioError('Unexpected/missing body target operation arguments')
+        if state['stage'] == 'COMPLETE':
+            raise StudioError('Completed project is immutable')
+        no_pending_operation(state)
+        target_descriptor(project, **arguments)
+        return
     if operation not in ("prepare", "start_clean_construction", "recover_clean_construction", "inspect_body_source", "prepare_body_reference", "prepare_fitting_envelope", "prepare_fitting_pose", "introduce_fitting_context", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn", "apply_sewn_result", "prepare_sewn_stage", "transition_pattern_assembly", "prepare_pattern_assembly"):
         raise StudioError("Unknown guarded Blender operation")
     required = {"prepare": set(), "resume": set(), "inspect": set(),
@@ -232,6 +349,12 @@ def admit_operation(project, operation, arguments):
             raise StudioError('Temporary fitting tacks qualify a construction trial only; remove them and pass a new local before full/freeze')
         if operation == "simulate_sewn" and (arguments["phase"] not in ("mount", "drape") or arguments["scope"] not in ("local", "full")):
             raise StudioError("Unknown sewing phase or scope")
+        if operation == 'freeze_sewn' and recipe.get('physics_purpose') == 'TEST_ONLY':
+            raise StudioError('TEST_ONLY body physics cannot become a production frozen fitting result')
+        if operation in ('simulate_sewn', 'freeze_sewn') or (operation == 'transition_pattern_assembly' and
+                arguments['stage'] in ('mount', 'relax', 'drape')):
+            from .physics_admission import require_recipe_fit_intent
+            require_recipe_fit_intent(project, recipe)
         return
     if operation in ("garment", "verify_legacy_import"):
         if state["stage"] != "RECONSTRUCTING":

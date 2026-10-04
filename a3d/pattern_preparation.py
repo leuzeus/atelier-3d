@@ -10,7 +10,7 @@ from .core import StudioError, contract, digest
 from .cloth_metrics import (METRIC_VERSION, VALIDATOR_VERSION, METRIC_SCOPE,
     face_sources, evaluate_metrics, distribution as _distribution)
 from .sewing import (chain_lengths, edge_chain, point_inside, prepare_boundaries,
-                     segment_distance, seam_report, signed_area)
+                     sample_chain, segment_distance, seam_report, signed_area)
 
 
 def _issue(code, message, category, **location):
@@ -199,6 +199,103 @@ def _mesh_config(config):
     return h, fine, band, maximum
 
 
+def _contour_parameter_requirements(points, parameters, error):
+    lengths = chain_lengths(points)
+    required = set()
+    for lo, hi in zip(parameters, parameters[1:]):
+        a, b = sample_chain(points, lo), sample_chain(points, hi)
+        candidates = [(segment_distance(point,a,b),value/lengths[-1])
+            for point,value in zip(points,lengths) if lo < value/lengths[-1] < hi]
+        if candidates:
+            deviation,t = max(candidates)
+            if deviation > error+1e-9:
+                required.add(t)
+    return required
+
+
+def regular_chain_parameters(points, sampled, spacing, error):
+    """Remove only optional rim-grid points; retain the source contour bound."""
+    lengths = chain_lengths(points)
+    count = max(1,math.ceil(lengths[-1]/spacing))
+    grid = {i/count for i in range(count+1)}
+    required = set(sampled)-grid | {0.,1.}
+    required.update(t for t in sampled if any(abs(t-s/lengths[-1])<1e-14 for s in lengths))
+    while True:
+        selected = set(required)
+        for t in sorted(set(sampled)-required):
+            if min(abs(t-other)*lengths[-1] for other in selected) >= spacing/2-1e-8:
+                selected.add(t)
+        result = sorted(selected)
+        missing = _contour_parameter_requirements(points,result,error)-required
+        if not missing:
+            return result
+        required.update(missing)
+
+
+def regular_shared_parameters(pieces, chains, sampled, required, spacing, error):
+    """Prune optional grid seeds together across their source arc graph.
+
+    Named stops, source corners needed by the existing contour error, notches
+    and their propagated partner samples are protected. Closely spaced required
+    samples are reported and retained; they are never snapped or merged.
+    """
+    from .shared_seam_sampling import shared_parameters
+    if type(spacing) not in (float,int) or not math.isfinite(spacing) or spacing<=0:
+        raise StudioError('Regular boundary sampling needs a positive metric spacing')
+    source_curves = {sid:[ [pieces[pid]['vertices'][i] for i in chain] for pid,chain in partners]
+                     for sid,partners in chains.items()}
+    lengths = {sid:min(chain_lengths(points)[-1] for points in curves) for sid,curves in source_curves.items()}
+    required = {sid:set(values) for sid,values in required.items()}
+    candidates = [(sid,t) for sid in sorted(sampled) for t in sorted(sampled[sid])]
+    removed = []
+    while True:
+        selected = shared_parameters(pieces,chains,required)
+        protected = {sid:set(values) for sid,values in selected.items()}
+        removed = []
+        for sid,t in candidates:
+            if t in selected[sid]:
+                continue
+            seed = {key:list(values) for key,values in selected.items()}
+            seed[sid].append(t)
+            proposal = shared_parameters(pieces,chains,seed)
+            conflict = False
+            for key,values in proposal.items():
+                old = set(selected[key])
+                added = set(values)-old
+                for value in added:
+                    if any(1e-7 < abs(value-other)*lengths[key] < spacing/2-1e-8
+                           for other in values if other!=value):
+                        conflict = True
+                        break
+                if conflict:
+                    break
+            if conflict:
+                removed.append({'seam_id':sid,'common_parameter':t})
+            else:
+                selected = proposal
+        missing = {sid:set() for sid in chains}
+        for sid,curves in source_curves.items():
+            for points in curves:
+                missing[sid].update(_contour_parameter_requirements(points,selected[sid],error))
+            missing[sid].difference_update(protected[sid])
+        if not any(missing.values()):
+            break
+        for sid,values in missing.items():
+            required[sid].update(values)
+    near = []
+    for sid,values in protected.items():
+        values=sorted(values)
+        for a,b in zip(values,values[1:]):
+            gap=(b-a)*lengths[sid]
+            if 1e-7 < gap < spacing/2-1e-8:
+                near.append({'seam_id':sid,'parameters':[a,b],'minimum_partner_arc_gap_cm':gap})
+    return selected, {'version':1,'policy':'REMOVE_OPTIONAL_GRID_SEEDS_ON_BOTH_PARTNERS',
+        'minimum_optional_arc_gap_cm':spacing/2,'max_source_contour_error_cm':error,
+        'protected_parameters':{sid:sorted(values) for sid,values in protected.items()},
+        'removed_optional_seeds':removed,'close_required_parameters_preserved':near,
+        'source_vertices_moved':False,'source_seam_correspondence_changed':False}
+
+
 def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
     """Same source IDs/shared arc sampler, explicitly rebuilt at rim resolution."""
     _, fine, _, maximum = _mesh_config(regular_mesh)
@@ -234,7 +331,8 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
                 notch_sources.append({'seam_id': seam['id'], 'notch_id': mark['id'],
                     'piece': pid, 'side': side, 'source_local_parameter': position,
                     'common_parameter': parameter})
-    boundaries, seams, seam_reports = prepare_boundaries(data, derived, extra)
+    boundaries, seams, seam_reports = prepare_boundaries(data, derived, extra,
+        regular_boundary_spacing_cm=fine)
     for notch in notch_sources:
         seam = seams[notch['seam_id']]
         sample = seam['parameters'].index(notch['common_parameter'])
@@ -254,6 +352,7 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
     return boundaries, seams, {'version': 1, 'source_sha256': digest(data),
         'sampling': 'existing_common_source_arclength', 'boundary_spacing_cm': fine,
         'boundary_vertices': count, 'seams': seam_reports, 'source_immutable': True,
+        'boundary_sampling_policy':next(iter(boundaries.values())).get('regular_sampling_report'),
         'dossier_sha256': digest(dossier) if dossier is not None else None,
         'source_notches': notch_sources, 'ambiguous_source_notches': ambiguous_notches}
 

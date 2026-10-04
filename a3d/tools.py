@@ -18,7 +18,7 @@ def tool(name, description, properties=None, required=(), read_only=True, destru
             "name": name, "description": description,
             "inputSchema": {"type": "object", "properties": properties or {}, "required": list(required), "additionalProperties": False},
             "annotations": {"readOnlyHint": read_only, "destructiveHint": destructive,
-                            "idempotentHint": read_only, "openWorldHint": name.startswith("comfy_")}}}
+                            "idempotentHint": read_only, "openWorldHint": name.startswith("comfy_") or name in ('studio_prepare_workflow_variant','studio_reconcile_comfy_job','studio_next_run_step')}}}
         return fn
     return decorate
 
@@ -36,10 +36,137 @@ def mannequin_catalog():
 
 
 @tool("studio_select_catalog_body", "Copy an explicitly chosen catalog mannequin into this project and prepare a native body-source descriptor. For garments, immediately establish target measurements, prepare a separate variant if necessary, measure and review proportions and seam-line/dressing compatibility before fitting. Preserve originals and old selections; no anatomy, collider or fitting acceptance.",
-      {**P, "asset_id": S}, ("project_root", "asset_id"), read_only=False)
-def select_mannequin(project_root, asset_id):
-    from .mannequins import select_catalog_body
-    return select_catalog_body(Project(project_root), asset_id)
+      {**P, "asset_id": S, "target_stature_cm": {"type": "number", "minimum": 30, "maximum": 400},
+       "target_provenance": S}, ("project_root", "asset_id"), read_only=False)
+def select_mannequin(project_root, asset_id, target_stature_cm=None, target_provenance=None):
+    from .mannequins import catalog, select_catalog_body
+    from .core import inside, sha
+    if (target_stature_cm is None) != (target_provenance is None):
+        raise StudioError('Declared stature and its provenance must be supplied together')
+    project = Project(project_root)
+    selected = select_catalog_body(project, asset_id)
+    if target_stature_cm is not None:
+        from .body_target import stature_target
+        entry = next(row for row in catalog()['entries'] if row['id'] == asset_id)
+        target = stature_target(selected, dict(entry['orientation'], origin_cm=[0., 0., 0.]), target_stature_cm, target_provenance)
+        path = inside(project.root, selected['selection']['path']).parent/'target.json'
+        atomic_json(path, target)
+        selected['body_target'] = {'path': path.relative_to(project.root).as_posix(), 'sha256': sha(path)}
+        selected['prepared_operation'] = prepare_body_target(project_root, selected['selection']['path'], selected['body_target']['path'])
+        selected['garment_body_preparation']['status'] = 'NATIVE_OPERATION_REQUIRES_AUTHORIZATION'
+        selected['garment_body_preparation']['target_stature_cm'] = target_stature_cm
+    return selected
+
+
+@tool('studio_prepare_body_target', 'Validate an explicit body target and prepare the exact native measured-copy operation. Requires user authorization before Blender execution; no anatomy or fitting acceptance.',
+      {**P, 'selection_path': S, 'target_path': S}, ('project_root', 'selection_path', 'target_path'))
+def prepare_body_target(project_root, selection_path, target_path):
+    from .body_target import target_descriptor
+    project = Project(project_root)
+    descriptor = target_descriptor(project, selection_path, target_path)
+    result = blender_operation(project_root, 'prepare_body_target', {'selection_path': selection_path, 'target_path': target_path})
+    result['candidate_inputs'] = descriptor['evidence']
+    result['execution'] = 'NOT_EXECUTED'
+    result['qualification'] = 'NONE'
+    return result
+
+
+@tool('studio_compile_production_dossier', 'Compile exact approved sources and return separate compilation and fit preflight. Optional measured guides prepare source homology proposals; optional body options prepare measurement policy. Missing numeric ease remains incomplete. No fitting acceptance.',
+      {**P, 'dossier_path': S, 'specification_path': S, 'fit_profile_path': S, 'body_region_options_path': S,
+       'measurement_guides_path': S, 'measurement_mesh_refs': O,
+       'measurement_guide_policy_path': S}, ('project_root', 'dossier_path', 'specification_path'))
+def compile_dossier(project_root, dossier_path, specification_path, fit_profile_path=None, body_region_options_path=None,
+                    measurement_guides_path=None, measurement_mesh_refs=None, measurement_guide_policy_path=None):
+    from .production_dossier import compile_project_dossier
+    from .core import inside
+    if body_region_options_path is not None and fit_profile_path is None:
+        raise StudioError('Body region preparation requires the exact fit profile identifying the target body')
+    if measurement_guides_path is not None and fit_profile_path is None:
+        raise StudioError('Source measurement proposals require the exact fit profile identifying the target body')
+    if measurement_mesh_refs is not None and measurement_guides_path is None:
+        raise StudioError('Derived measurement meshes require explicit source guides')
+    if measurement_guide_policy_path is not None and measurement_guides_path is None:
+        raise StudioError('Guide reconstruction policy requires explicit source guides and their fit body')
+    project = Project(project_root)
+    compilation = compile_project_dossier(project, dossier_path, specification_path)
+    fit = {'status': 'FIT_METADATA_REQUIRED', 'qualification': 'NONE', 'fitting': 'NOT_EXECUTED', 'acceptance': 'NOT_GRANTED'}
+    if fit_profile_path is not None:
+        from .garment_fit import assess_compiled_fit
+        fit = assess_compiled_fit(project, compilation, fit_profile_path)
+    result = {'version': 1, 'status': compilation['status'], 'compilation': compilation, 'fit_preflight': fit,
+            'qualification': 'NONE', 'fitting': 'NOT_EXECUTED',
+            'next': 'Review classification, ease targets and missing homologous measurements before fitting'}
+    if body_region_options_path is not None:
+        from .body_region_policy import prepare_project_body_region_policy
+        fit_specification = contract('garment-fit', read_json(inside(project.root, fit_profile_path)))
+        result['body_region_preparation'] = prepare_project_body_region_policy(
+            project, body_region_options_path, fit_specification['body_ref'])
+    if measurement_guides_path is not None:
+        from .garment_measurements import propose_compiled_measurement_paths
+        result['measurement_proposals'] = propose_compiled_measurement_paths(
+            project, compilation, measurement_guides_path, fit_profile_path,
+            derived_mesh_refs=measurement_mesh_refs, guide_policy_path=measurement_guide_policy_path)
+    return result
+
+
+@tool('studio_compile_material_bench', 'Compile fixed comparative coupon cases and their bounded run. Actual simulation, measured convergence and garment fitting remain separate.',
+      {**P, 'specification_path': S, 'output_dir': S}, ('project_root', 'specification_path', 'output_dir'), False)
+def compile_material_bench(project_root, specification_path, output_dir):
+    from .material_bench import compile_material_bench
+    return compile_material_bench(Project(project_root), specification_path, output_dir)
+
+
+@tool('studio_compile_dressing_plan', 'Compile exact source openings, declared trajectories, layer order and support-release intent into a guarded geometry audit run. Does not execute physical dressing or remove supports.',
+      {**P, 'candidate_path': S, 'assembly_plan_path': S, 'specification_path': S, 'output_dir': S},
+      ('project_root', 'candidate_path', 'assembly_plan_path', 'specification_path', 'output_dir'), False)
+def compile_dressing_plan(project_root, candidate_path, assembly_plan_path, specification_path, output_dir):
+    from .core import inside
+    from .dressing import compile_dressing_plan
+    project = Project(project_root)
+    return compile_dressing_plan(project, read_json(inside(project.root, candidate_path)),
+        read_json(inside(project.root, assembly_plan_path)), specification_path, output_dir)
+
+
+@tool('studio_create_run', 'Create a durable source-bound run with step boundaries, budgets and durable idempotency. Does not execute Blender or approve gates.',
+      {**P, 'kind': {'enum': ['garment', 'comfy', 'material_bench', 'motion', 'export']}, 'specification_path': S},
+      ('project_root', 'kind', 'specification_path'), False)
+def create_run(project_root, kind, specification_path):
+    from .runs import create_run
+    return create_run(Project(project_root), kind, specification_path)
+
+
+@tool('studio_next_run_step', 'Reconcile actual native receipts and prepare the next admissible operation. Every Blender operation still requires exact user authorization.',
+      {**P, 'run_id': S}, ('project_root', 'run_id'), False)
+def next_run_step(project_root, run_id):
+    from .runs import next_run_step
+    return next_run_step(Project(project_root), run_id)
+
+
+@tool('studio_run_status', 'Read run progress, candidate identities, actual receipts, defects, remaining work and next action; execution completion is distinct from qualification.',
+      {**P, 'run_id': S}, ('project_root', 'run_id'))
+def run_status(project_root, run_id):
+    from .runs import run_status
+    return run_status(Project(project_root), run_id)
+
+
+@tool('studio_request_run_stop', 'Request controlled stop at an operation boundary and retain interrupted-step recovery requirements.',
+      {**P, 'run_id': S}, ('project_root', 'run_id'), False)
+def request_run_stop(project_root, run_id):
+    from .runs import request_run_stop
+    return request_run_stop(Project(project_root), run_id)
+
+
+@tool('studio_prepare_workflow_variant', 'Prepare an immutable typed parameter variant of a reviewed Comfy template with source identities, diff and actual provider compatibility report. Never submit a job.',
+      {**P, 'template_id': S, 'variant_id': S, 'parameters': O}, ('project_root', 'template_id', 'variant_id', 'parameters'), False)
+def prepare_workflow_variant(project_root, template_id, variant_id, parameters):
+    from .workflow_variants import prepare_variant
+    return prepare_variant(Project(project_root), Comfy(), template_id, variant_id, parameters)
+
+
+@tool('studio_reconcile_comfy_job', 'Recover an uncertain submission only from unique corroborating official provider evidence. Never resubmit automatically or infer asset qualification.',
+      {**P, 'job_id': S}, ('project_root', 'job_id'), False)
+def reconcile_comfy_job(project_root, job_id):
+    return Comfy().reconcile(project_root, job_id)
 
 
 @tool("studio_plan_garment_assembly", "Inspect source-bound semantic pieces, permanent sewing groups and spatial layer order. Return deterministic stages, budgets and frozen-inner-group dependencies. Refuse unsupported coupled layers early with a remedy. No geometry mutation, native execution or qualification.",
@@ -72,7 +199,10 @@ def plan_garment_assembly(project_root, specification_path):
       {"project_root": S, "live_comfy": B})
 def doctor(project_root=None, live_comfy=False):
     config = load_config()
-    result = {"plugin": {"status": "PASS", "version": __version__, "schema_files": len(list((ROOT / "schemas").glob("*.json")))},
+    from .core import sha
+    result = {"plugin": {"status": "PASS", "version": __version__, "root": str(ROOT),
+                         "source_sha256": sha(ROOT/'a3d/tools.py'),
+                         "schema_files": len(list((ROOT / "schemas").glob("*.json")))},
               "comfyui": {"status": "NOT_EXECUTED", "url": config["comfyui"]["base_url"]},
               "blender": {"status": "NOT_EXECUTED", "reason": "Probe the external Blender MCP through Codex; this bridge does not impersonate it."},
               "platform_qualification": {"windows": "see validation report", "macos": "NOT_EXECUTED", "linux": "NOT_EXECUTED"}}
