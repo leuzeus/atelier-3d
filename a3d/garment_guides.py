@@ -536,7 +536,8 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
         if not any(p.get('role') in roles for p in semantics.values()):
             continue
         try:
-            report = (build(data, semantics, profile, upper_blend=upper_blend, surface_sections=surface_sections,skin_sections=skin_sections)
+            report = (build(data, semantics, profile, upper_blend=upper_blend, surface_sections=surface_sections,skin_sections=skin_sections,
+                            source_cage_budgets=source_seam_coupling['budgets'] if source_seam_coupling else None)
                       if name == 'torso' else build(data, semantics, profile))
         except StudioError as error:
             diagnostics.append({'family': name, 'code': 'GUIDE_INPUT_OR_CAPABILITY_MISSING', 'message': str(error),

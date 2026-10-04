@@ -13,7 +13,8 @@ from .anatomy_profile import unit
 from .contact_geometry import dot, cross
 
 
-def torso_volume_frames(data, semantics, profile, upper_blend=0., surface_sections=False, skin_sections=None):
+def torso_volume_frames(data, semantics, profile, upper_blend=0., surface_sections=False, skin_sections=None,
+                        source_cage_budgets=None):
     if (profile.get('status') != 'PROFILE_MEASURED' or profile.get('segmentation') != 'EXPLICIT_SOURCE'
             or not profile.get('cache_key')):
         raise StudioError('Semantic placement requires a complete source-bound segmented body profile')
@@ -136,7 +137,7 @@ def torso_volume_frames(data, semantics, profile, upper_blend=0., surface_sectio
     boundary_cage = None
     if surface_sections:
         from .torso_sections import source_bound_torso_cages
-        frames, boundary_cage = source_bound_torso_cages(data, frames)
+        frames, boundary_cage = source_bound_torso_cages(data, frames, budgets=source_cage_budgets)
     return {'version': 1, 'status': 'PARTIAL_GUIDES' if pending else 'TORSO_GUIDES_PREPARED',
             'panels': frames, 'pending_pieces': pending, 'groups': diagnostics,
             **({'source_boundary_cage':boundary_cage} if boundary_cage else {}),

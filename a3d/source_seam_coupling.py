@@ -11,6 +11,7 @@ import copy
 import json
 import math
 import time
+from fractions import Fraction
 
 from .core import StudioError, canonical, digest
 from .pattern_assembly import _cage_point, _compile_arc_sections, _compile_cage, _section_point
@@ -218,6 +219,10 @@ def _triangle_edges(face):
 
 def _prepare_piece(piece, frame, pid, n, budget):
     from .garment_guides import _source_limb_mesh
+    if isinstance(frame, dict) and set(frame) == {'source_ref', 'uv_cm', 'target_cm', 'triangles'}:
+        from .guide_cage_sampling import validated_cage_state
+        evaluate = _evaluator(frame, pid, budget)
+        return validated_cage_state(piece, frame, pid, n, budget, evaluate)
     budget.reserve(len(piece['vertices']), len(piece['faces'])*n*n)
     uv, triangles = _source_limb_mesh(piece, n)
     budget.reserve(len(uv)-len(piece['vertices']), 0)
@@ -312,7 +317,8 @@ def _insert(piece, state, edge, t, pid, budget):
     lo, hi = edge
     # Preserve constant source axes exactly; weighted sums of two equal
     # endpoints can round beyond a strictly declared arc-section boundary.
-    uv = [piece['vertices'][lo][k]+t*(piece['vertices'][hi][k]-piece['vertices'][lo][k]) for k in (0, 1)]
+    uv = [float(Fraction(piece['vertices'][lo][k])+Fraction(t)*
+                (Fraction(piece['vertices'][hi][k])-Fraction(piece['vertices'][lo][k]))) for k in (0, 1)]
     target = state['evaluate'](uv)
     if not _vector(target, 3):
         raise StudioError('Inserted source boundary target is not finite')

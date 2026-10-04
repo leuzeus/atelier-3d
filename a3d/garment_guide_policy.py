@@ -14,7 +14,7 @@ from .core import ROOT,StudioError,contract,digest,inside,read_json,sha
 from .garment_guides import garment_volume_frames,measured_native_skin_sections
 
 
-CODE_SOURCES=('garment_guide_policy','garment_guides','semantic_placement','torso_sections',
+CODE_SOURCES=('garment_guide_policy','garment_guides','semantic_placement','torso_sections','guide_cage_sampling',
     'source_seam_coupling','shoulder_guides','preform_volume','pattern_assembly','anatomy_profile','shoulder_surface','head_surface','contact_geometry','sewing','core')
 
 

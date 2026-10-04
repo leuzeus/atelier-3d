@@ -98,7 +98,7 @@ def main():
         'qualification':'NONE','simulation':'NOT_EXECUTED','accepted':False,
         'native_contact_replay':'REQUIRED','fit_and_ease_assessment':'REQUIRED_SEPARATELY',
         'code_refs':{name:sha(ROOT/name) for name in ('a3d/sewing.py','a3d/pattern_preparation.py',
-            'a3d/torso_sections.py','a3d/garment_guides.py','a3d/textile_executor.py')}}
+            'a3d/torso_sections.py','a3d/guide_cage_sampling.py','a3d/garment_guides.py','a3d/textile_executor.py')}}
     for cid,source in sources.items():
         row=templates['components'][cid]
         boundaries,seams,sampling=prepare_regular_boundaries(source['data'],row['recipe_template'],
