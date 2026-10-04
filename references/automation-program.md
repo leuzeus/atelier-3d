@@ -589,9 +589,106 @@ suite est exécutée séparément sur source51 : qualité, ancres et réouvertur
 contrôlées, ancien échec conservé. Le [reçu](automation-source-conditioning-evidence-20261004.json)
 lie les octets aux contrôles réellement exécutés.
 
-Le diagnostic des six pièces réelles porte le minimum source du col à
-15,438170034° ; la déformation 3D reste hors limites après une itération
-acceptée et un arrêt au budget temps. Le build complet conserve le conflit
-de précision des anciennes manches. L'intégration canonique de la variante
-acceptée et le traitement de ses échantillons restent requis, puis la
-correction 3D et les contacts. L5 et l'acceptation du manteau restent incomplets.
+Le diagnostic source50 des six pièces indépendantes portait le minimum source
+du col à 15,438170034° ; la déformation 3D restait hors limites après une
+itération acceptée et un arrêt au budget temps. Son build complet était encore
+refusé sur les anciennes manches. Cette preuve historique ne qualifie pas le
+nouveau maillage complet source53 décrit ci-dessous.
+
+### Crans matériels et admission canonique — source53
+
+Les commits `4528424` et `b0873264` traitent le conflit d'échantillons et le
+consommateur canonique de la variante. Un cran matériel devient une référence
+à un sommet existant ou à un segment interpolé ; il n'impose plus une particule
+physique supplémentaire. Les vrais coins source restent exacts et prioritaires.
+La revue indépendante restitue les deux packages réels sans micro-arête sous
+0,001 cm, avec 249 coins originaux et 253 coins dans la composition acceptée.
+
+L'import public authentifie la décision humaine existante des deux manches,
+la planche, les packages et toute la lignée de génération et d'approbation.
+Un nouveau candidat canonique contient les 15 textiles et la boucle, au stade
+RECONSTRUCTING. Seuls les deux patrons de manches acceptés changent ; dix
+lignes incidentes non revues sont exclues. L'admission porte sur les entrées
+de reconstruction, sans admission du placement, du fitting ou de permission
+Blender. MAIN, ses bindings originaux et ses décisions restent conservés.
+
+Source53 : 497 fichiers, identité
+`acf950165513b1a2b29a7d99295de13b907d4020b7ec6785493968411d58353a` ;
+1 012 tests portables PASS en 206,460 s, lancement 207,656 s. La CI du commit
+`b08732641a342b8314ab765485cdcff013a5fb01`, run `37234999162`, passe tests et
+build sous Windows/Python 3.11 et Linux/Python 3.13 ; contrats Windows PASS,
+contrats Linux SKIP explicite. Cette portée reste logicielle.
+
+Le diagnostic natif source53 construit les dix pièces originales en 39,525 s
+et les dix pièces avec les deux manches acceptées en 38,905 s. Les payloads
+sont produits, mais six pièces signalent NEEDS_CORRECTION sous le seuil régulier
+de 15°. Le contrôle global de la recette exige seulement 2° ; sa réussite ne
+remplace pas le contrôle régulier. Le sous-ensemble conserve exactement les
+faces, coordonnées et UV du maillage complet. Son minimum source de 4,483886989°
+sur le devant gauche entraîne METRIC_RECOVERY_IMMUTABLE_SOURCE_MESH_QUALITY,
+sans itération ni démarrage de la correction des contacts. Le lancement dure
+130,984 s, dont 121,679 s dans le diagnostic ; corps, sources et MAIN sont
+préservés. Ce refus concerne des triangles dérivés réels, sans conclure que les
+patrons sont impossibles ou modifier le seuil de 15°.
+
+Le temps de l'import initial et les octets des bases parentes avant cet import
+n'ont pas été enregistrés par le script initial. La réconciliation ultérieure
+en lecture seule dure
+7,516 s et conserve la base candidate. La revue préalable au diagnostic vérifie
+ensuite trois bases réelles en lecture seule, sans changement de leurs octets.
+Ces deux observations ne reconstituent pas une preuve initiale manquante.
+
+Le [reçu de cette unité](automation-reviewed-pattern-evidence-20261004.json)
+lie les preuves exactes et conserve leur portée. Le refus métrique anticipé
+`336cdb6` est revu avec 68 tests ciblés ; il ne peut qu'accélérer un refus certain,
+et le validateur final complet reste obligatoire. La proposition CDT autour
+des courts segments protégés est revue avec 49 tests portables et enregistrée
+dans `9febfb3`. Les essais intégrés de ces unités postérieures à source53 sont
+identifiés séparément ci-dessous. Les présents ajouts documentaires suivent les
+captures source53 et source54 ; ils n'étendent pas leurs résultats exécutés.
+
+### Intégration suivante — source54
+
+Source54 contient 501 fichiers, identité
+`fe517779f1f19fecf91eca55297c2a2d47ff5c908f3ab1b7e9ff10e1870d23b0`.
+La suite portable intégrée passe 1 040 tests en 177,628 s, lancement 178,719 s,
+avec la copie figée inchangée. Elle inclut le refus anticipé et la proposition
+locale CDT ; cette dernière conserve les coins et les mêmes budgets et critères.
+
+La CI du commit `9febfb3a606d39d840140918ae8c1b62b3470312`, run
+`37236866063`, passe tests et build sous Windows/Python 3.11 et Linux/Python
+3.13 ; contrats Windows PASS et Linux SKIP. Cette preuve reste logicielle.
+
+Le coupon natif de conditionnement v3 se sauvegarde et se rouvre exactement,
+avec ancres source conservées. Carré et bande atteignent leurs cibles : angles
+natifs minimums 23,793971234° et 15,874234372°. L'angle aigu est correctement
+refusé. Le calcul dure 0,294 s, lancement 4,313 s. Portée SYNTHETIC/TEST_ONLY,
+qualification NONE : aucun PASS transféré au maillage du manteau.
+
+Le diagnostic réel source54 v4 dure 118,672 s, lancement 127,688 s. Les dix
+pièces originales produisent un payload de 15 515 sommets et 28 794 triangles.
+La variante des dix pièces est REFUSED dès le contrôle global de recette à 2° :
+son minimum d'angle vaut 1,490237725°. Son payload refusé est conservé et n'est
+pas utilisé. Sur le sous-ensemble original de six pièces, la récupération reste
+arrêtée à zéro itération avec METRIC_RECOVERY_IMMUTABLE_SOURCE_MESH_QUALITY ;
+la correction des contacts n'est pas démarrée. Le refus anticipé n'a donc pas
+été exercé dans une récupération réelle et aucun gain global n'est établi.
+
+Les 501 fichiers figés, les entrées, MAIN et le corps sont préservés. Le
+précontrôle v4 vérifie le clone du diagnostic v3 et les identités ; il ne
+réexécute pas l'authentification SQLite de la revue réelle v3. La revue détaillée
+indépendante confirme les refus. De v3 à v4, les faces originales sous 15°
+passent de 36 à 24, mais le minimum matériel tombe de 4,483887° à 2,560347° ;
+la variante passe de 30 à 26 faces sous 15° et de 4,057463° à 1,490443°.
+La baisse du nombre de défauts ne permet pas l'admission. Le rollback des
+manches conserve leur baseline ; la nouvelle trajectoire de raffinement
+s'arrête au premier essai. Le transport binary32 ne cause pas le franchissement
+du seuil de 2°. Le fichier Blender est sauvegardé, sans essai de réouverture.
+Les succès logiciels et des coupons ne prouvent pas la correction du maillage
+réel : reprendre
+l'investigation du conditionnement et des propositions CDT, puis rejouer les
+contrôles dépendants avec les mêmes sources, appuis, corps et seuils.
+
+Qualification NONE : physique, enfilage, drapé, fitting complet, mouvement du
+vêtement, revue artistique, préversion finale et nouvelle installation restent
+à réaliser. L5 et l'acceptation du manteau restent incomplets.

@@ -366,17 +366,129 @@ les sources et SQLite. Le minimum d'angle source du col atteint 15,438170034°,
 contre 13,747708476° dans l'essai précédent. La récupération 3D accepte une
 itération, commence la deuxième puis s'arrête au budget temps ; la recherche
 de correction des contacts ne commence pas. Les mesures de contact conservées
-ne valent pas admission. Le build complet demeure refusé sur un très court
-segment des anciennes manches.
+ne valent pas admission. Lors de cette campagne source50, le build complet
+était encore refusé sur un très court segment des anciennes manches.
 
 Les helpers de composition passent aussi leur revue et le replay pur sur les
 deux dossiers et packages réels : seules les deux manches acceptées changent,
 les treize autres lignes textiles et la boucle restent exactes. Les différences
 incidentes de dix lignes sont exclues et rapportées. La revue corrige l'identité
-des crans en `(seam_id, id)`, sans epsilon. Cette préparation ne modifie pas
-les bindings de production ; son consommateur canonique reste à intégrer.
+des crans en `(seam_id, id)`, sans epsilon. Cette préparation ne modifiait pas
+les bindings de production ; son consommateur canonique restait à intégrer.
 
 Le [reçu](automation-source-conditioning-evidence-20261004.json) conserve les
 identités de code, sources, reviews, essais réussis et refus. La construction
 physique complète, l'enfilage, le drapé, le fitting, le mouvement du manteau et
 la revue artistique restent requis. Aucune release ou installation finale.
+
+### Crans et composition canonique — source53
+
+L'unité `4528424` conserve les coins exacts et lie les crans à la matière.
+Un cran à l'intérieur d'un segment porte ses deux sommets, poids et paramètres
+source ; il ne prétend pas être un sommet ou un indice physique de couture.
+Le conflit des anciennes micro-arêtes de manches est traité : les replays
+originaux et de la composition acceptée ne contiennent aucune arête sous
+0,001 cm. Ils conservent 48 références de crans, 249/253 vrais coins et quatre
+crans de dessous de manche sous forme BOUNDARY_SEGMENT. Les résidus numériques
+observés sont consignés ; ils ne deviennent pas une tolérance de couture.
+
+L'unité `b0873264` ajoute l'import du design approuvé avec la variante explicitement
+revue. La décision humaine authentique des deux manches est réutilisée ; la
+lignée du design original, de sa génération et de sa planche est vérifiée.
+Le candidat séparé `program-reviewed-design-main-v1/execution-project` est
+RECONSTRUCTING avec 15 textiles et la boucle. Ses deux manches sont celles
+acceptées ; les treize autres lignes textiles et la boucle restent exactes,
+et dix lignes incidentes non revues sont exclues de la composition. MAIN et
+ses bindings originaux restent inchangés. Il s'agit de l'admission des entrées
+de reconstruction : aucun fitting, placement ni permission Blender accordé.
+
+Le reçu d'import a été réconcilié sans répétition de l'import après une erreur
+de reporting. Le temps initial n'est pas enregistré et les octets des bases
+parentes avant l'import n'ont pas été capturés par le script initial.
+La réconciliation de 7,516 s
+conserve la base candidate ; une revue indépendante ultérieure en lecture seule
+contrôle la lignée, la décision humaine et trois bases réelles sans mutation.
+Ces preuves ultérieures sont distinctes des observations initiales manquantes.
+
+Source53 comprend 497 fichiers, identité
+`acf950165513b1a2b29a7d99295de13b907d4020b7ec6785493968411d58353a`.
+La suite portable passe 1 012 tests en 206,460 s, lancement 207,656 s.
+La revue des crans passe 100 tests ciblés ; celle de l'admission conserve ses
+fixtures synthétiques et ses refus distincts de la revue des trois bases réelles.
+CI `37234999162` sur `b08732641a342b8314ab765485cdcff013a5fb01` : tests/build
+Windows 3.11 et Linux 3.13 PASS ; contrats Windows PASS, Linux SKIP.
+
+Le nouveau diagnostic construit les dix pièces originales (15 555 sommets,
+28 874 triangles) en 39,525 s, puis la variante acceptée (15 669 sommets,
+29 082 triangles) en 38,905 s. NATIVE_PAYLOAD_BUILT ne signifie pas que les
+triangles atteignent 15° : les deux devants, deux dos et deux manches portent
+déjà NEEDS_CORRECTION dans leurs rapports réguliers. Le contrôle global de
+recette n'exige que 2° et ne remplace pas ce critère de préparation.
+
+Le sous-ensemble de six pièces conserve exactement les coordonnées matérielles,
+faces et UV du maillage complet. À la face 2605 du devant gauche, l'angle source
+vaut 4,483886989° ; le minimum d'aire source vaut 0,000475676532 cm² à la
+face 2607. La récupération s'arrête à zéro itération avec
+METRIC_RECOVERY_IMMUTABLE_SOURCE_MESH_QUALITY. Ce nouveau défaut de triangles
+dérivés n'est ni le conflit de crans corrigé ni une preuve d'impossibilité des
+patrons. L'écart binary32 de la face témoin n'explique pas le refus. L'ancien
+col à 15,438170034° sur six pièces indépendantes source50 reste une preuve de
+cette campagne ; il n'accorde aucun PASS au nouveau maillage complet source53.
+
+La cause locale est un court segment de bord de 0,010898331 cm, créé par deux
+vrais coins homologues conservés. Une sonde pure calcule un candidat de
+raffinement dans la face incidente ; le circoncentre choisi par la règle
+actuelle est seulement dans le polygone et peut se trouver hors de cette face.
+Cette proposition reste à contrôler par CDT natif. Les sources, les appuis,
+le corps et les seuils de qualité sont conservés.
+
+Le [reçu détaillé](automation-reviewed-pattern-evidence-20261004.json) référence
+la suite, les revues, l'import réconcilié, le diagnostic et son investigation.
+Le refus anticipé `336cdb6` passe sa revue et 68 tests ciblés ; le lot CDT
+`9febfb3` passe sa revue et 49 tests portables. Les résultats de leur intégration
+source54 sont consignés séparément ci-dessous. Ce suivi est ajouté après les
+captures source53 et source54 ; il n'étend pas la portée de leurs essais.
+
+### Intégration des corrections — source54
+
+Source54 : 501 fichiers, identité
+`fe517779f1f19fecf91eca55297c2a2d47ff5c908f3ab1b7e9ff10e1870d23b0`.
+1 040 tests portables intégrés PASS en 177,628 s ; lancement 178,719 s, source
+figée inchangée. Le refus anticipé ne peut pas admettre un candidat ; le
+validateur final reste complet. La proposition locale CDT conserve les coins
+authentiques, les partenaires, les budgets et le seuil de 15°.
+
+CI `37236866063` sur `9febfb3a606d39d840140918ae8c1b62b3470312` : tests/build
+Windows 3.11 et Linux 3.13 PASS ; contrats Windows PASS, Linux SKIP. Cette
+portée logicielle ne qualifie pas le vêtement.
+
+Coupon natif v3 : sauvegarde/réouverture exacte et ancres conservées. Carré et
+bande atteignent TARGET_REACHED avec minimums natifs 23,793971234° et
+15,874234372° ; le coin aigu reste NEEDS_CORRECTION. Calcul 0,294 s,
+lancement 4,313 s. Ces cas synthétiques ne qualifient pas le maillage réel.
+
+Le diagnostic réel v4 dure 118,672 s, lancement 127,688 s. Les dix pièces
+originales sont construites : 15 515 sommets et 28 794 triangles. La variante
+des dix pièces est REFUSED par le contrôle global à 2°, avec un minimum
+d'angle de 1,490237725°. Son payload refusé est conservé et n'est pas utilisé.
+Le sous-ensemble original de six pièces reste refusé par
+METRIC_RECOVERY_IMMUTABLE_SOURCE_MESH_QUALITY à zéro itération ; la recherche
+de correction des contacts n'est pas démarrée. Aucun gain global du refus
+anticipé n'est établi par cette récupération interrompue avant itération.
+
+Les entrées, les 501 fichiers figés, MAIN et le corps sont conservés. Le
+précontrôle v4 garde les identités du clone v3 et ne crée pas une nouvelle
+observation des trois bases SQLite. La revue indépendante confirme les refus :
+les faces originales sous 15° passent de 36 à 24, mais leur minimum matériel
+tombe de 4,483887° à 2,560347°. Pour la variante, 30 faces deviennent 26 et le
+minimum passe de 4,057463° à 1,490443°. Le rollback conserve la baseline des
+manches lorsque la nouvelle trajectoire s'arrête au premier raffinement ;
+le transport binary32 ne cause pas le refus à 2°. La scène est sauvegardée,
+sans réouverture exécutée. Le conditionnement réel et les propositions CDT
+doivent être investigués puis corrigés avant de rejouer les contrôles affectés,
+sans changer les sources, les appuis, le corps ou les seuils.
+
+Qualification NONE : contacts et couverture non admis, physique, enfilage,
+drapé, fitting complet, mouvements du vêtement et revue artistique à réaliser.
+Aucune préversion finale, nouvelle installation ou qualification du runtime
+connecté n'est produite par ces contrôles.
