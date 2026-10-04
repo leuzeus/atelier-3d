@@ -24,17 +24,30 @@ def create_derived_rig(source, collection, specification):
     data = bpy.data.armatures.new(body.name+'.Rig')
     rig = bpy.data.objects.new(body.name+'.Rig', data); collection.objects.link(rig)
     rig_name = rig.name
-    previous = bpy.context.view_layer.objects.active
-    selected = list(bpy.context.selected_objects)
+    view_layer = bpy.context.view_layer
+    previous = view_layer.objects.active
+    if previous is not None and previous.name not in view_layer.objects:
+        previous = None
+    # A scene/view-layer context override may still report selected objects
+    # from the visible window's original layer. They do not belong to this
+    # temporary layer and must never be deselected or restored through it.
+    selected = [obj for obj in bpy.context.selected_objects if obj.name in view_layer.objects]
     try:
-        for obj in selected: obj.select_set(False)
-        rig.select_set(True); bpy.context.view_layer.objects.active = rig
-        bpy.ops.object.mode_set(mode='EDIT')
-        for row in specification['bones']:
-            bone = data.edit_bones.new(row['name'])
-            bone.head = Vector(row['head_cm'])/100; bone.tail = Vector(row['tail_cm'])/100
-            if row['parent']: bone.parent = data.edit_bones[row['parent']]
-        bpy.ops.object.mode_set(mode='OBJECT')
+        for obj in selected: obj.select_set(False, view_layer=view_layer)
+        rig.select_set(True, view_layer=view_layer); view_layer.objects.active = rig
+        # active_object can also retain the visible window's object under a
+        # scene-only override. Mode operators must target this derived rig
+        # explicitly; otherwise edit_bones may never be committed on it.
+        with bpy.context.temp_override(active_object=rig, object=rig,
+                selected_objects=[rig], selected_editable_objects=[rig]):
+            bpy.ops.object.mode_set(mode='EDIT')
+            for row in specification['bones']:
+                bone = data.edit_bones.new(row['name'])
+                bone.head = Vector(row['head_cm'])/100; bone.tail = Vector(row['tail_cm'])/100
+                if row['parent']: bone.parent = data.edit_bones[row['parent']]
+            bpy.ops.object.mode_set(mode='OBJECT')
+        if set(bone.name for bone in data.bones) != {row['name'] for row in specification['bones']}:
+            raise StudioError('Derived rig did not commit its exact declared native bone inventory')
         for row in specification['bones']:
             group = body.vertex_groups.new(name=row['name'])
             for i, weights in enumerate(specification['weights']):
@@ -45,12 +58,16 @@ def create_derived_rig(source, collection, specification):
         body['a3d_rig_qualification'] = 'REST_AND_DEFORMATION_REQUIRE_VALIDATION'
         bpy.context.view_layer.update()
     except Exception:
-        if rig.mode != 'OBJECT': bpy.ops.object.mode_set(mode='OBJECT')
+        if rig.mode != 'OBJECT':
+            with bpy.context.temp_override(active_object=rig, object=rig,
+                    selected_objects=[rig], selected_editable_objects=[rig]):
+                bpy.ops.object.mode_set(mode='OBJECT')
         bpy.data.objects.remove(body, do_unlink=True); bpy.data.objects.remove(rig, do_unlink=True)
         raise
     finally:
         remaining = bpy.data.objects.get(rig_name)
-        if remaining is not None: remaining.select_set(False)
-        for obj in selected: obj.select_set(True)
-        bpy.context.view_layer.objects.active = previous
+        if remaining is not None: remaining.select_set(False, view_layer=view_layer)
+        for obj in selected:
+            if obj.name in view_layer.objects: obj.select_set(True, view_layer=view_layer)
+        view_layer.objects.active = previous
     return body, rig
