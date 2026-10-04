@@ -27,6 +27,22 @@ def fixture():
     return compiled,profile,geometry,geometry_ref,{'garment.test':data},parameters
 
 
+def coupled_fixture():
+    c,p,g,ref,data,params=fixture();source=data['garment.test'];source['units']='cm'
+    for pid,piece in source['pieces'].items():
+        piece['faces']=[[0,1,2],[0,2,3]]
+        c['textiles'][pid]['source_geometry']=copy.deepcopy(piece)
+    source['seams']=[{'id':'front-to-collar','kind':'permanent','piece_a':'single-front',
+        'edge_a':'attachment','piece_b':'collar','edge_b':'attachment','orientation':'reverse'}]
+    recipe={'component_id':'garment.test','seams':{'front-to-collar':{'kind':'permanent',
+        'ease_b_over_a':0.,'tolerance_relative':0.02}}}
+    params['garment.test']['source_seam_coupling']={'pieces':['single-front','collar'],
+        'subdivisions':2,'budgets':{'max_source_points':20000,'max_source_triangles':20000,
+            'max_controls':70000,'max_triangles':131072,'max_seconds':60.},
+        'recipe_ref':{'path':'recipe.json','sha256':'f'*64}}
+    return c,p,g,ref,data,params,{'garment.test':recipe}
+
+
 class GuidePolicy(Case):
     def test_generator_identity_covers_imported_coordinate_dependencies_including_upper_shoulders(self):
         # Include late imports in the upper_blend branch even when the current
@@ -134,8 +150,8 @@ class GuidePolicy(Case):
             self.assertFalse(evidence['admissible_for_fit'])
             self.assertEqual(before,{path.name:sha(path)for path in self.root.iterdir()})
             from a3d.garment_guide_policy import verify_guide_policy as real_verify
-            def replace_during_reconstruction(*args):
-                result=real_verify(*args);stored('policy.json',{'corrupted':'different policy bytes'})
+            def replace_during_reconstruction(*args,**kwargs):
+                result=real_verify(*args,**kwargs);stored('policy.json',{'corrupted':'different policy bytes'})
                 return result
             with patch('a3d.garment_guide_policy.verify_guide_policy',side_effect=replace_during_reconstruction):
                 with self.assertRaisesRegex(StudioError,'policy artifact changed'):
@@ -143,3 +159,55 @@ class GuidePolicy(Case):
             stored('policy.json',policy)
             native['files'].remove(ref)
             with self.assertRaisesRegex(StudioError,'canonical completed native body'):verify_project_guides(project,c,guides,'policy.json')
+
+    def test_declared_source_coupling_is_reproducible_and_does_not_admit_coverage_or_fitting(self):
+        c,p,g,ref,data,params,recipes=coupled_fixture();before=digest([c,p,g,ref,data,params,recipes])
+        policy=prepare_guide_policy(c,p,g,ref,params,source_seam_recipes=recipes)
+        guides,evidence=reconstruct_guide_policy(c,p,g,ref,data,policy,source_seam_recipes=recipes)
+        coupling=guides['garment.test']['source_seam_coupling']
+        self.assertEqual(coupling['qualification'],'NONE');self.assertEqual(coupling['front_coverage'],'NOT_REVIEWED')
+        self.assertEqual(coupling['contact_assessment'],'REQUIRED')
+        self.assertEqual(coupling['relations'][0]['max_common_control_gap_cm'],0.)
+        verified=verify_guide_policy(c,p,g,ref,data,policy,guides,source_seam_recipes=recipes)
+        self.assertEqual(verified['comparison'],'FULL_UNROUNDED_GUIDE_REPORT_IDENTICAL')
+        self.assertEqual(before,digest([c,p,g,ref,data,params,recipes]));self.assertFalse(evidence['admissible_for_fit'])
+
+    def test_source_coupling_missing_changed_unrequested_recipe_and_panel_overrides_are_refused(self):
+        c,p,g,ref,data,params,recipes=coupled_fixture()
+        policy=prepare_guide_policy(c,p,g,ref,params,source_seam_recipes=recipes)
+        for change in ('missing','changed','extra','hash','missing-hash','piece','unexpected-hash'):
+            pol,rr=copy.deepcopy([policy,recipes])
+            if change=='missing':rr={}
+            elif change=='changed':rr['garment.test']['seams']['front-to-collar']['ease_b_over_a']=.1
+            elif change=='extra':rr['unrequested']=rr['garment.test']
+            elif change=='hash':pol['components']['garment.test']['source_seam_recipe_sha256']='a'*64
+            elif change=='missing-hash':pol['components']['garment.test'].pop('source_seam_recipe_sha256')
+            elif change=='piece':pol['components']['garment.test']['source_seam_coupling']['pieces']=['single-front','absent']
+            else:
+                pol['components']['garment.test'].pop('source_seam_coupling');rr={}
+            with self.subTest(change=change),self.assertRaises(StudioError):
+                reconstruct_guide_policy(c,p,g,ref,data,pol,source_seam_recipes=rr)
+
+    def test_project_recipe_ref_checks_exact_file_bytes_before_and_after_reconstruction(self):
+        c,p,g,ref,data,params,recipes=coupled_fixture();project=SimpleNamespace(root=self.root)
+        atomic_json(self.root/'recipe.json',recipes['garment.test'])
+        recipe_ref={'path':'recipe.json','sha256':sha(self.root/'recipe.json')}
+        params['garment.test']['source_seam_coupling']['recipe_ref']=recipe_ref
+        with patch('a3d.garment_guide_policy._project_inputs',return_value=(p,g,ref,data,{'native':True})):
+            policy,_=prepare_project_guide_policy(project,c,params)
+            guides,_=reconstruct_guide_policy(c,p,g,ref,data,policy,source_seam_recipes=recipes)
+            atomic_json(self.root/'policy.json',policy)
+            verify_project_guides(project,c,guides,'policy.json')
+            original=(self.root/'recipe.json').read_bytes()
+            (self.root/'recipe.json').write_bytes(original+b' ')
+            with self.assertRaisesRegex(StudioError,'recipe artifact changed'):
+                verify_project_guides(project,c,guides,'policy.json')
+            (self.root/'recipe.json').write_bytes(original)
+            from a3d.garment_guide_policy import verify_guide_policy as real_verify
+            def replace_recipe(*args,**kwargs):
+                result=real_verify(*args,**kwargs)
+                (self.root/'recipe.json').write_bytes(original+b' ')
+                return result
+            with patch('a3d.garment_guide_policy.verify_guide_policy',side_effect=replace_recipe):
+                with self.assertRaisesRegex(StudioError,'recipe artifact changed'):
+                    verify_project_guides(project,c,guides,'policy.json')

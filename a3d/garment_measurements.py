@@ -651,10 +651,14 @@ def propose_compiled_measurement_paths(project,compiled,guides_path,fit_path,bod
         if component['id']not in guides or guides[component['id']].get('source_sha256')!=digest(data):
             raise StudioError('Measurement guides belong to another exact garment source package')
     if guide_policy_path:
-        from .garment_guide_policy import verify_guide_policy
+        from .garment_guide_policy import verify_guide_policy,_project_seam_recipes
         policy_path=inside(project.root,guide_policy_path);policy_bytes=policy_path.read_bytes()
         policy_sha256=hashlib.sha256(policy_bytes).hexdigest();policy=json.loads(policy_bytes)
-        guide_reconstruction=verify_guide_policy(compiled,profile,geometry,geometry_ref,source_data,policy,guides)
+        seam_recipes=_project_seam_recipes(project,policy.get('components',{}))
+        options={'source_seam_recipes':seam_recipes}if seam_recipes else {}
+        guide_reconstruction=verify_guide_policy(compiled,profile,geometry,geometry_ref,source_data,policy,guides,**options)
+        if _project_seam_recipes(project,policy.get('components',{}))!=seam_recipes:
+            raise StudioError('Guide source-seam recipe artifact changed during source reconstruction')
         if sha(policy_path)!=policy_sha256:raise StudioError('Guide policy artifact changed during source reconstruction')
         guide_reconstruction['policy_ref']={'path':guide_policy_path,'sha256':policy_sha256}
     else:
@@ -689,12 +693,18 @@ def propose_compiled_measurement_paths(project,compiled,guides_path,fit_path,bod
     result['input_refs']=[{'path':p,'sha256':sha(inside(project.root,p))} for p in (guides_path,fit_path)]+[fit['body_ref']]
     result['native_body_origin']=origin
     result['guide_reconstruction']=guide_reconstruction
-    if guide_policy_path:result['input_refs'].append(guide_reconstruction['policy_ref'])
+    if guide_policy_path:
+        result['input_refs'].append(guide_reconstruction['policy_ref'])
+        for row in policy.get('components',{}).values():
+            if row.get('source_seam_coupling'):
+                result['input_refs'].append(copy.deepcopy(row['source_seam_coupling']['recipe_ref']))
     if mesh_origins:result['source_uv_triangulations']=mesh_origins
     if declaration:result['body_regions']=copy.deepcopy(declaration)
     if failure:result['body_region_source_reconciliation']={'status':'NEEDS_DATA','message':failure}
     if guide_policy_path and sha(policy_path)!=policy_sha256:
         raise StudioError('Guide policy artifact changed during measurement reconstruction')
+    if guide_policy_path and _project_seam_recipes(project,policy.get('components',{}))!=seam_recipes:
+        raise StudioError('Guide source-seam recipe artifact changed during measurement reconstruction')
     result['proposal_sha256']=digest({k:v for k,v in result.items()if k!='proposal_sha256'})
     return result
 

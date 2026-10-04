@@ -488,6 +488,31 @@ class GarmentMeasurements(Case):
                 with self.assertRaisesRegex(StudioError,'policy artifact changed'):
                     propose_compiled_measurement_paths(project,compiled,'guides.json','fit.json',guide_policy_path='policy.json')
 
+    def test_coupled_guide_recipe_is_forwarded_and_file_substitution_refuses_measurements(self):
+        project,compiled,fit,native,stored=self.project_fixture()
+        recipe={'component_id':'garment.coat','seams':{'source-seam':{'kind':'permanent'}}}
+        recipe_ref=stored('recipe.json',recipe)
+        policy={'components':{'garment.coat':{'source_seam_coupling':{'recipe_ref':recipe_ref}}}}
+        stored('policy.json',policy)
+        evidence={'status':'GUIDE_HYPOTHESES_RECONSTRUCTED','qualification':'NONE','admissible_for_fit':False}
+        with patch('a3d.production_dossier.compile_project_dossier',return_value=copy.deepcopy(compiled)),\
+                patch('a3d.native_evidence.native_origin',return_value=(native,{})),\
+                patch('a3d.garment_guide_policy.verify_guide_policy',return_value=copy.deepcopy(evidence))as verifier:
+            result=propose_compiled_measurement_paths(project,compiled,'guides.json','fit.json',guide_policy_path='policy.json')
+            self.assertEqual(verifier.call_args.kwargs['source_seam_recipes'],{'garment.coat':recipe})
+            self.assertIn(recipe_ref,result['input_refs']);self.assertFalse(result['proposals'][0]['admissible_for_fit'])
+        from a3d.garment_measurements import propose_measurement_paths as real_propose
+        def mutate_recipe(*args):
+            result=real_propose(*args)
+            (self.root/'recipe.json').write_bytes((self.root/'recipe.json').read_bytes()+b' ')
+            return result
+        with patch('a3d.production_dossier.compile_project_dossier',return_value=copy.deepcopy(compiled)),\
+                patch('a3d.native_evidence.native_origin',return_value=(native,{})),\
+                patch('a3d.garment_guide_policy.verify_guide_policy',return_value=copy.deepcopy(evidence)),\
+                patch('a3d.garment_measurements.propose_measurement_paths',side_effect=mutate_recipe):
+            with self.assertRaisesRegex(StudioError,'recipe artifact changed'):
+                propose_compiled_measurement_paths(project,compiled,'guides.json','fit.json',guide_policy_path='policy.json')
+
     def test_project_wrapper_rejects_other_target_changed_package_or_forged_guide_source(self):
         project,compiled,fit,native,stored=self.project_fixture()
         for change in ('target','package','guide','origin','geometry'):

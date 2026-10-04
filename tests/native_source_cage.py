@@ -55,10 +55,38 @@ scene=OUT/'test-only-cage.blend';bpy.ops.wm.save_as_mainfile(filepath=str(scene)
 bpy.ops.wm.open_mainfile(filepath=str(scene))
 assert [list(vertex.co)for vertex in bpy.data.objects['TEST_ONLY_CAGE_SECTION'].data.vertices]==source_vertices
 assert digest([piece,frame,triangles,section])==before
+
+# Exercise the generic six-piece source coupler through native storage as a
+# separate synthetic witness. Coincident guide controls never imply admission.
+from tests.test_source_seam_coupling import six_piece_fixture
+from a3d.source_seam_coupling import couple_source_seams
+data,guides,recipe=six_piece_fixture();coupling_before=digest([data,guides,recipe])
+cages,coupling=couple_source_seams(data,guides,recipe,subdivisions=3)
+assert len(coupling['relations'])==13
+native_cages={}
+for pid,cage in cages.items():
+    item=bpy.data.meshes.new('TEST_ONLY_COUPLED_'+pid)
+    item.from_pydata([[value/100 for value in point]for point in cage['target_cm']],[],cage['triangles'])
+    item.update()
+    native=bpy.data.objects.new('TEST_ONLY_COUPLED_'+pid,item);bpy.context.collection.objects.link(native)
+    native_cages[pid]=[list(vertex.co)for vertex in item.vertices]
+native_coupling_gap=max(math.dist(native_cages[a[0]][a[1]],native_cages[b[0]][b[1]])*100
+    for relation in coupling['relations']for a,b in relation['paired_cage_controls'])
+assert native_coupling_gap==0.
+coupled_scene=OUT/'test-only-six-piece-coupling.blend'
+bpy.ops.wm.save_as_mainfile(filepath=str(coupled_scene))
+bpy.ops.wm.open_mainfile(filepath=str(coupled_scene))
+for pid,coordinates in native_cages.items():
+    assert [list(vertex.co)for vertex in bpy.data.objects['TEST_ONLY_COUPLED_'+pid].data.vertices]==coordinates
+assert digest([data,guides,recipe])==coupling_before
 atomic_json(OUT/'result.json',{'version':1,'status':'PASS','purpose':'TEST_ONLY',
     'scope':'NATIVE_RIGID_SOURCE_SEED_CAGE_CORRESPONDENCE_AND_SECTION_REOPEN',
     'maximum_source_distance_residual_cm':maximum_source_distance_residual,
     'maximum_guide_seam_gap_cm':maximum_seam_gap,'source_section_material_length_cm':curve['source_material_length_cm'],
     'preform_bound_cm':bound['bound_cm'],'scene_sha256':sha(scene),'source_changed':False,
+    'source_seam_coupling':{'pieces':len(cages),'relations':len(coupling['relations']),
+        'native_max_common_control_gap_cm':native_coupling_gap,'reopened':True,
+        'scene_sha256':sha(coupled_scene),'qualification':'NONE','front_coverage':'NOT_REVIEWED',
+        'metric_assessment':'REQUIRED','contact_assessment':'REQUIRED'},
     'cloth':'NOT_EXECUTED','garment':'NOT_QUALIFIED','fitting':'NOT_EXECUTED','acceptance':'NOT_GRANTED'})
 print('PASS TEST_ONLY_NATIVE_SOURCE_CAGE',flush=True)

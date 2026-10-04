@@ -473,7 +473,8 @@ def measured_native_skin_sections(profile, geometry, heights_cm):
     return result
 
 
-def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sections=True, skin_sections=None):
+def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sections=True, skin_sections=None,
+                          *,source_seam_coupling=None,seam_recipe=None):
     """Dispatch complete source coverage; return pending unsupported roles.
 
     A missing declaration or impossible native guide produces an actionable
@@ -506,9 +507,22 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
         if set(frames).intersection(report['panels']):
             raise StudioError('Several guide families own one source piece')
         frames.update(report['panels']); reports.append({'family': name, 'report': report})
+    coupling_report=None
+    if source_seam_coupling is not None:
+        from .source_seam_coupling import couple_source_seams
+        selected=source_seam_coupling['pieces']
+        if (not isinstance(selected,list)or len(selected)<2 or len(set(selected))!=len(selected)
+                or not set(selected)<=set(frames)):
+            raise StudioError('Source-seam coupling requires its explicit distinct prepared source panels')
+        cages,coupling_report=couple_source_seams(data,{pid:frames[pid]for pid in selected},seam_recipe,
+            subdivisions=source_seam_coupling['subdivisions'],budgets=source_seam_coupling['budgets'])
+        frames.update(cages)
+    elif seam_recipe is not None:
+        raise StudioError('A sewing recipe cannot enable undeclared guide coupling')
     pending = sorted(set(data['pieces'])-set(frames))
     return {'version': 1, 'status': 'PARTIAL_GUIDES' if pending else 'GARMENT_GUIDES_PREPARED',
             'panels': frames, 'pending_pieces': pending, 'diagnostics': diagnostics, 'families': reports,
+            **({'source_seam_coupling':coupling_report}if coupling_report is not None else {}),
             'source_sha256': digest(data), 'semantics_sha256': digest(semantics),
             'profile_cache_key': profile['cache_key'], 'profile_sha256': digest(profile),
             'source_mutated': False, 'source_uv_scaled': False, 'qualification': 'NONE',
