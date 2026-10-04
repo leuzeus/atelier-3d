@@ -373,7 +373,7 @@ def _at_fraction(piece, state, chain, fraction, budget, n):
         'source_corner_vertex_id': None, 'cage_control_index': index}
 
 
-def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=None, clock=time.monotonic):
+def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=None, clock=time.monotonic, semantics=None):
     """Return ``(cages, report)`` without changing any supplied source input.
 
     Permanent source boundaries in ``frames`` are paired over the union of
@@ -388,7 +388,7 @@ def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=No
         raise StudioError('Source seam coupling subdivisions must be an integer in 2..16')
     budget = _Budget(budgets, clock)
     try:
-        before = digest([data, frames, seam_recipe])
+        before = digest([data, frames, seam_recipe] if semantics is None else [data, frames, seam_recipe, semantics])
     except (TypeError, ValueError, OverflowError) as error:
         raise StudioError('Source seam coupling requires finite JSON source inputs') from error
     admitted = _source(data, frames, seam_recipe, budget)
@@ -446,23 +446,31 @@ def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=No
             'common_fractions': [entry['fraction'] for entry in union], 'paired_cage_controls': pairs,
             'source_parameters': parameters,
             'max_initial_guide_gap_cm': max(math.dist(states[a[0]]['original'][a[1]], states[b[0]]['original'][b[1]]) for a, b in pairs)})
+    original_proposals = {pid: state['original'] for pid, state in states.items()}
+    aligned_proposals = original_proposals
+    alignment_report = None
+    if semantics is not None:
+        from .rigid_guide_alignment import prepare_role_rigid_seeds
+        aligned_proposals, alignment_report = prepare_role_rigid_seeds(
+            data, semantics, states, witnesses, budget, subdivisions=subdivisions)
     cohorts = {}
     for key in sorted(parents):
         cohorts.setdefault(root(key), []).append(key)
-    targets = {pid: copy.deepcopy(state['original']) for pid, state in states.items()}
+    targets = {pid: copy.deepcopy(points) for pid, points in aligned_proposals.items()}
     for cohort in cohorts.values():
         budget.check()
         try:
-            common = [math.fsum(states[pid]['original'][index][k] for pid, index in cohort)/len(cohort) for k in range(3)]
+            common = [math.fsum(aligned_proposals[pid][index][k] for pid, index in cohort)/len(cohort) for k in range(3)]
         except OverflowError:
             # A finite mean can exist even when summing finite large inputs
             # overflows. Division before summation keeps this case bounded.
-            common = [math.fsum(states[pid]['original'][index][k]/len(cohort) for pid, index in cohort) for k in range(3)]
+            common = [math.fsum(aligned_proposals[pid][index][k]/len(cohort) for pid, index in cohort) for k in range(3)]
         if not _vector(common, 3):
             raise StudioError('Source cohort mean cannot be represented by finite world coordinates')
         for pid, index in cohort:
             targets[pid][index] = list(common)
-    source_binding = digest([data, frames, seam_recipe, subdivisions])
+    source_binding = digest([data, frames, seam_recipe, subdivisions] if semantics is None else
+        [data, frames, seam_recipe, subdivisions, semantics, alignment_report['kernel_code_sha256']])
     cages = {}; refinements = {}; displacements = {}
     for pid, state in states.items():
         budget.check()
@@ -482,9 +490,13 @@ def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=No
             'triangle_source_face_indices': state['triangle_source_faces']}
         displacements[pid] = max(math.dist(a, b) for a, b in zip(state['original'], targets[pid]))
     for witness in witnesses:
+        if alignment_report is not None:
+            witness['max_aligned_proposal_gap_cm'] = max(math.dist(
+                aligned_proposals[a[0]][a[1]], aligned_proposals[b[0]][b[1]])
+                for a, b in witness['paired_cage_controls'])
         witness['max_common_control_gap_cm'] = max(math.dist(targets[a[0]][a[1]], targets[b[0]][b[1]])
             for a, b in witness['paired_cage_controls'])
-    if digest([data, frames, seam_recipe]) != before:
+    if digest([data, frames, seam_recipe] if semantics is None else [data, frames, seam_recipe, semantics]) != before:
         raise StudioError('Source seam coupling mutated immutable source, recipe or guide inputs')
     budget.check()
     report = {'method': 'SOURCE_PERMANENT_NORMALIZED_PARTITION_UNION_CAGE', 'version': 1,
@@ -504,6 +516,16 @@ def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=No
         'front_coverage': 'NOT_REVIEWED', 'qualification': 'NONE', 'anatomical_homology': 'NOT_QUALIFIED',
         'metric_assessment': 'REQUIRED', 'contact_assessment': 'REQUIRED',
         'simulation': 'NOT_EXECUTED', 'fitting': 'NOT_EXECUTED'}
+    if alignment_report is not None:
+        postseed_displacements = {}
+        for pid, points in aligned_proposals.items():
+            budget.check()
+            postseed_displacements[pid] = max(math.dist(a, b) for a, b in zip(points, targets[pid]))
+        report.update(semantics_sha256=digest(semantics), source_binding_sha256=source_binding,
+            rigid_alignment=alignment_report,
+            postseed_target_correction_cm=postseed_displacements,
+            target_policy='UNWEIGHTED_ROLE_RIGID_SEEDED_PROPOSAL_MEAN_PER_TRANSITIVE_SOURCE_COHORT',
+            displacement_policy='MAX_TARGET_CORRECTION_FROM_ORIGINAL_GUIDE_SEPARATE_POSTSEED_CORRECTION')
     try:
         report = json.loads(canonical(report))
     except (TypeError, ValueError, OverflowError) as error:

@@ -47,7 +47,7 @@ class GuidePolicy(Case):
     def test_generator_identity_covers_imported_coordinate_dependencies_including_upper_shoulders(self):
         # Include late imports in the upper_blend branch even when the current
         # source has only specialized panels and would produce the same points.
-        coordinate_modules=('garment_guides','semantic_placement','torso_sections','guide_cage_sampling','source_seam_coupling','shoulder_guides',
+        coordinate_modules=('garment_guides','semantic_placement','torso_sections','guide_cage_sampling','source_seam_coupling','rigid_guide_alignment','shoulder_guides',
             'preform_volume','anatomy_profile','shoulder_surface','head_surface','contact_geometry')
         dependencies=set()
         for module in coordinate_modules:
@@ -65,14 +65,16 @@ class GuidePolicy(Case):
             with self.assertRaisesRegex(StudioError,'generator code is stale'):
                 verify_guide_policy(c,p,g,ref,data,policy,guides)
 
-    def test_cage_helper_code_change_invalidates_existing_guide_policy(self):
+    def test_private_guide_helpers_code_change_invalidates_existing_guide_policy(self):
         c,p,g,ref,data,params=fixture();policy=prepare_guide_policy(c,p,g,ref,params)
         guides,_=reconstruct_guide_policy(c,p,g,ref,data,policy)
-        self.assertEqual(policy['generator_code_sha256']['guide_cage_sampling'],sha(ROOT/'a3d/guide_cage_sampling.py'))
-        with patch('a3d.garment_guide_policy.sha',side_effect=lambda path:
-                'f'*64 if path.name=='guide_cage_sampling.py'else sha(path)):
-            with self.assertRaisesRegex(StudioError,'generator code is stale'):
-                verify_guide_policy(c,p,g,ref,data,policy,guides)
+        for module in ('guide_cage_sampling','rigid_guide_alignment'):
+            with self.subTest(module=module):
+                self.assertEqual(policy['generator_code_sha256'][module],sha(ROOT/('a3d/'+module+'.py')))
+                with patch('a3d.garment_guide_policy.sha',side_effect=lambda path:
+                        'f'*64 if path.name==module+'.py'else sha(path)):
+                    with self.assertRaisesRegex(StudioError,'generator code is stale'):
+                        verify_guide_policy(c,p,g,ref,data,policy,guides)
 
     def test_reconstruction_uses_existing_generator_and_exact_sources_without_granting_fit(self):
         c,p,g,ref,data,params=fixture();before=digest([c,p,g,ref,data,params])

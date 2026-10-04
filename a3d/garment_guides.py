@@ -555,12 +555,19 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
                 or not set(selected)<=set(frames)):
             raise StudioError('Source-seam coupling requires its explicit distinct prepared source panels')
         cages,coupling_report=couple_source_seams(data,{pid:frames[pid]for pid in selected},seam_recipe,
-            subdivisions=source_seam_coupling['subdivisions'],budgets=source_seam_coupling['budgets'])
+            subdivisions=source_seam_coupling['subdivisions'],budgets=source_seam_coupling['budgets'],semantics=semantics)
         frames.update(cages)
+        alignment=coupling_report.get('rigid_alignment',{})
+        for row in alignment.get('diagnostics',[]):
+            diagnostics.append({'family':'source_rigid_alignment',**row})
+        if alignment.get('status')=='PARTIAL_ROLE_SEEDS_PREPARED':
+            diagnostics.append({'family':'source_rigid_alignment','code':'PARTIAL_SOURCE_RELATION_ALIGNMENT',
+                'message':'Rigid seeds cover front attachments only; other permanent relations still require correction'})
     elif seam_recipe is not None:
         raise StudioError('A sewing recipe cannot enable undeclared guide coupling')
     pending = sorted(set(data['pieces'])-set(frames))
-    return {'version': 1, 'status': 'PARTIAL_GUIDES' if pending else 'GARMENT_GUIDES_PREPARED',
+    return {'version': 1, 'status': 'PARTIAL_GUIDES' if pending or any(
+                row.get('family')=='source_rigid_alignment'for row in diagnostics) else 'GARMENT_GUIDES_PREPARED',
             'panels': frames, 'pending_pieces': pending, 'diagnostics': diagnostics, 'families': reports,
             **({'source_seam_coupling':coupling_report}if coupling_report is not None else {}),
             'source_sha256': digest(data), 'semantics_sha256': digest(semantics),
