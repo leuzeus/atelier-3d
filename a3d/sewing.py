@@ -329,13 +329,28 @@ def prepare_boundaries(data, recipe, seam_parameters=None, regular_boundary_spac
     for pid, piece in data["pieces"].items():
         points = piece["vertices"]
         perimeter = chain_lengths(points + points[:1])
-        samples[pid] = {"source":points, "perimeter":perimeter, "points":{}}
+        samples[pid] = {"source":points, "perimeter":perimeter, "points":{}, "point_sources":{}}
         covered[pid] = set()
 
     def put(pid, chain, t):
         piece = data["pieces"][pid]
         pts = [piece["vertices"][i] for i in chain]
         lengths = chain_lengths(pts)
+        # Only the exact authored arc fraction identifies a source vertex.
+        # A neighbouring interpolated sample can share the established storage
+        # key, but cannot overwrite that vertex's exact material coordinates.
+        source_vertex = next((index for index, stop in zip(chain, lengths)
+                              if t == stop / lengths[-1]), None)
+        if source_vertex is not None:
+            perimeter = samples[pid]["perimeter"]
+            key = round(perimeter[source_vertex] % perimeter[-1], 8)
+            if abs(key-perimeter[-1])<1e-8:key=0.
+            provenance = samples[pid]['point_sources'].get(key)
+            if provenance is not None and provenance['kind']=='SOURCE_VERTEX' and provenance['source_vertex']!=source_vertex:
+                raise StudioError('Distinct source vertices exceed boundary key precision: ' + pid)
+            samples[pid]['points'][key] = list(piece['vertices'][source_vertex])
+            samples[pid]['point_sources'][key] = {'kind':'SOURCE_VERTEX','source_vertex':source_vertex}
+            return key
         target = t * lengths[-1]
         for j, (a,b) in enumerate(zip(chain, chain[1:])):
             if target <= lengths[j+1] + 1e-8:
@@ -347,7 +362,11 @@ def prepare_boundaries(data, recipe, seam_parameters=None, regular_boundary_spac
                 s = (perimeter[index]+along*(perimeter[index+1]-perimeter[index])) % perimeter[-1]
                 key = round(s, 8)
                 if abs(key-perimeter[-1])<1e-8:key=0.
-                samples[pid]["points"][key] = sample_chain(pts,t)
+                provenance = samples[pid]['point_sources'].get(key)
+                if provenance is None or provenance['kind']!='SOURCE_VERTEX':
+                    samples[pid]["points"][key] = sample_chain(pts,t)
+                    samples[pid]['point_sources'][key] = {'kind':'SOURCE_ARC_INTERPOLATION',
+                        'source_chain':list(chain),'source_parameter':t}
                 return key
         raise StudioError("Boundary sampling failed")
 
@@ -367,7 +386,10 @@ def prepare_boundaries(data, recipe, seam_parameters=None, regular_boundary_spac
         # inserted parameter to both sides of this seam.
         for pid, chain, points in ((pa,ca,a),(pb,cb,b)):
             lengths = chain_lengths(points)
+            # The exact source perimeter origin is also part of the existing
+            # regular corner postcheck, even on a straight cyclic subdivision.
             endpoints = {i for e in data["pieces"][pid]["edges"].values() for i in (e[0],e[-1])}
+            if regular_boundary_spacing_cm is not None:endpoints.add(0)
             stops = {lengths[j]/lengths[-1] for j,i in enumerate(chain) if i in endpoints}
             required.update(stops)
             # An exact source corner coinciding with a grid sample remains a
@@ -433,6 +455,9 @@ def prepare_boundaries(data, recipe, seam_parameters=None, regular_boundary_spac
         if len(polygon)<3 or abs(signed_area(polygon))<1e-6 or not simple_polygon(polygon):
             raise StudioError("Invalid derived boundary")
         samples[pid].update(keys=keys,polygon=polygon,flip=flips[pid],source_sha256=digest(piece["vertices"]))
+        samples[pid]['sample_provenance']=[dict(samples[pid]['point_sources'][key],
+            source_perimeter_key_cm=key,derived_boundary_vertex=index,
+            index_space='PIECE_BOUNDARY_LOCAL') for index,key in enumerate(keys)]
         edge_ids={}
         for name in piece["edges"]:
             chain,points,sign=edge_chain(piece,name)

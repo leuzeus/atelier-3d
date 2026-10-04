@@ -1,5 +1,6 @@
 """Material notch positions on the two distinct sides of a unary seam."""
 import copy
+import math
 import unittest
 from a3d.core import StudioError,digest
 from a3d.board_contract import assembly_mark_position,validate_patterns
@@ -35,12 +36,20 @@ class MaterialNotchSides(unittest.TestCase):
                 'max_vertices':10000,'target_min_angle_degrees':15.}
         boundaries,seams,sampling=prepare_regular_boundaries(data,recipe,config,dossier)
         self.assertFalse(sampling['ambiguous_source_notches'])
-        self.assertEqual({row['common_parameter']for row in sampling['source_notches']},{.23})
+        self.assertEqual({row['common_parameter']for row in sampling['source_notches']},{.23,1-.77})
         for row in sampling['source_notches']:
             side=row['side'];edge=data['seams'][0]['edge_'+side]
             expected=sample_chain(edge_chain(data['pieces']['front'],edge)[1],mark['seam_side_positions'][side])
-            actual=boundaries['front']['polygon'][row['derived_boundary_vertex']]
-            for a,b in zip(actual,expected):self.assertAlmostEqual(a,b)
+            self.assertEqual(row['source_uv_cm'],expected)
+            self.assertEqual(row['binding']['kind'],'BOUNDARY_SEGMENT')
+            self.assertEqual(row['binding']['index_space'],'PIECE_BOUNDARY_LOCAL')
+            self.assertNotIn('common_sample',row)
+            self.assertNotIn('derived_boundary_vertex',row)
+            binding=row['binding']
+            actual=[sum(w*boundaries['front']['polygon'][i][axis] for w,i in zip(
+                binding['weights'],binding['boundary_vertices']))for axis in range(2)]
+            self.assertEqual(actual,row['reconstructed_uv_cm'])
+            self.assertEqual(math.dist(actual,expected),row['numeric_reconstruction_residual_cm'])
         self.assertEqual(digest([data,recipe,dossier]),before)
 
     def test_legacy_ambiguous_unary_mark_is_still_missing_data_and_midpoint_remains_supported(self):

@@ -139,17 +139,17 @@ class SourceCorners(unittest.TestCase):
         self.assertEqual(sample_chain(points, 0.), points[0])
         self.assertEqual(sample_chain(points, 1.), points[-1])
 
-    def test_close_required_corners_and_notches_survive_density_pressure_then_quality_refuses(self):
+    def test_close_corners_and_explicit_physical_parameters_survive_then_quality_refuses(self):
         points = [[10., 0.], [10., 5.], [9.99999, 5.0001], [10., 10.]]
         pieces = {'a': {'vertices': [[0., 0.]] + points + [[0., 10.]]},
                   'b': {'vertices': [[0., 0.], [12., 0.], [12., 10.], [0., 10.]]}}
         chains = {'join': (('a', [1, 2, 3, 4]), ('b', [1, 2]))}
         lengths = chain_lengths(points)
         corners = [lengths[index] / lengths[-1] for index in (1, 2)]
-        notch = .50003
+        physical_stop = .50003
         selected, report = regular_shared_parameters(pieces, chains,
-            {'join': [0., .5, 1.]}, {'join': [0., notch, 1.]}, 2., .05)
-        self.assertTrue(set(corners + [notch]) <= set(selected['join']))
+            {'join': [0., .5, 1.]}, {'join': [0., physical_stop, 1.]}, 2., .05)
+        self.assertTrue(set(corners + [physical_stop]) <= set(selected['join']))
         self.assertTrue(report['close_required_parameters_preserved'])
         # The immutable short boundary edge remains a metric failure; no point
         # is removed to make the downstream quality check claim success.
@@ -172,10 +172,16 @@ class SourceCorners(unittest.TestCase):
         before = digest([data, recipe, dossier])
         boundaries, seams, report = prepare_regular_boundaries(data, recipe, CONFIG, dossier)
         row = seams[source['id']]
-        self.assertIn(.3, row['parameters'])
+        self.assertNotIn(.3, row['parameters'])
         self.assertEqual(row['parameters'][0], 0.)
         self.assertEqual(row['parameters'][-1], 1.)
         self.assertTrue(report['source_notches'])
+        marks=[mark for mark in report['source_notches'] if mark['seam_id']==source['id']]
+        self.assertEqual(len(marks),2)
+        for mark in marks:
+            _,curve,_=edge_chain(data['pieces'][mark['piece']],source['edge_'+mark['side']])
+            self.assertEqual(mark['source_uv_cm'],sample_chain(curve,mark['source_local_parameter']))
+            self.assertEqual(mark['binding']['kind'],'BOUNDARY_SEGMENT')
         self.assertIn(data['pieces']['front']['vertices'][2], boundaries['front']['polygon'])
         self.assertEqual(digest([data, recipe, dossier]), before)
 

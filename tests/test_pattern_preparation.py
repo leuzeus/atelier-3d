@@ -151,7 +151,7 @@ class RegularMeshing(unittest.TestCase):
             points=[boundaries[seam['piece_'+side]]['polygon'][index] for index in seam[side]]
             self.assertGreater(min(math.dist(a,b) for a,b in zip(points,points[1:])),.49)
 
-    def test_source_contour_error_and_two_near_required_marks_remain_protected(self):
+    def test_source_contour_error_and_two_near_material_marks_remain_source_bound(self):
         data,recipe=sources();piece=data['pieces']['front']
         piece['vertices'].insert(2,[19.7,20.006905]);piece['edges']={'right':[1,2,3],'left':[0,4],'top':[4,3]}
         piece['faces']=[[0,1,2],[0,2,3],[0,3,4]]
@@ -164,15 +164,24 @@ class RegularMeshing(unittest.TestCase):
         dossier=source_dossier(data)
         for info in dossier['components'][data['component_id']]['pieces']:
             if info['id'] in (source['piece_a'],source['piece_b']):
-                # Keep a source-mandated near pair; only optional grid seeds
-                # may disappear, never crans merely to improve mesh quality.
+                # These nearby approved material points remain distinct marks;
+                # they do not require additional physical simulation vertices.
                 reverse=info['id']==source['piece_b'] and source['orientation']=='reverse'
                 info['pattern']['assembly_marks'].extend({'id':'close-'+str(i),'seam_id':source['id'],
                     'symbol':'notch','position':1-t if reverse else t} for i,t in enumerate((.5001,.5002)))
         before=digest([data,recipe,dossier]);boundaries,seams,report=prepare_regular_boundaries(data,recipe,self.config,dossier)
         self.assertEqual(digest([data,recipe,dossier]),before)
-        self.assertTrue(report['boundary_sampling_policy']['close_required_parameters_preserved'])
-        for t in (.5001,.5002):self.assertIn(t,seams[source['id']]['parameters'])
+        without_marks,without_mark_seams,_=prepare_regular_boundaries(data,recipe,self.config)
+        self.assertEqual(boundaries,without_marks)
+        self.assertEqual(seams,without_mark_seams)
+        for t in (.5001,.5002):self.assertNotIn(t,seams[source['id']]['parameters'])
+        close=[row for row in report['source_notches'] if row['notch_id'].startswith('close-')]
+        self.assertEqual(len(close),4)
+        for row in close:
+            _,curve,_=edge_chain(data['pieces'][row['piece']],source['edge_'+row['side']])
+            self.assertEqual(row['source_uv_cm'],sample_chain(curve,row['source_local_parameter']))
+            self.assertEqual(row['binding']['kind'],'BOUNDARY_SEGMENT')
+            self.assertNotIn('derived_boundary_vertex',row)
         for pid,panel in data['pieces'].items():
             contour=boundaries[pid]['polygon']
             for vertex in panel['vertices']:

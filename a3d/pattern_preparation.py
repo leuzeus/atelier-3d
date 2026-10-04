@@ -221,7 +221,8 @@ def _source_corner_indices(points):
     Source coordinates define the polygon. An exact determinant over those
     binary-float values distinguishes a turn from a straight subdivision;
     there is no angle or distance threshold that can remove a shallow corner.
-    Named stops and notches are protected separately by the common sampler.
+    Named physical stops are protected by the common sampler. Material notches
+    receive source-bound references separately, without forcing a cloth vertex.
     """
     turns = set()
     for index, (a, b, c) in enumerate(zip(points, points[1:], points[2:]), 1):
@@ -285,8 +286,8 @@ def regular_chain_parameters(points, sampled, spacing, error):
 def regular_shared_parameters(pieces, chains, sampled, required, spacing, error):
     """Prune optional grid seeds together across their source arc graph.
 
-    Named stops, every real source corner, notches and their propagated partner
-    samples are protected. Closely spaced required samples are reported and
+    Named stops, every real source corner and explicitly required physical
+    parameters are protected. Closely spaced required samples are reported and
     retained; they are never snapped or merged to satisfy a density target.
     """
     from .shared_seam_sampling import shared_parameters
@@ -352,13 +353,96 @@ def regular_shared_parameters(pieces, chains, sampled, required, spacing, error)
         'source_vertices_moved':False,'source_seam_correspondence_changed':False}
 
 
+def _bind_source_notch(data, boundaries, seams, notch):
+    """Bind an exact authored material mark to existing physical boundary IDs.
+
+    The immutable UV is its identity. Numerical reconstruction of an arc mark
+    is reported separately; no residual is a tolerance or admission gate.
+    """
+    source = next(row for row in data['seams'] if row['id']==notch['seam_id'])
+    side, pid = notch['side'], notch['piece']
+    if side not in ('a','b') or pid!=source['piece_'+side]:
+        raise StudioError('Source notch binding has the wrong source seam owner')
+    mark = notch['source_mark']
+    if (mark['id']!=notch['notch_id'] or mark['seam_id']!=source['id']
+            or mark.get('symbol')!=notch['symbol']
+            or assembly_mark_position(mark,source,side)!=notch['source_local_parameter']):
+        raise StudioError('Source notch binding differs from its declared material mark')
+    chain, points, _ = edge_chain(data['pieces'][pid], source['edge_'+side])
+    position = notch['source_local_parameter']
+    lengths = chain_lengths(points)
+    source_vertex = next((index for index, stop in zip(chain, lengths)
+                          if position==stop/lengths[-1]), None)
+    source_uv = sample_chain(points, position)
+    seam, boundary = seams[notch['seam_id']], boundaries[pid]
+    parameters, indices = seam['parameters'], seam[side]
+    reverse = side=='b' and source['orientation']=='reverse'
+    common = 1-position if reverse else position
+    provenance = boundary['sample_provenance']
+    vertex_matches = []
+    for sample, (parameter, index) in enumerate(zip(parameters, indices)):
+        local_parameter = 1-parameter if reverse else parameter
+        identity = provenance[index]
+        exact_vertex = source_vertex is not None and identity['kind']=='SOURCE_VERTEX' and identity['source_vertex']==source_vertex
+        if boundary['polygon'][index]==source_uv and (local_parameter==position or exact_vertex):
+            vertex_matches.append((local_parameter!=position, sample, index))
+    base = {'source_edge':source['edge_'+side], 'source_chain':list(chain),
+            'source_chain_sha256':digest(points), 'source_uv_cm':source_uv,
+            'source_vertex':source_vertex, 'common_parameter':common}
+    def finish(result):
+        # A completed row can be checked by rederiving it; stored weights,
+        # source identity and UV are never accepted as independent claims.
+        if result['binding']['kind']=='BOUNDARY_SEGMENT' and any(
+                key in notch for key in ('common_sample','derived_boundary_vertex')):
+            raise StudioError('A material segment notch cannot claim a physical common sample or vertex')
+        if any(key in notch and notch[key]!=value for key,value in result.items()):
+            raise StudioError('Stored source notch binding differs from its exact source derivation')
+        return result
+    if vertex_matches:
+        if len({index for _,_,index in vertex_matches})!=1:
+            raise StudioError('Source notch has ambiguous physical vertex identities')
+        _, sample, index = min(vertex_matches)
+        base.update(common_sample=sample, derived_boundary_vertex=index,
+            binding={'kind':'BOUNDARY_VERTEX','index_space':'PIECE_BOUNDARY_LOCAL',
+                     'boundary_vertex':index,'physical_common_parameter':parameters[sample]},
+            reconstructed_uv_cm=list(boundary['polygon'][index]),
+            numeric_reconstruction_residual_cm=0.)
+        return finish(base)
+    bracket = next((i for i,(lo,hi) in enumerate(zip(parameters,parameters[1:]))
+                    if lo<=common<=hi), None)
+    if bracket is None:
+        raise StudioError('Source notch is outside its prepared source seam boundary')
+    lo, hi = parameters[bracket:bracket+2]
+    endpoints = indices[bracket:bracket+2]
+    if hi<=lo or len(set(endpoints))!=2:
+        raise StudioError('Source notch needs a nondegenerate physical boundary interval')
+    weights = [(hi-common)/(hi-lo), (common-lo)/(hi-lo)]
+    if any(not math.isfinite(weight) or not 0<=weight<=1 for weight in weights):
+        raise StudioError('Source notch has invalid source arc interpolation weights')
+    reconstructed = [sum(weight*boundary['polygon'][index][axis]
+                         for weight,index in zip(weights,endpoints)) for axis in range(2)]
+    base.update(binding={'kind':'BOUNDARY_SEGMENT','index_space':'PIECE_BOUNDARY_LOCAL',
+        'boundary_vertices':endpoints,'physical_common_parameters':[lo,hi],
+        'weights':weights,'parameter_scope':'ORIENTED_SOURCE_SEAM_ARCLENGTH'},
+        reconstructed_uv_cm=reconstructed,
+        numeric_reconstruction_residual_cm=math.dist(source_uv,reconstructed))
+    return finish(base)
+
+
+def _notch_physical_identity(notch):
+    binding = notch['binding']
+    if binding['kind']=='BOUNDARY_VERTEX':return ((binding['boundary_vertex'],1.),)
+    return tuple(sorted((index,weight) for index,weight in zip(
+        binding['boundary_vertices'],binding['weights']) if weight!=0.))
+
+
 def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
     """Same source IDs/shared arc sampler, explicitly rebuilt at rim resolution."""
     _, fine, _, maximum = _mesh_config(regular_mesh)
     derived = copy.deepcopy(recipe)
     derived['mesh']['spacing_cm'] = fine
     derived['mesh']['max_vertices'] = min(maximum, derived['mesh']['max_vertices'])
-    extra, notch_sources, ambiguous_notches = {}, [], []
+    notch_sources, ambiguous_notches, seen_notches = [], [], set()
     seam_by_id = {s['id']: s for s in data['seams']}
     infos = [] if dossier is None else dossier.get('components', {}).get(data['component_id'], {}).get('pieces', [])
     for info in infos:
@@ -367,41 +451,37 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
             seam = seam_by_id.get(mark.get('seam_id'))
             if seam is None or pid not in (seam['piece_a'], seam['piece_b']):
                 raise StudioError('Source notch must reference its own declared seam and panel')
+            identity = (pid,seam['id'],mark['id'])
+            if identity in seen_notches:
+                raise StudioError('Source notch identities must be unique within their panel and seam')
+            seen_notches.add(identity)
             position = assembly_mark_position(mark,seam,'a'if seam['piece_a']==pid else'b')
             if (seam['piece_a'] == seam['piece_b'] and seam['orientation'] == 'reverse'
                     and 'seam_side_positions'not in mark and not _inversion_invariant_notch(position)):
                 ambiguous_notches.append({'seam_id': seam['id'], 'notch_id': mark['id'], 'piece': pid,
                     'reason': 'source_mark_has_no_self_seam_side', 'requires_clarification': True})
                 continue
-            # The existing seam map is parameterized along side A. Reverse side
-            # B's local source arc before inserting into the common sampler.
+            # These are material positions on the original source arcs. They do
+            # not add required physical samples to the cloth boundary.
             sides = [side for side in ('a', 'b') if seam['piece_'+side] == pid]
             for side in sides:
                 position=assembly_mark_position(mark,seam,side)
-                parameter = 1-position if side == 'b' and seam['orientation'] == 'reverse' else position
-                # Round only floating subtraction noise, never the source arc to
-                # a mesh vertex: .3 and 1-.7 are the same source notch.
-                parameter = round(parameter, 14)
-                extra.setdefault(seam['id'], []).append(parameter)
                 notch_sources.append({'seam_id': seam['id'], 'notch_id': mark['id'],
                     'piece': pid, 'side': side, 'source_local_parameter': position,
-                    'common_parameter': parameter})
-    boundaries, seams, seam_reports = prepare_boundaries(data, derived, extra,
+                    'symbol':mark.get('symbol'), 'source_mark':copy.deepcopy(mark)})
+    boundaries, seams, seam_reports = prepare_boundaries(data, derived,
         regular_boundary_spacing_cm=fine)
     source_corner_bindings = _verify_prepared_source_corners(data, boundaries)
     for notch in notch_sources:
-        seam = seams[notch['seam_id']]
-        sample = seam['parameters'].index(notch['common_parameter'])
-        notch['common_sample'] = sample
-        notch['derived_boundary_vertex'] = seam[notch['side']][sample]
+        notch.update(_bind_source_notch(data,boundaries,seams,notch))
     paired_self_notches = {}
     for notch in notch_sources:
         source = seam_by_id[notch['seam_id']]
         if source['piece_a'] == source['piece_b']:
             key = (notch['seam_id'], notch['notch_id'])
-            paired_self_notches.setdefault(key, {})[notch['side']] = notch['derived_boundary_vertex']
+            paired_self_notches.setdefault(key, {})[notch['side']] = _notch_physical_identity(notch)
     if any(set(pair) != {'a', 'b'} or pair['a'] == pair['b'] for pair in paired_self_notches.values()):
-        raise StudioError('Self-seam paired notches require distinct derived boundary vertices')
+        raise StudioError('Self-seam paired notches require distinct source-bound boundary references')
     count = sum(len(p['polygon']) for p in boundaries.values())
     if count > maximum:
         raise StudioError('Shared source boundary samples exceed the preparation vertex budget')
@@ -410,6 +490,9 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
         'boundary_vertices': count, 'seams': seam_reports, 'source_immutable': True,
         'boundary_sampling_policy':next(iter(boundaries.values())).get('regular_sampling_report'),
         'source_corner_bindings':source_corner_bindings,
+        'source_notch_binding_version':1,
+        'source_notch_policy':'MATERIAL_REFERENCE_WITHOUT_REQUIRED_PHYSICAL_VERTEX',
+        'notch_index_space':'PIECE_BOUNDARY_LOCAL',
         'dossier_sha256': digest(dossier) if dossier is not None else None,
         'source_notches': notch_sources, 'ambiguous_source_notches': ambiguous_notches}
 
