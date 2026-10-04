@@ -1,5 +1,22 @@
 # Historique
 
+## 0.7.0-rc.2 — 2026-10-03, stature codée et repères de surface
+
+- Préparation systématique du corps cible dès l'ajout d'un mannequin pour un
+  vêtement : mensurations prévues, variante séparée, mesures et revue.
+- Calcul déterministe de stature en cm avec conservation du plan des pieds,
+  de la topologie et de l'original, transformation des repères et nouveau
+  profil mesuré. Les variantes à 180 cm sont vérifiées dans Blender et relues.
+- Guide du haut du torse utilisant la peau mesurée aux épaules, distincte des
+  centres articulaires. Refus d'un profil, cadre ou pose modifié, d'une
+  triangulation incomplète, mal orientée ou d'un corps ouvert. Sections réelles
+  du torse et bords nommés de patrons conservés.
+- Limites : réglage indépendant de poitrine/taille/hanches non implémenté,
+  contacts des quatre panneaux de torse encore refusés, Cloth et fitting
+  complets des 15 pièces non qualifiés. Les mesures des variantes ne prouvent
+  ni la compatibilité de coupe ni l'enfilage. Les PASS des coupons ne sont
+  pas transférés. Aucune nouvelle installation Codex revendiquée.
+
 ## 0.7.0-rc.1 — 2026-10-03, préversion textile
 
 - Catalogue hors ligne de deux bases réalistes CC0 de Dan Ulrich, import et

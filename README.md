@@ -46,7 +46,7 @@ cette consigne ne modifie pas les permissions MCP de Codex.
 
 ## État et limites
 
-Les manifestes du checkout indiquent **0.7.0-rc.1**, préversion textile. Le runtime, ses contrats et le
+Les manifestes du checkout indiquent **0.7.0-rc.2**, préversion textile. Le runtime, ses contrats et le
 profil d’installation Windows ont des vérifications documentées dans
 [VALIDATION.md](VALIDATION.md). Une production complète sur un vêtement réel
 ou un asset articulé reste à qualifier. Les contrôles numériques ne remplacent

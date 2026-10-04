@@ -1,5 +1,33 @@
 # Validation d’Atelier 3D
 
+## Préversion textile 0.7.0-rc.2 — 2026-10-03
+
+Les contrôles logiciels du commit publié, l'inventaire du paquet et les
+empreintes sont consignés avec la release et la CI. Les essais natifs de
+développement suivants sont liés aux modules et artefacts effectivement
+contrôlés, avant le changement de version ; ils ne qualifient pas une nouvelle
+installation Codex ou le vêtement complet.
+
+- Procédure codée de stature : originaux et topologie conservés ; variantes
+  évaluées à 180,00000189 et 180,00000392 cm, pieds conservés et réouverture
+  vérifiée. Profils et points de peau des épaules remesurés sur les variantes
+  exactes. Portée `GEOMETRY_ONLY` / `HEIGHT_ONLY`, pas de fitting exécuté.
+- Intégrité des repères de surface : source, pose, profil complet et cadre
+  liés au reçu ; triangles incomplets, étrangers, dupliqués, mal orientés et
+  corps ouverts refusés. Ces contrôles ne valent pas revue anatomique humaine.
+- Torse : après la correction bornée de préparation, métriques PASS sur les
+  quatre panneaux des bases d'origine à 169/164 cm. Contacts corps FAIL :
+  pénétration maximale 6,987 / 6,109 cm pour un seuil de 0,05 cm. Les vues
+  examinées confirment les pénétrations. Self-contacts non évalués après ce
+  refus ; Cloth non exécuté. Aucun transfert aux corps cibles à 180 cm.
+- Réglage indépendant des tours, enfilage, construction complète des 15
+  pièces textiles avec boucle rigide, fitting, mouvement et acceptation
+  artistique restent à réaliser ou à qualifier.
+
+Les reçus locaux sont `work/garment-automation-v1/body-target-runtime-v2/` et
+`native-upper-torso-skin-v1/`. Ils restent exclus du paquet public. Voir
+[les contrôles de mensurations](references/mannequin-measurements.md).
+
 ## Préversion textile 0.7.0-rc.1 — 2026-10-03
 
 La préversion conserve les contrôles et les patrons approuvés. Les vérifications

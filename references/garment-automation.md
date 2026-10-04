@@ -9,7 +9,7 @@ Point de départ : Atelier 3D 0.6.9, commit
 `a7efe4ee9cc3bfe6b6c91ea4798e7b4854d59900`. Développement isolé sur G:, branche
 `codex/garment-automation-v1`. La scène et le checkout de production sont conservés.
 La publication de cette branche en préversion a été autorisée le 3 octobre 2026.
-La préversion 0.7.0-rc.1 conserve les gates et ne qualifie pas le vêtement complet.
+La préversion 0.7.0-rc.2 conserve les gates et ne qualifie pas le vêtement complet.
 Aucune nouvelle installation dans Codex ni acceptation artistique n’est revendiquée.
 
 ## Contrat du planificateur
@@ -64,6 +64,16 @@ Le relais vers le chat d'acceptation inclut runtime, lanceur, entrées, critère
 et limites ; un message automatique ne donne pas permission de contacter ce chat.
 
 ## État du catalogue et du profil
+
+La sélection rappelle désormais systématiquement la préparation du mannequin
+pour les mensurations prévues du vêtement ; voir [le corps cible](garment-body-target.md).
+La procédure codée de stature crée une variante uniforme, préserve le plan des
+pieds et la topologie, et remesure un nouveau profil. Les essais natifs à 180 cm
+conservent les originaux et vérifient la réouverture. Les points de surface
+d'épaule sont calculés sur la triangulation complète du corps, avec contrôle
+du profil, du cadre et de la pose. Le réglage indépendant des tours et la
+compatibilité de coupe restent non qualifiés ; aucune retouche par IA n'est
+une étape de cette procédure. [Contrôles et limites](mannequin-measurements.md).
 
 Deux bases réalistes de Dan Ulrich, provenant du bundle officiel Blender Human
 Base Meshes 1.4.1 sous CC0, remplacent les candidats Nora/Theo exclus par

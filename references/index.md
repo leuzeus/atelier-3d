@@ -26,7 +26,7 @@ le précise le [contrat de production](production.md).
 - [Templates ComfyUI : usages, paramètres et réutilisation](../workflows/comfy/README.md)
 - [Intégration du MCP officiel ComfyUI](comfy-official.md)
 
-## Préversion textile 0.7.0-rc.1
+## Préversion textile 0.7.0-rc.2
 
 - [Automatisation : capacités, preuves et limites de développement](garment-automation.md)
 - [Mensurations : contrôles existants et travaux restant à réaliser](mannequin-measurements.md)
