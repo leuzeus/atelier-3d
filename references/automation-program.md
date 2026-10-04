@@ -757,3 +757,20 @@ lie le code, les tests et les observations. La correction conjointe de
 l'encolure, le conditionnement à 15°, les contacts et la couverture restent
 à réaliser avant l'admission L5. Aucun succès du seed ou des tests ne devient
 une acceptation du manteau, une préversion finale ou une installation.
+
+### Expériences numériques externes et cause du blocage
+
+Les hypothèses de circumcentre stabilisé et de transport des intérieurs sont
+mesurées en Blender isolé, puis revues indépendamment. Le transport améliore les
+manches de 4,264129° / 4,313422° à 5,961774° / 6,270067°, mais le devant passe
+de 5,453778° à 4,552743°. Tous restent refusés à 15°. Les identités, naissances,
+budgets cumulés et rollbacks observés passent ; les prototypes restent externes
+au noyau livré. Les deux campagnes et l'investigation conjointe de l'encolure
+sont liées dans le [reçu des expériences](automation-numerical-probes-evidence-20261004.json).
+
+La courbe brute du col ne peut rejoindre les deux arrêts par rotation seule.
+Les sondes ancrées compriment trop certains chemins et sont refusées. Une
+résolution de courbe sous longueurs source est seulement en préparation ; aucun
+résultat de surface, de contact ou de fitting n'est déduit de ses bornes de bord.
+Les propositions de raffinement gradué sont également en préparation. Les
+nouveaux essais devront garder sources, corps, limites et preuves exactes.
