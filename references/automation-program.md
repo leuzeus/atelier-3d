@@ -580,3 +580,18 @@ pas ces nouveaux modules. Les cas de développement isolés sont supportés,
 sans acceptation produit transférable. Aucun contournement de hook ou changement
 de runtime MAIN n'est effectué. Préparer le candidat et le package concret avant
 de résoudre l'ordre d'installation locale et de qualification principale.
+
+L'unité suivante est intégrée dans `d26268c`, `6919075` et `b6c7c1b` : arrêt
+sur défaut UV immuable, composition pure des deux manches revues et
+conditionnement de chaque candidat CDT avant comparaison. Source50 : 967
+tests portables PASS en 111,096 s. La seule fixture native modifiée après cette
+suite est exécutée séparément sur source51 : qualité, ancres et réouverture
+contrôlées, ancien échec conservé. Le [reçu](automation-source-conditioning-evidence-20261004.json)
+lie les octets aux contrôles réellement exécutés.
+
+Le diagnostic des six pièces réelles porte le minimum source du col à
+15,438170034° ; la déformation 3D reste hors limites après une itération
+acceptée et un arrêt au budget temps. Le build complet conserve le conflit
+de précision des anciennes manches. L'intégration canonique de la variante
+acceptée et le traitement de ses échantillons restent requis, puis la
+correction 3D et les contacts. L5 et l'acceptation du manteau restent incomplets.

@@ -344,3 +344,39 @@ installation locale de développement et sa vérification doivent être examiné
 avant d'utiliser ce code sur MAIN. Aucune nouvelle release, installation ni
 permission Blender implicite ; les critères de qualification finale restent
 inchangés.
+
+### Conditionnement et composition de variante — sources 50 et 51
+
+Le précontrôle métrique distingue désormais l'angle et l'aire UV immuables
+des défauts corrigibles par déplacement. Il retourne le défaut dérivé sans
+itération, en conservant les bornes des appuis et les limites finales. Il
+ne déclare pas le patron impossible.
+
+Chaque candidat CDT reçoit maintenant le même lissage borné puis la
+restauration exacte des ancres avant comparaison au meilleur candidat.
+Le coût maximal de huit passages locaux par candidat reste explicite.
+La suite source50 passe 967 tests en 111,096 s, lancement 112,234 s.
+Le carré natif V1 à quatre coins est refusé à 11,998° : cette preuve reste
+conservée. La fixture V2 emploie seize stops de contour à 1 cm, mêmes coins,
+aire et limites ; carré et bande atteignent leur cible, l'angle aigu est
+refusé, la scène se rouvre exactement. Aucun Cloth.
+
+Le diagnostic réel source50, exécuté en instance isolée, conserve le corps,
+les sources et SQLite. Le minimum d'angle source du col atteint 15,438170034°,
+contre 13,747708476° dans l'essai précédent. La récupération 3D accepte une
+itération, commence la deuxième puis s'arrête au budget temps ; la recherche
+de correction des contacts ne commence pas. Les mesures de contact conservées
+ne valent pas admission. Le build complet demeure refusé sur un très court
+segment des anciennes manches.
+
+Les helpers de composition passent aussi leur revue et le replay pur sur les
+deux dossiers et packages réels : seules les deux manches acceptées changent,
+les treize autres lignes textiles et la boucle restent exactes. Les différences
+incidentes de dix lignes sont exclues et rapportées. La revue corrige l'identité
+des crans en `(seam_id, id)`, sans epsilon. Cette préparation ne modifie pas
+les bindings de production ; son consommateur canonique reste à intégrer.
+
+Le [reçu](automation-source-conditioning-evidence-20261004.json) conserve les
+identités de code, sources, reviews, essais réussis et refus. La construction
+physique complète, l'enfilage, le drapé, le fitting, le mouvement du manteau et
+la revue artistique restent requis. Aucune release ou installation finale.

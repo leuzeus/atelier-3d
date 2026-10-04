@@ -27,6 +27,13 @@
   périodique. Mode d'ancrage des composantes cousues explicite : les appuis
   déclarés sont conservés, les repères UV de placement ne créent pas de pins.
   Les îlots sans appui sont refusés après construction du graphe réel.
+- Arrêt avant optimisation lorsque l'angle ou l'aire UV source immuable ne
+  satisfait pas les limites finales. Chaque candidat CDT est lissé sous ses
+  bornes puis comparé après restauration exacte des ancres. Le diagnostic des
+  six pièces réelles atteint 15,438° au col ; son placement reste refusé.
+- Composition pure des pièces d'une variante revue : données hors périmètre
+  et ordre original conservés exactement, différences incidentes exclues et
+  rapportées. Le consommateur canonique de décisions reste à intégrer.
 - Enfilage depuis des prises source, corps/colliders animés, rendus de clips,
   finition/UV/LOD, attachement rigide, export et réimportation contrôlés.
 - Limites : les essais mécaniques et de livraison sont des cas de test.

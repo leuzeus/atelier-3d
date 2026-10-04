@@ -51,6 +51,7 @@ le précise le [contrat de production](production.md).
 
 - [Classification du vêtement et aisance explicite](garment-fit-intent.md)
 - [Variantes de patrons calculées et contraintes conservées](pattern-ease-variants.md)
+- [Composer exactement les pièces d'une variante revue](pattern-variant-composition.md)
 - [Suivi de la correction d’aisance du 4 octobre 2026](automation-ease-followup-20261004.md)
 - [Reçu des contrôles logiciels et observations d’aisance](automation-ease-evidence-20261004.json)
 - [Sections de peau des bras et enveloppes de passage des mains](body-region-sections.md)
@@ -62,6 +63,8 @@ le précise le [contrat de production](production.md).
 - [Couplage des guides par leurs coutures source](source-seam-coupling.md)
 - [Reçu des contrôles de couplage et de conservation des coins](automation-source-coupling-evidence-20261004.json)
 - [Récupération métrique des raccords permanents](guide-metric-seam-coupling.md)
+- [Conditionnement borné du maillage dérivé](source-mesh-conditioning.md)
+- [Reçu du conditionnement et des entrées de variante](automation-source-conditioning-evidence-20261004.json)
 - [Reçu du solveur commun et des appuis impossibles](automation-metric-cohort-evidence-20261004.json)
 - [Reçu de la phase du col et de l'ancrage des composantes](automation-metric-anchor-evidence-20261004.json)
 - [Déplacements pendant Cloth](cloth-motion.md)
