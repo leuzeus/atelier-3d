@@ -38,6 +38,50 @@ def seamed_fixture(three=False):
 
 
 class GuideMetricRecovery(unittest.TestCase):
+    def test_immutable_source_angle_refuses_before_optimization(self):
+        from unittest.mock import patch
+        source={'rest_cm':[[0.,0.,0.],[4.,0.,0.],[0.,1.,0.]],'faces':[[0,1,2]],
+            'panels':{'panel':{'indices':[0,1,2],'edges':{'anchor':[0,1]}}},'seams':{},'pins':{}}
+        guide=[[0.,0.,0.],[2.,0.,0.],[0.,2.,0.]]
+        _,_,quality=fixture();before=digest([source,guide,quality])
+        with patch('a3d.guide_metric_solver._pcg',side_effect=AssertionError('Cannot repair immutable UV angle')):
+            result=recover_guide_metric(source,guide,quality,['panel'],[{'piece':'panel','edge':'anchor'}])
+        self.assertEqual(result['status'],'NEEDS_CORRECTION')
+        self.assertEqual(result['stop_reason'],'IMMUTABLE_SOURCE_MESH_QUALITY')
+        self.assertEqual(result['iterations'],0);self.assertEqual(result['history'],[])
+        self.assertEqual(result['coordinates_cm'],guide)
+        self.assertEqual(result['immutable_source_quality']['violations'],['source_min_angle_degrees'])
+        self.assertEqual(result['immutable_source_quality']['conditioning_scope'],'DERIVED_REST_MESH_ONLY')
+        self.assertEqual(result['immutable_source_quality']['pattern_feasibility'],'NOT_ASSESSED')
+        self.assertEqual(result['qualification'],'NONE');self.assertEqual(digest([source,guide,quality]),before)
+
+    def test_immutable_source_area_refuses_before_optimization(self):
+        from unittest.mock import patch
+        source={'rest_cm':[[0.,0.,0.],[1.,0.,0.],[0.,1.5e-8,0.]],'faces':[[0,1,2]],
+            'panels':{'panel':{'indices':[0,1,2],'edges':{'anchor':[0,1]}}},'seams':{},'pins':{}}
+        guide=[[0.,0.,0.],[1.,0.,0.],[0.,1.,0.]]
+        _,_,quality=fixture();quality['min_angle_degrees']=0.
+        before=digest([source,guide,quality])
+        with patch('a3d.guide_metric_solver._pcg',side_effect=AssertionError('Cannot repair immutable UV area')):
+            result=recover_guide_metric(source,guide,quality,['panel'],[{'piece':'panel','edge':'anchor'}])
+        self.assertEqual(result['stop_reason'],'IMMUTABLE_SOURCE_MESH_QUALITY')
+        self.assertEqual(result['immutable_source_quality']['violations'],['source_min_area_cm2'])
+        self.assertEqual(result['iterations'],0);self.assertEqual(result['coordinates_cm'],guide)
+        self.assertEqual(digest([source,guide,quality]),before)
+
+    def test_short_source_edge_can_stretch_within_declared_final_limits(self):
+        # The existing short-edge gate constrains the placed edge, unlike the
+        # source-angle gate. A new absolute source-edge gate would reject this
+        # valid candidate and change public acceptance behavior.
+        source,_,quality=fixture()
+        source['rest_cm']=[[0.,0.,0.],[2.,0.,0.],[2.,.005,0.],[0.,.005,0.]]
+        guide=[[x*2,y*2,z]for x,y,z in source['rest_cm']]
+        quality.update(min_angle_degrees=0.,min_stretch=1.5,max_stretch=2.5)
+        result=recover_guide_metric(source,guide,quality,['panel'],[{'piece':'panel','edge':'anchor'}])
+        self.assertEqual(result['status'],'SOURCE_METRIC_RECOVERED')
+        self.assertEqual(result['immutable_source_quality']['violations'],[])
+        self.assertEqual(result['coordinates_cm'],guide)
+
     def test_compressed_coupon_recovers_source_metric_with_fixed_stops_and_no_acceptance(self):
         source,guide,quality=fixture();before=digest([source,guide,quality])
         result=recover_guide_metric(source,guide,quality,['panel'],[{'piece':'panel','edge':'anchor'}],

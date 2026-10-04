@@ -99,6 +99,26 @@ la longueur de matière, la corde et la borne calculée. Une impossibilité donn
 aucun historique d'optimisation. L'absence d'impossibilité n'est pas une preuve
 que la récupération réussira.
 
+## Précontrôle du maillage de repos dérivé
+
+Le validateur final contrôle aussi l'angle et l'aire des triangles UV source.
+Ces valeurs restent fixes pendant une correction de placement en 3D. Avant
+l'optimisation, le noyau les compare aux mêmes limites finales : angle déclaré
+par `quality.min_angle_degrees` et aire minimale de `1e-8` cm². Une violation
+retourne `NEEDS_CORRECTION / IMMUTABLE_SOURCE_MESH_QUALITY`, zéro itération et
+aucun historique d'optimisation. Le rapport `immutable_source_quality` conserve
+les extrema, leurs identités et les limites. Les bornes des appuis restent
+présentes ; le défaut source a priorité lorsque les deux précontrôles refusent.
+
+Ce refus localise une préparation du maillage de repos à corriger. Il ne
+déclare pas le patron impossible et n'autorise aucun changement du contour
+approuvé. Une arête UV courte n'ajoute pas de nouveau refus absolu : le contrôle
+existant porte sur sa longueur placée, qui peut être admissible après un
+étirement compris dans les limites déclarées. Les coordonnées d'entrée restent
+inchangées. L'initialisation des cohortes peut cependant projeter légèrement
+les coordonnées retournées avant ce précontrôle : zéro itération concerne
+l'optimiseur, pas une identité obligatoire du candidat et de l'entrée.
+
 ## Portée des résultats
 
 `SOURCE_METRIC_RECOVERED` signifie uniquement que le candidat passe les

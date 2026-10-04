@@ -263,6 +263,7 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
     initial=copy.deepcopy(coordinates);metrics=evaluate_metrics(payload,initial,include_faces=True,include_bending=False)
     binding=face_sources(payload)
     if binding['binding_issues']:raise StudioError('Guide metric recovery rejects changed source UV/topology bindings')
+    if not payload['faces']:raise StudioError('Guide metric recovery requires actual source triangles')
     selected=set(piece_ids);active={i for pid in selected for i in payload['panels'][pid]['indices']}
     # Solve displacements in a translated numerical frame. The physical world
     # offset must not set the conjugate-gradient stopping tolerance or leak
@@ -328,8 +329,23 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
     initial_valid=admitted(initial)
     stop_bounds=_fixed_stop_bounds(payload,initial,quality,protected_edges,binding,fixed_stop_stretch_margin,deadline,clock)
     impossible_stops=stop_bounds['status']=='IMPOSSIBLE_FIXED_STOPS'
+    # The final validator includes the immutable UV source angle and area.
+    # Moving a guide in 3D cannot repair these values. Condition the derived
+    # rest mesh first, without inferring a change to the approved pattern.
+    source_extrema=metrics['extrema']
+    immutable_source_violations=[]
+    if source_extrema['min_source_angle_degrees']['value']<quality['min_angle_degrees']:
+        immutable_source_violations.append('source_min_angle_degrees')
+    if source_extrema['min_source_area_cm2']['value']<1e-8:
+        immutable_source_violations.append('source_min_area_cm2')
+    source_quality={'status':'IMMUTABLE_SOURCE_QUALITY_INCOMPATIBLE'if immutable_source_violations else'NO_IMMUTABLE_QUALITY_BLOCKER',
+        'violations':immutable_source_violations,
+        'extrema':{key:copy.deepcopy(source_extrema[key])for key in ('min_source_angle_degrees','min_source_area_cm2')},
+        'limits':{'min_angle_degrees':quality['min_angle_degrees'],'min_area_cm2':1e-8},
+        'conditioning_scope':'DERIVED_REST_MESH_ONLY','pattern_feasibility':'NOT_ASSESSED','qualification':'NONE'}
     if impossible_stops:stop='FIXED_SOURCE_STOP_BOUND_EXCEEDS_METRIC'
-    for iteration in range(1,1 if impossible_stops else max_iterations+1):
+    if immutable_source_violations:stop='IMMUTABLE_SOURCE_MESH_QUALITY'
+    for iteration in range(1,1 if impossible_stops or immutable_source_violations else max_iterations+1):
         if admitted(best):stop='SOURCE_METRIC_RECOVERED';break
         if clock()>=deadline:stop='TIME_BUDGET';break
         iterations=iteration;rhs=[[0.]*len(free) for _ in range(3)];matrix=[{} for _ in free]
@@ -382,7 +398,7 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
             'max_displacement_cm':max(math.dist(a,b) for a,b in zip(initial,best))})
         stagnant=0 if accepted else stagnant+1
         if stagnant>=stagnation_iterations:stop='STAGNATION';break
-    valid=not impossible_stops and admitted(best)
+    valid=not impossible_stops and not immutable_source_violations and admitted(best)
     if valid:stop='SOURCE_METRIC_RECOVERED'
     if digest([payload,coordinates,quality,piece_ids,protected_edges,protected_indices,seam_ids,max_initial_seam_gap_cm,fixed_stop_stretch_margin,anchor_scope])!=before:
         raise StudioError('Guide metric recovery changed an immutable input')
@@ -401,6 +417,7 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         'coordinates_cm':best,'source_payload_sha256':digest(payload),'initial_candidate_sha256':digest(initial),
         'candidate_sha256':digest(best),'initial_metric_valid':initial_valid,'metric':final,
         'fixed_stop_bounds':stop_bounds,
+        'immutable_source_quality':source_quality,
         'piece_ids':sorted(selected),'protected_indices':sorted(protected),
         'policy':{'quality':copy.deepcopy(quality),'max_iterations':max_iterations,'max_seconds':max_seconds,
             'max_displacement_cm':max_displacement_cm,'max_step_cm':max_step_cm,'cg_iterations':cg_iterations,
