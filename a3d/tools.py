@@ -35,7 +35,7 @@ def mannequin_catalog():
     return catalog()
 
 
-@tool("studio_select_catalog_body", "Copy an explicitly chosen catalog mannequin into this project and prepare a native body-source descriptor. Preserve originals and old selections; no anatomy, collider or fitting acceptance.",
+@tool("studio_select_catalog_body", "Copy an explicitly chosen catalog mannequin into this project and prepare a native body-source descriptor. For garments, immediately establish target measurements, prepare a separate variant if necessary, measure and review proportions and seam-line/dressing compatibility before fitting. Preserve originals and old selections; no anatomy, collider or fitting acceptance.",
       {**P, "asset_id": S}, ("project_root", "asset_id"), read_only=False)
 def select_mannequin(project_root, asset_id):
     from .mannequins import select_catalog_body

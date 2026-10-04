@@ -94,4 +94,11 @@ def select_catalog_body(project, asset_id):
             'source': {'path': descriptor['source_blend'], 'sha256': entry['sha256']},
             'anatomy_adapter': {'path': adapter_path.relative_to(project.root).as_posix(), 'sha256': sha(adapter_path)},
             'pipeline_ready': entry['pipeline_ready'], 'qualification': 'NONE',
-            'next': 'Inspect the selected native source and prepare a body reference; selection does not create collisions or accept fitting.'}
+            'garment_body_preparation': {
+                'status': 'TARGET_MEASUREMENTS_REQUIRED',
+                'source_stature_cm': entry['stature_cm'],
+                'target_stature_cm': None,
+                'measurements_review': 'NOT_EXECUTED',
+                'pattern_compatibility': 'NOT_QUALIFIED',
+                'guide': 'references/garment-body-target.md'},
+            'next': 'For a garment, establish target measurements from its approved dossier, prepare a separate body variant if needed, measure and review its proportions, then assess source seam-line capacity and dressing paths. Inspect the native source and prepare its reference; selection alone does not accept fitting.'}

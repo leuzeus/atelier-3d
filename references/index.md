@@ -38,6 +38,7 @@ le précise le [contrat de production](production.md).
 - [Protocole Blender et autorisation du code](blender.md)
 - [Continuité native, checkpoints et reprise](blender-continuity.md)
 - [Choisir explicitement le corps source](body-source.md)
+- [Dimensionner et mesurer le mannequin pour le vêtement](garment-body-target.md)
 - [Préparation native des patrons](pattern-preparation.md)
 - [Assemblage depuis les patrons approuvés](pattern-assembly.md)
 - [Du board à la toile cousue](sewn-toile.md)
