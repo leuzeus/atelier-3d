@@ -24,7 +24,16 @@ def chain_lengths(points):
 
 def sample_chain(points, t):
     lengths = chain_lengths(points)
-    target = min(1., max(0., t)) * lengths[-1]
+    parameter = min(1., max(0., t))
+    # An exact normalized source stop denotes the source vertex itself. Re-
+    # interpolating it can introduce subtraction noise (including nonzero UV
+    # where the source coordinate is zero) and a different binary32 boundary.
+    # No proximity or tolerance turns an ordinary sample into a source corner.
+    if lengths[-1]:
+        for point, stop in zip(points, lengths):
+            if parameter == stop / lengths[-1]:
+                return list(point)
+    target = parameter * lengths[-1]
     for i in range(len(points) - 1):
         if target <= lengths[i + 1] + 1e-9:
             f = (target - lengths[i]) / (lengths[i + 1] - lengths[i])

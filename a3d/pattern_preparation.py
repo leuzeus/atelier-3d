@@ -5,6 +5,7 @@ physical qualification or artistic acceptance is hidden in these functions.
 """
 import copy
 import math
+from fractions import Fraction
 
 from .core import StudioError, contract, digest
 from .board_contract import assembly_mark_position
@@ -214,12 +215,60 @@ def _contour_parameter_requirements(points, parameters, error):
     return required
 
 
+def _source_corner_indices(points):
+    """Identify exact source turns without an angle or distance threshold.
+
+    Source coordinates define the polygon. An exact determinant over those
+    binary-float values distinguishes a turn from a straight subdivision;
+    there is no angle or distance threshold that can remove a shallow corner.
+    Named stops and notches are protected separately by the common sampler.
+    """
+    turns = set()
+    for index, (a, b, c) in enumerate(zip(points, points[1:], points[2:]), 1):
+        first = [Fraction(b[k]) - Fraction(a[k]) for k in range(2)]
+        second = [Fraction(c[k]) - Fraction(b[k]) for k in range(2)]
+        if first[0] * second[1] != first[1] * second[0] or \
+                sum(x * y for x, y in zip(first, second)) <= 0:
+            turns.add(index)
+    return turns
+
+
+def _source_corner_parameters(points):
+    lengths = chain_lengths(points)
+    return {lengths[index] / lengths[-1] for index in _source_corner_indices(points)}
+
+
+def _verify_prepared_source_corners(data, boundaries):
+    """Refuse a lost or conflicting mandatory corner; never repair its output."""
+    bindings = {}
+    for pid, piece in data['pieces'].items():
+        points = piece['vertices'] + piece['vertices'][:1]
+        lengths = chain_lengths(points)
+        corners = sorted({0} | _source_corner_indices(points))
+        boundary = boundaries[pid]
+        lookup = {key: index for index, key in enumerate(boundary['keys'])}
+        used, rows = set(), []
+        for source_index in corners:
+            key = round(lengths[source_index], 8)
+            if key in used or key not in lookup:
+                raise StudioError('Source corners exceed boundary key precision or a mandatory corner was omitted: ' + pid)
+            used.add(key)
+            derived_index = lookup[key]
+            if boundary['polygon'][derived_index] != piece['vertices'][source_index]:
+                raise StudioError('Prepared mandatory corner differs from its exact original source vertex: ' + pid)
+            rows.append({'source_vertex': source_index, 'derived_boundary_vertex': derived_index,
+                         'source_perimeter_key_cm': key})
+        bindings[pid] = rows
+    return bindings
+
+
 def regular_chain_parameters(points, sampled, spacing, error):
-    """Remove only optional rim-grid points; retain the source contour bound."""
+    """Remove optional rim-grid points while preserving every source turn."""
     lengths = chain_lengths(points)
     count = max(1,math.ceil(lengths[-1]/spacing))
     grid = {i/count for i in range(count+1)}
     required = set(sampled)-grid | {0.,1.}
+    required.update(_source_corner_parameters(points))
     required.update(t for t in sampled if any(abs(t-s/lengths[-1])<1e-14 for s in lengths))
     while True:
         selected = set(required)
@@ -236,9 +285,9 @@ def regular_chain_parameters(points, sampled, spacing, error):
 def regular_shared_parameters(pieces, chains, sampled, required, spacing, error):
     """Prune optional grid seeds together across their source arc graph.
 
-    Named stops, source corners needed by the existing contour error, notches
-    and their propagated partner samples are protected. Closely spaced required
-    samples are reported and retained; they are never snapped or merged.
+    Named stops, every real source corner, notches and their propagated partner
+    samples are protected. Closely spaced required samples are reported and
+    retained; they are never snapped or merged to satisfy a density target.
     """
     from .shared_seam_sampling import shared_parameters
     if type(spacing) not in (float,int) or not math.isfinite(spacing) or spacing<=0:
@@ -247,6 +296,10 @@ def regular_shared_parameters(pieces, chains, sampled, required, spacing, error)
                      for sid,partners in chains.items()}
     lengths = {sid:min(chain_lengths(points)[-1] for points in curves) for sid,curves in source_curves.items()}
     required = {sid:set(values) for sid,values in required.items()}
+    source_corners = {sid:set().union(*(_source_corner_parameters(points) for points in curves))
+                      for sid,curves in source_curves.items()}
+    for sid, values in source_corners.items():
+        required[sid].update(values)
     candidates = [(sid,t) for sid in sorted(sampled) for t in sorted(sampled[sid])]
     removed = []
     while True:
@@ -292,6 +345,8 @@ def regular_shared_parameters(pieces, chains, sampled, required, spacing, error)
                 near.append({'seam_id':sid,'parameters':[a,b],'minimum_partner_arc_gap_cm':gap})
     return selected, {'version':1,'policy':'REMOVE_OPTIONAL_GRID_SEEDS_ON_BOTH_PARTNERS',
         'minimum_optional_arc_gap_cm':spacing/2,'max_source_contour_error_cm':error,
+        'source_corner_policy':'PRESERVE_EVERY_EXACT_SOURCE_TURN_BEFORE_PRUNING',
+        'source_corner_parameters':{sid:sorted(values) for sid,values in source_corners.items()},
         'protected_parameters':{sid:sorted(values) for sid,values in protected.items()},
         'removed_optional_seeds':removed,'close_required_parameters_preserved':near,
         'source_vertices_moved':False,'source_seam_correspondence_changed':False}
@@ -333,6 +388,7 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
                     'common_parameter': parameter})
     boundaries, seams, seam_reports = prepare_boundaries(data, derived, extra,
         regular_boundary_spacing_cm=fine)
+    source_corner_bindings = _verify_prepared_source_corners(data, boundaries)
     for notch in notch_sources:
         seam = seams[notch['seam_id']]
         sample = seam['parameters'].index(notch['common_parameter'])
@@ -353,6 +409,7 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
         'sampling': 'existing_common_source_arclength', 'boundary_spacing_cm': fine,
         'boundary_vertices': count, 'seams': seam_reports, 'source_immutable': True,
         'boundary_sampling_policy':next(iter(boundaries.values())).get('regular_sampling_report'),
+        'source_corner_bindings':source_corner_bindings,
         'dossier_sha256': digest(dossier) if dossier is not None else None,
         'source_notches': notch_sources, 'ambiguous_source_notches': ambiguous_notches}
 
