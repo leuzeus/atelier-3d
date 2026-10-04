@@ -94,7 +94,9 @@
             "properties": {
               "side": {"type": "string", "minLength": 1},
               "hem": {"type": "string", "minLength": 1},
-              "center": {"type": "string", "minLength": 1}
+              "center": {"type": "string", "minLength": 1},
+              "neck": {"type": "string", "minLength": 1},
+              "shoulder": {"type": "string", "minLength": 1}
             },
             "additionalProperties": false
           },

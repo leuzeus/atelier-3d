@@ -12,7 +12,7 @@ from .anatomy_profile import unit
 from .contact_geometry import dot, cross
 
 
-def torso_volume_frames(data, semantics, profile, upper_blend=0.):
+def torso_volume_frames(data, semantics, profile, upper_blend=0., surface_sections=False):
     if (profile.get('status') != 'PROFILE_MEASURED' or profile.get('segmentation') != 'EXPLICIT_SOURCE'
             or not profile.get('cache_key')):
         raise StudioError('Semantic placement requires a complete source-bound segmented body profile')
@@ -36,6 +36,9 @@ def torso_volume_frames(data, semantics, profile, upper_blend=0.):
         raise StudioError('No supported torso semantic group is present')
     frames = {}; diagnostics = []
     landmarks = profile['landmarks']; basis = profile['frame']
+    if upper_blend:
+        from .shoulder_surface import surface_anchors
+        skin_shoulders = surface_anchors(profile)
     chest = landmarks['chest']['section']; low, high = chest['bounds_xy_cm']
     width, depth = high[0]-low[0], high[1]-low[1]
     if min(width, depth) <= 0:
@@ -48,10 +51,10 @@ def torso_volume_frames(data, semantics, profile, upper_blend=0.):
 
     for (layer, side), mapping in sorted(groups.items()):
         paired=set(mapping)=={'front','back'}
+        if surface_sections and not paired:
+            raise StudioError('Measured surface contours currently require a real paired torso cut')
         if not paired and set(mapping) != {'center', 'front', 'side', 'back'}:
             raise StudioError('Torso semantic group is missing approved source roles: '+layer+' / '+side)
-        if paired and upper_blend:
-            raise StudioError('Paired torso shoulder shaping is not yet supported; preserve the approved cut')
         subset = {'pieces': {pid: data['pieces'][pid] for pid in mapping.values()}}
         maximum_v = max(p[1] for piece in subset['pieces'].values() for p in piece['vertices'])
         neck = landmarks['neck']['point_cm']
@@ -60,24 +63,32 @@ def torso_volume_frames(data, semantics, profile, upper_blend=0.):
         for role in ('front', 'back'):
             piece = subset['pieces'][mapping[role]]
             if upper_blend:
-                if 'neck' not in piece['edges']:
+                neck_edge=semantics[mapping[role]].get('guide_edges',{}).get('neck','neckline' if paired else 'neck')
+                if neck_edge not in piece['edges']:
                     raise StudioError('Upper torso guide needs a declared source neckline edge: '+mapping[role])
-                chain = [piece['vertices'][i] for i in piece['edges']['neck']]
+                chain = [piece['vertices'][i] for i in piece['edges'][neck_edge]]
                 group[role+'_neck_cm'] = sum(math.dist(a, b) for a, b in zip(chain, chain[1:]))
             else:
                 group[role+'_neck_cm'] = 0.
         body_frame = {'source_ref': 'measured-body-profile:'+profile['cache_key'],
                       'aspect_ratio': width/depth, 'center_xy_cm': center,
+                      'chest_bounds_xy_cm':[[low[0],-high[1]],[high[0],-low[1]]],
+                      'chest_height_cm':landmarks['chest']['section'].get('height_cm',landmarks['chest'].get('point_cm',[0.,0.,neck[2]])[2]),
                       'hem_z_cm': neck[2]-maximum_v, 'neck_center_cm': [neck[0], -neck[1], neck[2]],
                       'shoulders_cm': {str(sign): [landmarks['shoulder.'+name]['point_cm'][0],
                             -landmarks['shoulder.'+name]['point_cm'][1], landmarks['shoulder.'+name]['point_cm'][2]]
                             for sign, name in ((1, 'right'), (-1, 'left'))}}
+        if upper_blend:
+            body_frame['shoulders_cm'] = {str(sign):[skin_shoulders[name][0],-skin_shoulders[name][1],skin_shoulders[name][2]]
+                                         for sign,name in ((1,'right'),(-1,'left'))}
+            body_frame['shoulder_anchor_kind'] = 'MEASURED_BODY_SURFACE'
         if paired:
             group['source_edges']={}
             for role in ('front','back'):
                 piece=subset['pieces'][mapping[role]]
                 declared=dict(semantics[mapping[role]].get('guide_edges',{}))
                 declared.setdefault('side','side');declared.setdefault('hem','hem')
+                if upper_blend:declared.setdefault('shoulder','shoulder')
                 if role=='back' and 'center' not in declared:
                     candidates=[name for name in ('center','center-back') if name in piece['edges']]
                     if len(candidates)!=1:
@@ -85,6 +96,12 @@ def torso_volume_frames(data, semantics, profile, upper_blend=0.):
                     declared['center']=candidates[0]
                 group['source_edges'][role]=declared
             panels,report=paired_volume_frames(subset,group,body_frame)
+            if surface_sections:
+                from .torso_sections import apply_measured_sections
+                panels,report=apply_measured_sections(panels,report,group,profile)
+            if upper_blend:
+                from .shoulder_guides import shape_paired_shoulders
+                panels,report=shape_paired_shoulders(subset,group,body_frame,panels,report,upper_blend)
         else:
             panels, report = volume_frames(subset, [group], body_frame, upper_blend=upper_blend)
         for pid, frame in panels.items():

@@ -43,3 +43,26 @@ de coupe exige une proposition de variante distincte et sa revue.
 **État actuel :** inspection des contrôles et profil géométrique en développement.
 Réglage indépendant des mensurations, rig déformant, enveloppe et fitting non
 qualifiés. Le catalogue ne doit pas annoncer ces capacités avant leurs gates.
+
+## Procédure codée de stature et de surface d'épaule
+
+`a3d.body_dimensions.variant_by_stature` calcule une variante uniforme en cm,
+dans le cadre déclaré, à partir de la stature mesurée. Le plan des pieds, les
+faces et l'original sont conservés. Les repères suivent la même transformation,
+et `profile_mesh` remesure la variante. Le reçu lie le calcul, la géométrie,
+la pose et le cache ; il reste `HEIGHT_ONLY`. Les tours obtenus ne sont pas
+des cibles approuvées. Il n'y a ni retouche géométrique par IA ni résolution
+indépendante de poitrine/taille/hanches dans cette fonction.
+
+`a3d.shoulder_surface.measured_surface_shoulders` calcule les sorties vers
+le haut depuis les centres articulaires sur les triangles natifs évalués.
+Il refuse une source ou une pose différente et une sortie ambiguë. Le guide
+du haut du torse consomme les points de surface liés au nouveau cache ; les
+centres articulaires restent disponibles pour le rig. Cette correction de
+repère ne garantit pas à elle seule l'absence de pénétrations du vêtement.
+
+Les appels natifs doivent enregistrer les artefacts et reçus exacts, préserver
+les admissions du projet, et refaire métriques et contacts sur chaque variante.
+Un contrôle indisponible doit rester un refus utile, sans boucle de retouches
+improvisées de l'agent. Ces fonctions sont en développement et ne sont pas
+encore publiées dans une nouvelle installation du plugin.
