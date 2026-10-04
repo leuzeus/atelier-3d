@@ -44,8 +44,8 @@ class MetricRecoveryInputs(unittest.TestCase):
         result=_source_metric_recovery(*inputs)
         self.assertEqual(result['piece_ids'],['a','b'])
         self.assertEqual(result['seam_ids'],['ab'])
-        self.assertEqual(result['protected_edges'],[
-            {'piece':'a','edge':'left'},{'piece':'b','edge':'left'},{'piece':'b','edge':'right'}])
+        self.assertEqual(result['protected_edges'],[{'piece':'a','edge':'left'}])
+        self.assertEqual(result['anchor_scope'],'permanent_component')
         self.assertEqual(result['max_initial_seam_gap_cm'],.0006)
         self.assertEqual(result['budgets']['max_displacement_cm'],8.)
         self.assertEqual(digest(inputs),before)
@@ -58,6 +58,7 @@ class MetricRecoveryInputs(unittest.TestCase):
         self.assertEqual(result['piece_ids'],['a'])
         self.assertNotIn('seam_ids',result)
         self.assertNotIn('max_initial_seam_gap_cm',result)
+        self.assertNotIn('anchor_scope',result)
 
     def test_changed_source_cage_relation_or_coverage_cannot_declare_recovery(self):
         variants=[]
@@ -85,12 +86,21 @@ class MetricRecoveryInputs(unittest.TestCase):
             changed=copy.deepcopy(recovery);changed['max_initial_seam_gap_cm']=value
             with self.assertRaises(StudioError):contract('pattern-preparation',preparation(changed,spec))
 
+    def test_component_scope_without_seams_or_torso_numerical_anchor_is_refused(self):
+        recovery=_source_metric_recovery(*compiler_fixture());_,_,spec,_=placement_fixture()
+        recovery.pop('seam_ids');recovery.pop('max_initial_seam_gap_cm')
+        with self.assertRaises(StudioError):contract('pattern-preparation',preparation(recovery,spec))
+        inputs=compiler_fixture()
+        inputs[1]['a']={'role':'collar','guide_edges':{'anchor':'left'}}
+        with self.assertRaisesRegex(StudioError,'no specialised pin is inferred'):_source_metric_recovery(*inputs)
+
     def test_native_adapter_transports_declared_seams_to_real_portable_solver(self):
         payload,points,quality,edges=seamed_fixture()
         payload.update(placed_cm=points,component_id='coupon',package_sha256='a'*64)
         _,_,spec,_=placement_fixture();spec['quality']=copy.deepcopy(quality)
-        recovery={'version':1,'piece_ids':['a','b'],'protected_edges':edges,'strain_weight':100.,
+        recovery={'version':1,'piece_ids':['a','b'],'protected_edges':edges[:1],'strain_weight':100.,
             'seam_ids':['ab'],'max_initial_seam_gap_cm':0.,
+            'anchor_scope':'permanent_component',
             'budgets':{'max_iterations':30,'max_seconds':10.,'max_displacement_cm':2.,'max_step_cm':.5,
                       'cg_iterations':80,'cg_tolerance':1e-5,'stagnation_iterations':3}}
         policy=preparation(recovery,spec)

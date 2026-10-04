@@ -176,10 +176,51 @@ def _fixed_stop_bounds(payload,coordinates,quality,protected_edges,binding,margi
         'sufficiency_for_metric_recovery':'NOT_GRANTED'}
 
 
+def _component_anchors(faces,groups,representatives,fixed_roots,fixed,panels,deadline,clock):
+    """Check effective triangle islands after the validated seam quotient."""
+    parents={root:root for root in groups}
+    def root(index):
+        while parents[index]!=index:
+            parents[index]=parents[parents[index]];index=parents[index]
+        return index
+    def union(a,b):
+        a,b=root(a),root(b)
+        if a!=b:parents[max(a,b)]=min(a,b)
+    for offset,(indices,_,_)in enumerate(faces):
+        if offset%256==0 and clock()>=deadline:
+            raise StudioError('Permanent-component anchor time budget exhausted before optimization')
+        for a,b in zip(indices,indices[1:]):union(representatives[a],representatives[b])
+    components={}
+    for representative in sorted(groups):
+        components.setdefault(root(representative),[]).append(representative)
+    owners={}
+    for pid,panel in panels.items():
+        for index in panel['indices']:owners.setdefault(index,set()).add(pid)
+    records=[]
+    for roots in components.values():
+        if clock()>=deadline:raise StudioError('Permanent-component anchor time budget exhausted before optimization')
+        indices=sorted(index for representative in roots for index in groups[representative])
+        anchored=sorted(set(roots)&fixed_roots)
+        records.append({'quotient_representatives':roots,'source_vertex_indices':indices,
+            'piece_ids':sorted({pid for index in indices for pid in owners[index]}),
+            'fixed_quotient_representatives':anchored,
+            'fixed_source_indices':sorted(set(indices)&fixed),
+            'fixed_cohort_indices':sorted(index for representative in anchored for index in groups[representative]),
+            'has_exact_active_anchor':bool(anchored)})
+    report={'scope':'permanent_component','method':'EFFECTIVE_SOURCE_TRIANGLE_COMPONENTS_AFTER_SEMANTIC_QUOTIENT',
+        'components':records,'component_count':len(records),'qualification':'NONE',
+        'physical_support_inferred':False,'sufficiency_for_metric_recovery':'NOT_GRANTED'}
+    if any(not row['has_exact_active_anchor']for row in records):
+        error=StudioError('Permanent-component guide recovery requires an active fixed stop in every effective triangle component or isolated vertex')
+        error.anchor_components=report
+        raise error
+    return report
+
+
 def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(),*,
         max_iterations=100,max_seconds=60.,max_displacement_cm=8.,max_step_cm=.5,
         cg_iterations=80,cg_tolerance=1e-5,stagnation_iterations=5,strain_weight=100.,protected_indices=(),
-        seam_ids=(),max_initial_seam_gap_cm=None,fixed_stop_stretch_margin=0.,clock=time.monotonic):
+        seam_ids=(),max_initial_seam_gap_cm=None,fixed_stop_stretch_margin=0.,anchor_scope='per_piece',clock=time.monotonic):
     """Recover only declared pieces and freeze actual source stops/pins.
 
     Each protected edge is ``{piece,edge}``; its existing first and last source
@@ -190,6 +231,9 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
     owners must be active. Stops/pins stay exact, and no weld or UV change occurs.
     A fixed-stop chord/source-UV path bound rejects impossible stretch before
     optimization. Its explicit numerical margin never relaxes final metrics.
+    ``anchor_scope='permanent_component'`` allows a piece without its own fixed
+    stop only when every effective source triangle island after the seam
+    quotient has an active fixed stop. It requires nonempty ``seam_ids``.
     """
     if (type(max_iterations)is not int or max_iterations<1 or type(cg_iterations)is not int or cg_iterations<1
             or type(stagnation_iterations)is not int or stagnation_iterations<1
@@ -199,6 +243,10 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
     if (not isinstance(seam_ids,(list,tuple))or any(not isinstance(sid,str)or not sid for sid in seam_ids)
             or len(seam_ids)!=len(set(seam_ids))):
         raise StudioError('Coupled guide recovery requires explicit unique source seam IDs')
+    if anchor_scope not in('per_piece','permanent_component'):
+        raise StudioError('Guide metric recovery requires an explicit supported anchor scope')
+    if anchor_scope=='permanent_component'and not seam_ids:
+        raise StudioError('Permanent-component anchoring requires nonempty explicit source seam IDs')
     if ((seam_ids and max_initial_seam_gap_cm is None)or(max_initial_seam_gap_cm is not None
             and(type(max_initial_seam_gap_cm)not in(int,float)or not math.isfinite(max_initial_seam_gap_cm)
                 or max_initial_seam_gap_cm<0))):
@@ -206,7 +254,7 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
     if (type(fixed_stop_stretch_margin)not in(int,float)or not math.isfinite(fixed_stop_stretch_margin)
             or not 0<=fixed_stop_stretch_margin<=1e-6):
         raise StudioError('Fixed source stop bounds need a finite explicit numerical margin between zero and 1e-6')
-    try:before=digest([payload,coordinates,quality,piece_ids,protected_edges,protected_indices,seam_ids,max_initial_seam_gap_cm,fixed_stop_stretch_margin])
+    try:before=digest([payload,coordinates,quality,piece_ids,protected_edges,protected_indices,seam_ids,max_initial_seam_gap_cm,fixed_stop_stretch_margin,anchor_scope])
     except(TypeError,ValueError)as error:
         raise StudioError('Guide metric recovery requires finite structured source inputs')from error
     start=clock();deadline=start+max_seconds
@@ -238,7 +286,7 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
                 or any(type(i)is not int or i not in payload['panels'][edge['piece']]['indices'] for i in ids)):
             raise StudioError('Protected source stop requires an actual named source edge')
         fixed.update((ids[0],ids[-1]))
-    if any(not active.intersection(payload['panels'][pid]['indices']).intersection(fixed) for pid in selected):
+    if anchor_scope=='per_piece'and any(not active.intersection(payload['panels'][pid]['indices']).intersection(fixed) for pid in selected):
         raise StudioError('Each recovered source piece requires an explicit fixed source stop')
     protected=set(range(len(initial)))-active|fixed
     coupling=None;baseline=initial;groups={index:[index]for index in sorted(active)}
@@ -258,6 +306,9 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         gradients=[((y1-y2)/det,(x2-x1)/det),(y2/det,-x2/det),(-y1/det,x1/det)]
         area=abs(det)/2
         faces.append((list(face),gradients,area))
+    anchor_components=None
+    if anchor_scope=='permanent_component':
+        anchor_components=_component_anchors(faces,groups,representatives,fixed_roots,fixed,payload['panels'],deadline,clock)
     def residual(points):
         total=0.
         for ids,gradients,area in faces:
@@ -333,7 +384,7 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         if stagnant>=stagnation_iterations:stop='STAGNATION';break
     valid=not impossible_stops and admitted(best)
     if valid:stop='SOURCE_METRIC_RECOVERED'
-    if digest([payload,coordinates,quality,piece_ids,protected_edges,protected_indices,seam_ids,max_initial_seam_gap_cm,fixed_stop_stretch_margin])!=before:
+    if digest([payload,coordinates,quality,piece_ids,protected_edges,protected_indices,seam_ids,max_initial_seam_gap_cm,fixed_stop_stretch_margin,anchor_scope])!=before:
         raise StudioError('Guide metric recovery changed an immutable input')
     if any((digest(best[i])!=digest(initial[i])if coupling else best[i]!=initial[i])for i in protected):
         raise StudioError('Guide metric recovery changed a protected source stop or undeclared piece')
@@ -355,6 +406,7 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
             'max_displacement_cm':max_displacement_cm,'max_step_cm':max_step_cm,'cg_iterations':cg_iterations,
             'cg_tolerance':cg_tolerance,'stagnation_iterations':stagnation_iterations,'strain_weight':strain_weight,
             'protected_indices':list(protected_indices),
+            'anchor_scope':anchor_scope,
             'fixed_stop_stretch_margin':fixed_stop_stretch_margin,
             'protected_edges':copy.deepcopy(protected_edges)},
         'iterations':iterations,'elapsed_seconds':clock()-start,'history':history,'energy':best_energy,
@@ -365,4 +417,5 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
     if coupling:
         result['seam_coupling']=coupling
         result['policy'].update(seam_ids=list(seam_ids),max_initial_seam_gap_cm=max_initial_seam_gap_cm)
+    if anchor_components:result['anchor_components']=anchor_components
     return result

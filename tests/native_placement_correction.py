@@ -57,8 +57,8 @@ coupled['placed_cm']=[[x,y,1.2]for x,y,z in guide]
 coupled.update(version=2,component_id='synthetic.coupled',package_sha256=digest('synthetic-coupled-source'))
 coupled_spec=copy.deepcopy(recovery_spec)
 coupled_spec.update(component_id='synthetic.coupled')
-coupled_spec['metric_recovery'].update(piece_ids=['a','b'],protected_edges=stops,seam_ids=['ab'],
-    max_initial_seam_gap_cm=0.)
+coupled_spec['metric_recovery'].update(piece_ids=['a','b'],protected_edges=stops[:1],seam_ids=['ab'],
+    max_initial_seam_gap_cm=0.,anchor_scope='permanent_component')
 coupled_spec['metric_recovery']['budgets']['max_iterations']=30
 coupled_before=digest([coupled,coupled_spec])
 coupled_result=correct_preparation(coupled,{'mesh':coupled_quality},plan,coupled_spec,[body])

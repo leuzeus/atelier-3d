@@ -20,10 +20,25 @@ de ces bords. Un nom absent n'est récupéré que si un seul bord natif correspo
 exactement à la chaîne déclarée. Une association ambiguë est refusée. Aucune
 distance de proximité ne crée une relation.
 
-Chaque pièce doit conserver au moins un appui explicite. Les extrémités des
-`protected_edges`, les `protected_indices` et les pins existants restent fixes.
-Une cohorte transitive contenant plusieurs appuis de coordonnées différentes
-est refusée, même si son écart reste inférieur au budget de raccord.
+`anchor_scope` vaut `per_piece` par défaut : chaque pièce doit conserver au
+moins un appui explicite. Le mode optionnel `permanent_component` exige des
+`seam_ids` non vides et vérifie l'ancrage de chaque composante du système
+effectif après le quotient des raccords. Une pièce peut ainsi rester libre
+si ses coutures la relient à une composante ancrée.
+
+Le contrôle utilise les triangles source réels, avec les inconnues regroupées
+par les seules paires permanentes validées. Il inclut les îles déconnectées
+d'une même pièce et les sommets isolés, même lorsqu'ils n'ont aucune face.
+Chaque composante doit contenir un appui fixe actif. Une composante sans
+appui est refusée ; un pin situé sur une pièce non sélectionnée ne satisfait
+pas cette condition. Le seul graphe des pièces ne suffit pas à ce contrôle.
+
+Dans les deux modes, toutes les extrémités des `protected_edges`, tous les
+`protected_indices` et les pins existants restent fixes. Le changement de
+mode ne filtre ni n'enlève aucun appui déclaré. Une cohorte transitive
+contenant plusieurs appuis de coordonnées différentes est refusée, même si
+son écart reste inférieur au budget de raccord. Un repère UV nommé `anchor`
+ne devient pas un pin physique par ce choix de portée numérique.
 
 Le compilateur de préparation transmet la sélection complète d'un rapport de
 couplage sourcé : torse, col et devant intérieur peuvent ainsi être corrigés
@@ -33,6 +48,14 @@ de vrais bords source. Le budget d'alignement initial est la somme conservatrice
 des gardes binary32 existantes des panneaux ; il ne devient pas une tolérance
 finale de couture. Le contrat exige les identifiants de coutures et ce budget
 ensemble. Sans rapport de couplage, la sélection précédente du torse est conservée.
+
+Dans le mode couplé, le compilateur déclare `permanent_component` et retient les
+extrémités des épaules comme ancrages numériques. Il vérifie les repères UV
+du col et du devant intérieur sans les ajouter automatiquement aux positions
+3D fixes. Les pins et autres protections déjà fournies restent applicables.
+Cette sélection ne prouve ni une stabilité physique ni un fitting ; elle
+supprime une contrainte artificielle sur les pièces qui doivent se corriger
+ensemble. Un groupe dépourvu d'épaule explicite exige une politique dédiée.
 
 ## Correction calculée
 
@@ -48,6 +71,12 @@ s'additionnent dans le système de gradient conjugué préconditionné. Les somm
 intérieurs restent des inconnues distinctes : la correction peut ainsi se
 répartir dans les pièces sans ouvrir les raccords. Il n'y a aucune soudure ni
 consolidation de topologie.
+
+Le résultat du mode `permanent_component` comporte `anchor_components` :
+composantes de triangles après quotient, pièces, sommets, véritables indices
+fixes et indices de cohortes qui héritent de leur position. Un refus d'île
+non ancrée fournit le même diagnostic sur l'erreur `StudioError`. Le rapport
+ne prétend ni stabilité physique ni suffisance pour la récupération métrique.
 
 Les budgets de temps, d'itérations, de pas et de déplacement, la conservation
 du meilleur candidat, l'arrêt sur stagnation et les contrôles métriques finaux
@@ -87,6 +116,12 @@ garantit donc pas une égalité exacte après toute correction de contact.
 Les tests de deux et trois panneaux vérifient une diminution réelle de la
 distorsion, les raccords exactement égaux après relaxation, la propagation
 aux intérieurs, les appuis et pièces non sélectionnées inchangés, les refus
-de relations invalides et les budgets. Ils constituent des preuves de fonction
+de relations invalides et les budgets. Le mode par composante permet un
+partenaire libre lié à un seul panneau ancré ; les tests discriminent aussi
+une île non ancrée dans une pièce pourtant cousue, un sommet isolé et une
+pièce sélectionnée sans relation avec l'ensemble ancré. Le mode par pièce
+conserve son refus antérieur des partenaires sans appui propre.
+
+Ces tests constituent des preuves de fonction
 sur des fixtures synthétiques. Aucun essai natif du vêtement principal n'est
 qualifié par ces tests.

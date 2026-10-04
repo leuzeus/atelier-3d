@@ -107,8 +107,8 @@ def correct_preparation(payload,recipe,plan,preparation,colliders):
         metric_recovery=recover_guide_metric(candidate,source_guide,specification['quality'],
             recovery['piece_ids'],recovery['protected_edges'],strain_weight=recovery['strain_weight'],
             protected_indices=specification.get('protected_indices',[]),
-            **({key:copy.deepcopy(recovery[key])for key in ('seam_ids','max_initial_seam_gap_cm')}
-               if 'seam_ids'in recovery else {}),**budgets)
+            **({key:copy.deepcopy(recovery[key])for key in ('seam_ids','max_initial_seam_gap_cm','anchor_scope')
+                if key in recovery}),**budgets)
         candidate['placed_cm']=copy.deepcopy(metric_recovery['coordinates_cm'])
         source_stops=[]
         for stop in recovery['protected_edges']:

@@ -217,7 +217,14 @@ def _source_metric_recovery(data, semantics, guide, preform_budget, budgets):
                [edges.get('anchor')]+([edges['anchor_end']]if 'anchor_end'in edges else []))
         if any(not name or name not in data['pieces'][pid]['edges']for name in names):
             raise StudioError('Source metric recovery requires each selected piece\'s explicit actual guide stop: '+pid)
-        stops.extend({'piece':pid,'edge':name}for name in dict.fromkeys(names))
+        # UV anchor edges construct the derived placement frame. They are not
+        # physical pins. In a declared coupled component, numerical anchoring
+        # comes from the torso shoulders; the remaining source pieces follow
+        # their actual seams. The solver verifies all material islands anchored.
+        if not seams or row.get('role')in('front','back'):
+            stops.extend({'piece':pid,'edge':name}for name in dict.fromkeys(names))
+    if not stops:
+        raise StudioError('Coupled metric recovery needs explicit torso numerical anchors; no specialised pin is inferred')
     result={'version':1,'piece_ids':recoverable,'protected_edges':stops,
         'budgets':{'max_iterations':min(100,budgets['max_iterations']),
             'max_seconds':min(300,budgets['max_seconds']),
@@ -227,7 +234,7 @@ def _source_metric_recovery(data, semantics, guide, preform_budget, budgets):
         guards=[preform_budget['panels'][pid]['native_float32_guard_cm']for pid in recoverable]
         if any(type(value)not in(int,float)or not math.isfinite(value)or not 0<value<=1 for value in guards):
             raise StudioError('Coupled metric alignment requires the actual finite native conversion guards')
-        result.update(seam_ids=seams,max_initial_seam_gap_cm=2*max(guards))
+        result.update(seam_ids=seams,max_initial_seam_gap_cm=2*max(guards),anchor_scope='permanent_component')
     return result
 
 

@@ -294,5 +294,124 @@ class GuideMetricRecovery(unittest.TestCase):
             with self.subTest(margin=margin),self.assertRaises(StudioError):
                 recover_guide_metric(source,guide,quality,['panel'],[{'piece':'panel','edge':'anchor'}],fixed_stop_stretch_margin=margin)
 
+    def test_component_scope_recovers_free_partner_with_only_one_piece_anchored(self):
+        source,guide,quality,edges=seamed_fixture();before=digest([source,guide,quality,edges])
+        with self.assertRaisesRegex(StudioError,'Each recovered source piece'):
+            recover_guide_metric(source,guide,quality,['a','b'],edges[:1],
+                seam_ids=['ab'],max_initial_seam_gap_cm=0.)
+        result=recover_guide_metric(source,guide,quality,['a','b'],edges[:1],
+            seam_ids=['ab'],max_initial_seam_gap_cm=0.,anchor_scope='permanent_component',max_iterations=50)
+        self.assertEqual(result['status'],'SOURCE_METRIC_RECOVERED')
+        self.assertEqual(result['coordinates_cm'][0],guide[0]);self.assertEqual(result['coordinates_cm'][3],guide[3])
+        self.assertEqual(result['coordinates_cm'][1],result['coordinates_cm'][4])
+        self.assertEqual(result['coordinates_cm'][2],result['coordinates_cm'][7])
+        self.assertNotEqual(result['coordinates_cm'][8],guide[8])
+        report=result['anchor_components'];self.assertEqual(report['component_count'],1)
+        self.assertEqual(report['components'][0]['piece_ids'],['a','b'])
+        self.assertEqual(report['components'][0]['fixed_source_indices'],[0,3])
+        self.assertFalse(report['physical_support_inferred']);self.assertEqual(result['qualification'],'NONE')
+        self.assertEqual(digest([source,guide,quality,edges]),before)
+
+    def test_component_scope_anchors_transitive_three_piece_system_without_extra_piece_pins(self):
+        source,guide,quality,edges=seamed_fixture(three=True)
+        result=recover_guide_metric(source,guide,quality,['a','b','c'],edges[:1],
+            seam_ids=['ab','bc'],max_initial_seam_gap_cm=0.,anchor_scope='permanent_component',max_iterations=50)
+        self.assertEqual(result['status'],'SOURCE_METRIC_RECOVERED')
+        self.assertEqual(result['anchor_components']['component_count'],1)
+        self.assertEqual(result['anchor_components']['components'][0]['piece_ids'],['a','b','c'])
+        self.assertEqual(result['coordinates_cm'][2],result['coordinates_cm'][7])
+        self.assertEqual(result['coordinates_cm'][2],result['coordinates_cm'][9])
+        self.assertEqual(result['coordinates_cm'][0],guide[0]);self.assertEqual(result['coordinates_cm'][3],guide[3])
+
+    def test_component_scope_rejects_an_unanchored_triangle_island_even_with_piece_connected_by_seam(self):
+        source,guide,quality,edges=seamed_fixture()
+        source['rest_cm'] += [[10.,0.,0.],[12.,0.,0.],[10.,2.,0.]]
+        source['faces'].append([9,10,11]);source['panels']['b']['indices'] += [9,10,11]
+        guide += copy.deepcopy(source['rest_cm'][9:]);before=digest([source,guide])
+        with self.assertRaisesRegex(StudioError,'every effective triangle component')as caught:
+            recover_guide_metric(source,guide,quality,['a','b'],edges[:1],seam_ids=['ab'],
+                max_initial_seam_gap_cm=0.,anchor_scope='permanent_component')
+        components=caught.exception.anchor_components['components']
+        self.assertEqual(len(components),2)
+        island=next(row for row in components if not row['has_exact_active_anchor'])
+        self.assertEqual(island['piece_ids'],['b']);self.assertEqual(island['source_vertex_indices'],[9,10,11])
+        self.assertEqual(digest([source,guide]),before)
+        result=recover_guide_metric(source,guide,quality,['a','b'],edges[:1],seam_ids=['ab'],
+            max_initial_seam_gap_cm=0.,anchor_scope='permanent_component',protected_indices=[9],max_iterations=50)
+        self.assertEqual(result['status'],'SOURCE_METRIC_RECOVERED')
+        self.assertEqual(result['anchor_components']['component_count'],2)
+        self.assertEqual(result['coordinates_cm'][9],guide[9])
+
+    def test_component_scope_requires_anchors_for_isolated_vertices_and_selected_pieces(self):
+        source,guide,quality,edges=seamed_fixture()
+        source['rest_cm'].append([10.,10.,0.]);source['panels']['b']['indices'].append(9);guide.append([10.,10.,0.])
+        kwargs={'seam_ids':['ab'],'max_initial_seam_gap_cm':0.,'anchor_scope':'permanent_component'}
+        with self.assertRaises(StudioError)as caught:
+            recover_guide_metric(source,guide,quality,['a','b'],edges[:1],**kwargs)
+        isolated=next(row for row in caught.exception.anchor_components['components']if not row['has_exact_active_anchor'])
+        self.assertEqual(isolated['source_vertex_indices'],[9])
+        result=recover_guide_metric(source,guide,quality,['a','b'],edges[:1],protected_indices=[9],**kwargs)
+        self.assertEqual(result['coordinates_cm'][9],guide[9])
+        source,guide,quality,edges=seamed_fixture(three=True)
+        with self.assertRaises(StudioError)as caught:
+            recover_guide_metric(source,guide,quality,['a','b','c'],edges[:1],**kwargs)
+        isolated=next(row for row in caught.exception.anchor_components['components']if not row['has_exact_active_anchor'])
+        self.assertEqual(isolated['piece_ids'],['c'])
+        source['pins']={'9':1.}
+        result=recover_guide_metric(source,guide,quality,['a','b','c'],edges[:1],**kwargs)
+        self.assertEqual(result['coordinates_cm'][9],guide[9])
+        self.assertEqual(result['anchor_components']['component_count'],2)
+
+    def test_component_scope_requires_valid_permanent_seams_before_connectivity_admission(self):
+        source,guide,quality,edges=seamed_fixture()
+        for scope,seams in (('invented',['ab']),(None,['ab']),('permanent_component',[])):
+            with self.subTest(scope=scope,seams=seams),self.assertRaises(StudioError):
+                recover_guide_metric(source,guide,quality,['a','b'],edges[:1],anchor_scope=scope,
+                    seam_ids=seams,max_initial_seam_gap_cm=0.)
+        for alteration in ('missing','nonpermanent','cross_owner'):
+            changed=copy.deepcopy(source)
+            if alteration=='missing':changed['seams'].clear()
+            elif alteration=='nonpermanent':changed['seams']['ab']['kind']='closure'
+            else:changed['seams']['ab']['pairs'][0][1]=8
+            with self.subTest(alteration=alteration),self.assertRaises(StudioError)as caught:
+                recover_guide_metric(changed,guide,quality,['a','b'],[],seam_ids=['ab'],
+                    max_initial_seam_gap_cm=0.,anchor_scope='permanent_component')
+            self.assertFalse(hasattr(caught.exception,'anchor_components'))
+
+    def test_component_scope_preserves_pins_all_explicit_stops_and_unselected_coordinates(self):
+        source,guide,quality,edges=seamed_fixture(three=True);source['pins']={'2':1.}
+        guide[2][2]=-0.;guide[7][2]=-0.
+        result=recover_guide_metric(source,guide,quality,['a','b'],edges[:2],seam_ids=['ab'],
+            max_initial_seam_gap_cm=0.,anchor_scope='permanent_component',protected_indices=[8],max_iterations=1)
+        for index in (0,2,3,5,6,8):self.assertEqual(digest(result['coordinates_cm'][index]),digest(guide[index]))
+        self.assertEqual(digest(result['coordinates_cm'][7]),digest(guide[2]))
+        self.assertEqual(result['coordinates_cm'][9:],guide[9:])
+        source['pins']['7']=1.;guide[7][2]=.0001
+        with self.assertRaisesRegex(StudioError,'incompatible exact fixed'):
+            recover_guide_metric(source,guide,quality,['a','b'],edges[:1],seam_ids=['ab'],
+                max_initial_seam_gap_cm=.001,anchor_scope='permanent_component')
+        source,guide,quality,edges=seamed_fixture(three=True);source['pins']={'9':1.}
+        with self.assertRaisesRegex(StudioError,'active fixed stop'):
+            recover_guide_metric(source,guide,quality,['a','b'],[],seam_ids=['ab'],
+                max_initial_seam_gap_cm=0.,anchor_scope='permanent_component')
+
+    def test_component_scope_retains_fixed_stop_refusal_budgets_and_no_fit_qualification(self):
+        source,guide,quality,edges=seamed_fixture()
+        for point in guide[:4]:point[1]*=1.2
+        guide[4]=list(guide[1]);guide[7]=list(guide[2])
+        result=recover_guide_metric(source,guide,quality,['a','b'],edges[:1],seam_ids=['ab'],
+            max_initial_seam_gap_cm=0.,anchor_scope='permanent_component',max_iterations=1)
+        self.assertEqual(result['status'],'NEEDS_CORRECTION')
+        self.assertEqual(result['stop_reason'],'FIXED_SOURCE_STOP_BOUND_EXCEEDS_METRIC')
+        self.assertEqual(result['iterations'],0);self.assertEqual(result['coordinates_cm'],guide)
+        self.assertEqual(result['qualification'],'NONE');self.assertEqual(result['contacts'],'NOT_ASSESSED')
+        source,guide,quality,edges=seamed_fixture()
+        result=recover_guide_metric(source,guide,quality,['a','b'],edges[:1],seam_ids=['ab'],
+            max_initial_seam_gap_cm=0.,anchor_scope='permanent_component',max_iterations=1,max_displacement_cm=.001)
+        self.assertEqual(result['status'],'NEEDS_CORRECTION')
+        self.assertEqual(result['stop_reason'],'ITERATION_BUDGET')
+        self.assertLessEqual(result['max_displacement_cm'],.001)
+        self.assertEqual(result['coordinates_cm'][1],result['coordinates_cm'][4])
+
 
 if __name__=='__main__':unittest.main()
