@@ -561,3 +561,22 @@ Les appuis impossibles sont refusés avant optimisation. Le reçu
 la portée logicielle et synthétique de ces résultats. L5 reste incomplet sur MAIN.
 La prochaine correction traite la phase périodique du col et distingue repères
 UV de placement et vrais appuis 3D dans la politique de récupération commune.
+
+Cette correction est intégrée dans `fa08ffe` et `0c744c1` : source figée 48,
+939 tests portables PASS, revue indépendante de 88 tests et 12 cas de contrat
+par chacun des deux validateurs. Le cas natif statique v4 passe avec un seul
+panneau ancré dans une composante cousue, puis sauvegarde et réouverture.
+Le [reçu de phase et d'ancrage](automation-metric-anchor-evidence-20261004.json)
+conserve les identités et la portée logicielle de cette unité.
+
+MAIN v9 conserve les 13 raccords internes et passe les quatre bornes nécessaires
+de longueur aux épaules. La récupération auxiliaire est cependant refusée avant
+résultat : la triangulation source en éventail possède des segments et triangles
+trop fins. Ce refus ne démontre pas une impossibilité des patrons ou du maillage
+régulier. Une préparation native actuelle et ses contacts restent requis.
+
+Le runtime installé `0.7.0-rc.2` lie le dispatcher à sa propre racine et ne charge
+pas ces nouveaux modules. Les cas de développement isolés sont supportés,
+sans acceptation produit transférable. Aucun contournement de hook ou changement
+de runtime MAIN n'est effectué. Préparer le candidat et le package concret avant
+de résoudre l'ordre d'installation locale et de qualification principale.

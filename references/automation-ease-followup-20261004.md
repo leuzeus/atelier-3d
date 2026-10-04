@@ -301,3 +301,46 @@ Les repères UV du col et du devant intérieur ne sont pas des pins physiques :
 leur immobilisation automatique demande une correction explicite de politique.
 La nouvelle préparation native principale, la couverture et le fitting restent
 non exécutés ; aucune publication finale ou installation.
+
+### Phase du col et ancrage des composantes — source 48
+
+Le col reçoit maintenant la phase issue du milieu périodique de ses deux vrais
+bords d'ancrage. Une ambiguïté antipodale, une précision insuffisante ou des
+coordonnées hors domaine sont refusées ; aucun seuil physique n'est changé.
+Le mode `permanent_component` vérifie les triangles et tous les sommets après
+union des cohortes. Chaque composante doit disposer d'un appui déclaré positif.
+Les arrêts source et pins explicites restent protégés ; les ancres UV du col
+et du devant intérieur servent au placement sans devenir des pins automatiques.
+
+Code final `0c744c193968a8e80fb0df20beeb80da2ca19c17`, après la correction de
+phase `fa08ffe`. Source figée 48 : 484 fichiers, empreinte
+`d54aac47ffa7b3bafb329d0e6c31b460612d01a5bfb7a36183249e9495d81e90`.
+939 tests portables PASS en 108,606 s ; lancement 109,781 s. Revue indépendante
+de 88 tests PASS et 12 cas de contrat PASS par chacun des deux validateurs.
+L'essai Blender statique v4 passe en 3,938 s : deux panneaux synthétiques dont
+un seul ancré, cohortes permanentes, contacts, sauvegarde et réouverture ; corps
+préservé, aucun Cloth. Le [reçu](automation-metric-anchor-evidence-20261004.json)
+lie ces résultats aux octets du code et conserve les campagnes antérieures.
+
+La proposition MAIN v9 se reconstruit à l'identique après JSON, avec 13 raccords
+internes communs à écart nul et quatre arrêts numériques d'épaule. Les rapports
+corde/longueur source sont 0,943781 et 0,942288, sous la borne maximale 1,1.
+Ces conditions sont nécessaires, sans suffire à admettre triangles ou contacts.
+Politique SHA `dc3b4531bccd5aeb8fcbd600574232317d273581bc8aa3ce7a3d29bf3a444c84`,
+guides SHA `9db51cd58780257018fd8a959eadcca57bc977ffc906882d09ec261155332938`.
+Corps, patrons, SQLite et ancienne préparation native sont conservés.
+
+Le diagnostic des six cages auxiliaires s'arrête avant de produire un candidat.
+Il observe au col un segment source d'environ 1,25 × 10⁻⁷ cm, sous la borne
+0,001 cm, et un triangle déjà trop fin avant alignement. Il ne s'agit pas du
+maillage régulier natif. Aucun résultat de fitting ou impossibilité de patron
+n'est déduit de ce refus. La prochaine unité prépare le maillage régulier exact
+avec les nouveaux guides, puis mesure métrique, raccords et contacts.
+
+Le contrôle du runtime confirme que la copie installée `0.7.0-rc.2` exécute sa
+propre racine, sans option permettant de substituer la source 48 sur MAIN.
+La qualification isolée du code reste possible avec portée explicite ; une
+installation locale de développement et sa vérification doivent être examinées
+avant d'utiliser ce code sur MAIN. Aucune nouvelle release, installation ni
+permission Blender implicite ; les critères de qualification finale restent
+inchangés.

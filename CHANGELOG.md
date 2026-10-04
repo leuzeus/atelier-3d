@@ -23,6 +23,10 @@
   alignement initial borné et précontrôle des appuis fixes impossibles. Les
   pins, sources et seuils finaux restent protégés ; le solveur de contacts
   suivant conserve son contrôle d'écart distinct.
+- Phase du col calculée depuis les milieux de ses vrais bords dans son domaine
+  périodique. Mode d'ancrage des composantes cousues explicite : les appuis
+  déclarés sont conservés, les repères UV de placement ne créent pas de pins.
+  Les îlots sans appui sont refusés après construction du graphe réel.
 - Enfilage depuis des prises source, corps/colliders animés, rendus de clips,
   finition/UV/LOD, attachement rigide, export et réimportation contrôlés.
 - Limites : les essais mécaniques et de livraison sont des cas de test.

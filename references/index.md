@@ -63,6 +63,7 @@ le précise le [contrat de production](production.md).
 - [Reçu des contrôles de couplage et de conservation des coins](automation-source-coupling-evidence-20261004.json)
 - [Récupération métrique des raccords permanents](guide-metric-seam-coupling.md)
 - [Reçu du solveur commun et des appuis impossibles](automation-metric-cohort-evidence-20261004.json)
+- [Reçu de la phase du col et de l'ancrage des composantes](automation-metric-anchor-evidence-20261004.json)
 - [Déplacements pendant Cloth](cloth-motion.md)
 - [Diagnostic des probes physiques](probe-diagnostics.md)
 - [Candidats refusés avant Cloth](garment-rejections.md)
