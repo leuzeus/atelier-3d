@@ -5,8 +5,8 @@ import math
 import struct
 import unittest
 
-from a3d.core import StudioError, digest
-from a3d.sewing import chain_lengths, edge_chain, sample_chain
+from a3d.core import ROOT, StudioError, digest, read_json
+from a3d.sewing import chain_lengths, edge_chain, prepare_boundaries, sample_chain
 from a3d.source_uv_witnesses import source_boundary_seam_witnesses
 
 
@@ -48,6 +48,44 @@ def fixture(orientation='forward'):
     return piece, peer, native, links
 
 
+def official_preparation_fixture(orientation):
+    """Use the actual source sampler, without Blender or a canonical DB fake."""
+    parameter = .9499999910593033
+    piece = {'vertices': [[0., 0.], [37., 0.], [37., 10.], [0., 10.]],
+             'faces': [[0, 1, 2], [0, 2, 3]], 'edges': {'join': [1, 2]}}
+    data = {'component_id': 'garment.coat', 'units': 'cm',
+            'pieces': {'front': copy.deepcopy(piece), 'back': copy.deepcopy(piece)},
+            'seams': [{'id': 'join', 'piece_a': 'front', 'edge_a': 'join',
+                      'piece_b': 'back', 'edge_b': 'join', 'orientation': orientation}]}
+    recipe = read_json(ROOT / 'templates/sewing-recipe.json')
+    recipe['seams'] = {'join': {'kind': 'permanent', 'ease_b_over_a': 0., 'tolerance_relative': .02}}
+    recipe['placements'] = {pid: copy.deepcopy(recipe['placements'][pid]) for pid in data['pieces']}
+    recipe['trial_pieces'] = ['front', 'back']
+    recipe['pins'] = []
+    before = digest([data, recipe])
+    samples, seams, _ = prepare_boundaries(data, recipe, {'join': [parameter]})
+    if before != digest([data, recipe]):
+        raise AssertionError('Official source boundary preparation mutated its inputs')
+    native = {'component_id': 'garment.coat', 'panels': {}, 'rest_cm': [], 'seams': {}}
+    offsets = {}
+    for pid, row in samples.items():
+        offset = len(native['rest_cm'])
+        offsets[pid] = offset
+        native['rest_cm'].extend(f32(uv) + [0.] for uv in row['polygon'])
+        indices = list(range(offset, len(native['rest_cm'])))
+        native['panels'][pid] = {'indices': indices, 'boundary': list(indices),
+            'boundary_source_arclength_cm': row['keys'], 'source_contour_sha256': row['source_sha256'],
+            'edges': {name: [offset + index for index in ids] for name, ids in row['edges'].items()}}
+    for sid, row in seams.items():
+        native['seams'][sid] = {name: copy.deepcopy(row[name])
+                               for name in ('piece_a', 'piece_b', 'kind', 'parameters')}
+        native['seams'][sid]['pairs'] = [[a + offsets[row['piece_a']], b + offsets[row['piece_b']]]
+                                        for a, b in zip(row['a'], row['b'])]
+    links = [{**data['seams'][0], 'id': 'garment.coat::join', 'source_link_id': 'join',
+              'component_id': 'garment.coat', 'kind': 'permanent'}]
+    return data, recipe, native, links, parameter
+
+
 class SourceUVWitnesses(unittest.TestCase):
     def test_midpoint_witness_recovers_original_uv_when_central_key_roundtrip_is_different(self):
         piece, _, native, links = fixture()
@@ -78,8 +116,36 @@ class SourceUVWitnesses(unittest.TestCase):
         witness = back[7]['evidence']['witnesses'][0]
         self.assertEqual(witness['local_parameter'], 1. - native['seams']['join']['parameters'][1])
         self.assertEqual(witness['side'], 'b')
-        self.assertEqual(witness['source_segment_vertex_ids'], [2, 1])
+        self.assertEqual(witness['source_segment_vertex_ids'], [1, 2])
+        self.assertEqual(witness['sampler'], 'REVERSED_NAMED_EDGE')
+        self.assertEqual(witness['sampler_parameter'], witness['common_parameter'])
         self.assertEqual(f32(front[2]['source_uv_cm']), f32(back[7]['source_uv_cm']))
+
+    def test_official_preparation_forward_and_reverse_witness_all_actual_source_samples(self):
+        for orientation in ('forward', 'reverse'):
+            with self.subTest(orientation=orientation):
+                data, recipe, native, links, parameter = official_preparation_fixture(orientation)
+                before = digest([data, recipe, native, links])
+                pair_index = native['seams']['join']['parameters'].index(parameter)
+                for pid, column in (('front', 0), ('back', 1)):
+                    result = source_boundary_seam_witnesses(
+                        data['pieces'][pid], pid, 'garment.coat', native, links)
+                    self.assertEqual(set(result), {pair[column] for pair in native['seams']['join']['pairs']})
+                    for vertex, row in result.items():
+                        self.assertEqual(f32(row['source_uv_cm']), native['rest_cm'][vertex][:2])
+                        self.assertEqual(row['evidence']['qualification'], 'NONE')
+                        self.assertFalse(row['evidence']['admissible_for_fit'])
+                if orientation == 'reverse':
+                    vertex = native['seams']['join']['pairs'][pair_index][1]
+                    points = edge_chain(data['pieces']['back'], 'join')[1]
+                    wrong_order = sample_chain(points, 1. - parameter)
+                    actual_order = sample_chain(list(reversed(points)), parameter)
+                    self.assertNotEqual(f32(wrong_order), native['rest_cm'][vertex][:2])
+                    self.assertEqual(f32(actual_order), native['rest_cm'][vertex][:2])
+                    self.assertEqual(result[vertex]['source_uv_cm'], actual_order)
+                    self.assertEqual(native['rest_cm'][vertex][1], .5000001192092896)
+                    self.assertEqual(f32(wrong_order)[1], .5000000596046448)
+                self.assertEqual(digest([data, recipe, native, links]), before)
 
     def test_missing_observed_seams_returns_empty_without_inventing_witnesses(self):
         piece, _, native, links = fixture()

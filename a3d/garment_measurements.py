@@ -392,7 +392,7 @@ def intersect_guide_material_plane(piece,frame,triangles,section,seam_edges,*,ma
             except StudioError:pass
             check_time()
         if len(found)!=1:
-            error=StudioError('Guide-plane material curve ends outside its actual unary source sewing cohort')
+            error=StudioError('Guide-plane material curve ends outside its declared source boundary cohort')
             error.guide_plane_diagnostic={'status':'SOURCE_SEAM_ENDPOINT_CORRESPONDENCE_REFUSED',
                 'source_uv_polyline_cm':points,'guide_world_polyline_cm':worlds,
                 'source_material_length_cm':sum(math.dist(a,b)for a,b in zip(points,points[1:])),

@@ -182,11 +182,16 @@ def source_boundary_seam_witnesses(piece, pid, cid, native, links):
             if owner != pid:
                 continue
             source_ids, points, _ = _source_edge(piece, name)
+            reverse_sampler = side == 'b' and link['orientation'] == 'reverse'
+            sampler_ids = list(reversed(source_ids)) if reverse_sampler else source_ids
+            sampler_points = list(reversed(points)) if reverse_sampler else points
             for pair_index, (common_parameter, pair) in enumerate(zip(parameters, pairs)):
                 index = pair[column]
-                local_parameter = 1. - common_parameter if side == 'b' and \
-                    link['orientation'] == 'reverse' else common_parameter
-                source_uv = sample_chain(points, local_parameter)
+                local_parameter = 1. - common_parameter if reverse_sampler else common_parameter
+                # Match prepare_boundaries exactly: it reverses side B's chain
+                # before sampling the common parameter. Computing 1-t first
+                # can move a value across a binary32 midpoint.
+                source_uv = sample_chain(sampler_points, common_parameter)
                 point = rest[index]
                 if not isinstance(point, list) or len(point) != 3 or any(
                         not _number(value) for value in point):
@@ -195,7 +200,7 @@ def source_boundary_seam_witnesses(piece, pid, cid, native, links):
                 if native_uv != _binary32(native_uv) or native_uv != _binary32(source_uv):
                     raise StudioError('Native sewing UV differs from its exact source parameter binary32 round-trip')
                 position, segment, fraction = _perimeter_witness(
-                    piece, source_ids, points, local_parameter, perimeter)
+                    piece, sampler_ids, sampler_points, common_parameter, perimeter)
                 key = key_by_index[index]
                 if round(position, 8) != key:
                     raise StudioError('Native sewing witness perimeter key differs from its exact source parameter')
@@ -203,6 +208,8 @@ def source_boundary_seam_witnesses(piece, pid, cid, native, links):
                     'side': side, 'edge': name, 'kind': link['kind'],
                     'orientation': link['orientation'], 'pair_index': pair_index,
                     'common_parameter': common_parameter, 'local_parameter': local_parameter,
+                    'sampler': 'REVERSED_NAMED_EDGE' if reverse_sampler else 'NAMED_EDGE',
+                    'sampler_parameter': common_parameter,
                     'source_segment_vertex_ids': segment, 'source_segment_fraction': fraction}
                 if 'source_ref' in link:
                     witness['source_ref'] = dict(link['source_ref']) if isinstance(link['source_ref'], dict) \

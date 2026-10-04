@@ -150,7 +150,7 @@ class GarmentMeasurements(Case):
         for triangle in triangles:
             for point in triangle:
                 if point[0]==0.:point[0]=1e-6
-        with self.assertRaisesRegex(StudioError,'outside its actual unary')as caught:
+        with self.assertRaisesRegex(StudioError,'outside its declared source boundary')as caught:
             intersect_guide_material_plane(source,frame,triangles,section,['left','right'],triangulated_boundary_uv=boundary)
         diagnostic=caught.exception.guide_plane_diagnostic
         self.assertAlmostEqual(diagnostic['source_edge_distances_cm']['left'],1e-6)
