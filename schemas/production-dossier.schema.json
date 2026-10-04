@@ -1,4 +1,6 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Source-bound production dossier compilation specification",
   "type": "object",
   "properties": {
     "version": {
@@ -40,19 +42,46 @@
       ],
       "additionalProperties": false
     },
-    "pieces": {
+    "packages": {
       "type": "array",
       "items": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "minLength": 1
-          },
           "component_id": {
             "type": "string",
             "minLength": 1
           },
+          "source_ref": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "path",
+              "sha256"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "component_id",
+          "source_ref"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "piece_semantics": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
           "role": {
             "enum": [
               "front",
@@ -79,15 +108,6 @@
           "layer": {
             "type": "string",
             "minLength": 1
-          },
-          "edges": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1
-            },
-            "minItems": 1,
-            "uniqueItems": true
           },
           "longitudinal_uv_axis": {
             "enum": [
@@ -138,110 +158,15 @@
             },
             "additionalProperties": false
           },
-          "source_ref": {
-            "type": "object",
-            "properties": {
-              "path": {
-                "type": "string",
-                "minLength": 1
-              },
-              "sha256": {
-                "type": "string",
-                "pattern": "^[a-f0-9]{64}$"
-              }
-            },
-            "required": [
-              "path",
-              "sha256"
-            ],
-            "additionalProperties": false
-          },
           "guide_surface_offset_cm": {
             "type": "number",
             "minimum": 0,
             "maximum": 20
           }
         },
-        "required": [
-          "id",
-          "component_id",
-          "role",
-          "side",
-          "layer",
-          "edges",
-          "source_ref"
-        ],
+        "required": [],
         "additionalProperties": false
-      },
-      "minItems": 1,
-      "uniqueItems": true
-    },
-    "links": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "minLength": 1
-          },
-          "kind": {
-            "enum": [
-              "permanent",
-              "closure",
-              "detachable",
-              "free_contact",
-              "temporary_support"
-            ]
-          },
-          "piece_a": {
-            "type": "string",
-            "minLength": 1
-          },
-          "edge_a": {
-            "type": "string",
-            "minLength": 1
-          },
-          "piece_b": {
-            "type": "string",
-            "minLength": 1
-          },
-          "edge_b": {
-            "type": "string",
-            "minLength": 1
-          },
-          "source_ref": {
-            "type": "object",
-            "properties": {
-              "path": {
-                "type": "string",
-                "minLength": 1
-              },
-              "sha256": {
-                "type": "string",
-                "pattern": "^[a-f0-9]{64}$"
-              }
-            },
-            "required": [
-              "path",
-              "sha256"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "required": [
-          "id",
-          "kind",
-          "piece_a",
-          "edge_a",
-          "piece_b",
-          "edge_b",
-          "source_ref"
-        ],
-        "additionalProperties": false
-      },
-      "minItems": 0,
-      "uniqueItems": true
+      }
     },
     "layers": {
       "type": "object",
@@ -405,18 +330,49 @@
         "max_strain_relative"
       ],
       "additionalProperties": false
+    },
+    "measurement_paths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "piece": {
+            "type": "string",
+            "minLength": 1
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "piece",
+          "edges",
+          "purpose"
+        ],
+        "additionalProperties": false
+      }
     }
   },
   "required": [
     "version",
     "source_ref",
     "body_ref",
-    "pieces",
-    "links",
-    "layers",
-    "budgets"
+    "packages",
+    "piece_semantics"
   ],
-  "additionalProperties": false,
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Source-bound automatic garment assembly inputs"
+  "additionalProperties": false
 }
