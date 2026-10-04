@@ -17,6 +17,18 @@ def _finite_vector(value):
 
 
 def rigid_candidate(payload, coordinates, proposal):
+    if set(proposal)=={'motions'}:
+        motions=proposal['motions']
+        if not isinstance(motions,list) or not 1<=len(motions)<=len(payload['panels']):
+            raise StudioError('Compound correction requires bounded actual panel motions')
+        touched=set();result=copy.deepcopy(coordinates)
+        for motion in motions:
+            if not isinstance(motion,dict) or set(motion)!={'panels','rotation','origin_cm','translation_cm'}:
+                raise StudioError('Compound correction permits only non-nested rigid motions')
+            if touched.intersection(motion['panels']):
+                raise StudioError('Compound correction cannot move a panel twice')
+            result=rigid_candidate(payload,result,motion);touched.update(motion['panels'])
+        return result
     if set(proposal) != {'panels', 'rotation', 'origin_cm', 'translation_cm'}:
         raise StudioError('Placement correction permits only declared rigid panel motions')
     panels = proposal['panels']; rotation = proposal['rotation']

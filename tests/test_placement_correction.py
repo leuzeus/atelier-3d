@@ -25,6 +25,20 @@ def fixture():
 
 
 class PlacementCorrection(unittest.TestCase):
+    def test_two_invalid_panels_can_only_be_repaired_by_one_atomic_measured_candidate(self):
+        payload,coords,budget,_=fixture();before=digest([payload,coords])
+        left={**motion(1.),'panels':['left']};right=motion(-1.)
+        def evaluate(source,points):
+            valid=points[0][0]==coords[0][0]+1. and points[4][0]==coords[4][0]-1.
+            return {'hard_valid':valid,'score':0. if valid else 1.}
+        result=correct_placement(payload,coords,evaluate,
+            lambda *args:[left,right,{'motions':[left,right]}],budget)
+        self.assertEqual(result['stop_reason'],'TARGET_REACHED')
+        self.assertEqual([row['kept'] for row in result['history']],[False,False,True])
+        self.assertEqual(digest([payload,coords]),before)
+        with self.assertRaises(StudioError):rigid_candidate(payload,coords,{'motions':[left,left]})
+        with self.assertRaises(StudioError):rigid_candidate(payload,coords,{'motions':[{'motions':[left]}]})
+
     def test_keeps_measured_improvement_and_preserves_approved_source(self):
         payload, coords, budget, measure = fixture(); before = digest([payload, coords, budget])
         result = correct_placement(payload, coords, measure, lambda *args: [motion(-.5)], budget)
