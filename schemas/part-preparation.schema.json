@@ -1,0 +1,23 @@
+{
+  "type":"object","additionalProperties":false,
+  "required":["version","component_id","piece_id","job_id","source_ref","package_ref","dossier_ref","budgets"],
+  "properties":{
+    "version":{"const":1},
+    "component_id":{"type":"string","minLength":1},"piece_id":{"type":"string","minLength":1},
+    "job_id":{"type":"string","minLength":1},
+    "normalization":{"type":"object","additionalProperties":false,"required":["mode","max_axis_ratio_change","dimension_tolerance_cm"],"properties":{
+      "mode":{"const":"DIMENSIONS_FROM_APPROVED_DOSSIER"},
+      "max_axis_ratio_change":{"type":"number","minimum":0,"maximum":0.5},
+      "dimension_tolerance_cm":{"type":"number","minimum":0.000001,"maximum":0.1}
+    }},
+    "source_ref":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}},
+    "package_ref":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}},
+    "dossier_ref":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}},
+    "budgets":{"type":"object","additionalProperties":false,"required":["max_file_bytes","max_vertices","max_faces","max_seconds"],"properties":{
+      "max_file_bytes":{"type":"integer","minimum":20,"maximum":134217728},
+      "max_vertices":{"type":"integer","minimum":3,"maximum":2000000},
+      "max_faces":{"type":"integer","minimum":1,"maximum":2000000},
+      "max_seconds":{"type":"number","minimum":1,"maximum":3600}
+    }}
+  }
+}
