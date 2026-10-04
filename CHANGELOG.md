@@ -1,5 +1,24 @@
 # Historique
 
+## En développement — programme d'automatisation, 2026-10-04
+
+- Journal persistant de runs, reprise aux frontières et réconciliation ComfyUI
+  avec variantes sourcées ; une soumission incertaine ne crée pas de double job.
+- Compilation des 15 textiles et de la boucle, guides sourcés, récupération
+  métrique puis placement borné, exécution de groupes et continuité permanente.
+- Classification du vêtement et aisance explicites, mesures corporelles
+  supplémentaires et propositions de chemins homologues. Admission physique
+  de production liée au corps, aux patrons et aux cibles numériques revues.
+- Politiques de guides reconstructibles depuis les sources exactes, ancres UV
+  conservées et projections de runs archivées sans réécrire les anciens reçus.
+- Enfilage depuis des prises source, corps/colliders animés, rendus de clips,
+  finition/UV/LOD, attachement rigide, export et réimportation contrôlés.
+- Limites : les essais mécaniques et de livraison sont des cas de test.
+  Les épaules et le haut du torse du manteau principal restent refusés ;
+  proposition d'aisance ample à examiner, puis variante de patrons si nécessaire.
+  Construction physique, enfilage, drapé, fitting, mouvements et revue artistique
+  complets restent requis. Aucune nouvelle release ou installation finale.
+
 ## 0.7.0-rc.2 — 2026-10-03, stature codée et repères de surface
 
 - Préparation systématique du corps cible dès l'ajout d'un mannequin pour un

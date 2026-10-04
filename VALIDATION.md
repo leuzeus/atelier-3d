@@ -1,5 +1,39 @@
 # Validation d’Atelier 3D
 
+## Programme en développement — 2026-10-04
+
+Les observations actuelles et leurs limites sont détaillées dans
+[le programme](references/automation-program.md) et
+[les preuves d'automatisation](references/automation-validation.md).
+Elles ne remplacent aucune qualification du vêtement complet.
+Le [reçu d'intégration](references/automation-evidence-20261004.json) conserve
+les identités des campagnes et la vérification des octets du code commité.
+
+- Source figée 37, octets conformes aux attributs Git : 795 tests portables PASS
+  en 105,57 s (106,73 s de lancement).
+  Empreinte `2bee3c9b90f19fe3c64dd71c01bbb590d861d6d6151eaf6a64947bb64d93ec3a`.
+  Les 14 contrats de templates/fixtures et sept entrées actuelles sont validés
+  par PowerShell Test-Json. Les campagnes historiques restent distinctes.
+- Textile natif v14, même source 37 : groupes ordonnés, bande unique, groupe
+  couplé et réconciliation sans replay PASS en 40,09 s. Portée TEST_ONLY ;
+  les entrées de production sans fiche d'aisance revue restent refusées.
+- Compilation publique v3, même source 37 : 15 textiles et une boucle couverts,
+  six chemins proposés, deux manches non homologues refusées. Guides reconstruits
+  strictement à l'identique ; SQLite et corps conservés. Fitting incomplet.
+  Les anciennes campagnes 36 et antérieures conservent leurs reçus séparés.
+- Source figée 32 : admission native du corps exact PASS ; quatre substitutions
+  refusées. Groupes textiles v12 PASS en 35,16 s, y compris refus des entrées
+  de production sans contexte d'aisance. Portée identité et coupons uniquement.
+- Enfilage de prise source v5 : cinq images Cloth exécutées et réouvertes,
+  erreurs sous .001 cm, poids libérés et cache valide. La bande reste éloignée
+  du corps ; aucun passage physique du manteau principal démontré.
+- Préparation principale v8 : 15 pièces générées, trois composants refusés.
+  Épaules et haut du torse pénétrants, déformation métrique dépassant les limites,
+  ceinture avec réserve insuffisante. Aucun Cloth ni fitting principal exécuté.
+- Coupe ample retenue par l'utilisateur ; valeurs numériques proposées pour
+  revue. Le mannequin accepté ne change pas. Toute gradation produit une
+  variante séparée à examiner avant construction et acceptation.
+
 ## Préversion textile 0.7.0-rc.2 — 2026-10-03
 
 Les contrôles logiciels du commit publié, l'inventaire du paquet et les

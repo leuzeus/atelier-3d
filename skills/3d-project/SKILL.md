@@ -12,6 +12,15 @@ mensurations prévues dans le dossier, préparer une variante séparée si
 nécessaire, mesurer ses proportions et les présenter pour revue avant le
 fitting. Une stature seule ne qualifie pas les tours ni l'enfilage. Conserver
 les cibles déjà approuvées ; ne pas réduire le corps pour masquer un échec.
+La sélection de la base et les cibles relèvent de la décision humaine ; la
+capacité du patron ne choisit pas l'anatomie. Utiliser
+`studio_prepare_body_target(project_root, selection_path, target_path)` avec
+les fichiers explicites du corps et de ses cibles. La copie native est mesurée
+et réouverte avant sa revue ; les dimensions absentes restent non ciblées.
+Les contrôles régionaux gardent leurs budgets, résidus et régions protégées.
+Voir [le parcours automatisé](../../references/automation-runtime.md).
+
+Avant les étapes physiques du vêtement sur un mannequin, préparer [la classification du vêtement et son aisance](../../references/garment-fit-intent.md) : catégorie, intention de coupe, configuration de port et couches. Reprendre toute intention déjà donnée par l'utilisateur. Préparer les chemins de mesure homologues et les cibles minimale/cible/maximale d'aisance avec leur répartition mouvement/couches/style ; présenter les propositions chiffrées pour revue lorsqu'elles manquent. Ne pas demander à l'utilisateur de calculer ces données. Le mot manteau n'accorde aucun nombre de centimètres automatique. `studio_compile_production_dossier` retourne `compilation` et `fit_preflight` séparément ; utiliser `fit_profile_path` pour la fiche. Une compilation `READY_TO_PLAN`, une réserve de collision ou une simple longueur de bord ne qualifient pas l'aisance. Pour un devant ouvert, mesurer la couverture et les recouvrements du candidat exact ; ne pas additionner le devant intérieur d'une autre couche à un tour fermé. Une information absente reste manquante et bloque l'admission physique de production. Les essais synthétiques restent explicitement TEST_ONLY et ne qualifient pas le vêtement. En cas de capacité insuffisante, conserver le corps approuvé et préparer une variante de patrons séparée à revoir.
 
 Suivre [la reprise après un refus](../../references/preparation-recovery.md).
 Distinguer une limite du logiciel d'une erreur de préparation : pour une limite,
@@ -41,6 +50,25 @@ Commencer par le brief : destination render/game/animation/3d_print, hauteur ré
 Avant toute production 3D, suivre [la préparation et la revue humaine du découpage](../../references/construction-review.md). Produire une proposition enregistrée avec `studio_propose_pipeline`, expliquer la méthode recommandée et ses alternatives, puis enregistrer uniquement les décisions réellement données. Préparer les données techniques et les packages conformes à cette méthode. Si PATTERN_SEWN est retenu, `studio_build_construction_board` doit produire l'image en trois parties : **1. vues orthographiques, 2. décomposition du vêtement, 3. patrons 2D**. Ouvrir cette image et le dossier, les présenter à l'utilisateur et demander son approbation du découpage. Ne pas enregistrer cette approbation à sa place.
 
 `studio_check_pipeline` doit être admis avant reconstruction. Utiliser `studio_blender_operation` pour obtenir le code exact des opérations Blender. Une création générale autorisée, un job terminé ou une image générée ne valent pas validation du découpage. Si une méthode est indisponible, présenter ce blocage et une alternative : ne jamais la remplacer silencieusement par des surfaces procédurales. Ne pas contourner les contrôles par le terminal, un autre MCP, un changement de cwd ou une modification SQLite. Ne pas modifier l'historique d'un ancien projet pour le faire passer conforme.
+
+Pour un programme repris ou composé de plusieurs étapes, enregistrer les unités
+et budgets avec `studio_create_run(project_root, kind, specification_path)`.
+Utiliser `studio_next_run_step(project_root, run_id)` pour réconcilier les reçus
+réels et préparer la prochaine unité admissible ; lire son état avec
+`studio_run_status(project_root, run_id)`. `studio_request_run_stop` conserve les
+tentatives et arrête à une frontière. Chaque opération Blender préparée garde
+l'autorisation exacte requise ci-dessus. Après interruption, suivre la
+restauration canonique du checkpoint d'entrée avant de rejouer ; aucune reprise
+dynamique Cloth à mi-cache n'est promise. `COMPLETED` du journal ne vaut pas
+acceptation physique, fitting ou artistique. Voir
+[les preuves et limites](../../references/automation-validation.md).
+
+Pour ComfyUI, préparer les variantes via `studio_prepare_workflow_variant` et
+conserver la clé de requête stable. Une soumission incertaine demande
+`studio_reconcile_comfy_job` ou la réconciliation du run possédé. Ne jamais
+resoumettre sous une nouvelle clé pour contourner une incertitude ; conserver
+`UNKNOWN_COMPLETION` ou `INCOMPLETE` si les preuves fournisseur et les fichiers
+de sortie ne permettent pas de conclure. La fin du job ne qualifie pas l'asset.
 
 Le board de préparation est construit à partir des images de référence originales fournies par l’utilisateur, avant modélisation. Ne jamais utiliser le mesh produit comme sa propre référence de conception. Le dossier doit fournir `source_references` (preuves des originaux et origine dans la conversation), `source_evidence_keys` pour chaque vue et pièce, et `reference_notes` pour les indices observés ou extrapolés. Les références sources doivent être celles examinées dans le gate references. Elles sont intégrées au board et au dossier. Le type mesh-render est refusé pour les vues de ce board. Un board documentaire créé après la 3D est un diagnostic séparé et ne remplace jamais cette validation.
 

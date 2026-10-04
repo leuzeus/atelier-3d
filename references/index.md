@@ -49,6 +49,9 @@ le précise le [contrat de production](production.md).
 
 ## Fitting et diagnostics
 
+- [Classification du vêtement et aisance explicite](garment-fit-intent.md)
+- [Sections de peau des bras et enveloppes de passage des mains](body-region-sections.md)
+- [Préparation des régions et capacités nominales des manches](limb-source-measurements.md)
 - [Reprise dans une scène vide et fitting séparé](clean-construction-fitting.md)
 - [Préparation native du fitting](fitting-preparation.md)
 - [Fiche de fitting mesurée](measured-fitting.md)
