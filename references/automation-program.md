@@ -692,3 +692,35 @@ contrôles dépendants avec les mêmes sources, appuis, corps et seuils.
 Qualification NONE : physique, enfilage, drapé, fitting complet, mouvement du
 vêtement, revue artistique, préversion finale et nouvelle installation restent
 à réaliser. L5 et l'acceptation du manteau restent incomplets.
+
+### Intégration suivante — restauration source56 et cages source57
+
+La régression de l'expérience CDT est corrigée dans `a4aad9b` en restaurant
+exactement le noyau source53. L'essai natif comparatif prépare les dix pièces
+et leurs 24 relations, puis exécute neuf triangulations sur les deux manches
+et le devant gauche. Les maillages, correspondances, historiques et traces
+du candidat restauré sont identiques à source53. Les minimums restent
+4,061237°, 4,057463° et 4,483887° : le critère régulier de 15° reste refusé.
+La mesure dure 36,294 s, lancement 41,297 s ; sources et entrées sont conservées.
+
+Le défaut majeur de représentation de la cage du dos est corrigé dans
+`9f95efa`. Le raffinement source déclaré est partitionné aux hauteurs des
+sections mesurées, puis la cage est conservée par le second consommateur
+après contrôle du domaine, des coins, des faces source, des bords et de la
+topologie. Au témoin exact du dos, les étirements principaux passent de
+`[0,015424 ; 0,903090]` à `[0,995835 ; 1,002274]`. L'écart maximal à l'arc
+direct vaut 0,00183330 cm. Cette mesure locale ne qualifie pas tous les guides.
+La partition complète des U reste refusée et archivée ; aucun seuil ne baisse.
+
+La revue indépendante passe 88 tests ciblés et quatre sondes supplémentaires.
+La source57 figée comprend 505 fichiers, identité
+`d09e85365e354c33cd2c02ce3e9e61f5341db20571991da2bf686ad0501feaa8`.
+Ses 1 055 tests intégrés passent en 188,520 s, lancement 189,703 s ; les fichiers
+figés restent identiques. Les présents ajouts de suivi sont postérieurs à
+cette capture et ne prolongent pas ses tests. Les empreintes et reçus figurent
+dans le [bilan de cette unité](automation-cage-restoration-evidence-20261004.json).
+
+L'alignement du devant intérieur et du col, le conditionnement matériel à 15°,
+les contacts et la couverture restent à corriger ou vérifier. L5 demeure
+incomplet. Aucun PASS de physique, fitting, mouvement du vêtement, revue
+artistique, préversion finale ou installation n'est accordé par cette unité.

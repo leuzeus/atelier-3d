@@ -492,3 +492,24 @@ Qualification NONE : contacts et couverture non admis, physique, enfilage,
 drapé, fitting complet, mouvements du vêtement et revue artistique à réaliser.
 Aucune préversion finale, nouvelle installation ou qualification du runtime
 connecté n'est produite par ces contrôles.
+
+### Suite — restauration et correction de représentation du dos
+
+Le noyau CDT restauré reprend exactement les trajectoires source53 sur les
+deux manches acceptées et le devant gauche, avec tous les arrêts source
+conservés. Les neuf replays natifs sont revus ; les trois pièces restent sous
+le critère régulier de 15°. Cette restauration corrige la régression V4,
+sans admission du maillage complet.
+
+La cage du dos suit maintenant les hauteurs mesurées et reste conservée
+par le second consommateur après validation matérielle. Son témoin local
+passe de `[0,015424 ; 0,903090]` à `[0,995835 ; 1,002274]`, avec un résidu
+maximal de 0,00183330 cm par rapport à l'arc direct. Les 1 055 tests intégrés
+de source57 passent, ainsi que la revue indépendante des 88 tests ciblés
+et quatre sondes adverses. Le
+[reçu exact](automation-cage-restoration-evidence-20261004.json) distingue
+ces preuves des anciennes campagnes et de l'acceptation du manteau.
+
+Le devant intérieur, le col, les contacts et la couverture restent à traiter.
+Le mannequin accepté et les patrons sont conservés. Aucune aisance globale,
+physique, fitting ou revue artistique n'est admise par ce seul témoin du dos.
