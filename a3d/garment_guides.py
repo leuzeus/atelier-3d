@@ -288,7 +288,15 @@ def _rotate_closed_curve(curve, start_distance):
     return [p for i, p in enumerate(result) if not i or math.dist(p, result[i-1]) > 1e-12]
 
 
-def _source_anchor(piece, semantic):
+def _source_anchor(piece, semantic, *, periodic_u=None):
+    """Arc midpoints of actual named edges, optionally in a periodic U frame.
+
+    Two collar anchors can straddle the material interval's closing boundary.
+    Their shortest circular midpoint must then replace the arithmetic U mean.
+    The 32-ULP margin below accounts only for source-coordinate arithmetic;
+    it is not a spatial proximity or a garment acceptance tolerance.
+    Single anchors and nonperiodic material coordinates retain their mapping.
+    """
     names = semantic.get('guide_edges', {})
     if 'anchor' not in names:
         raise StudioError('Specialised guide requires an explicitly named source anchor edge')
@@ -310,7 +318,34 @@ def _source_anchor(piece, semantic):
                 anchors.append([a[i]+remaining/size*(b[i]-a[i]) for i in (0, 1)])
                 break
             remaining -= size
-    return [sum(p[i] for p in anchors)/len(anchors) for i in (0, 1)]
+    result = [sum(p[i] for p in anchors)/len(anchors) for i in (0, 1)]
+    if periodic_u is None or len(anchors) == 1:
+        return result
+    if (not isinstance(periodic_u, (list, tuple)) or len(periodic_u) != 2 or
+            any(type(value) not in (int, float) or not math.isfinite(value) for value in periodic_u)):
+        raise StudioError('Periodic source anchor needs a finite material U origin and width')
+    minimum, width = periodic_u
+    if width <= 0 or not math.isfinite(minimum+width):
+        raise StudioError('Periodic source anchor needs a positive finite material U interval')
+    maximum = minimum+width
+    margin = 32*max(math.ulp(value) for value in (minimum, maximum, width, *(p[0] for p in anchors)))
+    if margin >= width/4:
+        raise StudioError('Periodic source anchor interval is not resolved by source coordinate precision')
+    if any(not minimum-margin <= p[0] <= maximum+margin for p in anchors):
+        raise StudioError('Periodic source anchor midpoint lies outside its material U interval')
+
+    def normalized(value):
+        value %= width
+        return 0. if min(value, width-value) <= margin else value
+
+    positions = sorted(normalized(p[0]-minimum) for p in anchors)
+    separation = positions[1]-positions[0]
+    if abs(separation-width/2) <= margin:
+        raise StudioError('Antipodal source anchor midpoints have an ambiguous collar phase')
+    # Sort before unwrapping so swapping anchor/anchor_end has the same result.
+    midpoint = (positions[0]+positions[1]-(width if separation > width/2 else 0.))/2
+    result[0] = minimum+normalized(midpoint)
+    return result
 
 
 def _world(profile, point):
@@ -357,7 +392,11 @@ def specialised_volume_frames(data, semantics, profile):
             raise StudioError('Specialised guide requires a finite immutable 2D source contour: '+pid)
         if semantic.get('longitudinal_uv_axis') not in ('u', 'v'):
             raise StudioError('Specialised guide requires its explicit material axis: '+pid)
-        anchor_uv = _source_anchor(piece, semantic)
+        periodic_u = None
+        if role == 'collar':
+            minimum_u = min(p[0] for p in piece['vertices'])
+            periodic_u = (minimum_u, max(p[0] for p in piece['vertices'])-minimum_u)
+        anchor_uv = _source_anchor(piece, semantic, periodic_u=periodic_u)
         offset = semantic.get('guide_surface_offset_cm', 0.)
         if type(offset) not in (int, float) or not math.isfinite(offset) or not 0 <= offset <= 20:
             raise StudioError('Guide surface offset must be explicit, finite and bounded')

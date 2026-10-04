@@ -1,12 +1,14 @@
 import copy
 import math
 import unittest
+from unittest.mock import patch
 
 from a3d.core import StudioError, digest
-from a3d.garment_guides import specialised_volume_frames, garment_volume_frames, limb_volume_frames
+from a3d.garment_guides import specialised_volume_frames, garment_volume_frames, limb_volume_frames, _source_anchor, _world
 from a3d.pattern_assembly import _compile_cage, _cage_point
 from a3d.sewing import edge_chain, sample_chain
 from a3d.preform_volume import sample_curve
+from a3d.cloth_metrics import principal_stretches
 from a3d.shoulder_surface import measured_surface_shoulders
 from a3d.head_surface import measured_head_surface
 from a3d.torso_sections import apply_measured_sections
@@ -53,7 +55,152 @@ def limb_fixture(role='sleeve', side='right'):
     return data, {'limb': semantic}, profile
 
 
+def collar_fixture(width=40., minimum_u=0.):
+    profile = fixture()[2]
+    points = [[minimum_u+u, v] for u, v in
+              ((0., 0.), (1., 0.), (2., 0.), (width/2, 0.),
+               (width-2., 0.), (width-1., 0.), (width, 0.), (width, 6.), (0., 6.))]
+    piece = {'vertices': points, 'edges': {'inner-left': [0, 1, 2], 'inner-right': [4, 5, 6],
+                                          'closure-left': [8, 0], 'closure-right': [6, 7]}}
+    semantic = {'role': 'collar', 'side': 'center', 'longitudinal_uv_axis': 'u',
+                'guide_edges': {'anchor': 'inner-left', 'anchor_end': 'inner-right'}}
+    return {'pieces': {'collar': piece}}, {'collar': semantic}, profile
+
+
 class GarmentGuides(unittest.TestCase):
+    def test_periodic_collar_anchors_join_at_profile_front_with_source_identity_preserved(self):
+        data, semantics, profile = collar_fixture()
+        before = digest([data, semantics, profile])
+        result = specialised_volume_frames(data, semantics, profile)
+        frame = result['panels']['collar']; row = frame['arc_sections'][0]
+        first = sample_curve(row['curve_cm'], row['arc_offset_cm'])
+        last = sample_curve(row['curve_cm'], row['arc_offset_cm']+40.)
+        self.assertLess(math.dist(first, last), 1e-8)
+        # The reference front comes from the measured neck's centre/aspect
+        # and the unchanged source perimeter, in the declared body frame.
+        from a3d.preform_volume import half_ellipse
+        section = profile['landmarks']['neck']['section']; lo, hi = section['bounds_xy_cm']
+        centre = [(lo[k]+hi[k])/2 for k in (0, 1)]
+        front = half_ellipse(20., (hi[0]-lo[0])/(hi[1]-lo[1]), centre, section['height_cm'], 1)[-1]
+        self.assertLess(math.dist(first, _world(profile, front)), 1e-9)
+        self.assertEqual(result['guides'][0]['source_anchor_uv_cm'], [0., 0.])
+        self.assertEqual(result['qualification'], 'NONE'); self.assertEqual(result['fitting'], 'NOT_EXECUTED')
+        self.assertEqual(digest([data, semantics, profile]), before)
+
+    def test_periodic_collar_anchor_order_preserves_exact_frame(self):
+        data, semantics, profile = collar_fixture(48.834424)
+        expected = specialised_volume_frames(data, semantics, profile)
+        names = semantics['collar']['guide_edges']
+        names['anchor'], names['anchor_end'] = names['anchor_end'], names['anchor']
+        before = digest([data, semantics, profile])
+        actual = specialised_volume_frames(data, semantics, profile)
+        self.assertEqual(actual['panels'], expected['panels'])
+        self.assertEqual(actual['guides'][0]['source_anchor_uv_cm'], expected['guides'][0]['source_anchor_uv_cm'])
+        self.assertEqual(digest([data, semantics, profile]), before)
+
+    def test_periodic_collar_material_u_translation_preserves_world_mapping(self):
+        for width in (40., 48.834424):
+            base = specialised_volume_frames(*collar_fixture(width))['panels']['collar']
+            for minimum_u in (-100.125, 37., 1024.):
+                data, semantics, profile = collar_fixture(width, minimum_u)
+                before = digest([data, semantics, profile])
+                result = specialised_volume_frames(data, semantics, profile)
+                frame = result['panels']['collar']
+                self.assertEqual(result['guides'][0]['source_anchor_uv_cm'], [minimum_u, 0.])
+                self.assertEqual(len(frame['arc_sections'][0]['curve_cm']), len(base['arc_sections'][0]['curve_cm']))
+                for source_u in (0., 1., 13., width-1., width):
+                    for row, original in zip(frame['arc_sections'], base['arc_sections']):
+                        self.assertLess(math.dist(sample_curve(row['curve_cm'], row['arc_offset_cm']+source_u+minimum_u),
+                                                  sample_curve(original['curve_cm'], original['arc_offset_cm']+source_u)), 1e-9)
+                self.assertEqual(digest([data, semantics, profile]), before)
+
+    def test_periodic_collar_uses_rotated_declared_body_frame(self):
+        data, semantics, profile = collar_fixture()
+        base = specialised_volume_frames(data, semantics, profile)['panels']['collar']
+        # World transform: (x,y,z) -> (3-y,4+x,5+z), with source profile
+        # coordinates unchanged. Neither world side nor origin is hardcoded.
+        basis = profile['frame']
+        basis['origin_cm'] = [3., 4., 5.]
+        for name in ('right', 'forward', 'up'):
+            x, y, z = basis[name]; basis[name] = [-y, x, z]
+        before = digest([data, semantics, profile])
+        result = specialised_volume_frames(data, semantics, profile)['panels']['collar']
+        for expected, observed in zip(base['arc_sections'], result['arc_sections']):
+            self.assertEqual(len(expected['curve_cm']), len(observed['curve_cm']))
+            for p, q in zip(expected['curve_cm'], observed['curve_cm']):
+                self.assertLess(math.dist(q, [3.-p[1], 4.+p[0], 5.+p[2]]), 1e-9)
+        self.assertEqual(digest([data, semantics, profile]), before)
+
+    def test_periodic_anchor_normalizes_wrap_arithmetic_and_preserves_v_mean(self):
+        # This decimal interval reproduces the two inverse-anchor results
+        # U=0 / U=width-1e-14, which must be the same canonical source phase.
+        for minimum_u in (0., -37., 1000.):
+            data, semantics, _ = collar_fixture(48.834424, minimum_u)
+            piece = data['pieces']['collar']; row = semantics['collar']
+            for index, v in ((0, 2.), (1, 3.), (2, 4.), (4, 6.), (5, 5.), (6, 4.)):
+                piece['vertices'][index][1] = v
+            width = max(p[0] for p in piece['vertices'])-minimum_u
+            before = digest([piece, row])
+            anchor = _source_anchor(piece, row, periodic_u=(minimum_u, width))
+            self.assertEqual(anchor, [minimum_u, 4.])
+            reverse = copy.deepcopy(row)
+            reverse['guide_edges']['anchor'], reverse['guide_edges']['anchor_end'] = reverse['guide_edges']['anchor_end'], reverse['guide_edges']['anchor']
+            self.assertEqual(_source_anchor(piece, reverse, periodic_u=(minimum_u, width)), anchor)
+            self.assertEqual(digest([piece, row]), before)
+
+    def test_antipodal_periodic_anchor_and_unresolved_source_precision_refuse(self):
+        data, semantics, profile = collar_fixture()
+        piece = data['pieces']['collar']
+        piece['vertices'][4][0] = 22.
+        semantics['collar']['guide_edges']['anchor_end'] = 'antipodal'
+        piece['edges']['antipodal'] = [3, 4]  # midpoint U=21 versus U=1
+        before = digest([data, semantics, profile])
+        with self.assertRaisesRegex(StudioError, 'Antipodal'):
+            specialised_volume_frames(data, semantics, profile)
+        self.assertEqual(digest([data, semantics, profile]), before)
+        piece, row = collar_fixture()[0]['pieces']['collar'], collar_fixture()[1]['collar']
+        for interval in ((0., 0.), (0., float('nan')), (True, 40.), (0., float('inf')), (1e20, 40.)):
+            with self.subTest(interval=interval), self.assertRaises(StudioError):
+                _source_anchor(piece, row, periodic_u=interval)
+
+    def test_legacy_single_collar_anchor_is_unchanged(self):
+        data, semantics, profile = collar_fixture()
+        del semantics['collar']['guide_edges']['anchor_end']
+        piece, row = data['pieces']['collar'], semantics['collar']
+        self.assertEqual(_source_anchor(piece, row), _source_anchor(piece, row, periodic_u=(0., 40.)))
+        expected = specialised_volume_frames(data, semantics, profile)
+        with patch('a3d.garment_guides._source_anchor', side_effect=lambda p, s, **kwargs: _source_anchor(p, s)):
+            legacy = specialised_volume_frames(data, semantics, profile)
+        self.assertEqual(expected, legacy)
+
+    def test_other_roles_keep_arithmetic_source_anchor_with_two_edges(self):
+        data, semantics, profile = collar_fixture()
+        semantics['collar'].update(role='inner_front', longitudinal_uv_axis='v')
+        before = digest([data, semantics, profile])
+        result = specialised_volume_frames(data, semantics, profile)
+        self.assertEqual(result['guides'][0]['source_anchor_uv_cm'], [20., 0.])
+        self.assertEqual(result['guides'][0]['guide_kind'], 'SOURCE_ISOMETRIC_CENTRAL_FRONT_PLANE')
+        self.assertEqual(digest([data, semantics, profile]), before)
+
+    def test_periodic_collar_phase_preserves_developable_band_metrics(self):
+        data, semantics, profile = collar_fixture()
+        corrected = specialised_volume_frames(data, semantics, profile)['panels']['collar']
+        with patch('a3d.garment_guides._source_anchor', side_effect=lambda p, s, **kwargs: _source_anchor(p, s)):
+            old_phase = specialised_volume_frames(data, semantics, profile)['panels']['collar']
+        def placed(frame, uv):
+            row = frame['arc_sections'][0]
+            base = sample_curve(row['curve_cm'], row['arc_offset_cm']+uv[0])
+            upper = sample_curve(frame['arc_sections'][1]['curve_cm'], row['arc_offset_cm']+uv[0])
+            return [base[k]+uv[1]/6*(upper[k]-base[k]) for k in range(3)]
+        for u in (0., .25, 3.125, 19.75, 39.75):
+            triangle = [[u, 0.], [u+.25, 0.], [u, 6.]]
+            old = principal_stretches(triangle, [placed(old_phase, uv) for uv in triangle])
+            new = principal_stretches(triangle, [placed(corrected, uv) for uv in triangle])
+            for a, b in zip(old, new):
+                self.assertAlmostEqual(a, b, places=10)
+                self.assertGreater(b, .99); self.assertLessEqual(b, 1.+1e-9)
+            self.assertAlmostEqual(math.dist(placed(corrected, [u, 0.]), placed(corrected, [u, 6.])), 6.)
+
     def test_tapered_unary_source_seam_has_exact_shared_cage_boundary_without_input_change(self):
         data, semantics, profile = limb_fixture(); before = digest([data, semantics, profile])
         report = limb_volume_frames(data, semantics, profile); frame = report['panels']['limb']
