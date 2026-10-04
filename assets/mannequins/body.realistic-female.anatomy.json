@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "source_geometry_sha256": "de37085affc415dcbb7e207491050fd76e79ac8bd962a8cd3e1ed7eebd9938d3",
+  "source_ref": {
+    "path": "assets/mannequins/realistic-female-v1.blend",
+    "sha256": "a5f567f931d903339f4881cbf4910306f48511dcf14ef50dbff06a9e901e77e5"
+  },
+  "torso_regions": [
+    1,
+    17,
+    18,
+    19
+  ],
+  "joints": {
+    "shoulder.right": [
+      1,
+      20
+    ],
+    "shoulder.left": [
+      1,
+      21
+    ],
+    "elbow.right": [
+      20,
+      11
+    ],
+    "elbow.left": [
+      21,
+      12
+    ],
+    "wrist.right": [
+      11,
+      10
+    ],
+    "wrist.left": [
+      12,
+      9
+    ],
+    "hip.right": [
+      18,
+      23
+    ],
+    "hip.left": [
+      18,
+      24
+    ],
+    "knee.right": [
+      23,
+      16
+    ],
+    "knee.left": [
+      24,
+      15
+    ],
+    "ankle.right": [
+      16,
+      13
+    ],
+    "ankle.left": [
+      15,
+      14
+    ],
+    "neck.base": [
+      1,
+      17
+    ]
+  },
+  "joint_ring_vertex_counts": {
+    "neck.base": 54
+  },
+  "centers": {
+    "head.center": [
+      17
+    ],
+    "hand.left": [
+      9
+    ],
+    "hand.right": [
+      10
+    ],
+    "foot.left": [
+      14
+    ],
+    "foot.right": [
+      13
+    ],
+    "pelvis.center": [
+      18
+    ]
+  },
+  "region_to_bone": {
+    "1": "spine.upper",
+    "17": "head",
+    "18": "pelvis",
+    "19": "spine.lower",
+    "20": "upper_arm.right",
+    "21": "upper_arm.left",
+    "11": "forearm.right",
+    "12": "forearm.left",
+    "9": "hand.left",
+    "10": "hand.right",
+    "23": "thigh.right",
+    "24": "thigh.left",
+    "15": "shin.left",
+    "16": "shin.right",
+    "13": "foot.right",
+    "14": "foot.left",
+    "2": "head",
+    "3": "head",
+    "4": "head",
+    "5": "head",
+    "7": "head",
+    "8": "head",
+    "22": "head",
+    "26": "foot.right",
+    "27": "foot.right",
+    "28": "foot.right",
+    "29": "foot.right",
+    "30": "foot.right",
+    "31": "foot.right",
+    "32": "foot.right",
+    "33": "foot.right",
+    "34": "foot.right",
+    "35": "foot.right",
+    "36": "foot.right",
+    "37": "foot.right",
+    "38": "foot.right",
+    "39": "foot.right",
+    "40": "foot.right",
+    "41": "foot.right",
+    "42": "foot.right",
+    "43": "foot.right",
+    "44": "foot.right",
+    "45": "foot.right",
+    "25": "foot.left",
+    "46": "foot.left",
+    "47": "foot.left",
+    "48": "foot.left",
+    "49": "foot.left",
+    "50": "foot.left",
+    "51": "foot.left",
+    "52": "foot.left",
+    "53": "foot.left",
+    "54": "foot.left",
+    "55": "foot.left",
+    "56": "foot.left",
+    "57": "foot.left",
+    "58": "foot.left",
+    "59": "foot.left",
+    "60": "foot.left",
+    "61": "foot.left",
+    "62": "foot.left",
+    "63": "foot.left",
+    "64": "hand.left",
+    "65": "hand.left",
+    "66": "hand.left",
+    "67": "hand.left",
+    "68": "hand.left",
+    "69": "hand.left",
+    "70": "hand.left",
+    "71": "hand.left",
+    "72": "hand.left",
+    "73": "hand.left",
+    "74": "hand.left",
+    "75": "hand.left",
+    "76": "hand.left",
+    "77": "hand.left",
+    "78": "hand.left",
+    "79": "hand.left",
+    "80": "hand.left",
+    "81": "hand.left",
+    "82": "hand.left",
+    "83": "hand.left",
+    "84": "hand.right",
+    "85": "hand.right",
+    "86": "hand.right",
+    "87": "hand.right",
+    "88": "hand.right",
+    "89": "hand.right",
+    "90": "hand.right",
+    "91": "hand.right",
+    "92": "hand.right",
+    "93": "hand.right",
+    "94": "hand.right",
+    "95": "hand.right",
+    "96": "hand.right",
+    "97": "hand.right",
+    "98": "hand.right",
+    "99": "hand.right",
+    "100": "hand.right",
+    "101": "hand.right",
+    "102": "hand.right",
+    "103": "hand.right"
+  },
+  "anatomical_review": "REQUIRED",
+  "source_region_review": "Exact shared rings inspected; extra four-vertex neck annotations excluded by explicit 54-vertex ring identity"
+}

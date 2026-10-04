@@ -574,12 +574,15 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
     initial_gap=max((distance(start[a],start[b]) for a,b in pairs),default=0.)
     history=[];maximum_displacement=0.;coords=start;frame=0;final_quality=None
     previous=None;previous_frame=None;evaluated_frame=0;motion=None;final_checks=None
-    contact=None;context=None
+    contact=None;context=None;monitor=None
     try:
         from blender.cloth_contacts import build_contact_context,check_contacts,check_motion
         from a3d.cloth_metrics import face_sources
         source_metrics=face_sources(payload)
         profile=recipe['phases'][phase]
+        if profile.get('execution_control'):
+            from a3d.simulation_control import ConvergenceMonitor
+            monitor=ConvergenceMonitor(profile['execution_control'],profile['fps'],profile['frames'],recipe['limits']['max_seam_gap_cm'])
         policy=payload.get('pattern_assembly',{}).get('contact_policy',{})
         clearance=policy.get('clearance_cm',0.)
         context=build_contact_context(payload,colliders,clearance_cm=clearance,
@@ -602,6 +605,7 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
         if not contact['ok']:
             raise contact_refusal(contact,initial=True)
         for frame in range(1,recipe["phases"][phase]["frames"]+1):
+            if monitor:monitor.before_frame()
             previous=coords;previous_frame=evaluated_frame
             bpy.context.scene.frame_set(frame)
             # Explicit depsgraph evaluation on EVERY frame, not just frame_set or
@@ -630,6 +634,8 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
             if not contact['ok']:
                 raise contact_refusal(contact)
             if maximum_displacement>recipe["limits"]["max_displacement_cm"]:raise StudioError("Cloth displacement budget exceeded; diagnose the local case")
+            if monitor and monitor.observe(frame,coords,gap,True):break
+        if monitor:monitor.require_convergence()
         verify_physics(obj,expected)
         quality_error=None
         try:final_quality=simulation_quality(payload,coords,recipe['mesh'])
@@ -654,6 +660,7 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
         if pairs and initial_gap>recipe["limits"]["max_seam_gap_cm"] and final_gap>=initial_gap*.95:
             raise StudioError("No measured sewing improvement")
         return coords,{"simulation":"PASS","phase":phase,"mass":mass,"executed":expected,"frames":history,"final_quality":final_quality,"final_checks":final_checks,
+            'execution_control':monitor.report() if monitor else {'mode':'FIXED_FRAME_BUDGET','convergence':'NOT_QUALIFIED'},
             'validation_contract':evidence,'final_contact':final_contact,
             "max_penetration_cm":penetration,"initial_gap_cm":initial_gap,"final_gap_cm":final_gap,
             "centroid_start_cm":[sum(p[k] for p in start)/len(start) for k in range(3)],
@@ -680,7 +687,9 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
                 geometry=failure_geometry(payload,coords,start,recipe,penetrations)
                 geometry['motion']=motion_metrics(payload,coords,start,evaluated_frame,previous,previous_frame,
                     recipe['limits']['max_displacement_cm'])
-                save_diagnostic({'error':str(exc),'frame':frame,'expected_execution':expected,'executed':observed,'frames':history,'final_quality':final_quality,'final_checks':final_checks,
+                save_diagnostic({'error':str(exc),'frame':evaluated_frame,'requested_frame':frame,'expected_execution':expected,'executed':observed,'frames':history,'final_quality':final_quality,'final_checks':final_checks,
+                    'simulation_outcome':getattr(exc,'simulation_outcome','FAIL'),
+                    'execution_control':monitor.report() if monitor else {'mode':'FIXED_FRAME_BUDGET','convergence':'NOT_QUALIFIED'},
                     'contact':getattr(exc,'contact_report',contact),
                     'geometry':geometry})
             except Exception as diagnostic_error:
@@ -957,15 +966,16 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope,purpose='fit
             'mass':report['mass'],'final_gap_cm':report['final_gap_cm'],'visual_validation':'NOT_EXECUTED'}
     except BaseException as exc:
         if scope=='full':counters['full_failures']+=1;atomic_json(counter_path,counters)
-        atomic_json(attempt_dir/'failure.json',{'error':str(exc),'scope':scope,'binding':binding,'simulation':'FAIL',
-            'execution_stage':execution_stage,'backend_probe_simulation':'FAIL' if execution_stage=='backend_probe' else 'PASS' if scope=='local' else 'NOT_EXECUTED',
-            'garment_simulation':'NOT_EXECUTED' if execution_stage=='backend_probe' else 'FAIL',
+        outcome=getattr(exc,'simulation_outcome','FAIL')
+        atomic_json(attempt_dir/'failure.json',{'error':str(exc),'scope':scope,'binding':binding,'simulation':outcome,
+            'execution_stage':execution_stage,'backend_probe_simulation':outcome if execution_stage=='backend_probe' else 'PASS' if scope=='local' else 'NOT_EXECUTED',
+            'garment_simulation':'NOT_EXECUTED' if execution_stage=='backend_probe' else outcome,
             'diagnostic':diagnostic_ref,'placement':placement_ref,'notes':getattr(exc,'__notes__',[])})
         if scope=='local':
             # Latest qualification is a projection; immutable prior attempt
             # results remain on disk, but a newer failed local cannot admit full.
-            atomic_json(local_path,{'binding':binding,'simulation':'FAIL','execution_stage':execution_stage,
-                'diagnostic':diagnostic_ref,'garment_simulation':'NOT_EXECUTED' if execution_stage=='backend_probe' else 'FAIL'})
+            atomic_json(local_path,{'binding':binding,'simulation':outcome,'execution_stage':execution_stage,
+                'diagnostic':diagnostic_ref,'garment_simulation':'NOT_EXECUTED' if execution_stage=='backend_probe' else outcome})
         raise
     finally:
         if scope=='local':

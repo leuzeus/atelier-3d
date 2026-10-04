@@ -5,6 +5,14 @@ description: Orchestrer un projet de production 3D local reprenable à partir de
 
 # 3d-project
 
+Dès l'ajout de tout mannequin destiné à un vêtement, suivre
+[la préparation du corps cible](../../references/garment-body-target.md),
+qu'il provienne du catalogue, d'un import ou de la scène. Reprendre les
+mensurations prévues dans le dossier, préparer une variante séparée si
+nécessaire, mesurer ses proportions et les présenter pour revue avant le
+fitting. Une stature seule ne qualifie pas les tours ni l'enfilage. Conserver
+les cibles déjà approuvées ; ne pas réduire le corps pour masquer un échec.
+
 Suivre [la reprise après un refus](../../references/preparation-recovery.md).
 Distinguer une limite du logiciel d'une erreur de préparation : pour une limite,
 informer l'utilisateur et lui faire choisir entre conserver la technique

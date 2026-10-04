@@ -28,6 +28,13 @@ def inventory(root=ROOT):
                     raise ValueError("File escaped package root")
                 if path.name in ("config.local.json","runtime.local.json",".env"): raise ValueError("Local configuration cannot be distributed")
                 files.append(path)
+    # Blend files stay excluded everywhere except the two selected catalog
+    # assets, whose names, bytes, source provenance and notice are verified.
+    catalog_path = root/'assets/mannequins/catalog.json'
+    if catalog_path.is_file():
+        sys.path.insert(0, str(root))
+        from a3d.mannequins import distribution_files
+        files.extend(distribution_files(root))
     return sorted(files,key=lambda p:p.relative_to(root).as_posix())
 
 def build(destination):

@@ -26,11 +26,19 @@ le précise le [contrat de production](production.md).
 - [Templates ComfyUI : usages, paramètres et réutilisation](../workflows/comfy/README.md)
 - [Intégration du MCP officiel ComfyUI](comfy-official.md)
 
+## Préversion textile 0.7.0-rc.2
+
+- [Automatisation : capacités, preuves et limites de développement](garment-automation.md)
+- [Mensurations : contrôles existants et travaux restant à réaliser](mannequin-measurements.md)
+- [Catalogue hors ligne des deux bases réalistes](../assets/mannequins/catalog.json)
+- [Provenance et licence CC0](../assets/mannequins/NOTICE-CC0.md)
+
 ## Blender et préparation textile
 
 - [Protocole Blender et autorisation du code](blender.md)
 - [Continuité native, checkpoints et reprise](blender-continuity.md)
 - [Choisir explicitement le corps source](body-source.md)
+- [Dimensionner et mesurer le mannequin pour le vêtement](garment-body-target.md)
 - [Préparation native des patrons](pattern-preparation.md)
 - [Assemblage depuis les patrons approuvés](pattern-assembly.md)
 - [Du board à la toile cousue](sewn-toile.md)

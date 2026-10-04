@@ -123,7 +123,8 @@ def select_colliders(layers, layer_id):
 def layer_collision_selection(payload, plan, collider_roles=None):
     """Select one native Cloth obstacle collection; never merge active layers.
 
-    Multiple current garment layers need separately sequenced simulations.
+    Independent current garment groups need separately sequenced simulations.
+    An explicitly bound permanent cohort can use one joint native Cloth object.
     External inner garments may contribute evaluated collider cages when
     their DAG order and sourced outward sides are explicit.
     """
@@ -135,6 +136,39 @@ def layer_collision_selection(payload, plan, collider_roles=None):
         name for node in layers['nodes'] for name in node['colliders']]
     validation = validate_layers(payload, layers, colliders)
     active = [node['id'] for node in layers['nodes'] if node['panels']]
+    execution = plan.get('layer_execution')
+    if validation['status'] != 'NEEDS_CLARIFICATION' and len(active) > 1 and execution:
+        _reference(execution['source_ref'])
+        from .pattern_assembly import map_digest
+        mapping = payload.get('source_mapping_sha256') if payload.get('rest_mode') == 'assembled_3d' else map_digest(payload)
+        graph = sewing_graph_digest(payload)
+        if execution.get('mode') != 'joint_coupled_single_object' or execution.get('version') != 1:
+            _error('Unsupported native layer execution mode', 'layers')
+        if execution.get('source_mapping_sha256') != mapping or execution.get('sewing_graph_sha256') != graph:
+            _error('Joint layer execution is stale for the source mapping or sewing graph', 'geometry_safety')
+        parents = {pid: pid for pid in payload['panels']}
+        def find(pid):
+            while parents[pid] != pid:
+                parents[pid] = parents[parents[pid]]; pid = parents[pid]
+            return pid
+        def union(a, b):
+            a, b = find(a), find(b); parents[max(a, b)] = min(a, b)
+        for node in layers['nodes']:
+            for pid in node['panels'][1:]: union(node['panels'][0], pid)
+            if node['panels'] and node['colliders']:
+                _error('Joint active panels cannot also be declared frozen collider objects', 'layers')
+        for sid, seam in payload['seams'].items():
+            a, b = seam.get('piece_a'), seam.get('piece_b')
+            if a not in parents or b not in parents:
+                _error('Joint native group needs source identities on every sewing link: '+sid, 'layers')
+            if seam['kind'] == 'permanent': union(a, b)
+        if len({find(pid) for pid in parents}) != 1:
+            return {'status': 'NEEDS_CLARIFICATION', 'reason': 'SEPARATE_UNCOUPLED_GROUPS_REQUIRED',
+                    'active_layers': active, 'colliders': [], 'qualification': 'NONE'}
+        return {'status': 'LAYER_COLLIDERS_SELECTED', 'active_layers': sorted(active),
+                'colliders': sorted(set().union(*(set(select_colliders(layers, lid)) for lid in active))),
+                'execution': 'joint_coupled_single_object', 'sewing_graph_sha256': graph,
+                'interaction': 'joint_self_collision_and_one_way_external', 'qualification': 'NONE'}
     if validation['status'] == 'NEEDS_CLARIFICATION' or len(active) != 1:
         return {'status': 'NEEDS_CLARIFICATION',
                 'reason': 'SEPARATE_PER_LAYER_NATIVE_SIMULATIONS_REQUIRED' if len(active) != 1 else validation['reason'],
@@ -142,6 +176,24 @@ def layer_collision_selection(payload, plan, collider_roles=None):
     return {'status': 'LAYER_COLLIDERS_SELECTED', 'active_layer': active[0],
             'colliders': select_colliders(layers, active[0]),
             'interaction': 'one_way_declared', 'qualification': 'NONE'}
+
+
+def sewing_graph_digest(payload):
+    """Link types and source owners remain bound across geometric consolidation."""
+    return digest({sid: {key: seam.get(key) for key in ('piece_a', 'piece_b', 'kind')}
+                   for sid, seam in sorted(payload['seams'].items())})
+
+
+def rebind_layer_execution(plan, payload):
+    """Rebind a regular derived map only when the source link graph is unchanged."""
+    result = copy.deepcopy(plan)
+    execution = result.get('layer_execution')
+    if execution:
+        if execution['sewing_graph_sha256'] != sewing_graph_digest(payload):
+            _error('Regular preparation changed the declared source sewing graph; review a new plan', 'layers')
+        from .pattern_assembly import map_digest
+        execution['source_mapping_sha256'] = map_digest(payload)
+    return result
 
 
 def validate_dressing(payload, plan, collider_ids=()):
