@@ -513,3 +513,36 @@ ces preuves des anciennes campagnes et de l'acceptation du manteau.
 Le devant intérieur, le col, les contacts et la couverture restent à traiter.
 Le mannequin accepté et les patrons sont conservés. Aucune aisance globale,
 physique, fitting ou revue artistique n'est admise par ce seul témoin du dos.
+
+
+### Alignement sourcé du devant intérieur — source59
+
+Le commit `7996345` calcule une rotation propre et une translation depuis tous
+les homologues permanents attendus entre les rôles `inner_front` et `front`.
+Les UV, patrons, crans, partenaires du torse et corps sont conservés. Le noyau
+Horn utilise au plus 64 rotations Jacobi, dans le budget et le délai partagés.
+Les liens au col restent explicitement partiels ; aucun READY global n'est émis.
+Les empreintes incluent le nouveau calcul et les rôles transmis. Les appels
+historiques sans rôles conservent leurs reçus SOURCE57 exacts.
+
+Les 1 072 tests intégrés passent en 192,915 s, lancement 194,343 s, sur les
+509 fichiers figés de source59. Les 14 contrats indépendants passent aussi.
+La revue indépendante reproduit 81 tests ciblés, neuf sondes supplémentaires
+et tous les champs substantifs du replay, avec sources et références conservées.
+Les ajouts documentaires présents sont postérieurs à cette capture.
+
+L'écart maximal des 34 homologues passe de 20,151141 à 1,064999 cm ; le RMS
+pondéré de 15,512012 à 0,875460 cm. Le seed reste rigide et déplace certains
+contrôles de 34,630316 cm depuis le guide initial, déplacement conservé au reçu.
+Après les moyennes avec le col non corrigé, le devant intérieur garde 142 faces
+de cage hors [0,9 ; 1,1] : son maximum diminue de 88,942242 à 63,663509, mais
+son minimum se dégrade de 0,080311 à 0,068041. Le triangle historique8082,
+évalué aux mêmes UV sur ces cages, reste refusé à un maximum de 1,863016.
+Ces métriques portent sur des cages auxiliaires, sans qualification du maillage
+textile régulier, des contacts, du Cloth ou du fitting.
+
+Le [reçu de l'alignement](automation-rigid-alignment-evidence-20261004.json)
+lie le code, les tests et les observations. La correction conjointe de
+l'encolure, le conditionnement à 15°, les contacts et la couverture restent
+à réaliser avant l'admission L5. Aucun succès du seed ou des tests ne devient
+une acceptation du manteau, une préversion finale ou une installation.
