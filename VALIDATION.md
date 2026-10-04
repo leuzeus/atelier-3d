@@ -2,6 +2,26 @@
 
 ## Programme en développement — 2026-10-04
 
+L'unité suivante poursuit l'accord numérique d'aisance ample. Son
+[suivi séparé](references/automation-ease-followup-20261004.md) distingue la
+variante calculée des patrons, les guides et l'acceptation encore requise.
+Source figée 43, code `49ade3c` : 868 tests portables PASS en 103,96 s,
+29 contrats JSON PASS, zéro FAIL et trois SKIP. Les groupes textiles natifs
+v16 passent en 36,28 s et le cas natif de cage source v2 en 4,03 s.
+Le [reçu de cette unité](references/automation-ease-evidence-20261004.json)
+conserve les empreintes et la portée de chaque essai. La campagne 41 de
+857 tests reste historique. Ces essais sont limités au logiciel et aux cas
+synthétiques. Les valeurs numériques et les deux nouveaux
+patrons de manches sont acceptés dans leurs portées distinctes ; la couverture
+du devant et le fitting restent à vérifier.
+La compilation MAIN v8 produit sept chemins proposés et refuse la poitrine :
+un segment de l'ancienne préparation native ne suit pas le vrai bord source.
+Les témoins de coutures résolvent les ambiguïtés d'arrondi sans élargir les
+tolérances. Les chemins proposés restent non qualifiés pour le fitting.
+
+Les observations suivantes concernent l'intégration antérieure sur la source
+37 ; leurs preuves et limites restent conservées.
+
 Les observations actuelles et leurs limites sont détaillées dans
 [le programme](references/automation-program.md) et
 [les preuves d'automatisation](references/automation-validation.md).
@@ -30,8 +50,8 @@ les identités des campagnes et la vérification des octets du code commité.
 - Préparation principale v8 : 15 pièces générées, trois composants refusés.
   Épaules et haut du torse pénétrants, déformation métrique dépassant les limites,
   ceinture avec réserve insuffisante. Aucun Cloth ni fitting principal exécuté.
-- Coupe ample retenue par l'utilisateur ; valeurs numériques proposées pour
-  revue. Le mannequin accepté ne change pas. Toute gradation produit une
+- Coupe ample retenue par l'utilisateur ; valeurs numériques encore proposées
+  dans cette intégration antérieure. Le mannequin accepté ne change pas. Toute gradation produit une
   variante séparée à examiner avant construction et acceptation.
 
 ## Préversion textile 0.7.0-rc.2 — 2026-10-03

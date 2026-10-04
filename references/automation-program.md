@@ -466,6 +466,63 @@ confiance native hooks reste gérée par Codex.
   Le code intégré est enregistré dans le commit `12e3dc2` ; la documentation
   et les preuves de cette unité forment un commit séparé.
 
+### Poursuite après accord numérique du 4 octobre 2026
+
+La réponse « ok continue avec ca » accepte les valeurs de la fiche d’aisance
+proposée et le haut léger sous le manteau. La décision canonique
+`ease-design.garment.coat` référence la fiche, le dossier et le corps exacts.
+Le mannequin reste inchangé. Cette décision de conception n’accorde pas la
+revue des nouveaux patrons, l’homologie des chemins, l’admission physique d’une
+fiche complète ni le fitting. La gate `fit-intent.garment.coat` reste absente.
+
+Les guides de manches utilisent maintenant les intervalles matériels source
+et leurs partenaires de couture, dans le contrat de cage barycentrique existant.
+Le cylindre précédent supposait une largeur constante de 36 cm, alors que la
+largeur source varie de 29 à 36 cm. Sur les 1 494 triangles UV natifs intacts de
+chaque manche, les chemins obliques corrigés se ferment à moins de 10⁻⁸ cm.
+Leur longueur de matière reste 35,04424 / 35,04695 cm, inférieure aux cibles
+45,43990 / 45,47699 cm. La correction du guide ne crée pas cette matière.
+
+Compilation publique MAIN v4 : 32,39 s, huit chemins proposés, dont les deux
+manches auparavant refusées. SQLite, corps et packages sont préservés. Le
+rapport reste `FIT_PREFLIGHT_INCOMPLETE` : les chemins sont des propositions,
+la couverture du devant ouvert et la fiche complète restent à examiner.
+Les pénétrations du haut du torse observées dans la préparation v8 restent
+non corrigées par une nouvelle exécution native.
+
+Le [suivi de cette unité](automation-ease-followup-20261004.md) conserve les
+références exactes, la proposition de variante et la portée des contrôles.
+
+Les cinq raccords internes du torse utilisent maintenant une cage source
+commune ; les bords sont synchronisés par la moyenne des guides mesurés,
+sans changement des patrons ou du corps. Les raccords externes, la métrique,
+les contacts et la couverture du devant restent à contrôler. Une divergence
+de structure du rapport après JSON a été corrigée avec une régression dédiée.
+La proposition densifiée de manches conserve les vrais points matériels des
+crans ; sa gradation nominale ne qualifie pas leur homologie anatomique.
+
+Source figée 41 : 857 tests portables PASS en 129,21 s, 29 contrats JSON PASS,
+groupes textiles natifs v15 PASS en 42,34 s. La préparation portable couvre
+15 pièces et huit cages. La compilation MAIN v6 conserve cinq propositions
+et refuse trois chemins du torse sur les anciennes coordonnées UV binary32.
+Trois points sont proches d'une frontière d'arrondi : les paramètres source
+de leurs coutures enregistrées permettent une reconstruction stricte, à
+intégrer et vérifier séparément. Aucun seuil n'est élargi.
+
+Le helper de témoins de couture est intégré et revu : paramètres orientés,
+bords source, périmètre et arrondi natif exacts, sans recherche par proximité.
+Le dernier cas inverse reproduit l'ordre de calcul du préparateur officiel.
+Compilation MAIN v8 : sept propositions en 129,485 s ; poitrine encore refusée
+sur un segment de l'ancien maillage qui ne conserve pas le vrai bord. Les
+sources et SQLite restent inchangés pendant cette compilation.
+
+L'utilisateur accepte les deux patrons de manches de la variante densifiée v2,
+dans une décision liée à leur planche et package exacts. Les packages de
+production et anciennes gates restent conservés ; physique et fiche complète
+ne sont pas approuvées par cette décision. La prochaine unité de code couple
+les attaches du devant intérieur et du col depuis les vrais liens source,
+puis remesure avant de proposer les choix de couverture manquants.
+
 Aucune nouvelle acceptation du vêtement ni publication finale. Construction,
 enfilage physique, drapé, fitting complet, mouvements du vêtement et revue
 artistique finale restent à exécuter sur le candidat exact.

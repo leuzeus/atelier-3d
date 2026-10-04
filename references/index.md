@@ -50,6 +50,9 @@ le précise le [contrat de production](production.md).
 ## Fitting et diagnostics
 
 - [Classification du vêtement et aisance explicite](garment-fit-intent.md)
+- [Variantes de patrons calculées et contraintes conservées](pattern-ease-variants.md)
+- [Suivi de la correction d’aisance du 4 octobre 2026](automation-ease-followup-20261004.md)
+- [Reçu des contrôles logiciels et observations d’aisance](automation-ease-evidence-20261004.json)
 - [Sections de peau des bras et enveloppes de passage des mains](body-region-sections.md)
 - [Préparation des régions et capacités nominales des manches](limb-source-measurements.md)
 - [Reprise dans une scène vide et fitting séparé](clean-construction-fitting.md)

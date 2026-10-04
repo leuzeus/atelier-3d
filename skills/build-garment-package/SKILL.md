@@ -30,6 +30,8 @@ Pour le board à valider, appliquer le [contrat des trois volets](../../referenc
 Pour PATTERN_SEWN, suivre [la recette native de toile](../../references/sewn-toile.md) après approbation du board : contours source conservés, maillage dérivé, mannequin auxiliaire vérifié, essais gravité/couture/contact puis sous-ensemble local, simulation complète bornée et consolidation des seules coutures permanentes. Préparer les données techniques pour l’utilisateur ; ne pas lui imposer un nouveau formulaire ni faire réapprouver un board inchangé pour ajuster la physique. Après deux échecs complets, diagnostiquer le petit cas et refaire l’essai local. Examiner les rendus avant toute conclusion artistique.
 
 
+Pour une capacité source incompatible avec une aisance numériquement acceptée, utiliser `studio_prepare_pattern_ease_variant` après la décision `ease-design.<composant>` exacte. Préparer les différences, contraintes de couture et données manquantes par code ; conserver les originaux et les packages canoniques. Une densification explicitement déclarée appartient à la nouvelle variante, avec provenance et remappage ; ne pas prétendre préserver sa topologie à l’identique. La préparation ne lie pas ces packages à la production et n’accorde aucune revue de patrons ou de fitting. Présenter les fichiers dérivés exacts pour décision. Voir [les variantes calculées](../../references/pattern-ease-variants.md).
+
 Pour les vêtements, suivre [les préparations de fitting et profils régionaux](../../references/fitting-preparation.md).
 Le board décrit l'intention de matière/renfort et de plis par patron depuis les
 références originales ; quelques profils partagés restent des hypothèses.

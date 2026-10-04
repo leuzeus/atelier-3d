@@ -385,7 +385,7 @@ n'envoie pas d'interruption globale à ComfyUI.
 
 ## Inventaire des interfaces publiques
 
-Le checkout expose 42 outils après l'ajout des deux compilateurs L7. Les
+Le checkout expose 43 outils après l'ajout du préparateur de variantes de patrons. Les
 descriptions et schémas exacts se trouvent dans [tools.py](../a3d/tools.py).
 
 | Domaine | Outils |
@@ -398,6 +398,7 @@ descriptions et schémas exacts se trouvent dans [tools.py](../a3d/tools.py).
 | Opérations natives | `studio_blender_operation` |
 | Journal | `studio_create_run`, `studio_next_run_step`, `studio_run_status`, `studio_request_run_stop` |
 | Matière et enfilage | `studio_compile_material_bench`, `studio_compile_dressing_plan` |
+| Variante de patrons | `studio_prepare_pattern_ease_variant` |
 | Groupes textiles | `studio_plan_garment_assembly` |
 | Variantes et récupération ComfyUI | `studio_prepare_workflow_variant`, `studio_reconcile_comfy_job` |
 | Fournisseur ComfyUI | `comfy_health`, `comfy_capabilities`, `comfy_validate_workflow`, `comfy_upload_image`, `comfy_upload_mask`, `comfy_submit_workflow`, `comfy_run_template`, `comfy_job_status`, `comfy_job_outputs`, `comfy_cancel_job` |

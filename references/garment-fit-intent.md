@@ -39,6 +39,29 @@ et les mélanges de couches. Les recouvrements ou prises de matière sont
 déduits explicitement. Une fermeture déclarée donne une capacité nominale ;
 sa fermeture physique doit encore être observée.
 
+Un segment peut déclarer `source_uv_polyline_cm`, une suite ordonnée de points
+UV en centimètres comprenant ses deux extrémités. Celles-ci doivent correspondre
+aux ancres `from` et `to` sur les vrais bords nommés du patron, à la tolérance
+numérique de 10⁻⁷ cm. Le code remesure la somme des longueurs de tous les
+tronçons dans la matière source. Il ne remplace pas un chemin oblique par sa
+corde. Le rapport conserve les points, leurs empreintes, les longueurs des
+tronçons, la corde et la référence du package.
+
+Sans cette option, le segment droit conserve son comportement. Un chemin
+explicite est refusé s'il traverse un vide concave, se recroise, rejoint un
+point non adjacent ou recompte un tronçon de matière, y compris à l'intérieur
+d'une seule polyline. Les raccords entre patrons restent soumis aux mêmes
+relations source et fractions homologues. Une polyline proposée n'est jamais
+copiée automatiquement dans une fiche approuvée.
+
+Le calcul est borné par chemin : 4 096 points source au total, 500 000
+comparaisons de tronçons et 15 secondes par défaut. `path_budget` peut préciser
+`max_points`, `max_span_checks` et `max_seconds`, dans les limites du contrat
+(16 384 points, un million de comparaisons, 60 secondes). Un segment contient
+au plus 4 096 points. Le dépassement refuse la mesure ; il ne tronque ni ne
+simplifie le chemin pour produire un résultat. Ces contrôles remesurent une
+capacité source et ne donnent aucune acceptation de fitting ou d'aisance.
+
 Pour un devant ouvert, la longueur de matière ne constitue pas un tour fermé.
 La couverture du corps, l'écartement et les recouvrements doivent être mesurés
 sur le candidat placé. Le devant intérieur conserve sa couche et sa fonction.

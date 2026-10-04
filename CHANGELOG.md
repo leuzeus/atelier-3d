@@ -11,11 +11,16 @@
   de production liée au corps, aux patrons et aux cibles numériques revues.
 - Politiques de guides reconstructibles depuis les sources exactes, ancres UV
   conservées et projections de runs archivées sans réécrire les anciens reçus.
+- Proposition de gradation bornée à partir d'une décision d'aisance humaine,
+  comparaison des variantes et conservation matérielle des crans. Cages UV
+  communes au placement et aux mesures, raccords internes du torse synchronisés
+  depuis leurs vrais bords source ; contacts et fitting encore à vérifier.
 - Enfilage depuis des prises source, corps/colliders animés, rendus de clips,
   finition/UV/LOD, attachement rigide, export et réimportation contrôlés.
 - Limites : les essais mécaniques et de livraison sont des cas de test.
   Les épaules et le haut du torse du manteau principal restent refusés ;
-  proposition d'aisance ample à examiner, puis variante de patrons si nécessaire.
+  aisance ample numérique acceptée, variante de patrons à examiner et couverture
+  du torse ouvert à préciser.
   Construction physique, enfilage, drapé, fitting, mouvements et revue artistique
   complets restent requis. Aucune nouvelle release ou installation finale.
 
