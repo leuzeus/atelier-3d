@@ -42,8 +42,25 @@ Voir [la préparation du corps cible](garment-body-target.md),
 | --- | --- | --- |
 | `studio_select_catalog_body` | `project_root`, `asset_id`, éventuellement `target_stature_cm` et `target_provenance` ensemble | Copie une base explicitement choisie ; une stature déclarée prépare le dossier cible et son opération native |
 | `studio_prepare_body_target` | `project_root`, `selection_path`, `target_path` | Valide les cibles et prépare le code natif d'une copie mesurée ; ne l'exécute pas |
+| `studio_import_approved_design` | `project_root`, `source_project_root`, éventuellement `pattern_variant` | Introduit les décisions humaines et fichiers exacts dans un nouveau projet `INIT` ; peut composer une variante de patrons déjà revue dans sa seule portée |
 | `studio_compile_production_dossier` | `project_root`, `dossier_path`, `specification_path`, éventuellement `fit_profile_path` et `body_region_options_path` | Renvoie compilation et précontrôle du fitting ; prépare les domaines corporels sourcés si les options sont explicites |
 | `studio_plan_garment_assembly` | `project_root`, `specification_path` | Planifie groupes permanents, couches et dépendances ; ne déforme ni ne simule la scène |
+
+L'import exige le même asset et un contexte d'exécution distinct. Son option
+`pattern_variant` contient seulement `gate_name` et `decision_evidence_key` :
+elle désigne une décision humaine existante, ses preuves exactes et les pièces
+qu'elle couvre. La composition conserve les autres patrons, le dossier original
+et la planche de construction. Son reçu calculé est séparé des décisions humaines.
+Les preuves de reconstruction, physique, fitting, animation ou revue finale ne
+sont pas transférées ; aucune autorisation Blender n'est créée. La V1 refuse
+une source déjà composée et la reprise d'un import partiel. Une décision révoquée
+ou devenue périmée interdit l'admission ; une révision sans rapport reste permise.
+L'import ordinaire réserve le magasin SQLite de sa source directe ; l'import
+composé réserve aussi tous ses parents authentifiés jusqu'à la fin des admissions.
+Une décision ou preuve concurrente
+attend cette frontière ; les bases source ne sont pas modifiées. Un événement
+de début dans le nouveau projet conserve l'essai interrompu sans autoriser sa
+reprise automatique en V1.
 
 Une variante définie seulement par stature utilise un facteur uniforme dans le
 cadre déclaré et conserve le plan des pieds source. Les tours mesurés restent

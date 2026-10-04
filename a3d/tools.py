@@ -246,6 +246,16 @@ def create_project(project_root, asset):
     return Project.create(project_root, asset).summary()
 
 
+@tool("studio_import_approved_design", "Import exact existing human design decisions into a distinct INIT revision. Optional scoped pattern composition authenticates its existing human review and preserves all other pieces. Copies no execution/fitting/artistic PASS and grants no Blender permission. V1 refuses nested compositions and partial-import resume.",
+      {**P, "source_project_root": S, "pattern_variant": {"type": "object", "properties": {
+          "gate_name": S, "decision_evidence_key": S},
+          "required": ["gate_name", "decision_evidence_key"], "additionalProperties": False}},
+      ("project_root", "source_project_root"), False)
+def import_approved_design(project_root, source_project_root, pattern_variant=None):
+    from .approved_inputs import import_approved_design as import_design
+    return import_design(Project(project_root), Project(source_project_root), pattern_variant=pattern_variant)
+
+
 @tool("studio_project_status", "Read canonical project state, component progress and owned jobs.", P, ("project_root",))
 def project_status(project_root):
     return Project(project_root).summary()
