@@ -553,3 +553,11 @@ Les nouvelles propositions sont conservées dans le suivi d'aisance. La revue
 des deux manches reste acquise ; les autres décisions et qualifications
 restent distinctes. La prochaine unité contrôle la métrique de la proposition
 couplée et prépare sa correction bornée, puis la nouvelle préparation native.
+
+La récupération commune est intégrée dans `d024819` : source 47, 922 tests
+portables PASS et essai Blender statique à deux panneaux PASS avec réouverture.
+Les appuis impossibles sont refusés avant optimisation. Le reçu
+[métrique et cohortes](automation-metric-cohort-evidence-20261004.json) conserve
+la portée logicielle et synthétique de ces résultats. L5 reste incomplet sur MAIN.
+La prochaine correction traite la phase périodique du col et distingue repères
+UV de placement et vrais appuis 3D dans la politique de récupération commune.

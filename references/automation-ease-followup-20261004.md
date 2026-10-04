@@ -275,3 +275,29 @@ lie ces preuves au commit de code `848c9a89f6e5ff57576bcc9ed91fd8dedaa2211f`.
 Les 389 fichiers de code et contrats vérifiés correspondent aux octets de la
 source figée testée. Les mises à jour documentaires et l'archive locale sont
 consignées séparément du code et de l'acceptation produit.
+
+### Récupération métrique commune — source 47
+
+Le commit `d024819774b749c540bd65f172fa436ad345bf71` ajoute la récupération
+par cohortes permanentes aux entrées natives de préparation. Les relations
+source, frontières, ownership, appuis et pins sont vérifiés avant l'optimisation.
+Une borne corde/longueur UV incompatible refuse les appuis sans itération.
+L'égalité exacte est garantie pendant ce noyau ; le contact suivant conserve
+son gate d'écart de couture distinct.
+
+Source figée 47 : 483 fichiers, identité
+`33b30cf1833390805430d767d4067571686a294502d3780c31f502aaf783fd2b`.
+922 tests portables PASS en 107,480 s, lancement 108,547 s. Revue indépendante
+de 33 tests PASS, deux coupons impossibles refusés, quatre cas vérifiés par
+chacun des deux validateurs de contrats. L'essai natif de placement v3 passe
+en 4,094 s : récupération commune, contacts statiques, sauvegarde et réouverture
+de deux panneaux synthétiques ; corps fixture préservé, aucun Cloth.
+
+Le [reçu](automation-metric-cohort-evidence-20261004.json) lie 390 fichiers
+de code et contrats aux octets du commit et de la source testée. Les huit
+appuis de la proposition MAIN v8 restent mathématiquement incompatibles.
+Le diagnostic de phase du col explique une partie du déplacement des épaules.
+Les repères UV du col et du devant intérieur ne sont pas des pins physiques :
+leur immobilisation automatique demande une correction explicite de politique.
+La nouvelle préparation native principale, la couverture et le fitting restent
+non exécutés ; aucune publication finale ou installation.

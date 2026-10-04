@@ -19,6 +19,10 @@
   avec recette source hachée, union des paramètres de bords et subdivision des
   seules faces source. Conservation exacte des coins des patrons lors de la
   préparation régulière ; les conflits de précision ou qualité sont refusés.
+- Récupération métrique commune par cohortes de vrais raccords permanents,
+  alignement initial borné et précontrôle des appuis fixes impossibles. Les
+  pins, sources et seuils finaux restent protégés ; le solveur de contacts
+  suivant conserve son contrôle d'écart distinct.
 - Enfilage depuis des prises source, corps/colliders animés, rendus de clips,
   finition/UV/LOD, attachement rigide, export et réimportation contrôlés.
 - Limites : les essais mécaniques et de livraison sont des cas de test.
