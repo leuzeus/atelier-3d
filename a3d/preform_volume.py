@@ -227,7 +227,15 @@ def paired_volume_frames(data,group,body_frame,guide_smoothing_cm=40.):
         raw.append({'v_cm':v,'source_v_cm':min(v,shared_top),
                     'front_cm':widths['front'],'back_cm':widths['back'],
                     'half_girth_cm':sum(widths.values())})
-    half_values=_smooth_rows(raw,'half_girth_cm',guide_smoothing_cm,.45)
+    # A pair has no intervening side panel to absorb an altered guide offset.
+    # Smoothing its half-girth independently of both side contours can make
+    # their interiors overlap or open a seam that matched the source metric.
+    smoothed=_smooth_rows(raw,'half_girth_cm',guide_smoothing_cm,.45)
+    covering=[max(row['half_girth_cm'],value) for row,value in zip(raw,smoothed)]
+    # Minimal Lipschitz majorant: retain source coverage while bounding the
+    # change of the auxiliary arc, including at the end of the side seam.
+    half_values=[max(value-.45*abs(row['v_cm']-other['v_cm'])
+                     for other,value in zip(raw,covering)) for row in raw]
     panels={group[role]:{'source_ref':body_frame['source_ref']+'; paired source contours '+group[role],
                          'arc_sections':[],'u_direction':signs[role]*(1 if role=='front' else -1)}
             for role in roles}
@@ -243,5 +251,7 @@ def paired_volume_frames(data,group,body_frame,guide_smoothing_cm=40.):
     return panels,{'status':'UNQUALIFIED_PLACEMENT_HYPOTHESIS','cut':'FRONT_BACK_PAIR',
                    'body_frame':body_frame,'sections':sections,'source_uv_scaled':False,
                    'body_changed':False,'fabricated_source_panels':[],
-                   'guide_smoothing':{'window_cm':guide_smoothing_cm,'half_girth_max_slope_cm_per_cm':.45},
+                   'guide_smoothing':{'mode':'SOURCE_COVERING_SMOOTHED_GIRTH','window_cm':guide_smoothing_cm,
+                                      'half_girth_max_slope_cm_per_cm':.45,
+                                      'source_coverage':'NO_HALF_GIRTH_BELOW_RAW_PAIR'},
                    'shoulder_shaping':'NOT_EXECUTED','closure':'NOT_EXECUTED'}

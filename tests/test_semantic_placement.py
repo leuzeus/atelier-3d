@@ -60,6 +60,20 @@ class SemanticPlacement(unittest.TestCase):
         self.assertEqual(digest([data,semantics,profile]),before)
         self.assertEqual(result['simulation'],'NOT_EXECUTED')
 
+    def test_paired_taper_does_not_smooth_partners_into_overlapping_interiors(self):
+        data,_,profile=fixture()
+        data={'pieces':{pid:data['pieces'][pid] for pid in ('front','back')}}
+        for piece in data['pieces'].values():piece['vertices'][2][0]=6.
+        semantics={pid:{'role':pid,'side':'right','layer':'outer'} for pid in data['pieces']}
+        result=torso_volume_frames(data,semantics,profile)
+        front=result['panels']['front'];back=result['panels']['back']
+        for a,b in zip(front['arc_sections'],back['arc_sections']):
+            source_width=4.+a['v_cm']*.2
+            self.assertGreaterEqual(b['arc_offset_cm']-source_width,source_width)
+        for a,b in zip(back['arc_sections'],back['arc_sections'][1:]):
+            self.assertLessEqual(abs(b['arc_offset_cm']-a['arc_offset_cm']),.45*(b['v_cm']-a['v_cm'])+1e-8)
+        self.assertEqual(result['groups'][0]['guide']['guide_smoothing']['mode'],'SOURCE_COVERING_SMOOTHED_GIRTH')
+
     def test_paired_cut_does_not_fill_a_real_front_opening_or_accept_shifted_back_center(self):
         data,_,profile=fixture()
         data={'pieces':{pid:data['pieces'][pid] for pid in ('front','back')}}
