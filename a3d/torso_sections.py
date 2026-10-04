@@ -1,7 +1,7 @@
 """Auxiliary guides from measured surface contours; no body projection."""
 import math
 
-from .core import StudioError
+from .core import StudioError, digest
 from .preform_volume import sample_curve, extend_tangent
 
 
@@ -162,3 +162,151 @@ def apply_measured_sections(panels, report, group, profile, skin_sections=None):
     report.update(surface_guide='MEASURED_SECTION_CONTOURS', measured_sections=evidence,
                   body_projection='NOT_EXECUTED', qualification='NONE')
     return panels, report
+
+
+def source_bound_torso_cages(data, panels, *, subdivisions=8):
+    """Synchronize actual permanent torso boundaries in a source-UV cage.
+
+    The existing measured-skin/shoulder guide remains the volume hypothesis.
+    At each shared source boundary control, its proposals receive their
+    unweighted common mean. Integer refinement of matching source corner
+    partitions then gives both partners the same piecewise-linear boundary
+    for the complete normalized arc domain, including between guide rows.
+    This neither preserves/reviews front coverage nor grants metric/contact
+    admission. Relations to pieces outside ``panels`` are left untouched.
+    """
+    # The source-only refinement is shared with limb cages. A local import
+    # avoids the dispatcher -> semantic placement -> torso import cycle.
+    from .garment_guides import _source_limb_mesh
+    from .pattern_assembly import _compile_arc_sections, _section_point
+    from .sewing import chain_lengths, edge_chain
+
+    if type(subdivisions) is not int or not 2 <= subdivisions <= 16:
+        raise StudioError('Torso cage subdivisions must be an integer in 2..16')
+    if (not isinstance(panels, dict) or not panels or len(panels) > 16
+            or not set(panels) <= set(data.get('pieces', {}))):
+        raise StudioError('Torso cages require exact source pieces within the fixed panel budget')
+    try:
+        before = digest([data, panels])
+    except (ValueError, TypeError) as error:
+        raise StudioError('Torso cages require finite JSON source and guide inputs') from error
+    frames = {}; originals = {}; lookup = {}
+    for pid, frame in sorted(panels.items()):
+        if (set(frame) != {'source_ref', 'arc_sections', 'u_direction'}
+                or not isinstance(frame['source_ref'], str) or not frame['source_ref']):
+            raise StudioError('Torso cage needs one complete existing arc guide without a hybrid frame: '+pid)
+        piece = data['pieces'][pid]
+        if (not isinstance(piece.get('vertices'), list) or not isinstance(piece.get('faces'), list)
+                or any(not isinstance(point, (list, tuple)) or len(point) != 2 for point in piece['vertices'])
+                or any(not isinstance(face, (list, tuple)) for face in piece['faces'])):
+            raise StudioError('Torso cage requires actual finite source triangles: '+pid)
+        uv, triangles = _source_limb_mesh(piece, subdivisions)
+        compiled = _compile_arc_sections(frame, pid)
+        targets = [_section_point(frame, compiled, point, pid)[0] for point in uv]
+        if any(any(type(v) not in (int, float) or not math.isfinite(v) for v in point) for point in targets):
+            raise StudioError('Torso cage source guide has nonfinite target coordinates: '+pid)
+        if len(set(map(tuple, uv))) != len(uv):
+            raise StudioError('Torso cage source controls have ambiguous duplicate UV coordinates: '+pid)
+        frames[pid] = {'source_ref':frame['source_ref']+'; source-permanent-torso-cage:'+digest(data),
+            'uv_cm':uv, 'target_cm':targets, 'triangles':triangles}
+        originals[pid] = [list(point) for point in targets]
+        lookup[pid] = {tuple(point):i for i, point in enumerate(uv)}
+    if (sum(len(frame['triangles']) for frame in frames.values()) > 131072
+            or sum(len(frame['uv_cm']) for frame in frames.values()) > 70000):
+        raise StudioError('Torso cage exceeds its fixed total source refinement budget')
+
+    relations = [s for s in data.get('seams', []) if s.get('kind') == 'permanent'
+                 and s.get('piece_a') in frames and s.get('piece_b') in frames]
+    ids = [s.get('id') for s in relations]
+    if (not relations or len(relations) > 128 or any(not isinstance(sid, str) or not sid for sid in ids)
+            or len(set(ids)) != len(ids)):
+        raise StudioError('Torso cages require unique explicit permanent source sewing relations')
+    parents = {}; witnesses = []; matched = set()
+
+    def root(key):
+        parents.setdefault(key, key)
+        if parents[key] != key:
+            parents[key] = root(parents[key])
+        return parents[key]
+
+    def unite(a, b):
+        ra, rb = root(a), root(b)
+        parents[max(ra, rb)] = min(ra, rb)
+
+    def boundary(pid, name, reverse=False):
+        piece = data['pieces'][pid]; indices = piece.get('edges', {}).get(name)
+        if (not isinstance(indices, list) or len(indices) < 2 or len(set(indices)) != len(indices)
+                or any(type(i) is not int or not 0 <= i < len(piece['vertices']) for i in indices)):
+            raise StudioError('Torso cage relation must name valid original source boundary vertices: '+pid)
+        indices, points, _ = edge_chain(piece, name)
+        if reverse:
+            indices, points = list(reversed(indices)), list(reversed(points))
+        lengths = chain_lengths(points); total = lengths[-1]
+        controls = []; fractions = []
+        for interval, (a, b) in enumerate(zip(indices, indices[1:])):
+            for step in range(subdivisions):
+                weights = sorted(((a, subdivisions-step), (b, step)))
+                uv = tuple(math.fsum(piece['vertices'][index][k]*weight for index, weight in weights)/subdivisions
+                           for k in (0, 1))
+                if uv not in lookup[pid]:
+                    raise StudioError('Torso cage source boundary refinement is not represented by its actual triangles')
+                controls.append((pid, lookup[pid][uv]))
+                fractions.append((lengths[interval]+(lengths[interval+1]-lengths[interval])*step/subdivisions)/total)
+        endpoint = tuple(piece['vertices'][indices[-1]][k]*subdivisions/subdivisions for k in (0, 1))
+        controls.append((pid, lookup[pid][endpoint]))
+        fractions.append(1.)
+        return controls, fractions, [length/total for length in lengths], total
+
+    for seam in sorted(relations, key=lambda s:s['id']):
+        if seam.get('orientation') not in ('forward', 'reverse'):
+            raise StudioError('Torso cage requires explicit source sewing orientation: '+seam['id'])
+        a, fa, pa, la = boundary(seam['piece_a'], seam.get('edge_a'))
+        b, fb, pb, lb = boundary(seam['piece_b'], seam.get('edge_b'), seam['orientation'] == 'reverse')
+        if abs(la-lb) > 1e-7:
+            raise StudioError('Torso cage cannot infer easing between unequal source sewing chains: '+seam['id'])
+        if len(pa) != len(pb) or any(abs(x-y) > 1e-10 for x, y in zip(pa, pb)):
+            error = StudioError('Torso cage cannot infer incompatible source sewing corner partitions: '+seam['id'])
+            error.guide_diagnostic = {'reason':'SOURCE_SEAM_CORNER_PARTITIONS_INCOMPATIBLE',
+                'source_seam_id':seam['id'], 'normalized_partitions':[pa, pb],
+                'source_mutated':False, 'garment_impossibility':'NOT_ESTABLISHED'}
+            raise error
+        if any(abs(frames[x[0]]['uv_cm'][x[1]][1]-frames[y[0]]['uv_cm'][y[1]][1]) > 1e-8 for x,y in zip(a,b)):
+            raise StudioError('Torso cage cannot infer oblique material V partners: '+seam['id'])
+        for x, y in zip(a, b):
+            unite(x, y)
+        matched.update((seam['piece_a'], seam['piece_b']))
+        witnesses.append({'source_seam_id':seam['id'], 'source_relation':dict(seam),
+            'source_chain_lengths_cm':[la, lb], 'source_corner_partitions':pa,
+            'common_fractions':fa, 'partner_fractions':fb,
+            'paired_cage_controls':[[list(x),list(y)] for x,y in zip(a,b)],
+            'max_initial_guide_gap_cm':max(math.dist(originals[x[0]][x[1]], originals[y[0]][y[1]]) for x,y in zip(a,b))})
+    if matched != set(frames):
+        raise StudioError('Torso cage has source pieces without explicit permanent torso sewing partners')
+    cohorts = {}
+    for key in sorted(parents):
+        cohorts.setdefault(root(key), []).append(key)
+    # Compute every mean from the untouched proposals before any target edit.
+    targets = {key:[math.fsum(originals[pid][index][k] for pid,index in cohort)/len(cohort) for k in range(3)]
+               for key, cohort in cohorts.items()}
+    for key, cohort in cohorts.items():
+        for pid, index in cohort:
+            frames[pid]['target_cm'][index] = list(targets[key])
+    displacements = {pid:max(math.dist(a,b) for a,b in zip(originals[pid],frame['target_cm']))
+                     for pid, frame in frames.items()}
+    for witness in witnesses:
+        witness['max_common_control_gap_cm'] = max(math.dist(frames[a[0]]['target_cm'][a[1]],frames[b[0]]['target_cm'][b[1]])
+                                                   for a,b in witness['paired_cage_controls'])
+    if digest([data, panels]) != before:
+        raise StudioError('Torso cage construction mutated its original source or guide inputs')
+    report = {'method':'SOURCE_PERMANENT_BOUNDARY_COMMON_TARGET_CAGE', 'source_sha256':digest(data),
+        'input_guide_sha256':digest(panels), 'cage_sha256':digest(frames), 'subdivisions':subdivisions,
+        'relations':witnesses, 'max_target_correction_cm':displacements,
+        'unprocessed_external_relations':sorted(s['id'] for s in data.get('seams', [])
+            if s.get('kind') == 'permanent' and ((s.get('piece_a') in frames) != (s.get('piece_b') in frames))),
+        'boundary_correspondence':'COMPLETE_PIECEWISE_LINEAR_CAGE_SOURCE_ARC_DOMAIN',
+        'target_policy':'UNWEIGHTED_MEAN_OF_EXISTING_SKIN_AND_SHOULDER_GUIDE_PROPOSALS',
+        'volume':'UNCHANGED_AUXILIARY_PROPOSAL_EXCEPT_REPORTED_SOURCE_SEAM_CONTROL_CORRECTIONS',
+        'front_coverage':'NOT_REVIEWED', 'source_mutated':False, 'source_uv_scaled':False,
+        'body_changed':False, 'qualification':'NONE', 'metric_assessment':'REQUIRED',
+        'contact_assessment':'REQUIRED', 'simulation':'NOT_EXECUTED', 'fitting':'NOT_EXECUTED'}
+    return frames, report

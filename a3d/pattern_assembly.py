@@ -163,6 +163,58 @@ def _section_point(frame, compiled, uv, pid):
              'arc_samples': bindings, 'u_direction': frame.get('u_direction', 1)})
 
 
+def _compile_cage(frame, pid, check_time=None):
+    """Validate the existing explicit cage once for placement and measurement."""
+    uv = frame.get('uv_cm'); target = frame.get('target_cm'); triangles = frame.get('triangles')
+    if (not isinstance(uv, list) or not isinstance(target, list) or len(uv) != len(target)
+            or len(uv) < 3 or not isinstance(triangles, list) or not triangles):
+        _refuse('Preform cage UV and target counts differ or are missing: ' + pid, 'placement')
+    for points, size in ((uv, 2), (target, 3)):
+        if any(not isinstance(p, (list, tuple)) or len(p) != size
+               or any(type(v) not in (int, float) or not math.isfinite(v) for v in p) for p in points):
+            _refuse('Preform cage requires finite source UV and world targets: ' + pid, 'placement')
+    compiled = []; faces = set()
+    for triangle_id, triangle in enumerate(triangles):
+        if check_time is not None:
+            check_time()
+        if (not isinstance(triangle, (list, tuple)) or len(triangle) != 3
+                or any(type(i) is not int or not 0 <= i < len(uv) for i in triangle)
+                or len(set(triangle)) != 3):
+            _refuse('Invalid preform cage triangle: ' + pid, 'placement')
+        key = tuple(sorted(triangle))
+        if key in faces:
+            _refuse('Duplicate preform cage triangle: ' + pid, 'placement')
+        faces.add(key)
+        a, b, c = [uv[i] for i in triangle]
+        denominator = (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])
+        if abs(denominator) < 1e-10:
+            _refuse('Collapsed source-UV preform cage triangle: ' + pid, 'placement')
+        compiled.append((triangle_id, triangle, a, b, c, denominator))
+    return compiled
+
+
+def _cage_point(frame, compiled, uv, pid, check_time=None):
+    """The same barycentric correspondence is used in both consumers."""
+    if len(uv) != 2 or any(type(v) not in (int, float) or not math.isfinite(v) for v in uv):
+        _refuse('Cage evaluation needs finite source material UV: ' + pid, 'placement')
+    candidates = []
+    for triangle_id, triangle, a, b, c, denominator in compiled:
+        if check_time is not None:
+            check_time()
+        beta = ((uv[0]-a[0])*(c[1]-a[1])-(uv[1]-a[1])*(c[0]-a[0]))/denominator
+        gamma = ((b[0]-a[0])*(uv[1]-a[1])-(b[1]-a[1])*(uv[0]-a[0]))/denominator
+        bary = [1-beta-gamma, beta, gamma]
+        if min(bary) >= -1e-8 and max(bary) <= 1+1e-8:
+            target = [sum(w*frame['target_cm'][j][k] for w, j in zip(bary, triangle)) for k in range(3)]
+            candidates.append((triangle_id, bary, target))
+    if not candidates:
+        _refuse('Derived source UV is outside its explicit preform cage: ' + pid, 'placement')
+    if any(math.dist(candidates[0][2], c[2]) > 1e-6 for c in candidates[1:]):
+        _refuse('Ambiguous overlapping preform cage correspondence: ' + pid, 'placement')
+    triangle_id, bary, target = candidates[0]
+    return target, {'cage_triangle': triangle_id, 'barycentric_weights': bary}
+
+
 def validate_plan(payload, plan):
     contract('pattern-assembly', plan)
     if payload.get('rest_mode') == 'assembled_3d':
@@ -182,14 +234,7 @@ def validate_plan(payload, plan):
             section_parameterizations[pid] = _compile_arc_sections(frame, pid)
             continue
         if 'uv_cm' in frame:
-            if len(frame['uv_cm']) != len(frame['target_cm']):
-                _refuse('Preform cage UV and target counts differ: ' + pid, 'placement')
-            for triangle in frame['triangles']:
-                if len(set(triangle)) != 3 or any(i >= len(frame['uv_cm']) for i in triangle):
-                    _refuse('Invalid preform cage triangle: ' + pid, 'placement')
-                a, b, c = [frame['uv_cm'][i] for i in triangle]
-                if abs((b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])) < 1e-10:
-                    _refuse('Collapsed source-UV preform cage triangle: ' + pid, 'placement')
+            section_parameterizations[pid] = _compile_cage(frame, pid)
             continue
         u, v = frame['u_axis'], frame['v_axis']
         if abs(_dot(u, u)-1) > 1e-7 or abs(_dot(v, v)-1) > 1e-7 or abs(_dot(u, v)) > 1e-7:
@@ -249,22 +294,7 @@ def preform_coordinates(payload, plan, native_evaluator=None):
             elif 'arc_sections' in frame:
                 coords[index], binding = _section_point(frame, validation['section_parameterizations'][pid], uv, pid)
             elif 'uv_cm' in frame:
-                candidates = []
-                for triangle_id, triangle in enumerate(frame['triangles']):
-                    a, b, c = [frame['uv_cm'][i] for i in triangle]
-                    denominator = (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])
-                    beta = ((uv[0]-a[0])*(c[1]-a[1])-(uv[1]-a[1])*(c[0]-a[0]))/denominator
-                    gamma = ((b[0]-a[0])*(uv[1]-a[1])-(b[1]-a[1])*(uv[0]-a[0]))/denominator
-                    bary = [1-beta-gamma, beta, gamma]
-                    if min(bary) >= -1e-8 and max(bary) <= 1+1e-8:
-                        target = [sum(w*frame['target_cm'][j][k] for w, j in zip(bary, triangle)) for k in range(3)]
-                        candidates.append((triangle_id, bary, target))
-                if not candidates:
-                    _refuse('Derived source UV is outside its explicit preform cage: ' + pid, 'placement')
-                if any(math.dist(candidates[0][2], c[2]) > 1e-6 for c in candidates[1:]):
-                    _refuse('Ambiguous overlapping preform cage correspondence: ' + pid, 'placement')
-                triangle_id, bary, coords[index] = candidates[0]
-                binding = {'cage_triangle': triangle_id, 'barycentric_weights': bary}
+                coords[index], binding = _cage_point(frame, validation['section_parameterizations'][pid], uv, pid)
             else:
                 coords[index] = [frame['origin_cm'][k] + (uv[0]-uv0[0])*frame['u_axis'][k]
                                  + (uv[1]-uv0[1])*frame['v_axis'][k] for k in range(3)]

@@ -275,6 +275,37 @@ class TextileExecutor(unittest.TestCase):
                 verify_source_preform_budget(*inputs)
         self.assertEqual(digest([data,frames,placements]),before)
 
+    def test_barycentric_source_seed_is_rigid_and_bound_covers_the_entire_declared_cage(self):
+        import math
+        from a3d.pattern_assembly import _compile_cage,_cage_point
+        from tests.test_barycentric_guide_measurements import fixture
+        piece,frame,_,_=fixture();before=digest([piece,frame])
+        placement=_guide_seed_placement(piece,frame,'closed-coupon')
+        bound=_guide_preform_bound(piece,frame,placement)
+        self.assertEqual(bound['method'],'AFFINE_SOURCE_BOUNDARY_AND_CONVEX_BARYCENTRIC_TARGET_ENVELOPE')
+        rx,ry,rz=[math.radians(value)for value in placement['rotation_degrees']]
+        u=[math.cos(rz)*math.cos(ry),math.sin(rz)*math.cos(ry),-math.sin(ry)]
+        v=[math.cos(rz)*math.sin(ry)*math.sin(rx)-math.sin(rz)*math.cos(rx),
+            math.sin(rz)*math.sin(ry)*math.sin(rx)+math.cos(rz)*math.cos(rx),math.cos(ry)*math.sin(rx)]
+        def seeded(uv):return[placement['position_cm'][k]+uv[0]*u[k]+uv[1]*v[k]for k in range(3)]
+        self.assertAlmostEqual(math.dist(seeded([0.,0.]),seeded([8.,0.])),8.)
+        self.assertAlmostEqual(math.dist(seeded([0.,0.]),seeded([0.,10.])),10.)
+        compiled=_compile_cage(frame,'fixture')
+        for source_u in (0.,.35,2.5,7.1,8.):
+            for source_v in (0.,.14,5.5,10.):
+                target,_=_cage_point(frame,compiled,[source_u,source_v],'fixture')
+                self.assertLessEqual(math.dist(seeded([source_u,source_v]),target),bound['bound_cm'])
+        self.assertEqual(digest([piece,frame]),before)
+
+    def test_barycentric_seed_uses_source_triangle_at_beveled_corner_and_refuses_collapsed_world_tangent(self):
+        piece={'vertices':[[2.,0.],[8.,6.],[0.,6.]]}
+        frame={'uv_cm':copy.deepcopy(piece['vertices']),
+            'target_cm':[[10.,20.,30.],[10.,26.,36.],[10.,18.,36.]],'triangles':[[0,1,2]]}
+        placement=_guide_seed_placement(piece,frame,'beveled-coupon')
+        self.assertEqual(placement['position_cm'],[10.,18.,30.])
+        frame['target_cm']=[[0.,0.,0.],[1.,0.,0.],[2.,0.,0.]]
+        with self.assertRaises(StudioError):_guide_seed_placement(piece,frame,'collapsed-coupon')
+
     def test_derived_template_observations_are_portable_without_rounding_source_metadata(self):
         source=1.2345678901234567
         panel={'area_cm2':4233.221955302751,'signed_area_cm2':4233.221955302751,
@@ -341,6 +372,17 @@ class TextileExecutor(unittest.TestCase):
         self.assertEqual(template['recipe_template']['trial_pieces'],sorted(data['pieces']))
         self.assertEqual(template['native_bindings_required'],['BODY_COLLIDER_SNAPSHOT','NATIVE_REGULAR_MESH_MAP','COLLISION_ENVELOPE_REVIEW'])
         self.assertEqual(digest(inputs),before)
+        for pid,panel in data['pieces'].items():
+            guides[data['component_id']]['panels'][pid]={'source_ref':'fixture:explicit-source-cage',
+                'uv_cm':copy.deepcopy(panel['vertices']),'target_cm':[uv+[0.]for uv in panel['vertices']],
+                'triangles':copy.deepcopy(panel['faces'])}
+        before=digest(inputs)
+        caged=prepare_component_templates(assembly,{data['component_id']:{'source_ref':ref,'data':data}},guides,recipe,{'units':'cm'},ref)
+        cage_template=caged['components'][data['component_id']]['preparation_template']
+        contract('pattern-preparation',cage_template)
+        self.assertTrue(all(row['method']=='AFFINE_SOURCE_BOUNDARY_AND_CONVEX_BARYCENTRIC_TARGET_ENVELOPE'
+            for row in cage_template['source_preform_budget']['panels'].values()))
+        self.assertEqual(caged['qualification'],'NONE');self.assertEqual(digest(inputs),before)
 
     def test_ordered_fragments_of_one_source_restore_detachable_link_and_exact_face_coverage(self):
         assembly,spec,payloads,recipes,plans=fixture(True)

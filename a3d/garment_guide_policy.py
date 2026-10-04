@@ -15,7 +15,7 @@ from .garment_guides import garment_volume_frames,measured_native_skin_sections
 
 
 CODE_SOURCES=('garment_guide_policy','garment_guides','semantic_placement','torso_sections',
-    'shoulder_guides','preform_volume','anatomy_profile','shoulder_surface','head_surface','contact_geometry','sewing','core')
+    'shoulder_guides','preform_volume','pattern_assembly','anatomy_profile','shoulder_surface','head_surface','contact_geometry','sewing','core')
 
 
 def guide_generator_identity():

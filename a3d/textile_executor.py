@@ -52,7 +52,7 @@ def _guide_seed_placement(piece, frame, piece_id):
     """A rigid source plane derived from the target guide; no fitted UV scale."""
     from .anatomy_profile import unit
     from .contact_geometry import cross, dot
-    from .pattern_assembly import _compile_arc_sections, _section_point
+    from .pattern_assembly import _compile_arc_sections, _section_point, _compile_cage, _cage_point
     vertices = piece['vertices']
     # A real source vertex, plus local derivatives within the sourced UV domain.
     pivot = min(vertices, key=lambda p: (p[1], p[0]))
@@ -73,12 +73,23 @@ def _guide_seed_placement(piece, frame, piece_id):
             directions.append(derivative)
         u = directions[0]
         v = unit([directions[1][k]-dot(directions[1],u)*u[k] for k in range(3)])
+    elif 'uv_cm' in frame:
+        compiled = _compile_cage(frame, piece_id)
+        target, binding = _cage_point(frame, compiled, pivot, piece_id)
+        # Differentiate the actual containing source triangle. Sampling along
+        # U/V outside a beveled source corner would invent a guide extension.
+        _, indices, a, b, c, denominator = compiled[binding['cage_triangle']]
+        ta, tb, tc = [frame['target_cm'][index] for index in indices]
+        du = [((tb[k]-ta[k])*(c[1]-a[1])-(tc[k]-ta[k])*(b[1]-a[1]))/denominator for k in range(3)]
+        dv = [(-(tb[k]-ta[k])*(c[0]-a[0])+(tc[k]-ta[k])*(b[0]-a[0]))/denominator for k in range(3)]
+        u = unit(du)
+        v = unit([dv[k]-dot(dv,u)*u[k] for k in range(3)])
     elif 'origin_cm' in frame:
         u = unit(frame['u_axis']); v = unit(frame['v_axis'])
         offset = frame.get('offset_uv_cm', [0.,0.])
         target = [frame['origin_cm'][k]+(pivot[0]-offset[0])*u[k]+(pivot[1]-offset[1])*v[k] for k in range(3)]
     else:
-        raise StudioError('Source cage guides require an explicit tangent seed adapter: '+piece_id)
+        raise StudioError('Source guide requires an explicit supported tangent seed: '+piece_id)
     normal = unit(cross(u,v))
     # Blender XYZ Euler rotation, columns are the orthonormal material axes.
     ry = math.asin(max(-1.,min(1.,-u[2])))
@@ -113,11 +124,17 @@ def _guide_preform_bound(piece,frame,placement):
     v=[math.cos(rz)*math.sin(ry)*math.sin(rx)-math.sin(rz)*math.cos(rx),
         math.sin(rz)*math.sin(ry)*math.sin(rx)+math.cos(rz)*math.cos(rx),math.cos(ry)*math.sin(rx)]
     initial=[[placement['position_cm'][k]+p[0]*u[k]+p[1]*v[k] for k in range(3)] for p in piece['vertices']]
-    if 'arc_sections' in frame:
-        targets=[point for section in frame['arc_sections'] for point in section['curve_cm']]
+    if 'arc_sections' in frame or 'uv_cm' in frame:
+        if 'uv_cm' in frame:
+            from .pattern_assembly import _compile_cage
+            _compile_cage(frame,'preform-budget');targets=frame['target_cm']
+            method='AFFINE_SOURCE_BOUNDARY_AND_CONVEX_BARYCENTRIC_TARGET_ENVELOPE'
+        else:
+            targets=[point for section in frame['arc_sections'] for point in section['curve_cm']]
+            method='AFFINE_SOURCE_BOUNDARY_AND_CONVEX_ARC_SECTION_ENVELOPE'
         extent=[max(abs(max(p[k] for p in initial)-min(p[k] for p in targets)),
                     abs(max(p[k] for p in targets)-min(p[k] for p in initial))) for k in range(3)]
-        bound=math.sqrt(math.fsum(value*value for value in extent));method='AFFINE_SOURCE_BOUNDARY_AND_CONVEX_ARC_SECTION_ENVELOPE'
+        bound=math.sqrt(math.fsum(value*value for value in extent))
     elif 'origin_cm' in frame:
         offset=frame.get('offset_uv_cm',[0.,0.])
         targets=[[frame['origin_cm'][k]+(p[0]-offset[0])*frame['u_axis'][k]+(p[1]-offset[1])*frame['v_axis'][k]

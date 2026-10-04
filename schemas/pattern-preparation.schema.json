@@ -178,7 +178,7 @@
             "type": "object",
             "properties": {
               "bound_cm": {"type": "number", "minimum": 0.01, "maximum": 10000},
-              "method": {"enum": ["AFFINE_SOURCE_BOUNDARY_AND_CONVEX_ARC_SECTION_ENVELOPE", "CORRESPONDING_AFFINE_SOURCE_BOUNDARY_EXTREMA"]},
+              "method": {"enum": ["AFFINE_SOURCE_BOUNDARY_AND_CONVEX_ARC_SECTION_ENVELOPE", "AFFINE_SOURCE_BOUNDARY_AND_CONVEX_BARYCENTRIC_TARGET_ENVELOPE", "CORRESPONDING_AFFINE_SOURCE_BOUNDARY_EXTREMA"]},
               "guide_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
               "source_contour_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
               "native_float32_guard_cm": {"type": "number", "minimum": 0.0001, "maximum": 1},

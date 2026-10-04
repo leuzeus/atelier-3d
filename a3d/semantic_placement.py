@@ -133,8 +133,13 @@ def torso_volume_frames(data, semantics, profile, upper_blend=0., surface_sectio
         diagnostics.append({'layer': layer, 'side': side, 'guide': report,
                             'measured_body_girth_cm': landmarks['chest']['girth_cm']})
     pending = sorted(set(data['pieces'])-assigned)
+    boundary_cage = None
+    if surface_sections:
+        from .torso_sections import source_bound_torso_cages
+        frames, boundary_cage = source_bound_torso_cages(data, frames)
     return {'version': 1, 'status': 'PARTIAL_GUIDES' if pending else 'TORSO_GUIDES_PREPARED',
             'panels': frames, 'pending_pieces': pending, 'groups': diagnostics,
+            **({'source_boundary_cage':boundary_cage} if boundary_cage else {}),
             'source_sha256': digest(data), 'semantics_sha256': digest(semantics),
             'profile_cache_key': profile['cache_key'], 'source_uv_scaled': False,
             'source_mutated': False, 'qualification': 'NONE', 'simulation': 'NOT_EXECUTED',

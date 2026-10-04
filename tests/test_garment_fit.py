@@ -1,4 +1,5 @@
 import copy
+import math
 import unittest
 
 from a3d.core import StudioError, digest
@@ -38,6 +39,95 @@ def fixture():
 
 
 class GarmentFit(unittest.TestCase):
+    def test_source_polyline_remeasures_each_material_span_instead_of_its_chord(self):
+        compiled, body, spec = fixture(); row = spec['measurements'][0]
+        points = [[0., 20.], [10., 21.], [20., 20.]]
+        row['segments'][0]['source_uv_polyline_cm'] = points
+        before = digest([compiled, body, spec]); result = assess_source_fit(compiled, body, spec)
+        span = result['checks'][0]['source_spans'][0]
+        self.assertAlmostEqual(span['material_length_cm'], 2*math.sqrt(101.))
+        self.assertEqual(span['straight_chord_length_cm'], 20.)
+        self.assertGreater(span['material_length_cm'], span['straight_chord_length_cm'])
+        self.assertAlmostEqual(result['checks'][0]['source_material_length_cm'], 20+2*math.sqrt(101.))
+        self.assertEqual(span['source_uv_polyline_cm'], points)
+        self.assertEqual(span['source_path_sha256'], digest(points))
+        self.assertEqual(span['source_anchor_residual_cm'], [0., 0.])
+        self.assertEqual(span['package_ref'], compiled['textiles']['front']['package_source_ref'])
+        self.assertEqual(result['intent_review'], 'REQUIRES_CANONICAL_HUMAN_DECISION')
+        self.assertEqual(result['acceptance'], 'NOT_GRANTED'); self.assertEqual(result['fitting'], 'NOT_EXECUTED')
+        self.assertEqual(digest([compiled, body, spec]), before)
+        row['segments'][0]['source_uv_polyline_cm'] = [[0., 20.], [10., 20.], [20., 20.]]
+        straight = assess_source_fit(compiled, body, spec)
+        self.assertEqual(straight['checks'][0]['source_material_length_cm'], 40.)
+        del row['segments'][0]['source_uv_polyline_cm']
+        legacy = assess_source_fit(compiled, body, spec)
+        self.assertEqual(legacy['checks'][0]['source_material_length_cm'], 40.)
+        self.assertNotIn('source_uv_polyline_cm', legacy['checks'][0]['source_spans'][0])
+
+    def test_polyline_each_leg_respects_narrow_concavity_and_may_follow_real_material_around_it(self):
+        compiled, body, spec = fixture()
+        compiled['textiles']['front']['source_geometry'] = {
+            'vertices': [[0.,0.],[20.,0.],[20.,40.],[10.001,40.],[10.001,15.],[10.,15.],[10.,40.],[0.,40.]],
+            'edges': {'left': [7,0], 'right': [1,2]}, 'faces': []}
+        segment = spec['measurements'][0]['segments'][0]
+        segment['source_uv_polyline_cm'] = [[0.,20.],[9.5,20.],[10.5,20.],[20.,20.]]
+        with self.assertRaisesRegex(StudioError, 'empty space'):
+            assess_source_fit(compiled, body, spec)
+        segment['source_uv_polyline_cm'] = [[0.,20.],[9.5,14.],[10.5,14.],[20.,20.]]
+        result = assess_source_fit(compiled, body, spec)
+        self.assertGreater(result['checks'][0]['source_spans'][0]['material_length_cm'], 20.)
+        self.assertEqual(result['fitting'], 'NOT_EXECUTED')
+
+    def test_polyline_internal_crossing_repeated_endpoint_or_retraced_material_refused(self):
+        cases = {
+            'cross': [[0.,20.],[15.,30.],[5.,30.],[15.,10.],[20.,20.]],
+            'retrace': [[0.,20.],[12.,20.],[5.,20.],[20.,20.]],
+            'endpoint': [[0.,20.],[10.,25.],[10.,15.],[10.,25.],[20.,20.]],
+            't_contact': [[0.,20.],[15.,20.],[10.,30.],[10.,20.],[20.,25.],[20.,20.]]}
+        for name, points in cases.items():
+            compiled, body, spec = fixture()
+            spec['measurements'][0]['segments'][0]['source_uv_polyline_cm'] = points
+            with self.subTest(name=name), self.assertRaisesRegex(StudioError, 'self-intersects|same material span twice'):
+                assess_source_fit(compiled, body, spec)
+
+    def test_polyline_conflicts_with_another_declared_material_segment_in_same_piece(self):
+        from a3d.garment_fit import _path
+        compiled, _, spec = fixture(); row = spec['measurements'][0]
+        first = {'piece': 'front', 'from': {'edge': 'left', 'fraction': .25},
+                 'to': {'edge': 'right', 'fraction': .25},
+                 'source_uv_polyline_cm': [[0.,10.],[10.,35.],[20.,10.]]}
+        second = {'piece': 'front', 'from': {'edge': 'left', 'fraction': .75},
+                  'to': {'edge': 'right', 'fraction': .75}}
+        row.update(path_kind='open_material_span', segments=[first, second], joins=row['joins'][:1], engaged_links=[])
+        with self.assertRaisesRegex(StudioError, 'self-intersects'):
+            _path(compiled, row, set(spec['component_ids']))
+
+    def test_polyline_finite_points_exact_source_anchors_and_noncollapsed_spans_required(self):
+        for points in ([], [[0.,20.]], [[.001,20.],[20.,20.]], [[20.,20.],[0.,20.]],
+                       [[0.,20.],[10.,20.],[10.,20.],[20.,20.]],
+                       [[0.,20.],[True,20.],[20.,20.]], [[0.,20.],[float('nan'),20.],[20.,20.]]):
+            compiled, body, spec = fixture(); spec['measurements'][0]['segments'][0]['source_uv_polyline_cm'] = points
+            with self.subTest(points=points), self.assertRaises((StudioError, ValueError)):
+                assess_source_fit(compiled, body, spec)
+
+    def test_polyline_budgets_refuse_without_truncating_simplifying_or_changing_sources(self):
+        from a3d.garment_fit import _path
+        for name, budget in [('points', {'max_points': 3}), ('checks', {'max_span_checks': 1}),
+                             ('time', {'max_seconds': .001}), ('invalid', {'max_points': True}),
+                             ('nan_time', {'max_seconds': float('nan')})]:
+            compiled, _, spec = fixture(); row = spec['measurements'][0]
+            row['segments'][0]['source_uv_polyline_cm'] = [[0.,20.],[6.,21.],[13.,21.],[20.,20.]]
+            row['path_budget'] = budget
+            before = copy.deepcopy([compiled, row])
+            ticks = iter([0., .002] if name == 'time' else [0.]*1000)
+            with self.subTest(name=name), self.assertRaisesRegex(StudioError, 'budget'):
+                _path(compiled, row, set(spec['component_ids']), clock=lambda: next(ticks))
+            if name != 'nan_time': self.assertEqual([compiled, row], before)
+        compiled, body, spec = fixture()
+        spec['measurements'][0]['segments'][0]['source_uv_polyline_cm'] = [[0.,20.],[10.,21.],[20.,20.]]
+        spec['measurements'][0]['path_budget'] = {'max_points': 5, 'max_span_checks': 1, 'max_seconds': 15.}
+        self.assertGreater(assess_source_fit(compiled, body, spec)['checks'][0]['source_material_length_cm'], 40.)
+
     def test_second_declared_component_without_its_measurement_is_not_admitted(self):
         from unittest.mock import patch
         from a3d.garment_fit import require_fit_intent
@@ -255,7 +345,8 @@ class GarmentFit(unittest.TestCase):
         from a3d.garment_fit import require_fit_intent
         compiled, body, spec = fixture()
         report = assess_source_fit(compiled, body, spec)
-        report['human_reviews'] = [{'numeric_ease': {'status': 'PENDING'}}]
+        report['human_reviews'] = [{'numeric_ease': {'status': 'PENDING'},
+                                    'numeric_design_intent': {'status': 'REVIEWED'}}]
         with patch('a3d.garment_fit.assess_project_fit', return_value=report):
             with self.assertRaisesRegex(StudioError, 'exact human review'):
                 require_fit_intent(None, 'compiled.json', 'fit.json')
@@ -274,6 +365,77 @@ class GarmentFit(unittest.TestCase):
             if mutation == 'deficit': changed['checks'][0]['status'] = 'BELOW_DECLARED_EASE'
             with patch('a3d.garment_fit.assess_project_fit', return_value=changed), self.assertRaises(StudioError):
                 require_fit_intent(None, 'compiled.json', 'fit.json')
+
+    def test_numeric_design_gate_does_not_review_an_unseen_fit_profile(self):
+        import tempfile
+        from pathlib import Path
+        from a3d.core import ROOT,atomic_json,sha
+        from a3d.garment_fit import _fit_reviews
+        from tests.support import ready_project
+        (ROOT/'work/test-runs').mkdir(parents=True,exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=ROOT/'work/test-runs')as directory:
+            project=ready_project(Path(directory),True);_,_,spec=fixture();cid=spec['component_ids'][0]
+            atomic_json(project.root/'body.json',{'scope':'PORTABLE_FIXTURE_ONLY'})
+            atomic_json(project.root/'dossier.json',{'scope':'PORTABLE_FIXTURE_ONLY'})
+            spec['body_ref']={'path':'body.json','sha256':sha(project.root/'body.json')}
+            spec['dossier_ref']={'path':'dossier.json','sha256':sha(project.root/'dossier.json')}
+            decision={'status':'NUMERIC_EASE_DESIGN_INTENT_APPROVED','approved':True,'component_ids':[cid],
+                'approved_scope':['numeric_ease_design_targets'],
+                'body_ref':spec['body_ref'],'dossier_ref':spec['dossier_ref']}
+            atomic_json(project.root/'decision.json',decision)
+            spec['source_ref']={'path':'decision.json','sha256':sha(project.root/'decision.json')}
+            atomic_json(project.root/'fit.json',spec);fit_ref={'path':'fit.json','sha256':sha(project.root/'fit.json')}
+            for key,path in [('design','decision.json'),('dossier','dossier.json'),('body','body.json')]:project.evidence(key,path)
+            project.gate('ease-design.'+cid,True,'PORTABLE_TEST_ONLY',['design','dossier','body'],'portable:test')
+            review=_fit_reviews(project,spec,fit_ref)[0]
+            self.assertEqual(review['numeric_design_intent']['status'],'REVIEWED')
+            self.assertEqual(review['numeric_ease']['status'],'PENDING')
+            project.gate('fit-intent.'+cid,True,'PORTABLE_TEST_ONLY',['design','dossier','body'],'portable:test')
+            self.assertEqual(_fit_reviews(project,spec,fit_ref)[0]['numeric_ease']['status'],'PENDING_EXACT_REFERENCES')
+
+    def test_legacy_markdown_fit_source_remains_readable_without_any_numeric_gate(self):
+        import tempfile
+        from pathlib import Path
+        from a3d.core import ROOT, atomic_json, sha
+        from a3d.garment_fit import _fit_reviews
+        from tests.support import ready_project
+        (ROOT/'work/test-runs').mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=ROOT/'work/test-runs') as directory:
+            project = ready_project(Path(directory), True); _, _, spec = fixture()
+            source_path = project.root/'legacy-intent.md'
+            source_path.write_text('# Intention source\nValeurs encore à revoir.\n', encoding='utf-8')
+            spec['source_ref'] = {'path': 'legacy-intent.md', 'sha256': sha(source_path)}
+            atomic_json(project.root/'fit.json', spec)
+            ref = {'path': 'fit.json', 'sha256': sha(project.root/'fit.json')}
+            review = _fit_reviews(project, spec, ref)[0]
+            self.assertEqual(review['numeric_ease']['status'], 'PENDING')
+            self.assertEqual(review['numeric_design_intent']['status'], 'NOT_SEPARATELY_REVIEWED')
+            source_path.write_text('Texte changé après la référence.\n', encoding='utf-8')
+            with self.assertRaisesRegex(StudioError, 'source reference changed'):
+                _fit_reviews(project, spec, ref)
+
+    def test_declared_json_numeric_decision_is_not_skipped_when_invalid(self):
+        import tempfile
+        from pathlib import Path
+        from a3d.core import ROOT, atomic_json, sha
+        from a3d.garment_fit import _fit_reviews
+        from tests.support import ready_project
+        (ROOT/'work/test-runs').mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=ROOT/'work/test-runs') as directory:
+            project = ready_project(Path(directory), True); _, _, spec = fixture()
+            for content in ('not valid JSON', '[]'):
+                path = project.root/'declared-decision.JSON'
+                path.write_text(content, encoding='utf-8')
+                spec['source_ref'] = {'path': path.name, 'sha256': sha(path)}
+                with self.subTest(content=content), self.assertRaises(ValueError):
+                    _fit_reviews(project, spec, {'path': 'fit.json', 'sha256': 'a'*64})
+            decision = {'status': 'NUMERIC_EASE_DESIGN_INTENT_APPROVED', 'approved': False,
+                'component_ids': spec['component_ids'], 'approved_scope': ['numeric_ease_design_targets'],
+                'body_ref': spec['body_ref'], 'dossier_ref': spec['dossier_ref']}
+            atomic_json(project.root/'declared-decision.JSON', decision)
+            spec['source_ref'] = {'path': 'declared-decision.JSON', 'sha256': sha(project.root/'declared-decision.JSON')}
+            with self.assertRaisesRegex(StudioError, 'approved design scope'):
+                _fit_reviews(project, spec, {'path': 'fit.json', 'sha256': 'a'*64})
 
     def test_oblique_skin_section_is_separate_and_cannot_be_relabelled_as_a_hand_hull(self):
         import math

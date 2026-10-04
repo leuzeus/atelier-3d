@@ -1,6 +1,8 @@
 """Complete source-bound guide dispatch for a measured body.
 
-Torso, limb and belt guides retain their existing algorithms. Collar, central
+Torso and belt guides retain their existing algorithms. Limb guides bind the
+actual paired source sewing boundaries through a refined source-UV cage.
+Collar, central
 inner front, hood and yoke use explicit source anchor edges and measured body
 surfaces. Planar and developable guides are starting hypotheses; curved hood
 and shoulder drape require the subsequent metric/contact solver and Cloth.
@@ -13,10 +15,237 @@ from .anatomy_profile import unit
 from .contact_geometry import cross, dot
 from .core import StudioError, digest
 from .preform_volume import half_ellipse, sample_curve, extend_tangent
-from .semantic_placement import torso_volume_frames, limb_volume_frames, belt_volume_frames
+from .semantic_placement import torso_volume_frames, belt_volume_frames
+from .sewing import edge_chain, sample_chain
 
 
 SPECIAL_ROLES = {'collar', 'inner_front', 'hood', 'yoke'}
+
+
+def _source_span(piece, v):
+    """Unique material interval at V, including real horizontal boundary stops."""
+    hits = []; horizontal = []
+    points = piece['vertices']
+    for a, b in zip(points, points[1:]+points[:1]):
+        if abs(a[1]-b[1]) <= 1e-12:
+            if abs(v-a[1]) <= 1e-10:
+                hits.extend((a[0], b[0]))
+                horizontal.append(sorted((a[0], b[0])))
+        elif min(a[1], b[1])-1e-10 <= v <= max(a[1], b[1])+1e-10:
+            fraction = (v-a[1])/(b[1]-a[1])
+            hits.append(a[0]+fraction*(b[0]-a[0]))
+    intervals = []
+    for lo, hi in sorted(horizontal):
+        if intervals and lo <= intervals[-1][1]+1e-9:
+            intervals[-1][1] = max(intervals[-1][1], hi)
+        else:
+            intervals.append([lo, hi])
+    hits = [p for p in hits if not any(lo+1e-9 < p < hi-1e-9 for lo, hi in intervals)]
+    unique = []
+    for value in sorted(hits):
+        if not unique or abs(value-unique[-1]) > 1e-9:
+            unique.append(value)
+    if not unique or len(unique) > 2:
+        raise StudioError('Limb cage needs a single actual source material interval at V')
+    return unique[0], unique[-1]
+
+
+def _source_limb_mesh(piece, subdivisions):
+    """Refine existing triangles only; never triangulate a new material domain."""
+    vertices = piece.get('vertices'); faces = piece.get('faces')
+    if (not vertices or len(vertices) > 5000 or any(len(p) != 2 or
+            any(type(v) not in (int, float) or not math.isfinite(v) for v in p) for p in vertices)
+            or not faces or len(faces)*subdivisions**2 > 32768):
+        raise StudioError('Limb cage requires finite actual source triangles within its fixed face budget')
+    boundary = {tuple(sorted((i, (i+1) % len(vertices)))) for i in range(len(vertices))}
+    edges = {}; directions = {}; area = 0.
+    polygon_area = sum(a[0]*b[1]-b[0]*a[1] for a, b in zip(vertices, vertices[1:]+vertices[:1]))/2
+    seen = set()
+    for face in faces:
+        if (len(face) != 3 or len(set(face)) != 3 or any(type(i) is not int or not 0 <= i < len(vertices) for i in face)
+                or tuple(sorted(face)) in seen):
+            raise StudioError('Limb cage requires unique valid existing source triangles')
+        seen.add(tuple(sorted(face))); a, b, c = [vertices[i] for i in face]
+        determinant = (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])
+        if determinant*polygon_area <= 1e-12:
+            raise StudioError('Limb cage source triangle winding or material area is invalid')
+        area += determinant/2
+        for i, j in zip(face, face[1:]+face[:1]):
+            edge = tuple(sorted((i, j))); edges[edge] = edges.get(edge, 0)+1
+            directions[edge] = directions.get(edge, 0)+(1 if i < j else -1)
+    if (abs(area-polygon_area) > max(1e-7, abs(polygon_area)*1e-10)
+            or {e for e, count in edges.items() if count == 1} != boundary
+            or any(count not in (1, 2) or (count == 2 and directions[e] != 0) for e, count in edges.items())):
+        raise StudioError('Limb cage source triangles must cover the actual material boundary once')
+    # A key uses integer barycentric source weights. Adjacent source faces
+    # therefore share exactly the same UV control vertices at their common edge.
+    controls = {}; triangles = []
+    for face in sorted(faces, key=lambda f: tuple(sorted(f))):
+        grid = {}
+        for i in range(subdivisions+1):
+            for j in range(subdivisions+1-i):
+                weights = (subdivisions-i-j, i, j)
+                key = tuple(sorted((index, weight) for index, weight in zip(face, weights) if weight))
+                controls[key] = [math.fsum(vertices[index][k]*weight for index, weight in key)/subdivisions for k in (0, 1)]
+                grid[i, j] = key
+        for i in range(subdivisions):
+            for j in range(subdivisions-i):
+                triangles.append([grid[i, j], grid[i+1, j], grid[i, j+1]])
+                if j < subdivisions-i-1:
+                    triangles.append([grid[i+1, j], grid[i+1, j+1], grid[i, j+1]])
+    ordered = sorted(controls); indices = {key: index for index, key in enumerate(ordered)}
+    return [controls[key] for key in ordered], [[indices[key] for key in face] for face in triangles]
+
+
+def _limb_chain(piece, name):
+    indices = piece.get('edges', {}).get(name)
+    if (not indices or len(indices) < 2 or any(type(i) is not int or not 0 <= i < len(piece['vertices']) for i in indices)):
+        raise StudioError('Limb cage source relation must name valid original boundary vertices')
+    return edge_chain(piece, name)[1]
+
+
+def _paired_limb_boundary(data, pid):
+    seams = [row for row in data.get('seams', []) if row.get('kind') == 'permanent'
+             and row.get('piece_a') == row.get('piece_b') == pid]
+    if len(seams) != 1 or seams[0].get('orientation') not in ('forward', 'reverse'):
+        raise StudioError('Limb cage requires one explicit unary permanent source sewing relation: '+pid)
+    seam = seams[0]; piece = data['pieces'][pid]
+    if not isinstance(seam.get('id'), str) or not seam['id']:
+        raise StudioError('Limb cage requires the original stable source sewing ID')
+    a = _limb_chain(piece, seam.get('edge_a')); b = _limb_chain(piece, seam.get('edge_b'))
+    if seam['orientation'] == 'reverse':
+        b = list(reversed(b))
+    lengths = [[math.dist(x, y) for x, y in zip(chain, chain[1:])] for chain in (a, b)]
+    if any(not sizes or min(sizes) <= 1e-10 for sizes in lengths):
+        raise StudioError('Limb sewing source chain is collapsed')
+    totals = [math.fsum(sizes) for sizes in lengths]
+    if abs(totals[0]-totals[1]) > 1e-7:
+        raise StudioError('Limb cage cannot infer easing between unequal source sewing chains')
+    partitions = []
+    for sizes, total in zip(lengths, totals):
+        offset = 0.; fractions = [0.]
+        for size in sizes:
+            offset += size; fractions.append(offset/total)
+        partitions.append(fractions)
+    if (len(partitions[0]) != len(partitions[1]) or
+            any(abs(x-y) > 1e-10 for x, y in zip(*partitions))):
+        raise StudioError('Limb cage cannot infer unmatched source sewing corner partitions; a synchronized source guide is required')
+    spans = []; records = []
+    for fraction in partitions[0]:
+        x, y = [sample_chain(chain, fraction) for chain in (a, b)]
+        if abs(x[1]-y[1]) > 1e-8:
+            raise StudioError('Limb cage requires source sewing partners at the same material V; oblique source pairing is unsupported')
+        lo, hi = _source_span(piece, x[1])
+        if (hi-lo <= 1e-10 or abs(min(x[0], y[0])-lo) > 1e-8 or abs(max(x[0], y[0])-hi) > 1e-8):
+            raise StudioError('Limb sewing partners must bound the actual source material interval')
+        spans.append(hi-lo); records.append({'fraction_a': fraction,
+            'fraction_b': fraction if seam['orientation'] == 'forward' else 1-fraction,
+            'source_v_cm': x[1], 'source_uv_pair_cm': [x, y]})
+    for chain in (a, b):
+        deltas = [y[1]-x[1] for x, y in zip(chain, chain[1:])]
+        if not deltas or min(deltas)*max(deltas) <= 0:
+            raise StudioError('Limb source sewing chains must have a strict monotonic material V domain')
+    return seam, records, spans
+
+
+def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8):
+    """Seam-bound auxiliary cages for explicit sleeves and cuffs.
+
+    Actual source faces receive uniform integer barycentric refinement. Their
+    targets use each real horizontal material span, rather than the bounding
+    box width. Equal normalized source sewing partners share the same target
+    boundary polyline. This is a geometric starting hypothesis: neither metric
+    admission, anatomical homology, skin contact nor fitting is granted here.
+    """
+    _profile(profile)
+    if set(semantics) != set(data['pieces']):
+        raise StudioError('Limb cages require exact source semantic coverage')
+    if type(cage_subdivisions) is not int or not 2 <= cage_subdivisions <= 16:
+        raise StudioError('Limb cage subdivisions must be an explicit integer in 2..16')
+    original = digest([data, semantics, profile]); frames = {}; evidence = []; pending = []
+    for pid, semantic in sorted(semantics.items()):
+        if semantic.get('role') not in ('sleeve', 'cuff'):
+            pending.append(pid); continue
+        side = semantic.get('side')
+        if side not in ('left', 'right') or semantic.get('longitudinal_uv_axis') != 'v':
+            raise StudioError('Limb cage requires an explicit anatomical side and longitudinal material V axis: '+pid)
+        piece = data['pieces'][pid]
+        uv, triangles = _source_limb_mesh(piece, cage_subdivisions)
+        seam, pairs, spans = _paired_limb_boundary(data, pid)
+        shoulder = profile['landmarks'].get('shoulder.'+side, {}).get('point_cm'); wrist = profile['landmarks'].get('wrist.'+side, {}).get('point_cm')
+        if any(not isinstance(point, (list, tuple)) or len(point) != 3 or
+               any(type(v) not in (int, float) or not math.isfinite(v) for v in point) for point in (shoulder, wrist)):
+            raise StudioError('Limb cages require finite measured shoulder and wrist landmarks')
+        downward = unit([b-a for a, b in zip(shoulder, wrist)])
+        forward = [0., 1., 0.]; projection = dot(forward, downward)
+        transverse = unit([forward[i]-projection*downward[i] for i in range(3)])
+        tangent = unit(cross(downward, transverse))
+        v_lo = min(p[1] for p in piece['vertices']); v_hi = max(p[1] for p in piece['vertices'])
+        cuff_policy = None
+        if semantic['role'] == 'cuff':
+            declared = semantic.get('guide_edges', {}); stops = {}
+            for name in ('distal', 'proximal'):
+                edge = declared.get(name)
+                if edge not in piece.get('edges', {}):
+                    raise StudioError('Cuff cage requires its explicit existing distal/proximal source edges')
+                values = [p[1] for p in _limb_chain(piece, edge)]
+                if max(values)-min(values) > 1e-7:
+                    raise StudioError('Cuff cage source distal/proximal edges must have constant V')
+                stops[name] = values[0]
+            if abs(stops['proximal']-stops['distal']) <= 1e-8 or sorted(stops.values()) != [v_lo, v_hi]:
+                raise StudioError('Cuff cage source anchors must bound its nonzero longitudinal domain')
+            sign = 1 if stops['proximal'] > stops['distal'] else -1
+            cuff_policy = {'distal_edge': declared['distal'], 'proximal_edge': declared['proximal'],
+                'distal_source_v_cm': stops['distal'], 'proximal_source_v_cm': stops['proximal'],
+                'body_distal_anchor': 'wrist.'+side, 'proximal_direction': 'TOWARD_SOURCE_SHOULDER',
+                'source_orientation': 'EXPLICIT_NAMED_EDGES', 'source_v_sign': sign}
+
+        def center(v):
+            offset = v_hi-v if cuff_policy is None else -(v-stops['distal'])*sign
+            anchor = shoulder if cuff_policy is None else wrist
+            return [anchor[i]+downward[i]*offset for i in range(3)]
+
+        target = []
+        for u, v in uv:
+            lo, hi = _source_span(piece, v); width = hi-lo; point = center(v)
+            if width > 1e-10:
+                if not lo-1e-8 <= u <= hi+1e-8:
+                    raise StudioError('Limb cage control lies outside the actual horizontal material interval')
+                phase = (u-lo)/width
+                # Both actual sewing sides use exactly the same phase, avoiding
+                # sin(2*pi) round-off in a supposedly common source target.
+                angle = 0. if abs(u-lo) <= 1e-9 or abs(u-hi) <= 1e-9 else 2*math.pi*phase
+                radius = width/(2*math.pi)
+                point = [point[i]+radius*(-math.cos(angle)*transverse[i]+math.sin(angle)*tangent[i]) for i in range(3)]
+            target.append(_world(profile, point))
+        frame = {'source_ref': 'measured-body-profile:'+profile['cache_key']+'; source-piece:'+pid+
+                 '; source-seam:'+seam['id']+'; SOURCE_PAIRED_LIMB_CAGE',
+                 'uv_cm': uv, 'target_cm': target, 'triangles': triangles}
+        frames[pid] = frame
+        evidence.append({'piece': pid, 'role': semantic['role'], 'side': side,
+            'guide_kind': 'SOURCE_PAIRED_LIMB_CAGE', 'source_contour_sha256': digest(piece),
+            'source_seam': copy.deepcopy(seam), 'source_seam_sha256': digest(seam),
+            'source_sewing_pairs': pairs, 'source_pair_partition': 'MATCHED_ORIGINAL_NORMALIZED_SOURCE_SEGMENTS',
+            'source_circumference_domain_cm': [min(spans), max(spans)],
+            'source_longitudinal_length_cm': v_hi-v_lo, 'source_v_domain_cm': [v_lo, v_hi],
+            'source_guide_axis_cm': [_world(profile, center(v_lo)), _world(profile, center(v_hi))],
+            'shoulder_wrist_axis_length_cm': math.dist(shoulder, wrist),
+            'cage_refinement': {'method': 'UNIFORM_BARYCENTRIC_EXISTING_SOURCE_FACES',
+                'subdivisions': cage_subdivisions, 'source_faces': len(piece['faces']),
+                'control_vertices': len(uv), 'control_triangles': len(triangles),
+                'source_topology_changed': False},
+            **({'source_longitudinal_anchor_policy': cuff_policy} if cuff_policy else {}),
+            'source_uv_scaled': False, 'body_rescaling': False,
+            'anatomical_homology': 'REVIEW_REQUIRED', 'metric_admission': 'REQUIRED',
+            'native_contact_check': 'REQUIRED', 'fitting': 'NOT_EXECUTED'})
+    if digest([data, semantics, profile]) != original:
+        raise StudioError('Limb cages changed immutable source, semantics or body')
+    return {'status': 'PARTIAL_GUIDES' if pending else 'LIMB_GUIDES_PREPARED',
+        'panels': frames, 'pending_pieces': pending, 'evidence': evidence,
+        'source_sha256': digest(data), 'semantics_sha256': digest(semantics),
+        'profile_sha256': digest(profile), 'profile_cache_key': profile['cache_key'],
+        'source_mutated': False, 'source_uv_scaled': False, 'qualification': 'NONE',
+        'simulation': 'NOT_EXECUTED', 'fitting': 'NOT_EXECUTED'}
 
 
 def _profile(profile):

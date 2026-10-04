@@ -7,6 +7,7 @@ human approval, even when all declared source-capacity comparisons succeed.
 """
 import copy
 import math
+import time
 
 from .core import StudioError, contract, digest, inside, read_json, sha
 from .fitting import path_inside
@@ -42,8 +43,68 @@ def _material_segment(piece, a, b):
     return math.dist(a, b)
 
 
-def _path(compiled, measurement, components):
+PATH_BUDGET = {'max_points': 4096, 'max_span_checks': 500000, 'max_seconds': 15.}
+PATH_BUDGET_LIMITS = {'max_points': 16384, 'max_span_checks': 1000000, 'max_seconds': 60.}
+SOURCE_ANCHOR_TOLERANCE_CM = 1e-7
+
+
+def _path_budget(measurement):
+    supplied = measurement.get('path_budget', {})
+    if not isinstance(supplied, dict) or set(supplied)-set(PATH_BUDGET):
+        raise StudioError('Fit path computation budgets must use their explicit supported fields')
+    budget = {**PATH_BUDGET, **supplied}
+    if (type(budget['max_points']) is not int or not 2 <= budget['max_points'] <= PATH_BUDGET_LIMITS['max_points']
+            or type(budget['max_span_checks']) is not int or not 1 <= budget['max_span_checks'] <= PATH_BUDGET_LIMITS['max_span_checks']
+            or not _finite(budget['max_seconds']) or not .001 <= budget['max_seconds'] <= PATH_BUDGET_LIMITS['max_seconds']):
+        raise StudioError('Fit path computation budgets must be finite and remain within the supported limits')
+    return budget
+
+
+def _span_conflict(a, b, old_a, old_b, allowed_touch):
+    """Reject crossing, reuse and nonadjacent touches of actual UV spans."""
+    direction = _sub(b, a); old_direction = _sub(old_b, old_a)
+    denominator = _cross(direction, old_direction)
+    if abs(denominator) > 1e-10:
+        t = _cross(_sub(old_a, a), old_direction)/denominator
+        u = _cross(_sub(old_a, a), direction)/denominator
+        if -1e-8 <= t <= 1+1e-8 and -1e-8 <= u <= 1+1e-8:
+            if 1e-8 < t < 1-1e-8 or 1e-8 < u < 1-1e-8:
+                raise StudioError('Fit path self-intersects within the same source material')
+            point = [a[k]+t*direction[k] for k in range(2)]
+            if allowed_touch is None or math.dist(point, allowed_touch) > SOURCE_ANCHOR_TOLERANCE_CM:
+                raise StudioError('Fit path self-intersects at a nonadjacent source material endpoint')
+    elif abs(_cross(direction, _sub(old_a, a))) < 1e-8 and abs(_cross(direction, _sub(old_b, a))) < 1e-8:
+        axis = 0 if abs(direction[0]) >= abs(direction[1]) else 1
+        lo, hi = sorted((a[axis], b[axis])); x, y = sorted((old_a[axis], old_b[axis]))
+        if min(hi, y)-max(lo, x) > 1e-8:
+            raise StudioError('Fit path counts the same material span twice')
+        if min(hi, y)-max(lo, x) >= -1e-8:
+            shared = [p for p in (a, b) if min(math.dist(p, q) for q in (old_a, old_b)) <= SOURCE_ANCHOR_TOLERANCE_CM]
+            if shared and (allowed_touch is None or any(math.dist(p, allowed_touch) > SOURCE_ANCHOR_TOLERANCE_CM for p in shared)):
+                raise StudioError('Fit path self-intersects at a nonadjacent source material endpoint')
+
+
+def _path(compiled, measurement, components, *, clock=time.monotonic):
     segments = measurement['segments']; closed = measurement['path_kind'] == 'closed_girth'
+    budget = _path_budget(measurement); started = clock(); point_count = 0; span_checks = 0
+    if not segments or len(segments)*2 > budget['max_points']:
+        raise StudioError('Fit path source point budget exhausted or source segments missing')
+
+    def check_time():
+        if clock()-started > budget['max_seconds']:
+            raise StudioError('Fit path computation time budget exhausted')
+
+    def adjacent_touch(segment_index, part_index, part_count, a, b, old):
+        old_index, old_part, old_count, old_a, old_b = old
+        if segment_index == old_index and part_index == old_part+1:
+            return a if math.dist(a, old_b) <= SOURCE_ANCHOR_TOLERANCE_CM else None
+        if segment_index == old_index+1 and part_index == 0 and old_part == old_count-1:
+            return a if math.dist(a, old_b) <= SOURCE_ANCHOR_TOLERANCE_CM else None
+        if (closed and segment_index == len(segments)-1 and part_index == part_count-1
+                and old_index == 0 and old_part == 0):
+            return b if math.dist(b, old_a) <= SOURCE_ANCHOR_TOLERANCE_CM else None
+        return None
+
     joins = measurement['joins']; required = len(segments) if closed else len(segments)-1
     if len(joins) != required:
         raise StudioError('Fit measurement must declare every actual path join')
@@ -51,38 +112,53 @@ def _path(compiled, measurement, components):
         raise StudioError('Fit girth must be a simple cycle; a source join cannot count twice')
     links = {link['id']: link for link in compiled['links']}
     lengths = []; evidence = []; spans = {}; layers = set()
-    for segment in segments:
+    for segment_index, segment in enumerate(segments):
+        check_time()
         row = compiled['textiles'].get(segment['piece'])
         if (row is None or row['component_id'] not in components or row['source_geometry'] is None
                 or row['component_id'] != measurement['component_id'] or row['semantics']['layer'] != measurement['layer']):
             raise StudioError('Fit measurement references an undeclared source textile')
         piece = row['source_geometry']
         layers.add(row['semantics']['layer'])
-        if any(len(p) != 2 or any(not _finite(v) for v in p) for p in piece['vertices']):
+        if (not piece.get('vertices') or len(piece['vertices']) > 10000 or
+                any(len(p) != 2 or any(not _finite(v) for v in p) for p in piece['vertices'])):
             raise StudioError('Fit source material must have finite metric UV coordinates')
         a, b = [_edge_anchor(piece, segment[key]) for key in ('from', 'to')]
-        length = _material_segment(piece, a, b)
-        for old_a, old_b in spans.setdefault(segment['piece'], []):
-            direction = _sub(b, a)
-            old_direction = _sub(old_b, old_a); denominator = _cross(direction, old_direction)
-            if abs(denominator) > 1e-10:
-                t = _cross(_sub(old_a, a), old_direction)/denominator
-                u = _cross(_sub(old_a, a), direction)/denominator
-                if 1e-8 < t < 1-1e-8 and 1e-8 < u < 1-1e-8:
-                    raise StudioError('Fit path self-intersects within the same source material')
-            if abs(_cross(direction, _sub(old_a, a))) < 1e-8 and abs(_cross(direction, _sub(old_b, a))) < 1e-8:
-                axis = 0 if abs(direction[0]) >= abs(direction[1]) else 1
-                lo, hi = sorted((a[axis], b[axis])); x, y = sorted((old_a[axis], old_b[axis]))
-                if min(hi, y)-max(lo, x) > 1e-8:
-                    raise StudioError('Fit path counts the same material span twice')
-        spans[segment['piece']].append((a, b)); lengths.append(length)
+        points = segment.get('source_uv_polyline_cm', [a, b])
+        if (not isinstance(points, list) or len(points) < 2 or len(points) > 4096 or
+                any(not isinstance(p, (list, tuple)) or len(p) != 2 or any(not _finite(v) for v in p) for p in points)):
+            raise StudioError('Fit source UV polyline requires 2..4096 finite metric points')
+        point_count += len(points)
+        if point_count > budget['max_points']:
+            raise StudioError('Fit path source point budget exhausted')
+        residuals = [math.dist(points[0], a), math.dist(points[-1], b)]
+        if max(residuals) > SOURCE_ANCHOR_TOLERANCE_CM:
+            raise StudioError('Fit source UV polyline endpoints differ from their exact named-edge source anchors')
+        part_lengths = []; part_count = len(points)-1
+        for part_index, (start, end) in enumerate(zip(points, points[1:])):
+            check_time(); part_lengths.append(_material_segment(piece, start, end)); check_time()
+            for old in spans.setdefault(segment['piece'], []):
+                span_checks += 1
+                if span_checks > budget['max_span_checks']:
+                    raise StudioError('Fit path material span comparison budget exhausted')
+                check_time()
+                _span_conflict(start, end, old[3], old[4],
+                    adjacent_touch(segment_index, part_index, part_count, start, end, old))
+            spans[segment['piece']].append((segment_index, part_index, part_count, start, end))
+        length = math.fsum(part_lengths); lengths.append(length)
         evidence.append({'piece': segment['piece'], 'from_uv_cm': a, 'to_uv_cm': b,
                          'material_length_cm': length, 'piece_geometry_sha256': digest(piece),
-                         'package_ref': copy.deepcopy(row['package_source_ref'])})
+                         'package_ref': copy.deepcopy(row['package_source_ref']),
+                         **({'source_uv_polyline_cm': copy.deepcopy(points), 'material_part_lengths_cm': part_lengths,
+                             'source_path_sha256': digest(points), 'straight_chord_length_cm': math.dist(a, b),
+                             'source_anchor_residual_cm': residuals, 'source_anchor_tolerance_cm': SOURCE_ANCHOR_TOLERANCE_CM,
+                             'measurement_method': 'SOURCE_UV_POLYLINE_ARCLENGTH', 'path_budget': copy.deepcopy(budget)}
+                            if 'source_uv_polyline_cm' in segment else {})})
     if closed and len(layers) != 1:
         raise StudioError('A closed fit path cannot add material from different spatial layers')
     engaged = set(measurement['engaged_links']); needed_engaged = set()
     for index, link_id in enumerate(joins):
+        check_time()
         link = links.get(link_id)
         if link is None: raise StudioError('Fit path cannot invent a source seam or closure')
         if link.get('kind') not in ('permanent', 'closure', 'detachable'):
@@ -107,7 +183,8 @@ def _path(compiled, measurement, components):
         raise StudioError('Fit take-up must not deduct the same sourced allowance twice')
     if sum(lengths)-takeup <= 0:
         raise StudioError('Fit take-up consumes its entire nominal material capacity')
-    return sum(lengths)-takeup, evidence
+    check_time()
+    return math.fsum(lengths)-takeup, evidence
 
 
 def _profile_identity(profile):
@@ -290,9 +367,25 @@ def _reviewed(project, state, gate_name, required_refs):
 
 def _fit_reviews(project, specification, specification_ref):
     state = project.state(); rows = []
+    source_ref = specification['source_ref']; source_path = inside(project.root, source_ref['path'])
+    if sha(source_path) != source_ref['sha256']:
+        raise StudioError('Fit intent source reference changed before human review assessment')
+    # Legacy references may be Markdown or images. A declared JSON decision
+    # still needs valid JSON; malformed decisions are never silently skipped.
+    intent = read_json(source_path) if source_path.suffix.lower() == '.json' else {}
+    if not isinstance(intent, dict):
+        raise StudioError('Fit intent JSON decision must be an object')
     for cid in specification['component_ids']:
         numeric = _reviewed(project, state, 'fit-intent.'+cid,
             [specification_ref, specification['dossier_ref'], specification['body_ref']])
+        design = {'status': 'NOT_SEPARATELY_REVIEWED', 'gate': 'ease-design.'+cid}
+        if intent.get('status') == 'NUMERIC_EASE_DESIGN_INTENT_APPROVED' and cid in intent.get('component_ids', []):
+            if intent.get('approved') is not True or 'numeric_ease_design_targets' not in intent.get('approved_scope', []):
+                raise StudioError('Numeric design decision lacks its explicit approved design scope')
+            if intent.get('body_ref') != specification['body_ref'] or intent.get('dossier_ref') != specification['dossier_ref']:
+                raise StudioError('Numeric design decision belongs to another source dossier or unchanged body')
+            design = _reviewed(project, state, 'ease-design.'+cid,
+                [specification['source_ref'], specification['dossier_ref'], specification['body_ref']])
         silhouette_ref = specification.get('silhouette_review_ref', specification['source_ref'])
         silhouette = _reviewed(project, state, 'fit-silhouette.'+cid, [silhouette_ref])
         if silhouette['status'] == 'REVIEWED':
@@ -304,7 +397,8 @@ def _fit_reviews(project, specification, specification_ref):
                     any(decision.get(key) != specification['classification'][key]
                         for key in ('category', 'silhouette_intent'))):
                 raise StudioError('Reviewed silhouette belongs to a different classification, source or body')
-        rows.append({'component_id': cid, 'silhouette': silhouette, 'numeric_ease': numeric})
+        rows.append({'component_id': cid, 'silhouette': silhouette, 'numeric_design_intent': design,
+                     'numeric_ease': numeric})
     return rows
 
 

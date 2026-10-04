@@ -221,12 +221,14 @@ def _source_selector_at_point(piece,edge,point,epsilon):
     return {'edge':edge,'fraction':hits[0]}
 
 
-def reconcile_source_boundary_uv(piece,panel,rest_cm):
+def reconcile_source_boundary_uv(piece,panel,rest_cm,*,seam_witnesses=None):
     """Recover source anchors from their recorded perimeter coordinates.
 
     The native CDT historically stored binary32 UV. Reconstruction is permitted
     only when the immutable contour identity and binary32 round-trip prove that
-    cause. The native mesh is never changed. Source perimeter keys carry eight
+    cause. An authenticated named-seam parameter can disambiguate a perimeter
+    key straddling a binary32 midpoint; its exact round-trip is still required.
+    The native mesh is never changed. Source perimeter keys carry eight
     decimal places, so their material uncertainty is at most 0.5e-8 cm.
     """
     if panel.get('source_contour_sha256')!=digest(piece['vertices']):
@@ -245,13 +247,18 @@ def reconcile_source_boundary_uv(piece,panel,rest_cm):
         corners=[i for i,stop in enumerate(stops[:-1])if round(stop,8)==key]
         if len(corners)>1:raise StudioError('UV precision reconciliation cannot disambiguate collapsed source perimeter stops')
         uv=copy.deepcopy(chain[corners[0]])if corners else sample_chain(chain,key/total)
-        native=rest_cm[index][:2];delta=math.dist(uv,native);binary32=list(map(f32,uv))
+        native=rest_cm[index][:2];binary32=list(map(f32,uv));witness=None
+        if native!=binary32 and seam_witnesses and index in seam_witnesses:
+            witness=copy.deepcopy(seam_witnesses[index]);uv=copy.deepcopy(witness['source_uv_cm'])
+            binary32=list(map(f32,uv))
         if native!=binary32:
             raise StudioError('Native source UV differs from its immutable perimeter position and exact binary32 round-trip')
+        delta=math.dist(uv,native)
         reconstructed[index]=uv
         evidence.append({'vertex':index,'source_perimeter_key_cm':key,'native_uv_cm':copy.deepcopy(native),
             'source_uv_cm':uv,'native_to_source_delta_cm':delta,'binary32_round_trip':'EXACT',
-            'source_stop':'EXACT_ORIGINAL_CORNER'if corners else'RECORDED_SOURCE_ARCLENGTH'})
+            'source_stop':'EXACT_ORIGINAL_CORNER'if corners else('CANONICAL_NAMED_SEAM_PARAMETER'if witness else'RECORDED_SOURCE_ARCLENGTH'),
+            **({'canonical_seam_witness':witness}if witness else{})})
     return reconstructed,{'status':'IMMUTABLE_SOURCE_BOUNDARY_RECONSTRUCTED_FROM_NATIVE_BINARY32',
         'source_contour_sha256':panel['source_contour_sha256'],'source_perimeter_keys_sha256':digest(keys),
         'boundary_vertex_bindings':evidence,'maximum_native_to_source_delta_cm':max(row['native_to_source_delta_cm']for row in evidence),
@@ -268,10 +275,13 @@ def intersect_guide_material_plane(piece,frame,triangles,section,seam_edges,*,ma
     of stretch in the guide. This is a discretized hypothesis, not the physical
     garment or an accepted anatomical homology. No triangulator is invented.
     """
-    from .pattern_assembly import _compile_arc_sections,_section_point
-    if not triangles or len(triangles)>max_faces:raise StudioError('Guide-plane source triangle budget exhausted or missing')
-    if (max_points<2 or max_seconds<=0 or not math.isfinite(epsilon_cm) or not 0<epsilon_cm<=1e-4
+    from .pattern_assembly import _compile_arc_sections,_section_point,_compile_cage,_cage_point
+    if (type(max_faces)is not int or max_faces<1 or type(max_points)is not int or max_points<2
+            or type(max_seconds)not in(int,float) or not math.isfinite(max_seconds) or max_seconds<=0
+            or type(epsilon_cm)not in(int,float) or not math.isfinite(epsilon_cm) or not 0<epsilon_cm<=1e-4
             or len(set(seam_edges))!=2):raise StudioError('Guide-plane computational budgets and two source seam edges must be explicit')
+    if not isinstance(triangles,(list,tuple)) or not triangles or len(triangles)>max_faces:
+        raise StudioError('Guide-plane source triangle budget exhausted or missing')
     normal=section['plane']['normal_world'];center=section['center_cm']
     if (len(normal)!=3 or len(center)!=3 or any(not math.isfinite(x)for x in normal+center)
             or abs(_dot(normal,normal)-1)>1e-7):raise StudioError('Guide-plane intersection needs a finite actual unit-normal body section')
@@ -281,7 +291,19 @@ def intersect_guide_material_plane(piece,frame,triangles,section,seam_edges,*,ma
     started=clock()
     def check_time():
         if clock()-started>max_seconds:raise StudioError('Guide-plane material computation time budget exhausted')
-    source=digest([piece,frame,triangles,section,seam_edges,boundary]);compiled=_compile_arc_sections(frame,'measurement')
+    source=digest([piece,frame,triangles,section,seam_edges,boundary])
+    if 'arc_sections' in frame:
+        compiled=_compile_arc_sections(frame,'measurement')
+        def evaluate(uv):return _section_point(frame,compiled,uv,'measurement')[0]
+    elif 'uv_cm' in frame:
+        if not isinstance(frame.get('uv_cm'),list) or not isinstance(frame.get('triangles'),list):
+            raise StudioError('Guide-plane cage requires explicit source UV points and triangles')
+        if len(frame['uv_cm'])>max_points or len(frame['triangles'])>max_faces:
+            raise StudioError('Guide-plane cage computational budget exhausted')
+        check_time();compiled=_compile_cage(frame,'measurement',check_time);check_time()
+        def evaluate(uv):return _cage_point(frame,compiled,uv,'measurement',check_time)[0]
+    else:
+        raise StudioError('Guide-plane measurement requires explicit arc sections or a source UV cage')
     vertices={};nodes={};segments=set();bindings={};edges={};edge_directions={};faces=set();area=0.
     for index,uvs in enumerate(triangles):
         check_time()
@@ -297,7 +319,7 @@ def intersect_guide_material_plane(piece,frame,triangles,section,seam_edges,*,ma
         if face in faces:raise StudioError('Guide-plane source triangulation contains a duplicate UV face')
         faces.add(face)
         for key in keys:
-            if key not in vertices:vertices[key]=_section_point(frame,compiled,list(key),'measurement')[0]
+            if key not in vertices:vertices[key]=evaluate(list(key))
         distances=[_dot(_sub(vertices[key],center),normal)for key in keys]
         if all(abs(value)<=epsilon_cm for value in distances):raise StudioError('Body plane is coplanar with guide triangles; material section is ambiguous')
         cuts={}
@@ -406,6 +428,43 @@ def intersect_guide_material_plane(piece,frame,triangles,section,seam_edges,*,ma
     check_time();return result
 
 
+def _source_guide_curve(row,pid,frame,source_meshes,section,seam_edges,source_links):
+    """Intersect an actual native source triangulation, never a nominal UV row."""
+    cid=row['component_id']
+    if not source_meshes or cid not in source_meshes:
+        raise StudioError('An explicit source cage needs actual source triangulation for body-plane material measurement; no nominal V is inferred')
+    from .cloth_metrics import face_sources
+    native=source_meshes[cid]
+    if (not isinstance(native,dict)or not isinstance(native.get('panels'),dict)
+            or not isinstance(native['panels'].get(pid),dict)
+            or not isinstance(native.get('rest_cm'),list)or not isinstance(native.get('faces'),list)):
+        raise StudioError('Measured guide mesh is missing its actual source panel or indexed triangulation')
+    panel=native['panels'][pid]
+    if (not isinstance(panel.get('indices'),list)or not isinstance(panel.get('boundary'),list)
+            or len(panel['boundary'])<3
+            or any(type(index)is not int or not 0<=index<len(native['rest_cm'])
+                   for index in panel['indices']+panel['boundary'])
+            or not set(panel['boundary'])<=set(panel['indices'])):
+        raise StudioError('Measured guide mesh has incomplete actual source panel/boundary ownership')
+    source=face_sources(native)
+    if source['binding_issues']:raise StudioError('Measured guide mesh has invalid actual source face/UV correspondence')
+    actual_triangles=[uv for uv,owner in zip(source['source_rest_triangles_cm'],source['source_face_pieces'])if owner==pid]
+    from .source_uv_witnesses import source_boundary_seam_witnesses
+    witnesses=source_boundary_seam_witnesses(row['source_geometry'],pid,cid,native,source_links)
+    restored,reconciliation=reconcile_source_boundary_uv(row['source_geometry'],panel,native['rest_cm'],seam_witnesses=witnesses)
+    owned_faces=[face for face,owner in zip(native['faces'],source['source_face_pieces'])if owner==pid]
+    triangles=[[copy.deepcopy(restored.get(index,native['rest_cm'][index][:2]))for index in face]for face in owned_faces]
+    boundary=[restored[index]for index in native['panels'][pid]['boundary']]
+    curve=intersect_guide_material_plane(row['source_geometry'],frame,triangles,section,seam_edges,
+        triangulated_boundary_uv=boundary)
+    curve['native_source_triangles_sha256']=digest(actual_triangles)
+    curve['source_uv_precision_reconciliation']=reconciliation
+    return {'piece':pid,'from':curve['from'],'to':curve['to'],'source_uv_polyline_cm':curve['source_uv_polyline_cm']}, {
+        'piece':pid,'source_material_length_cm':curve['source_material_length_cm'],
+        'source_geometry_sha256':digest(row['source_geometry']),'package_ref':copy.deepcopy(row['package_source_ref']),
+        'guide_plane_material_curve':curve}
+
+
 def propose_measurement_paths(compiled,profile,guides,required,body_regions=None,region_mapping=(),source_meshes=None,configuration=None):
     """Prepare homology proposals without inventing style/ease/take-up values.
 
@@ -467,9 +526,20 @@ def propose_measurement_paths(compiled,profile,guides,required,body_regions=None
                     if role not in ('front','back'):continue
                     if 'side'not in edges or ('opening'if role=='front'else'center')not in edges:
                         raise StudioError('Open torso measurement requires explicit source side/opening/centre edges')
-                    correspondence=_torso_v(guides[row['component_id']]['panels'][pid],profile,height)
+                    frame=guides[row['component_id']]['panels'][pid]
                     ends=(edges['opening'],edges['side']) if role=='front' else (edges['side'],edges['center'])
-                    segment,span=_span(compiled,pid,*ends,correspondence['source_v_cm'])
+                    if 'uv_cm'in frame:
+                        basis=profile['frame']
+                        section={'center_cm':[basis['origin_cm'][k]+height*basis['up'][k]for k in range(3)],
+                            'plane':{'normal_world':copy.deepcopy(basis['up'])}}
+                        segment,span=_source_guide_curve(row,pid,frame,source_meshes,section,ends,compiled['links'])
+                        correspondence={'correspondence':'ACTUAL_BODY_PLANE_IN_EXPLICIT_SOURCE_UV_CAGE',
+                            'source_v_inferred':False,'body_section_height_cm':height,
+                            'anatomical_homology':'REVIEW_REQUIRED',
+                            'oblique_plane_material_curve':'DISCRETIZED_SOURCE_UV_CURVE_MEASURED_REVIEW_REQUIRED'}
+                    else:
+                        correspondence=_torso_v(frame,profile,height)
+                        segment,span=_span(compiled,pid,*ends,correspondence['source_v_cm'])
                     segments.append(segment);evidence.append(span);homology.append({'piece':pid,**correspondence})
             else:
                 found=body_regions and body_regions['sections'].get(mapping.get(landmark))
@@ -501,28 +571,17 @@ def propose_measurement_paths(compiled,profile,guides,required,body_regions=None
                     if max(values)-min(values)>1e-7:raise StudioError('Wrist source stop is not a constant-V ring')
                     correspondence={'source_v_cm':values[0],'distal_edge':edge,'body_distal_anchor':landmark,
                         'correspondence':'EXPLICIT_SOURCE_DISTAL_ANCHOR_PROPOSAL'}
+                elif 'uv_cm' in frame:
+                    if not source_meshes or row['component_id'] not in source_meshes:
+                        raise StudioError('An explicit limb cage needs actual source triangulation for oblique material measurement; no nominal V is inferred')
+                    correspondence={'correspondence':'ACTUAL_BODY_PLANE_IN_EXPLICIT_SOURCE_UV_CAGE',
+                        'source_v_inferred':False,'anatomical_homology':'REVIEW_REQUIRED'}
                 else:correspondence=_limb_v(frame,section)
                 seams=[link for link in compiled['links'] if link['kind']=='permanent' and link['piece_a']==link['piece_b']==pid]
                 if len(seams)!=1:raise StudioError('Closed limb capacity requires one actual unary permanent source seam')
                 if role=='sleeve' and source_meshes and row['component_id']in source_meshes:
-                    from .cloth_metrics import face_sources
-                    source=face_sources(source_meshes[row['component_id']])
-                    if source['binding_issues']:raise StudioError('Measured guide mesh has invalid actual source face/UV correspondence')
-                    triangles=[uv for uv,owner in zip(source['source_rest_triangles_cm'],source['source_face_pieces'])if owner==pid]
-                    native=source_meshes[row['component_id']]
-                    restored,reconciliation=reconcile_source_boundary_uv(row['source_geometry'],native['panels'][pid],native['rest_cm'])
-                    actual_triangles_sha256=digest(triangles)
-                    owned_faces=[face for face,owner in zip(native['faces'],source['source_face_pieces'])if owner==pid]
-                    triangles=[[copy.deepcopy(restored.get(index,native['rest_cm'][index][:2]))for index in face]for face in owned_faces]
-                    boundary=[restored[index]for index in native['panels'][pid]['boundary']]
-                    curve=intersect_guide_material_plane(row['source_geometry'],frame,triangles,section,
-                        [seams[0]['edge_a'],seams[0]['edge_b']],triangulated_boundary_uv=boundary)
-                    curve['native_source_triangles_sha256']=actual_triangles_sha256
-                    curve['source_uv_precision_reconciliation']=reconciliation
-                    segment={'piece':pid,'from':curve['from'],'to':curve['to'],'source_uv_polyline_cm':curve['source_uv_polyline_cm']}
-                    span={'piece':pid,'source_material_length_cm':curve['source_material_length_cm'],
-                        'source_geometry_sha256':digest(row['source_geometry']),'package_ref':copy.deepcopy(row['package_source_ref']),
-                        'guide_plane_material_curve':curve}
+                    segment,span=_source_guide_curve(row,pid,frame,source_meshes,section,
+                        [seams[0]['edge_a'],seams[0]['edge_b']],compiled['links'])
                     correspondence.update(oblique_plane_material_curve='DISCRETIZED_SOURCE_UV_CURVE_MEASURED_REVIEW_REQUIRED')
                 else:segment,span=_span(compiled,pid,seams[0]['edge_a'],seams[0]['edge_b'],correspondence['source_v_cm'])
                 segments.append(segment);evidence.append(span);homology.append({'piece':pid,'body_section_id':section['id'],**correspondence})

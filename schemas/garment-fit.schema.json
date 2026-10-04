@@ -236,6 +236,20 @@
                     "fraction"
                   ],
                   "additionalProperties": false
+                },
+                "source_uv_polyline_cm": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 4096,
+                  "items": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  "description": "Explicit ordered material UV polyline, including both named-edge source endpoints. Every span is remeasured inside the exact source polygon; no guide or physical fitting approval is implied."
                 }
               },
               "required": [
@@ -252,6 +266,28 @@
               "type": "string",
               "minLength": 1
             }
+          },
+          "path_budget": {
+            "type": "object",
+            "properties": {
+              "max_points": {
+                "type": "integer",
+                "minimum": 2,
+                "maximum": 16384
+              },
+              "max_span_checks": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000000
+              },
+              "max_seconds": {
+                "type": "number",
+                "minimum": 0.001,
+                "maximum": 60
+              }
+            },
+            "additionalProperties": false,
+            "description": "Optional bounded computation limits for this measurement path. Defaults: 4096 source points, 500000 material span comparisons and 15 seconds. Budget exhaustion refuses the measurement without truncating or simplifying its polyline."
           },
           "engaged_links": {
             "type": "array",

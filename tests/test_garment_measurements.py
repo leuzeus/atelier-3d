@@ -195,6 +195,58 @@ class GarmentMeasurements(Case):
         guides['garment.coat']['panels']=dict(reversed(list(guides['garment.coat']['panels'].items())))
         self.assertEqual(propose_measurement_paths(compiled,body,guides,requests),report)
 
+    def torso_cage_fixture(self):
+        compiled,body,guides,requests,world=fixture();payload={'rest_cm':[],'faces':[],'panels':{}}
+        # A bent guide changes source V within one measured body plane. The
+        # source mesh explicitly contains the same material subdivisions.
+        uv=[[0.,0.],[4.,0.],[4.,10.],[0.,10.],[2.,0.],[2.,10.]]
+        triangles=[[0,4,5],[0,5,3],[4,1,2],[4,2,5]]
+        boundary=[0,4,1,2,5,3];arcs=[0.,2.,4.,14.,16.,18.]
+        for pid,row in compiled['textiles'].items():
+            offset=len(payload['rest_cm'])
+            payload['rest_cm'].extend([point+[0.]for point in uv])
+            payload['faces'].extend([[offset+i for i in face]for face in triangles])
+            payload['panels'][pid]={'indices':list(range(offset,offset+6)),
+                'boundary':[offset+i for i in boundary],'boundary_source_arclength_cm':arcs,
+                'source_contour_sha256':digest(row['source_geometry']['vertices'])}
+            guides['garment.coat']['panels'][pid]={'uv_cm':copy.deepcopy(uv),'triangles':triangles,
+                'target_cm':[world([u,0.,v+(1. if u==2. else 0.)])for u,v in uv]}
+        return compiled,body,guides,requests,{'garment.coat':payload}
+
+    def test_torso_cage_measures_bent_material_curve_in_rotated_body_frame_without_nominal_v(self):
+        compiled,body,guides,requests,meshes=self.torso_cage_fixture()
+        before=digest([compiled,body,guides,requests,meshes])
+        result=propose_measurement_paths(compiled,body,guides,requests,source_meshes=meshes)
+        self.assertEqual(result['diagnostics'],[]);row=result['proposals'][0]
+        self.assertEqual(row['path_kind'],'open_material_span')
+        self.assertEqual(row['joins'],['left-side','back-center','right-side'])
+        self.assertAlmostEqual(row['source_material_length_cm'],8.*math.sqrt(5.))
+        for span,homology in zip(row['source_spans'],row['homology']):
+            self.assertNotIn('source_v_cm',span);self.assertFalse(homology['source_v_inferred'])
+            self.assertEqual(homology['anatomical_homology'],'REVIEW_REQUIRED')
+            curve=span['guide_plane_material_curve']
+            self.assertLess(curve['maximum_plane_residual_cm'],1e-12)
+            self.assertTrue(any(abs(point[1]-3.)<1e-10 for point in curve['source_uv_polyline_cm']))
+            self.assertEqual(curve['source_uv_precision_reconciliation']['native_mesh_changed'],False)
+        self.assertTrue(all('source_uv_polyline_cm'in segment for segment in row['segments']))
+        self.assertFalse(row['admissible_for_fit']);self.assertIsNone(row['ease_cm'])
+        self.assertEqual(digest([compiled,body,guides,requests,meshes]),before)
+
+    def test_torso_cage_without_actual_source_mesh_or_with_wrong_partner_is_localized_and_not_admitted(self):
+        for change in ('missing-mesh','missing-panel','missing-boundary','wrong-partner','outside-plane'):
+            compiled,body,guides,requests,meshes=self.torso_cage_fixture()
+            if change=='missing-mesh':meshes=None
+            elif change=='missing-panel':del meshes['garment.coat']['panels']['front.left']
+            elif change=='missing-boundary':del meshes['garment.coat']['panels']['front.left']['boundary']
+            elif change=='wrong-partner':compiled['links'][0]['orientation']='reverse'
+            else:
+                body['landmarks']['chest']['section']['height_cm']=20.
+                guides['garment.coat']['profile_sha256']=digest(body)
+            with self.subTest(change=change):
+                result=propose_measurement_paths(compiled,body,guides,requests,source_meshes=meshes)
+                self.assertEqual(result['proposals'],[]);self.assertEqual(len(result['diagnostics']),1)
+                if change=='missing-mesh':self.assertIn('actual source triangulation',result['diagnostics'][0]['message'])
+
     def test_closed_limbs_use_actual_unary_seams_and_explicit_distal_source_stop(self):
         compiled,body,guides,requests,descriptor,mapping=limb_fixture()
         before=digest([compiled,body,guides,requests,descriptor,mapping])
