@@ -421,3 +421,16 @@ RESULT_READY déjà enregistré vérifie son résultat exact et ses archives san
 réexécuter la mutation. Sans reçu enregistré, la voie de récupération conserve
 les références strictes et les frontières de checkpoint. Les anciens reçus
 ne sont pas réécrits ni admis par cette nouvelle capacité.
+
+## Couplage explicite des guides
+
+Une politique de guides peut déclarer `source_seam_coupling` pour un composant :
+pièces sélectionnées, subdivisions, budgets et `recipe_ref` exact. La politique
+conserve aussi le digest du contenu de la recette. Le wrapper projet vérifie
+ses octets avant et après reconstruction ; le consommateur des mesures les
+revérifie après calcul et conserve la référence dans ses entrées.
+
+Le [noyau de couplage](source-seam-coupling.md) emploie uniquement les relations
+permanentes du package source et leurs paramètres. Les coutures externes restent
+déclarées non traitées. Cette correction d'une proposition de guide ne dispense
+ni du contrôle métrique, ni des contacts, ni des décisions de couverture.

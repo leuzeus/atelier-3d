@@ -59,6 +59,8 @@ le précise le [contrat de production](production.md).
 - [Préparation native du fitting](fitting-preparation.md)
 - [Fiche de fitting mesurée](measured-fitting.md)
 - [Prépositionnement et écarts des coutures](sewing-placement.md)
+- [Couplage des guides par leurs coutures source](source-seam-coupling.md)
+- [Reçu des contrôles de couplage et de conservation des coins](automation-source-coupling-evidence-20261004.json)
 - [Déplacements pendant Cloth](cloth-motion.md)
 - [Diagnostic des probes physiques](probe-diagnostics.md)
 - [Candidats refusés avant Cloth](garment-rejections.md)

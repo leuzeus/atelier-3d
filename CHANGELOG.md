@@ -15,11 +15,15 @@
   comparaison des variantes et conservation matérielle des crans. Cages UV
   communes au placement et aux mesures, raccords internes du torse synchronisés
   depuis leurs vrais bords source ; contacts et fitting encore à vérifier.
+- Couplage explicite du devant intérieur et du col aux quatre pièces du torse,
+  avec recette source hachée, union des paramètres de bords et subdivision des
+  seules faces source. Conservation exacte des coins des patrons lors de la
+  préparation régulière ; les conflits de précision ou qualité sont refusés.
 - Enfilage depuis des prises source, corps/colliders animés, rendus de clips,
   finition/UV/LOD, attachement rigide, export et réimportation contrôlés.
 - Limites : les essais mécaniques et de livraison sont des cas de test.
   Les épaules et le haut du torse du manteau principal restent refusés ;
-  aisance ample numérique acceptée, variante de patrons à examiner et couverture
+  aisance ample numérique et deux patrons de manches acceptés, couverture
   du torse ouvert à préciser.
   Construction physique, enfilage, drapé, fitting, mouvements et revue artistique
   complets restent requis. Aucune nouvelle release ou installation finale.

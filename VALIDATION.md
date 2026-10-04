@@ -2,7 +2,17 @@
 
 ## Programme en développement — 2026-10-04
 
-L'unité suivante poursuit l'accord numérique d'aisance ample. Son
+Dernière unité : source figée 45, 900 tests portables PASS en 114,496 s et
+49 tests de revue indépendante PASS. Deux cas Blender isolés PASS : cages
+couplées v3 avec six pièces/13 raccords et réouverture, puis contour source v1
+avec coin exact et triangulation native. Nouvelle politique v8 validée avec
+PowerShell Test-Json. Ces cas ont une portée `TEST_ONLY`, sans fitting ni
+acceptation du manteau complet. Le [reçu de couplage](references/automation-source-coupling-evidence-20261004.json)
+vérifie 389 fichiers de code et contrats contre le commit `848c9a8`.
+Le [suivi](references/automation-ease-followup-20261004.md)
+conserve les observations et les campagnes antérieures.
+
+L'unité précédente poursuit l'accord numérique d'aisance ample. Son
 [suivi séparé](references/automation-ease-followup-20261004.md) distingue la
 variante calculée des patrons, les guides et l'acceptation encore requise.
 Source figée 43, code `49ade3c` : 868 tests portables PASS en 103,96 s,

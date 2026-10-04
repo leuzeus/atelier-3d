@@ -229,3 +229,49 @@ Ces essais couvrent le logiciel livré et ses cas isolés. Les observations
 MAIN v8, les décisions d'aisance et de manches et les contrôles natifs ont
 leurs identités propres. Le manteau complet reste non qualifié ; la nouvelle
 unité de couplage du devant intérieur et du col suit cette validation.
+
+## Six pièces couplées et coins matériels conservés
+
+Le couplage générique traite les 13 relations internes entre les quatre pièces
+du torse, le devant intérieur et le col. Il conserve les quatre relations
+externes des manches comme non traitées. Les UV et les aires des faces source
+restent conservés ; les nouvelles subdivisions portent les vrais bords source.
+L'écart aux contrôles communs est nul. La correction maximale de cible est
+10,51971685 cm : ce résultat impose une nouvelle mesure métrique et des contacts.
+
+Politique MAIN v8 :
+`e95e0034626ad9e04df5c467bc41394147103494ffa3b05a8f1db75680a5c996`.
+Guides : `355043fb3de4d7fe7bab03b8c21e05c6813f00680cc37e2971ed9e713aeb5a02`.
+Rapport : `3abbd3132cb213377f6dcb7c1ba0ddc900f0c6a22c337f4f43aa5767336e530f`.
+Ils se reconstruisent à l'identique depuis leurs sources et recette hachées ;
+SQLite, corps, packages et anciennes propositions restent conservés.
+
+Le coin 26 du dos gauche avait été omis car son écart à la corde, 0,01496194 cm,
+restait sous la borne historique de 0,05 cm. La préparation conserve désormais
+chaque changement de direction exact avant de retirer les points optionnels.
+Les fractions des deux chaînes orientées sont propagées aux partenaires ; les
+bords libres suivent la même règle. Un arrêt source exact restitue le sommet
+original, sans seuil de proximité. Toute perte, collision de clé ou contrainte
+de qualité incompatible produit un refus. L'ancien maillage reste refusé pour
+la mesure de poitrine ; une nouvelle préparation native est nécessaire.
+
+La source figée 45, 480 fichiers, a pour empreinte
+`6762731d8bb71bef47cf202b9737843c6651f8872d9c7523254bebb76739a483`.
+900 tests portables PASS en 114,496 s. La revue indépendante de 49 tests et ses
+reproductions passent ; rapport final
+`program-source-seam-coupling-review-v1/review-corners-final.json`, SHA
+`64a24681aa5f1f34efa3e8ccbe34d4c3cbc189315404a9245fc0f818690002f9`.
+Le dépassement de budget pendant sérialisation finale est corrigé et testé.
+
+Deux cas natifs utilisent cette source sans la modifier : cage v3 PASS en
+6,219 s, avec stockage/réouverture de six cages synthétiques et 13 raccords,
+puis contour v1 PASS en 4,718 s. Le coin du coupon reste exact après CDT,
+la qualité passe et la scène se rouvre. Portée `TEST_ONLY`, pas de Cloth.
+La politique v8 passe son contrat JSON indépendant. La couverture, les contacts,
+la construction et le fitting du manteau complet restent non qualifiés.
+
+Le [reçu de cette unité](automation-source-coupling-evidence-20261004.json)
+lie ces preuves au commit de code `848c9a89f6e5ff57576bcc9ed91fd8dedaa2211f`.
+Les 389 fichiers de code et contrats vérifiés correspondent aux octets de la
+source figée testée. Les mises à jour documentaires et l'archive locale sont
+consignées séparément du code et de l'acceptation produit.

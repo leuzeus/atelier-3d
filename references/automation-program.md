@@ -526,3 +526,30 @@ puis remesure avant de proposer les choix de couverture manquants.
 Aucune nouvelle acceptation du vêtement ni publication finale. Construction,
 enfilage physique, drapé, fitting complet, mouvements du vêtement et revue
 artistique finale restent à exécuter sur le candidat exact.
+
+### Couplage du devant intérieur et du col, et conservation des coins
+
+Les six guides du manteau sont couplés par les 13 relations source internes ;
+les quatre raccords externes des manches restent à traiter. La politique v8
+déclare la sélection, la recette exacte et les budgets. Les corps et packages
+de production restent inchangés. L'écart commun aux contrôles est nul, mais
+la correction maximale atteint 10,52 cm : les contrôles métriques et de contact
+demeurent requis, sans admission du placement ou de la couverture.
+
+Le refus de poitrine a été localisé à un coin du dos omis sous l'ancienne borne
+d'approximation de contour de 0,05 cm. La préparation régulière protège maintenant
+tous les changements de direction exacts et propage leurs fractions aux
+partenaires de couture. Un conflit de clé, de budget ou de qualité reste un
+refus. L'ancien maillage reste intact et ne reçoit aucune mesure corrigée.
+
+Source figée 45 : 900 tests portables PASS en 114,496 s, lancement 115,719 s.
+Revue indépendante de 49 tests PASS. Cage source native v3 PASS en 6,219 s,
+avec stockage et réouverture de six cages synthétiques/13 relations ; contour
+source natif v1 PASS en 4,718 s, coin exact conservé dans la triangulation,
+qualité et réouverture vérifiées. Portée `TEST_ONLY`, aucun Cloth principal.
+Le schéma de la nouvelle politique v8 passe aussi PowerShell Test-Json.
+
+Les nouvelles propositions sont conservées dans le suivi d'aisance. La revue
+des deux manches reste acquise ; les autres décisions et qualifications
+restent distinctes. La prochaine unité contrôle la métrique de la proposition
+couplée et prépare sa correction bornée, puis la nouvelle préparation native.
