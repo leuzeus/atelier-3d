@@ -1,0 +1,11 @@
+{
+  "type": "object", "additionalProperties": false,
+  "required": ["version", "body_target_receipt", "object_name", "collision", "provenance"],
+  "properties": {
+    "version": {"const": 1},
+    "body_target_receipt": {"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}},
+    "object_name": {"type": "string", "minLength": 1, "maxLength": 120},
+    "collision": {"type":"object","additionalProperties":false,"required":["outer_thickness_cm","inner_thickness_cm"],"properties":{"outer_thickness_cm":{"type":"number","minimum":0.1,"maximum":10},"inner_thickness_cm":{"type":"number","minimum":0.1,"maximum":10}}},
+    "provenance": {"type":"object","additionalProperties":false,"required":["source_ref","purpose"],"properties":{"source_ref":{"type":"string","minLength":1},"purpose":{"const":"EXACT_MEASURED_BODY_FOR_GARMENT_PREPARATION"}}}
+  }
+}
