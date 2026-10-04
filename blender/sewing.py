@@ -36,6 +36,42 @@ def simulation_quality(payload,coords,limits):
     return validate_metrics(payload,coords,limits,include_faces=False)
 
 
+def _incident_refinement_candidates(triangle, protected_edges=()):
+    """Derive at most three interior insertion targets from one material face.
+
+    A circumcenter outside its incident triangle is not an admissible local
+    refinement, even when it lies inside the full source polygon. For a shortest
+    constrained boundary edge, try its inward equilateral apex first. Distinct
+    source anchors are never moved, merged or snapped by this calculation.
+    """
+    pairs=((0,1),(1,2),(2,0))
+    edge=min(pairs,key=lambda ij:distance(triangle[ij[0]],triangle[ij[1]]))
+    a,b=[triangle[i] for i in edge]
+    c=triangle[next(i for i in range(3) if i not in edge)]
+    dx,dy=b[0]-a[0],b[1]-a[1]
+    mid=[(a[k]+b[k])*.5 for k in range(2)]
+    normal=[-dy,dx]
+    if sum(normal[k]*(c[k]-mid[k]) for k in range(2))<0:
+        normal=[-v for v in normal]
+    local=[mid[k]+normal[k]*math.sqrt(3)/2 for k in range(2)]
+    # Translate the determinant to the first endpoint; this avoids subtracting
+    # large absolute squared coordinates for a small edge far from the origin.
+    cx,cy=c[0]-a[0],c[1]-a[1]
+    det=2*(dx*cy-dy*cx)
+    center=None
+    if abs(det)>1e-12:
+        bb,cc=dx*dx+dy*dy,cx*cx+cy*cy
+        value=[a[0]+(bb*cy-cc*dy)/det,a[1]+(dx*cc-cx*bb)/det]
+        if point_inside(value,triangle):center=value
+    protected=tuple(sorted(edge)) in {tuple(sorted(p)) for p in protected_edges}
+    targets=[('LOCAL_EDGE_APEX',local),('INCIDENT_CIRCUMCENTER',center)]
+    if not protected:targets.reverse()
+    targets.append(('FACE_CENTROID',[sum(p[k] for p in triangle)/3 for k in range(2)]))
+    return {'short_edge':edge,'short_edge_cm':distance(a,b),'protected_short_edge':protected,
+        'candidates':[{'kind':kind,'point':value} for kind,value in targets
+            if value is not None and point_inside(value,triangle)]}
+
+
 def triangulate(boundary, recipe, regular_mesh=None):
     from mathutils import Vector
     from mathutils.geometry import delaunay_2d_cdt
@@ -129,30 +165,25 @@ def triangulate(boundary, recipe, regular_mesh=None):
                 'examples':[[list(verts[i]) for i in f] for f in bad[:5]]}
             raise error
         existing={(round(v.x,6),round(v.y,6)) for v in points};insert=[]
+        protected_edges={tuple(sorted((mapping[i],mapping[(i+1)%len(polygon)])))
+            for i in range(len(polygon))} if regular_mesh else set()
         for face in bad:
-            a,b=min(((verts[a],verts[b]) for a,b in zip(face,face[1:]+face[:1])),key=lambda p:distance(*p))
-            d=b-a;mid=(a+b)*.5;normal=Vector((-d.y,d.x))
-            opposite=next(verts[i] for i in face if verts[i]!=a and verts[i]!=b)
-            if normal.dot(opposite-mid)<0:normal=-normal
-            value=mid+normal*math.sqrt(3)/2
-            tri=[verts[i] for i in face]
-            x,y,z=tri
-            det=2*(x.x*(y.y-z.y)+y.x*(z.y-x.y)+z.x*(x.y-y.y))
-            if abs(det)>1e-12:
-                xx,yy,zz=x.length_squared,y.length_squared,z.length_squared
-                center=Vector(((xx*(y.y-z.y)+yy*(z.y-x.y)+zz*(x.y-y.y))/det,
-                    (xx*(z.x-y.x)+yy*(x.x-z.x)+zz*(y.x-x.x))/det))
-                if point_inside(center,polygon):value=center
-            inside_face=all((v.x-u.x)*(value.y-u.y)-(v.y-u.y)*(value.x-u.x)>=-1e-9
-                for u,v in zip(tri,tri[1:]+tri[:1]))
-            if not inside_face and not point_inside(value,polygon):value=sum(tri,Vector((0.,0.)))/3
-            key=(round(value.x,6),round(value.y,6))
-            if key not in existing and point_inside(value,polygon):
+            tri=[coordinates[i] if regular_mesh else list(verts[i]) for i in face]
+            local_protected=[(i,(i+1)%3) for i in range(3)
+                if tuple(sorted((face[i],face[(i+1)%3]))) in protected_edges]
+            targets=_incident_refinement_candidates(tri,local_protected)
+            for candidate in targets['candidates']:
+                value=Vector(candidate['point'])
+                key=(round(value.x,6),round(value.y,6))
+                # The actual float32 point transported to CDT must remain in
+                # both domains; a double-precision proposal alone is not proof.
+                if key in existing or not point_inside(value,tri) or not point_inside(value,polygon):continue
                 if regular_mesh:
-                    separation=max(recipe['mesh']['min_edge_cm'],distance(a,b)*.2)
+                    separation=max(recipe['mesh']['min_edge_cm'],targets['short_edge_cm']*.2)
                     if any(distance(value,p)<separation for p in points+insert):continue
                     if min(segment_distance(value,u,v) for u,v in zip(polygon,polygon[1:]+polygon[:1]))<separation:continue
                 existing.add(key);insert.append(value)
+                break
         if not insert:
             if regular_mesh:
                 refusal='REFINEMENT_STALLED';break
