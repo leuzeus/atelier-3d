@@ -33,6 +33,8 @@ def inspect_reconstructed_part(project_root, profile_path, _normalize=False):
         if not meshes: raise StudioError('Rigid provider source contains no mesh')
         if any(obj.animation_data or obj.constraints or obj.modifiers for obj in imported):
             raise StudioError('Rigid source contains unsupported dynamic dependencies')
+        if any(obj.data.shape_keys for obj in meshes):
+            raise StudioError('Static rigid source contains unsupported morph dependencies')
         depsgraph = bpy.context.evaluated_depsgraph_get(); depsgraph.update()
         vertices = 0; faces_count = 0
         for index, obj in enumerate(sorted(meshes, key=lambda value: value.name)):

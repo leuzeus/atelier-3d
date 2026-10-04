@@ -67,3 +67,23 @@ class PartPreparationTests(Case):
                 'dossier_path': 'approved.json', 'dependencies': {'approved.json': 'd'*64}}):
             with self.assertRaisesRegex(StudioError, 'exact approved construction board'):
                 part_descriptor(project, 'profile.json')
+
+    def test_compression_and_morph_allocations_are_refused_before_native_import(self):
+        import copy
+        base = {'buffers': [{'byteLength': 36}], 'bufferViews': [{'buffer': 0, 'byteLength': 36}],
+                'accessors': [{'bufferView': 0, 'componentType': 5126, 'count': 3, 'type': 'VEC3'}],
+                'meshes': [{'primitives': [{'attributes': {'POSITION': 0}}]}], 'nodes': [{'mesh': 0}]}
+        budgets = {'max_vertices': 3, 'max_faces': 1}
+        self.assertEqual(glb_topology_budget(base, [36], budgets), {'vertices': 3, 'faces': 1})
+        for case in ('view_extension', 'required_compression', 'used_compression', 'targets', 'mesh_weights', 'node_weights'):
+            document = copy.deepcopy(base)
+            if case == 'view_extension':
+                document['bufferViews'][0]['extensions'] = {'EXT_meshopt_compression': {'count': 10**9, 'byteStride': 12}}
+            elif case.endswith('compression'):
+                document['extensionsRequired' if case.startswith('required') else 'extensionsUsed'] = ['EXT_meshopt_compression']
+            elif case == 'targets':
+                document['meshes'][0]['primitives'][0]['targets'] = [{'POSITION': 0}]*10000
+            elif case == 'mesh_weights': document['meshes'][0]['weights'] = [1.]
+            else: document['nodes'][0]['weights'] = [1.]
+            with self.subTest(case=case), self.assertRaises(StudioError):
+                glb_topology_budget(document, [36], budgets)

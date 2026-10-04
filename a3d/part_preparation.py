@@ -40,6 +40,9 @@ def embedded_glb(path, max_bytes, budgets=None):
 
 def glb_topology_budget(document, binary_lengths, budgets):
     """Bound native allocation from declared accessors before invoking import."""
+    compression = {'EXT_meshopt_compression', 'KHR_draco_mesh_compression'}
+    if compression.intersection([*document.get('extensionsRequired', []), *document.get('extensionsUsed', [])]):
+        raise StudioError('Rigid preflight supports uncompressed source buffers only')
     buffers = document.get('buffers', []); views = document.get('bufferViews', [])
     accessors = document.get('accessors', []); meshes = document.get('meshes', [])
     for row in buffers:
@@ -48,6 +51,8 @@ def glb_topology_budget(document, binary_lengths, budgets):
         if not row.get('uri') and (len(binary_lengths) != 1 or not length <= binary_lengths[0] <= length+3):
             raise StudioError('Rigid binary buffer length differs from its embedded chunk')
     for row in views:
+        if row.get('extensions'):
+            raise StudioError('Rigid buffer view extensions are outside the bounded uncompressed import')
         index = row.get('buffer'); offset = row.get('byteOffset', 0); length = row.get('byteLength')
         if (type(index) is not int or not 0 <= index < len(buffers) or type(offset) is not int or offset < 0 or
                 type(length) is not int or length < 0 or offset+length > buffers[index]['byteLength']):
@@ -65,8 +70,12 @@ def glb_topology_budget(document, binary_lengths, budgets):
             raise StudioError('Rigid accessor count exceeds its embedded view')
     totals = []
     for mesh in meshes:
+        if mesh.get('weights'):
+            raise StudioError('Static rigid inspection does not import morph weights')
         vertices = faces = 0
         for primitive in mesh.get('primitives', []):
+            if primitive.get('targets'):
+                raise StudioError('Static rigid inspection does not import morph targets')
             if primitive.get('mode', 4) != 4 or primitive.get('extensions'):
                 raise StudioError('Rigid preflight supports explicit uncompressed source triangles')
             index = primitive.get('attributes', {}).get('POSITION')
@@ -83,6 +92,8 @@ def glb_topology_budget(document, binary_lengths, budgets):
         totals.append((vertices, faces))
     vertices = faces = 0
     for node in document.get('nodes', []):
+        if node.get('weights'):
+            raise StudioError('Static rigid inspection does not import morph weights')
         if 'mesh' not in node: continue
         index = node['mesh']
         if type(index) is not int or not 0 <= index < len(totals):
