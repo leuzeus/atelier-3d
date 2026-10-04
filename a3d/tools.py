@@ -109,6 +109,15 @@ def compile_dossier(project_root, dossier_path, specification_path, fit_profile_
     return result
 
 
+@tool('studio_prepare_pattern_ease_variant', 'Prepare a separate source pattern variant from a canonically reviewed numerical design intent and an explicit bounded grading policy. Keep original patterns and body unchanged; report source seam constraints and missing homology. Does not bind production packages, approve the variant or authorize Blender execution.',
+      {**P, 'compiled_dossier_path': S, 'design_decision_path': S, 'policy_path': S, 'output_dir': S},
+      ('project_root', 'compiled_dossier_path', 'design_decision_path', 'policy_path', 'output_dir'), False)
+def prepare_pattern_ease_variant(project_root, compiled_dossier_path, design_decision_path, policy_path, output_dir):
+    from .pattern_ease_variant import prepare_project_pattern_ease_variant
+    return prepare_project_pattern_ease_variant(Project(project_root), compiled_dossier_path,
+        design_decision_path, policy_path, output_dir)
+
+
 @tool('studio_compile_material_bench', 'Compile fixed comparative coupon cases and their bounded run. Actual simulation, measured convergence and garment fitting remain separate.',
       {**P, 'specification_path': S, 'output_dir': S}, ('project_root', 'specification_path', 'output_dir'), False)
 def compile_material_bench(project_root, specification_path, output_dir):

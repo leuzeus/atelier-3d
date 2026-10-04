@@ -139,6 +139,10 @@ def compile_production_dossier(dossier, packages, spec=None):
                         raise StudioError('Assembly mark lacks its exact source seam: '+piece['id'])
                     if type(mark.get('position')) not in (int, float) or not 0 <= mark['position'] <= 1:
                         raise StudioError('Assembly mark needs a bounded source arc position')
+                    from .board_contract import assembly_mark_position
+                    for side in ('a','b'):
+                        if candidates[0]['piece_'+side]==piece['id']:
+                            assembly_mark_position(mark,candidates[0],side)
     if set(packages)-{c['id'] for c in components if c['pipeline'] == 'PATTERN_SEWN'}:
         raise StudioError('Compiler received an undeclared textile package')
     if set(declared)-set(textiles):

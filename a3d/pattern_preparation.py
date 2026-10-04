@@ -7,6 +7,7 @@ import copy
 import math
 
 from .core import StudioError, contract, digest
+from .board_contract import assembly_mark_position
 from .cloth_metrics import (METRIC_VERSION, VALIDATOR_VERSION, METRIC_SCOPE,
     face_sources, evaluate_metrics, distribution as _distribution)
 from .sewing import (chain_lengths, edge_chain, point_inside, prepare_boundaries,
@@ -154,7 +155,7 @@ def audit_source(data, recipe, dossier=None):
                         issues.append(_issue('DUPLICATE_NOTCH_ID', 'Seam has duplicate notch identifiers', 'source_contract', seam_id=sid))
                     marks.append({m.get('id'): m for m in entries})
                 if (seam['piece_a'] == seam['piece_b'] and seam['orientation'] == 'reverse'
-                        and any(not _inversion_invariant_notch(m.get('position')) for m in marks[0].values())):
+                        and any('seam_side_positions'not in m and not _inversion_invariant_notch(m.get('position')) for m in marks[0].values())):
                     issues.append(_issue('SELF_SEAM_NOTCH_SIDE_UNSPECIFIED',
                         'The source mark format does not identify which edge of this self-seam carries each notch',
                         'missing_metadata', seam_id=sid, piece=seam['piece_a']))
@@ -163,7 +164,7 @@ def audit_source(data, recipe, dossier=None):
                 else:
                     for mid, mark in marks[0].items():
                         other = marks[1][mid]
-                        ta, tb = mark.get('position'), other.get('position')
+                        ta, tb = assembly_mark_position(mark,seam,'a'), assembly_mark_position(other,seam,'b')
                         valid = type(ta) in (int, float) and type(tb) in (int, float) and 0 <= ta <= 1 and 0 <= tb <= 1
                         expected = 1-ta if valid and seam['orientation'] == 'reverse' else ta
                         if (not valid or abs(tb-expected) > 1e-6
@@ -311,11 +312,9 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
             seam = seam_by_id.get(mark.get('seam_id'))
             if seam is None or pid not in (seam['piece_a'], seam['piece_b']):
                 raise StudioError('Source notch must reference its own declared seam and panel')
-            position = mark.get('position')
-            if type(position) not in (int, float) or not math.isfinite(position) or not 0 <= position <= 1:
-                raise StudioError('Source notch must have a finite normalized arc position')
+            position = assembly_mark_position(mark,seam,'a'if seam['piece_a']==pid else'b')
             if (seam['piece_a'] == seam['piece_b'] and seam['orientation'] == 'reverse'
-                    and not _inversion_invariant_notch(position)):
+                    and 'seam_side_positions'not in mark and not _inversion_invariant_notch(position)):
                 ambiguous_notches.append({'seam_id': seam['id'], 'notch_id': mark['id'], 'piece': pid,
                     'reason': 'source_mark_has_no_self_seam_side', 'requires_clarification': True})
                 continue
@@ -323,6 +322,7 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
             # B's local source arc before inserting into the common sampler.
             sides = [side for side in ('a', 'b') if seam['piece_'+side] == pid]
             for side in sides:
+                position=assembly_mark_position(mark,seam,side)
                 parameter = 1-position if side == 'b' and seam['orientation'] == 'reverse' else position
                 # Round only floating subtraction noise, never the source arc to
                 # a mesh vertex: .3 and 1-.7 are the same source notch.

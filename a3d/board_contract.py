@@ -181,6 +181,28 @@ def at_edge(vertices, indexes, fraction):
     return path[-1]
 
 
+def assembly_mark_position(mark, seam, side):
+    """Read an explicit unary seam side, retaining the legacy shared fraction."""
+    if side not in ('a','b'):
+        raise StudioError('Assembly mark must name a source seam side')
+    positions=mark.get('seam_side_positions')
+    if 'seam_side_positions'in mark:
+        if (seam['piece_a']!=seam['piece_b'] or not isinstance(positions,dict)
+                or set(positions)!={'a','b'}):
+            raise StudioError('Explicit assembly mark sides require both sides of one unary source seam')
+        if any(type(value)not in(int,float) or not math.isfinite(value) or not 0<=value<=1
+                for value in positions.values()):
+            raise StudioError('Assembly mark side positions must be finite normalized source arcs')
+        expected=1-positions['a']if seam['orientation']=='reverse'else positions['a']
+        if abs(positions['b']-expected)>1e-6:
+            raise StudioError('Assembly mark side positions disagree with the source seam orientation')
+        return positions[side]
+    position=mark.get('position')
+    if type(position)not in(int,float) or not math.isfinite(position) or not 0<=position<=1:
+        raise StudioError('Assembly mark needs a finite normalized source arc position')
+    return position
+
+
 def validate_patterns(dossier, garments):
     for cid, garment in garments.items():
         infos = {p["id"]: p for p in dossier["components"][cid]["pieces"]}
@@ -224,8 +246,9 @@ def validate_patterns(dossier, garments):
                 raise StudioError("Each seam needs matching assembly marks on both pieces")
             for key,a in left.items():
                 b = right[key]
-                target = 1-a["position"] if seam["orientation"] == "reverse" else a["position"]
-                if abs(b["position"]-target)>1e-6 or a["symbol"] != b["symbol"]:
+                position_a=assembly_mark_position(a,seam,'a');position_b=assembly_mark_position(b,seam,'b')
+                target = 1-position_a if seam["orientation"] == "reverse" else position_a
+                if abs(position_b-target)>1e-6 or a["symbol"] != b["symbol"]:
                     raise StudioError("Assembly marks disagree with the seam orientation")
 
 
