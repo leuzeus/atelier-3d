@@ -124,11 +124,12 @@ class Comfy:
         if not project_root:
             raise StudioError("Provide project_root to retain the exact validated graph")
         project = Project(project_root)
-        _, graph = self.template(workflow_id, parameters, project)
+        spec, graph = self.template(workflow_id, parameters, project)
         path = inside(project.root, f".a3d/logs/workflow-{digest(graph)}.json", False)
         atomic_json(path, graph)
         with self.factory(self.config, project.root) as native:
-            report = native.call("validate_workflow", {"workflow_path": str(path)})
+            from .workflow_compatibility import compatibility_report
+            report = compatibility_report(native, path, spec, graph)
         return {"compatible": report.get("valid") is True, "native_report": report, "workflow_sha256": digest(graph)}
 
     def upload(self, project_root, path, purpose="clean", original_ref=None):
@@ -196,7 +197,8 @@ class Comfy:
             project.save_job(db, job)
         try:
             with self.factory(self.config, project.root) as native:
-                verdict = native.call("validate_workflow", {"workflow_path": str(path)})
+                from .workflow_compatibility import compatibility_report
+                verdict = compatibility_report(native, path, spec, graph)
                 if verdict.get("valid") is not True:
                     raise StudioError("Native workflow validation did not pass")
                 queue = native.call("job", {"action": "queue"})
@@ -253,7 +255,7 @@ class Comfy:
                 raise StudioError('Provider queue shape is unknown')
             candidates = []
             for row in rows:
-                if not isinstance(row, dict) or not isinstance(row.get('prompt_id'), str):
+                if not isinstance(row, dict) or not isinstance(row.get('prompt_id'), str) or not row['prompt_id'].strip():
                     raise StudioError('Provider queue identity is malformed')
                 graph_hash = row.get('workflow_sha256')
                 workflow = row.get('workflow_path')
@@ -272,14 +274,56 @@ class Comfy:
         if row.get('where', 'local') != 'local':
             raise StudioError('Provider reconciliation target is not local')
         receipt_workflow = receipt.get('workflow')
-        if not isinstance(receipt_workflow, str) or Path(receipt_workflow).resolve() != path:
-            raise StudioError('Provider status does not corroborate exact workflow identity')
-        submitted = receipt.get('submitted_at')
-        try:
-            if datetime.fromisoformat(submitted.replace('Z', '+00:00')) < datetime.fromisoformat(job['created_at'].replace('Z', '+00:00')):
-                raise ValueError('Provider submission predates candidate')
-        except (ValueError, TypeError, AttributeError):
-            raise StudioError('Provider submission time does not corroborate candidate') from None
+        second_queue = None
+        if receipt_workflow is not None:
+            if not isinstance(receipt_workflow, str) or Path(receipt_workflow).resolve() != path:
+                raise StudioError('Provider status contradicts exact workflow identity')
+            submitted = receipt.get('submitted_at')
+            try:
+                if datetime.fromisoformat(submitted.replace('Z', '+00:00')) < datetime.fromisoformat(job['created_at'].replace('Z', '+00:00')):
+                    raise ValueError('Provider submission predates candidate')
+            except (ValueError, TypeError, AttributeError):
+                raise StudioError('Provider submission time does not corroborate candidate') from None
+        else:
+            # comfy-cli 1.22 local status exposes live output URLs, not its
+            # workflow/submitted_at state fields. Use two exact UUID-path queue
+            # observations plus the completed output namespace; never infer a
+            # prompt from a filename alone or retry an unresolved submission.
+            from urllib.parse import urlsplit, parse_qs
+            if receipt.get('status') != 'completed':
+                return {**job, 'reconciliation': 'INSUFFICIENT_PROVIDER_EVIDENCE',
+                        'next_action': 'Wait for provider identity/output evidence; never resubmit'}
+            with self.factory(self.config, project.root) as native:
+                second_queue = native.call('job', {'action': 'queue'})
+            rows2 = second_queue.get('jobs', [])
+            matches = [r for r in rows2 if isinstance(r, dict) and
+                isinstance(r.get('workflow_path'), str) and Path(r['workflow_path']).is_absolute()
+                and Path(r['workflow_path']).resolve() == path]
+            if len(matches) != 1 or matches[0].get('prompt_id') != row['prompt_id']:
+                raise StudioError('Provider workflow ownership changed during reconciliation')
+            for observation in (row, matches[0]):
+                try:
+                    updated = datetime.fromisoformat(observation['updated_at'].replace('Z', '+00:00'))
+                    if updated < datetime.fromisoformat(job['created_at'].replace('Z', '+00:00')):
+                        raise ValueError()
+                except (KeyError, ValueError, TypeError, AttributeError):
+                    raise StudioError('Provider observation predates candidate or lacks time evidence') from None
+            spec, _ = self.template(job['workflow_id'], job['parameters'], project)
+            node, field = spec['output_prefix_target']
+            prefix = read_json(path)[node]['inputs'][field].replace('\\', '/')
+            subfolder, filename = prefix.rsplit('/', 1)
+            outputs = receipt.get('outputs'); endpoint = urlsplit(self.base)
+            if not isinstance(outputs, list) or not outputs:
+                return {**job, 'reconciliation': 'INSUFFICIENT_PROVIDER_EVIDENCE',
+                        'next_action': 'Inspect provider output identity; never resubmit'}
+            for output in outputs:
+                parsed = urlsplit(output) if isinstance(output, str) else None
+                query = parse_qs(parsed.query) if parsed else {}
+                if (parsed is None or parsed.scheme != endpoint.scheme or parsed.netloc != endpoint.netloc
+                        or query.get('type') != ['output']
+                        or query.get('subfolder', [''])[0].replace('\\', '/') != subfolder
+                        or not query.get('filename', [''])[0].startswith(filename+'_')):
+                    raise StudioError('Provider output contradicts the exact candidate namespace')
         if receipt.get('workflow_sha256', job['workflow_sha256']) != job['workflow_sha256']:
             raise StudioError('Provider status contradicts graph identity')
         mapping = {'pending': 'queued', 'queued': 'queued', 'running': 'running', 'allocated': 'running',
@@ -288,7 +332,7 @@ class Comfy:
         if status is None:
             raise StudioError('Unknown provider status cannot reconcile submission')
         proof = {'provider': 'Comfy-Org/comfy-mcp', 'endpoint': self.base,
-                 'observed_at': now(), 'queue': queue, 'status': receipt,
+                 'observed_at': now(), 'queue': queue, 'queue_after_status': second_queue, 'status': receipt,
                  'job_id': job_id, 'workflow_sha256': job['workflow_sha256']}
         proof_path = inside(project.root, f'.a3d/logs/jobs/{job_id}.reconciliation-{uuid.uuid4().hex}.json', False)
         atomic_json(proof_path, proof)

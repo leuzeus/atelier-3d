@@ -88,3 +88,29 @@ class ReconciliationTests(Case):
         self.provider()
         data = read_json(self.path); data['5']['inputs']['seed'] = 999; atomic_json(self.path, data)
         with self.assertRaises(StudioError): self.client.reconcile(self.root, self.job['job_id'])
+
+    def test_empty_provider_prompt_never_becomes_owned_completed_job(self):
+        self.provider([{'prompt_id': '', 'status': 'completed', 'workflow_path': self.path}], prompt_id='')
+        with self.assertRaises(StudioError): self.client.reconcile(self.root, self.job['job_id'])
+        self.assertIsNone(self.project.job(self.job['job_id'])['prompt_id'])
+
+    def test_local_status_without_workflow_uses_two_queue_and_exact_output_namespace(self):
+        from urllib.parse import urlencode
+        graph = read_json(self.path); prefix = graph['8']['inputs']['filename_prefix']
+        folder, filename = prefix.rsplit('/', 1)
+        output = self.client.base+'/view?'+urlencode({'type': 'output', 'subfolder': folder,
+                                                     'filename': filename+'_00001_.glb'})
+        row = {'prompt_id': 'lost-1', 'status': 'completed', 'workflow_path': self.path,
+               'updated_at': self.job['created_at']}
+        self.provider([row], workflow=None, submitted_at=None, outputs=[output])
+        result = self.client.reconcile(self.root, self.job['job_id'])
+        self.assertEqual(result['status'], 'completed')
+        self.assertEqual(sum(name == 'job' and args.get('action') == 'queue' for name, args in self.native.calls), 3)
+
+    def test_local_output_from_another_namespace_never_recovers_ownership(self):
+        row = {'prompt_id': 'lost-1', 'status': 'completed', 'workflow_path': self.path,
+               'updated_at': self.job['created_at']}
+        self.provider([row], workflow=None, submitted_at=None,
+                      outputs=[self.client.base+'/view?type=output&filename=other_00001_.png&subfolder=other'])
+        with self.assertRaises(StudioError): self.client.reconcile(self.root, self.job['job_id'])
+        self.assertIsNone(self.project.job(self.job['job_id'])['prompt_id'])

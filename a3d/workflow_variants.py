@@ -11,7 +11,7 @@ def template_identity(template_id):
         raise StudioError('Variants require a registered reviewed template')
     spec = copy.deepcopy(specs[template_id])
     graph = inside(ROOT / 'workflows/comfy', spec['file'])
-    return spec, {'registry_sha256': sha(registry), 'template_sha256': sha(graph)}
+    return spec, {'registry_entry_sha256': digest(spec), 'template_sha256': sha(graph)}
 
 
 def load_variant(project, variant_id):
@@ -58,7 +58,8 @@ def prepare_variant(project, client, template_id, variant_id, parameters):
     graph_path = folder/'workflow.api.json'
     atomic_json(graph_path, graph)
     with client.factory(client.config, project.root) as native:
-        report = native.call('validate_workflow', {'workflow_path': str(graph_path)})
+        from .workflow_compatibility import compatibility_report
+        report = compatibility_report(native, graph_path, spec, graph)
     record = {'version': 1, 'variant_id': variant_id, 'template_id': template_id,
               'template_identity': identity, 'specification': spec,
               'fingerprint': fingerprint, 'graph_digest': digest(graph),

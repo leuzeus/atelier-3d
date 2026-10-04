@@ -175,6 +175,120 @@
       "source_parameters": [
         "source"
       ]
+    },
+    "reference-sd15-bounded": {
+      "file": "reference-sd15-bounded.api.json",
+      "phase": "references",
+      "pipeline": null,
+      "view_parameters": {},
+      "output_prefix_target": [
+        "7",
+        "filename_prefix"
+      ],
+      "parameters": {
+        "checkpoint": {
+          "target": [
+            "1",
+            "ckpt_name"
+          ],
+          "schema": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": "v1-5-pruned-emaonly-fp16.safetensors",
+          "required": false
+        },
+        "prompt": {
+          "target": [
+            "2",
+            "text"
+          ],
+          "schema": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required": true
+        },
+        "negative": {
+          "target": [
+            "3",
+            "text"
+          ],
+          "schema": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": "text, labels, perspective, cropped, watermark",
+          "required": false
+        },
+        "seed": {
+          "target": [
+            "5",
+            "seed"
+          ],
+          "schema": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "default": 42,
+          "required": false
+        },
+        "source": {
+          "target": [
+            "8",
+            "image"
+          ],
+          "schema": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required": true
+        },
+        "denoise": {
+          "target": [
+            "5",
+            "denoise"
+          ],
+          "schema": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 0.7
+          },
+          "default": 0.35,
+          "required": false
+        },
+        "steps": {
+          "target": [
+            "5",
+            "steps"
+          ],
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 80
+          },
+          "default": 20,
+          "required": false
+        },
+        "megapixels": {
+          "target": [
+            "9",
+            "megapixels"
+          ],
+          "schema": {
+            "type": "number",
+            "minimum": 0.05,
+            "maximum": 1.0
+          },
+          "default": 0.5,
+          "required": false
+        }
+      },
+      "source_parameters": [
+        "source"
+      ],
+      "node_schema_preflight": true
     }
   }
 }
