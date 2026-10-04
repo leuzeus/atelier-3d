@@ -180,6 +180,57 @@ def mount_release_batches(payload,plan,releases,frames):
     return batches
 
 
+def _source_metric_recovery(data, semantics, guide, preform_budget, budgets):
+    """Declare recovery ownership from source relations and actual guide stops.
+
+    A coupled guide adds its entire explicit source cohort. Its binary32
+    alignment allowance derives from the existing per-panel conversion guards;
+    it neither admits a placement nor changes any final seam/quality gate.
+    """
+    coupling=guide.get('source_seam_coupling')
+    recoverable=sorted(pid for pid,row in semantics.items()if row.get('role')in('front','back'))
+    seams=[]
+    if coupling is not None:
+        if (not isinstance(coupling,dict)or coupling.get('method')!='SOURCE_PERMANENT_NORMALIZED_PARTITION_UNION_CAGE'
+                or coupling.get('component_id')!=data['component_id']or coupling.get('source_sha256')!=digest(data)
+                or not isinstance(coupling.get('refinements'),dict)):
+            raise StudioError('Metric recovery requires its exact source-bound guide coupling report')
+        recoverable=sorted(coupling['refinements'])
+        if not recoverable or not set(recoverable)<=set(semantics):
+            raise StudioError('Coupled metric recovery has missing actual source pieces')
+        if coupling.get('cage_sha256')!=digest({pid:guide['panels'][pid]for pid in recoverable}):
+            raise StudioError('Coupled metric recovery guide cages changed after source coupling')
+        expected={row['id']:row for row in data['seams']if row['kind']=='permanent'
+                  and row['piece_a']in recoverable and row['piece_b']in recoverable}
+        rows=coupling.get('relations')
+        if (not isinstance(rows,list)or not expected or len(rows)!=len(expected)
+                or any(not isinstance(row,dict)or row.get('source_seam_id')not in expected
+                       or row.get('source_relation')!=expected[row['source_seam_id']]for row in rows)
+                or len({row['source_seam_id']for row in rows})!=len(expected)):
+            raise StudioError('Coupled metric recovery requires every exact internal permanent source relation')
+        seams=sorted(expected)
+    if not recoverable:return None
+    stops=[]
+    for pid in recoverable:
+        row=semantics[pid];edges=row.get('guide_edges',{})
+        names=([edges.get('shoulder')]if row.get('role')in('front','back')else
+               [edges.get('anchor')]+([edges['anchor_end']]if 'anchor_end'in edges else []))
+        if any(not name or name not in data['pieces'][pid]['edges']for name in names):
+            raise StudioError('Source metric recovery requires each selected piece\'s explicit actual guide stop: '+pid)
+        stops.extend({'piece':pid,'edge':name}for name in dict.fromkeys(names))
+    result={'version':1,'piece_ids':recoverable,'protected_edges':stops,
+        'budgets':{'max_iterations':min(100,budgets['max_iterations']),
+            'max_seconds':min(300,budgets['max_seconds']),
+            'max_displacement_cm':budgets['max_displacement_cm'],'max_step_cm':.5,
+            'cg_iterations':60,'cg_tolerance':1e-5,'stagnation_iterations':5},'strain_weight':100.}
+    if seams:
+        guards=[preform_budget['panels'][pid]['native_float32_guard_cm']for pid in recoverable]
+        if any(type(value)not in(int,float)or not math.isfinite(value)or not 0<value<=1 for value in guards):
+            raise StudioError('Coupled metric alignment requires the actual finite native conversion guards')
+        result.update(seam_ids=seams,max_initial_seam_gap_cm=2*max(guards))
+    return result
+
+
 def prepare_component_templates(assembly_plan, sources, guides, standard_recipe, dossier, dossier_ref, compiler_inputs=None):
     """Prepare portable native inputs without claiming a native mesh identity.
 
@@ -253,16 +304,8 @@ def prepare_component_templates(assembly_plan, sources, guides, standard_recipe,
             'budgets':{'max_iterations':min(300,budgets['max_iterations']),'max_seconds':min(300,budgets['max_seconds']),
                 'max_proposals_per_iteration':8,'max_displacement_cm':budgets['max_displacement_cm'],
                 'max_step_cm':.05,'stagnation_iterations':3,'min_improvement':1e-6,'target_score':1e-6}}
-        recoverable=sorted(pid for pid,row in semantics.items() if row.get('role')in ('front','back'))
-        if recoverable:
-            stops=[{'piece':pid,'edge':semantics[pid].get('guide_edges',{}).get('shoulder')} for pid in recoverable]
-            if any(not stop['edge']or stop['edge']not in data['pieces'][stop['piece']]['edges'] for stop in stops):
-                raise StudioError('Source metric recovery requires each torso piece\'s explicit actual shoulder edge')
-            spec['metric_recovery']={'version':1,'piece_ids':recoverable,'protected_edges':stops,
-                'budgets':{'max_iterations':min(100,budgets['max_iterations']),
-                    'max_seconds':min(300,budgets['max_seconds']),
-                    'max_displacement_cm':budgets['max_displacement_cm'],'max_step_cm':.5,
-                    'cg_iterations':60,'cg_tolerance':1e-5,'stagnation_iterations':5},'strain_weight':100.}
+        recovery=_source_metric_recovery(data,semantics,guide,preform_budget,budgets)
+        if recovery:spec['metric_recovery']=recovery
         contract('pattern-preparation',spec)
         prepared[cid]={'source_ref':copy.deepcopy(source['source_ref']),'source_garment_sha256':digest(data),
             'recipe_template':recipe,'plan_fields':fields,'preparation_template':spec,

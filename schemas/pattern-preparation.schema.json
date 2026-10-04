@@ -219,11 +219,18 @@
           "required": ["max_iterations", "max_seconds", "max_displacement_cm", "max_step_cm", "cg_iterations", "cg_tolerance", "stagnation_iterations"],
           "additionalProperties": false
         },
-        "strain_weight": {"type": "number", "minimum": 1e-9, "maximum": 1000000}
+        "strain_weight": {"type": "number", "minimum": 1e-9, "maximum": 1000000},
+        "seam_ids": {"type": "array", "minItems": 1, "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}},
+        "max_initial_seam_gap_cm": {"type": "number", "minimum": 0, "maximum": 2}
       },
       "required": ["version", "piece_ids", "protected_edges", "budgets", "strain_weight"],
+      "anyOf": [
+        {"properties": {"seam_ids": false, "max_initial_seam_gap_cm": false}},
+        {"required": ["seam_ids", "max_initial_seam_gap_cm"]}
+      ],
       "additionalProperties": false,
-      "description": "Opt-in recovery of source UV metric before contact search; its displacement budget is shared with contact correction from the original guide, and all downstream gates remain required."
+      "description": "Opt-in recovery of source UV metric before contact search. Optional exact permanent seam IDs share quotient unknowns; their declared initial alignment bound is not a final seam acceptance threshold. Displacement is shared with contact correction from the original guide, and all downstream gates remain required."
     },
     "placement_correction": {
       "type": "object",

@@ -49,7 +49,41 @@ assert recovered['measurement']['static_contact']['ok']is True
 assert recovered['displacement_reference_sha256']==digest(compressed['placed_cm'])
 assert recovered['max_displacement_cm']<=2.
 assert digest([compressed,recovery_spec])==recovery_before and mesh_digest(body,True)==unchanged
+# A two-piece fixture exercises the exact seam quotient through the native
+# contact adapter. It remains a static synthetic case, without any Cloth.
+from tests.test_guide_metric_solver import seamed_fixture
+coupled,guide,coupled_quality,stops=seamed_fixture()
+coupled['placed_cm']=[[x,y,1.2]for x,y,z in guide]
+coupled.update(version=2,component_id='synthetic.coupled',package_sha256=digest('synthetic-coupled-source'))
+coupled_spec=copy.deepcopy(recovery_spec)
+coupled_spec.update(component_id='synthetic.coupled')
+coupled_spec['metric_recovery'].update(piece_ids=['a','b'],protected_edges=stops,seam_ids=['ab'],
+    max_initial_seam_gap_cm=0.)
+coupled_spec['metric_recovery']['budgets']['max_iterations']=30
+coupled_before=digest([coupled,coupled_spec])
+coupled_result=correct_preparation(coupled,{'mesh':coupled_quality},plan,coupled_spec,[body])
+assert coupled_result['status']=='GEOMETRIC_GATES_PASSED',coupled_result
+assert coupled_result['metric_recovery']['seam_coupling']['final_max_cohort_gap_cm']==0.
+assert coupled_result['measurement']['static_contact']['ok']is True
+for first,last in coupled['seams']['ab']['pairs']:
+    assert coupled_result['coordinates_cm'][first]==coupled_result['coordinates_cm'][last]
+assert digest([coupled,coupled_spec])==coupled_before and mesh_digest(body,True)==unchanged
 out=Path(os.environ['A3D_VALIDATION_OUTPUT']);out.mkdir(parents=True,exist_ok=True)
+mesh=bpy.data.meshes.new('SYNTHETIC_COUPLED_SOURCE_METRIC')
+mesh.from_pydata([[v/100 for v in point]for point in coupled_result['coordinates_cm']],[],coupled['faces']);mesh.update()
+obj=bpy.data.objects.new(mesh.name,mesh);bpy.context.collection.objects.link(obj)
+import json
+obj['a3d_source_pairs']=json.dumps(coupled['seams']['ab']['pairs'])
+coupled_native_sha=mesh_digest(obj,True)
+scene=out/'synthetic-coupled-recovery.blend'
+bpy.ops.wm.save_as_mainfile(filepath=str(scene))
+bpy.ops.wm.open_mainfile(filepath=str(scene))
+assert mesh_digest(bpy.data.objects['SYNTHETIC_FIXED_BODY'],True)==unchanged
+reopened=bpy.data.objects['SYNTHETIC_COUPLED_SOURCE_METRIC']
+assert mesh_digest(reopened,True)==coupled_native_sha
+for first,last in json.loads(reopened['a3d_source_pairs']):
+    assert list(reopened.data.vertices[first].co)==list(reopened.data.vertices[last].co)
 atomic_json(out/'result.json',{'status':'PASS_SYNTHETIC_STATIC_CORRECTION_ONLY','solved':solved,'protected':refused,'metric_recovery':recovered,
+    'coupled_metric_recovery':coupled_result,'coupled_native_mesh_sha256':coupled_native_sha,'native_scene_reopened':True,
     'qualification':'NATIVE_SYNTHETIC_COUPON_ONLY','simulation':'NOT_EXECUTED','fitting':'NOT_QUALIFIED','body_sha256':unchanged})
 print('NATIVE_PLACEMENT_CORRECTION_RESULT='+str(out/'result.json'),flush=True)
