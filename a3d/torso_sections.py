@@ -29,7 +29,7 @@ def half_section(section, side):
     if curve[0][1] < curve[-1][1]:
         curve = list(reversed(curve))
     curve = [[p[0], -p[1], p[2]] for p in curve]
-    length = sum(math.dist(a,b) for a,b in zip(curve,curve[1:]))
+    length = math.fsum(math.dist(a,b) for a,b in zip(curve,curve[1:]))
     if length <= 0:
         raise StudioError('Measured torso half contour is collapsed')
     return curve, length
@@ -118,7 +118,7 @@ def apply_measured_sections(panels, report, group, profile, skin_sections=None):
             p = list(a[1][-1]) if i == 256 else sample_curve(a[1],a[2]*i/256)
             q = list(b[1][-1]) if i == 256 else sample_curve(b[1],b[2]*i/256)
             curve.append([(1-factor)*p[0]+factor*q[0],(1-factor)*p[1]+factor*q[1],height])
-        body_half = sum(math.dist(p,q) for p,q in zip(curve,curve[1:]))
+        body_half = math.fsum(math.dist(p,q) for p,q in zip(curve,curve[1:]))
         half = row['applied_guide']['half_girth_cm']
         opening=group.get('source_open_front',{})
         open_interval=opening.get('free_edge_v_domain_cm',[])

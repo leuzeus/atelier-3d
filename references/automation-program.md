@@ -1293,3 +1293,46 @@ homologues et la couverture du candidat restent à établir avant admission
 physique. Restent ensuite placement admis, construction complète, enfilage,
 drapé, fitting, mouvement et revue artistique. Aucune nouvelle modification
 de découpage n'est présentée à ce jalon.
+
+### 2026-10-05 — Refus natif préservé, restauration exécutée
+
+Après l'autorisation explicite du raccordement, l'appel natif a refusé la
+remeasure des sections de peau, avant de créer le dossier de sorties. Le run
+`run.433754fe078b4a46b1f689aec50cbf54` reste `INCOMPLETE`, sans qualification.
+Le reçu exact et son checkpoint sont conservés dans
+[la preuve du refus](automation-native-binding-refusal-20261005.json).
+L'autorisation distincte de restauration a ensuite été exécutée : Blender a
+réouvert le checkpoint vérifié et sauvegardé une nouvelle scène de récupération.
+La lecture MCP confirme une scène sauvegardée, non modifiée, contenant seulement
+le mannequin accepté. L'opération échouée n'est plus en attente ; son historique
+et ses fichiers restent conservés. Aucune revue visuelle, aucun placement ni
+Cloth n'est déduit de cette restauration.
+
+La divergence des périmètres est reproduite avec les interpréteurs réels
+Python 3.11.0 et Python 3.13.13 fourni par Blender : neuf sections sur onze
+diffèrent uniquement sur le scalaire de périmètre, de moins de
+`4.3e-14 cm`. Les courbes, statuts, profil et géométrie source sont identiques.
+Le calcul utilise désormais `math.fsum` explicitement, pour conserver une
+sommation commune aux deux environnements. Le contrôle d'empreinte et la
+comparaison intégrale sans arrondi restent stricts. Les politiques et guides
+dépendants doivent être régénérés sous la nouvelle identité du code ; les
+sources anatomiques et les patrons approuvés restent leurs entrées immuables.
+
+La première comparaison des rapports complets révèle aussi des différences
+de normalisation des arcs et de longueurs des sections de torse, propagées
+aux cibles et à leurs identités. Le correctif couvre donc les accumulations
+flottantes de ces générateurs, leurs moyennes et projections communes. Les
+compteurs entiers et les partitions UV rationnelles restent exacts. Les
+artefacts de diagnostic conservent séparément l'essai limité au périmètre et
+la comparaison du candidat intégré. Ils ne constituent aucun résultat natif
+de placement, physique, fitting ou revue artistique.
+
+La comparaison V3 des modules réels, après interpolation compensée des cages,
+est **identique octet par octet sous Python 3.11.0 et Python 3.13.13** pour la
+politique, les guides des trois composants et le rapport complet, sans arrondi.
+Les sources, paramètres et code sont vérifiés avant/après ; aucune base de
+données ni scène Blender n'est utilisée pour cette preuve numérique pure.
+Les comparaisons V1 et V2 restent conservées. Le nouveau binding public reste
+à exécuter après installation, rechargement, régénération des dérivés et
+autorisation distincte de ses arguments exacts. La requête V3 est préparée
+dans le projet composé ; aucune nouvelle coupe n'est proposée à la revue.

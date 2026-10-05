@@ -10,7 +10,7 @@ from .core import StudioError
 def sub(a,b):return tuple(x-y for x,y in zip(a,b))
 def add(a,b):return tuple(x+y for x,y in zip(a,b))
 def mul(a,s):return tuple(x*s for x in a)
-def dot(a,b):return sum(x*y for x,y in zip(a,b))
+def dot(a,b):return math.fsum(x*y for x,y in zip(a,b))
 def cross(a,b):return (a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0])
 def norm(a):return math.sqrt(dot(a,a))
 

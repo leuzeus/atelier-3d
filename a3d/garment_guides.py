@@ -59,7 +59,7 @@ def _source_limb_mesh(piece, subdivisions):
         raise StudioError('Limb cage requires finite actual source triangles within its fixed face budget')
     boundary = {tuple(sorted((i, (i+1) % len(vertices)))) for i in range(len(vertices))}
     edges = {}; directions = {}; area = 0.
-    polygon_area = sum(a[0]*b[1]-b[0]*a[1] for a, b in zip(vertices, vertices[1:]+vertices[:1]))/2
+    polygon_area = math.fsum(a[0]*b[1]-b[0]*a[1] for a, b in zip(vertices, vertices[1:]+vertices[:1]))/2
     seen = set()
     for face in faces:
         if (len(face) != 3 or len(set(face)) != 3 or any(type(i) is not int or not 0 <= i < len(vertices) for i in face)
@@ -312,13 +312,13 @@ def _source_anchor(piece, semantic, *, periodic_u=None):
         lengths = [math.dist(a, b) for a, b in zip(curve, curve[1:])]
         if min(lengths) <= 1e-10:
             raise StudioError('Guide anchor edge has a collapsed source segment')
-        remaining = sum(lengths)/2
+        remaining = math.fsum(lengths)/2
         for a, b, size in zip(curve, curve[1:], lengths):
             if remaining <= size:
                 anchors.append([a[i]+remaining/size*(b[i]-a[i]) for i in (0, 1)])
                 break
             remaining -= size
-    result = [sum(p[i] for p in anchors)/len(anchors) for i in (0, 1)]
+    result = [math.fsum(p[i] for p in anchors)/len(anchors) for i in (0, 1)]
     if periodic_u is None or len(anchors) == 1:
         return result
     if (not isinstance(periodic_u, (list, tuple)) or len(periodic_u) != 2 or
@@ -350,7 +350,7 @@ def _source_anchor(piece, semantic, *, periodic_u=None):
 
 def _world(profile, point):
     basis = profile['frame']
-    return [basis['origin_cm'][i]+sum(point[j]*basis[key][i]
+    return [basis['origin_cm'][i]+math.fsum(point[j]*basis[key][i]
             for j, key in enumerate(('right', 'forward', 'up'))) for i in range(3)]
 
 
@@ -447,7 +447,7 @@ def specialised_volume_frames(data, semantics, profile):
             arc += list(reversed(half_ellipse(width/2, (hi[0]-lo[0])/(hi[1]-lo[1]), center, section['height_cm'], -1)))[1:]
             minimum_u = min(p[0] for p in piece['vertices'])
             arc = _rotate_closed_curve(arc, width/2-(anchor_uv[0]-minimum_u))
-            actual_width = sum(math.dist(a, b) for a, b in zip(arc, arc[1:]))
+            actual_width = math.fsum(math.dist(a, b) for a, b in zip(arc, arc[1:]))
             # Account for floating-point accumulation without scaling UV or
             # altering the source circumferential span.
             arc = extend_tangent(arc, max(0., width-actual_width)+1e-8)

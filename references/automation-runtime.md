@@ -512,3 +512,13 @@ Le [noyau de couplage](source-seam-coupling.md) emploie uniquement les relations
 permanentes du package source et leurs paramètres. Les coutures externes restent
 déclarées non traitées. Cette correction d'une proposition de guide ne dispense
 ni du contrôle métrique, ni des contacts, ni des décisions de couverture.
+
+Les périmètres de sections de peau, longueurs, moyennes et projections des
+guides utilisent `math.fsum` explicitement : la
+sommation implicite des flottants a changé entre Python 3.11 et les versions
+récentes utilisées par Blender. Les politiques enregistrent l'identité de ce
+calcul. Après modification du générateur, préparer un nouveau dossier public
+avec `preparation_output_dir` neuf ; ne pas réutiliser les guides ou la policy
+de l'ancien code. Le contrôle natif conserve la reconstruction exacte et la
+comparaison intégrale sans arrondi. Cette régénération de dérivés n'altère pas
+les fichiers du corps accepté ou les patrons source.

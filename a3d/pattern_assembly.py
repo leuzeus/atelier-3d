@@ -205,7 +205,7 @@ def _cage_point(frame, compiled, uv, pid, check_time=None):
         gamma = ((b[0]-a[0])*(uv[1]-a[1])-(b[1]-a[1])*(uv[0]-a[0]))/denominator
         bary = [1-beta-gamma, beta, gamma]
         if min(bary) >= -1e-8 and max(bary) <= 1+1e-8:
-            target = [sum(w*frame['target_cm'][j][k] for w, j in zip(bary, triangle)) for k in range(3)]
+            target = [math.fsum(w*frame['target_cm'][j][k] for w, j in zip(bary, triangle)) for k in range(3)]
             candidates.append((triangle_id, bary, target))
     if not candidates:
         _refuse('Derived source UV is outside its explicit preform cage: ' + pid, 'placement')

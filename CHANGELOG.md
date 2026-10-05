@@ -2,6 +2,11 @@
 
 ## En développement — programme d'automatisation, 2026-10-04
 
+- Périmètres corporels, normalisations de courbes et projections de guides
+  calculés avec une sommation explicite
+  commune au Python de préparation et à celui de Blender. Les empreintes
+  strictes restent exigées ; les politiques dérivées sont régénérées après
+  changement de code, avec conservation du corps et des patrons approuvés.
 - Journal persistant de runs, reprise aux frontières et réconciliation ComfyUI
   avec variantes sourcées ; une soumission incertaine ne crée pas de double job.
 - Compilation des 15 textiles et de la boucle, guides sourcés, récupération

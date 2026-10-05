@@ -88,7 +88,9 @@ def surface_section(vertices, faces, height_cm, seed_xy_cm):
         return result
     curve = selected[0]['curve']
     result.update(curve_cm=[[x, y, height_cm] for x, y in curve],
-                  girth_cm=sum(math.dist(a, b) for a, b in zip(curve, curve[1:]+curve[:1])),
+                  # Builtin float sum changed in Python 3.12. Public preparation
+                  # and Blender must hash the same exact measured perimeter.
+                  girth_cm=math.fsum(math.dist(a, b) for a, b in zip(curve, curve[1:]+curve[:1])),
                   bounds_xy_cm=[[min(p[i] for p in curve) for i in (0, 1)],
                                 [max(p[i] for p in curve) for i in (0, 1)]],
                   confidence='MEASURED_SECTION',

@@ -82,7 +82,7 @@ def shape_paired_shoulders(data, group, body_frame, panels, report, blend):
                     weight = t*t*(3-2*t)
                     new = [(1-weight)*a+weight*b for a,b in zip(neck_point,new)]
                 target.append([(1-factor)*a+factor*b for a,b in zip(old,new)])
-            total = sum(math.dist(a,b) for a,b in zip(target,target[1:]))
+            total = math.fsum(math.dist(a,b) for a,b in zip(target,target[1:]))
             row['curve_cm'] = extend_tangent(target, max(2., maximum_u-total+2.))
             row['arc_offset_cm'] = 0.
         frame['u_direction'] = sign

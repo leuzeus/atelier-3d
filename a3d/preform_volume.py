@@ -4,7 +4,7 @@ import math
 from a3d.core import StudioError
 
 
-def length(a,b):return math.sqrt(sum((x-y)**2 for x,y in zip(a,b)))
+def length(a,b):return math.sqrt(math.fsum((x-y)**2 for x,y in zip(a,b)))
 
 
 def sample_curve(curve,s):
@@ -12,7 +12,7 @@ def sample_curve(curve,s):
         raise StudioError('Volume guide requires finite 3D points and an arc coordinate')
     lengths=[length(a,b) for a,b in zip(curve,curve[1:])]
     if min(lengths)<=1e-12:raise StudioError('Volume guide has a zero-length segment')
-    total=sum(lengths)
+    total=math.fsum(lengths)
     if s<0 or s>total:raise StudioError('Volume guide arc exceeds its explicit polyline')
     cumulative=0.
     for index,(a,b,edge) in enumerate(zip(curve,curve[1:],lengths)):
@@ -32,13 +32,13 @@ def edge_coordinate(piece,edge,v):
             t=(v-a[1])/(b[1]-a[1]);hits.append(a[0]+t*(b[0]-a[0]))
     if not hits or max(hits)-min(hits)>1e-5:
         raise StudioError('Volume guide row needs a unique source named-edge intersection')
-    return sum(hits)/len(hits)
+    return math.fsum(hits)/len(hits)
 
 
 def half_ellipse(half_perimeter,aspect,center_xy,z,side,segments=256):
     """Set the declared auxiliary arc length; never scale source UV."""
     base=[[side*aspect*math.sin(math.pi*i/segments),-math.cos(math.pi*i/segments)] for i in range(segments+1)]
-    scale=half_perimeter/sum(length(a,b) for a,b in zip(base,base[1:]))
+    scale=half_perimeter/math.fsum(length(a,b) for a,b in zip(base,base[1:]))
     return [[center_xy[0]+scale*x,center_xy[1]+scale*y,z] for x,y in base]
 
 
@@ -53,7 +53,7 @@ def _smooth_rows(rows,key,window,slope):
     result=[]
     for row in rows:
         values=[(other[key],max(0.,1-abs(other['v_cm']-row['v_cm'])/(window/2))) for other in rows]
-        result.append(sum(value*weight for value,weight in values)/sum(weight for _,weight in values))
+        result.append(math.fsum(value*weight for value,weight in values)/math.fsum(weight for _,weight in values))
     # Bound only the variation of the auxiliary guide. Source coordinates,
     # source girths and simulation strain gates are retained independently.
     for _ in range(64):
@@ -164,7 +164,7 @@ def volume_frames(data,groups,body_frame,upper_blend=0.,guide_smoothing_cm=40.):
                         # would collapse its v metric near the upper boundary.
                         new[2]+=v-maximum_v
                         target.append([(1-factor)*x+factor*y for x,y in zip(old,new)])
-                    total=sum(length(a,b) for a,b in zip(target,target[1:]))
+                    total=math.fsum(length(a,b) for a,b in zip(target,target[1:]))
                     target=extend_tangent(target,max(2.,maximum_u-total+2.))
                     offset=0.;direction=1
                 frames[pid].append({'v_cm':v,'arc_offset_cm':offset,'curve_cm':target})
@@ -226,7 +226,7 @@ def paired_volume_frames(data,group,body_frame,guide_smoothing_cm=40.):
             raise StudioError('Paired torso source section is collapsed')
         raw.append({'v_cm':v,'source_v_cm':min(v,shared_top),
                     'front_cm':widths['front'],'back_cm':widths['back'],
-                    'half_girth_cm':sum(widths.values())})
+                    'half_girth_cm':math.fsum(widths.values())})
     # A pair has no intervening side panel to absorb an altered guide offset.
     # Smoothing its half-girth independently of both side contours can make
     # their interiors overlap or open a seam that matched the source metric.

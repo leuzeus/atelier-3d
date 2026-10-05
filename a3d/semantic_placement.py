@@ -82,7 +82,7 @@ def torso_volume_frames(data, semantics, profile, upper_blend=0., surface_sectio
                 if neck_edge not in piece['edges']:
                     raise StudioError('Upper torso guide needs a declared source neckline edge: '+mapping[role])
                 chain = [piece['vertices'][i] for i in piece['edges'][neck_edge]]
-                group[role+'_neck_cm'] = sum(math.dist(a, b) for a, b in zip(chain, chain[1:]))
+                group[role+'_neck_cm'] = math.fsum(math.dist(a, b) for a, b in zip(chain, chain[1:]))
             else:
                 group[role+'_neck_cm'] = 0.
         body_frame = {'source_ref': 'measured-body-profile:'+profile['cache_key'],
@@ -159,7 +159,7 @@ def limb_volume_frames(data, semantics, profile):
     basis = profile['frame']; frames = {}; pending = []; evidence = []
 
     def world(point):
-        return [basis['origin_cm'][i]+sum(point[j]*basis[key][i]
+        return [basis['origin_cm'][i]+math.fsum(point[j]*basis[key][i]
                 for j, key in enumerate(('right', 'forward', 'up'))) for i in range(3)]
 
     for pid, row in sorted(semantics.items()):

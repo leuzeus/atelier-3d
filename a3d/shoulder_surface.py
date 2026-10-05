@@ -48,7 +48,7 @@ def measured_surface_shoulders(profile, geometry, triangles):
     basis = profile['frame']; direction = basis['up']; anchors = {}
     for side in ('left', 'right'):
         joint = profile['landmarks']['shoulder.'+side]['point_cm']
-        origin = [basis['origin_cm'][i]+sum(joint[j]*basis[key][i]
+        origin = [basis['origin_cm'][i]+math.fsum(joint[j]*basis[key][i]
                   for j,key in enumerate(('right','forward','up'))) for i in range(3)]
         hits = []
         for index, triangle in enumerate(triangles):
