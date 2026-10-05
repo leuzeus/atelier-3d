@@ -975,3 +975,19 @@ du patron. La correction des subdivisions et de leurs partenaires est en cours.
 L4 reste partiel, L5 non admis. Le vêtement complet, les contacts, le drapé,
 le fitting, les mouvements et la revue artistique restent à réaliser. Le build
 de développement reste déclaré 0.7.0-rc.2, sans nouvelle installation ni release.
+
+### Contraintes interpolées intégrées au candidat source64
+
+Le commit `13ebc0a` ajoute le [compilateur de raccords](material-surface-constraints.md).
+Les coutures permanentes et arrêts physiques forment des lignes rationnelles
+exactes ; les cibles IEEE restent des observations SOFT. Les déclarations
+locales, la référence fraîche complète, les identités, les budgets communs
+et la sortie entière sont contrôlés. Aucun pin ni caller de production n'est
+ajouté. Les 123 tests et 23 sondes de revue passent, avec 1 223 assertions.
+
+Le [reçu source64](automation-material-surface-constraints-evidence-20261005.json)
+lie les 1 219 tests intégrés, les 14 contrats et le build local aux 533 fichiers
+du commit exact. La preuve de rang porte sur les contraintes HARD déclarées,
+pas sur la métrique, les douze barres, le continu physique ou le fitting.
+Les six références de surface actuelles et leurs porteurs restent à adapter
+exactement et sous une enveloppe bornée. L4 reste partiel et L5 non admis.

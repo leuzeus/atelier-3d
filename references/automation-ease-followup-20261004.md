@@ -648,3 +648,12 @@ calculée de son maillage auxiliaire. Le bilan global est incomplet après
 dépassement du délai terminal. Ces observations conservent leur portée : les
 15 textiles et la boucle, l'aisance du manteau ample, les contacts, le drapé
 et le fitting restent à vérifier sur le corps masculin approuvé à 180 cm.
+
+### Raccords entre surfaces : code revu, candidat textile encore ouvert
+
+Le [compilateur source64](automation-material-surface-constraints-evidence-20261005.json)
+conserve les coutures orientées et arrêts physiques, sans imposer des égalités
+exactes aux observations numériques IEEE. Les fixtures portables et les tests
+intégrés passent ; la compilation des six surfaces réelles et leur récupération
+restent à effectuer. Aucune compatibilité de rang ne qualifie l'aisance du
+manteau, la réserve de ceinture ou le fitting sur le mannequin accepté.
