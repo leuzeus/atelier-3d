@@ -5,7 +5,8 @@ import unittest
 from unittest.mock import patch
 
 from a3d.core import StudioError, digest
-from a3d.rigid_guide_alignment import prepare_role_rigid_seeds, proper_rigid_fit, transform
+from a3d.rigid_guide_alignment import (_complete_rows, _prepare_front_rigid_seeds,
+    prepare_role_rigid_seeds, proper_rigid_fit, transform)
 from a3d.source_seam_coupling import _Budget, _prepare_piece, couple_source_seams
 
 
@@ -56,6 +57,42 @@ def prepared(extra=None):
     shared = budget()
     states = {pid: _prepare_piece(data['pieces'][pid], frame, pid, 3, shared) for pid, frame in frames.items()}
     return data, semantics, states, legacy['relations'], shared
+
+
+def collar_fixture(*, joint=False, nonpermanent=False):
+    data, frames, recipe, semantics = fixture('collar' if joint else None)
+    if not joint:
+        semantics['mobile']['role'] = 'collar'
+        collar = 'mobile'
+    else:
+        collar = 'other'
+        # Two independent torso partners and the already seeded inner front
+        # share one congruent target collar. Source edge identities stay exact.
+        frames[collar].update(origin_cm=[10., 6., 8.], u_axis=[-1., 0., 0.])
+        for partner, source, edge, collar_edge in (('c', 'a', 'a', 'b'), ('d', 'b', 'b', 'a')):
+            data['pieces'][partner] = copy.deepcopy(data['pieces'][source])
+            frames[partner] = {'source_ref': 'approved:'+partner, 'origin_cm': [0., 0., -3.],
+                'u_axis': [1., 0., 0.], 'v_axis': [0., 0., 1.]}
+            semantics[partner] = {'role': 'front'}
+            data['seams'].append(dict(id='collar-'+partner, piece_a=partner, edge_a=edge,
+                piece_b=collar, edge_b=collar_edge, kind='permanent', orientation='reverse'))
+    if nonpermanent:
+        for sid, kind, partner, edge in (('declared-closure', 'closure', 'a', 'bottom'),
+                                        ('declared-detachable', 'detachable', 'b', 'top')):
+            data['seams'].append(dict(id=sid, piece_a=collar, edge_a=edge,
+                piece_b=partner, edge_b=edge, kind=kind, orientation='forward'))
+    recipe['seams'] = {seam['id']: {'kind': seam['kind'], 'ease_b_over_a': 0.,
+        'tolerance_relative': 0.} for seam in data['seams']}
+    return data, frames, recipe, semantics, collar
+
+
+def prepared_collar(**kwargs):
+    data, frames, recipe, semantics, collar = collar_fixture(**kwargs)
+    _, legacy = couple_source_seams(data, frames, recipe, subdivisions=3, clock=lambda: 0.)
+    shared = budget()
+    states = {pid: _prepare_piece(data['pieces'][pid], frame, pid, 3, shared)
+              for pid, frame in frames.items()}
+    return data, semantics, states, legacy['relations'], shared, collar
 
 
 class RigidGuideAlignment(unittest.TestCase):
@@ -189,7 +226,10 @@ class RigidGuideAlignment(unittest.TestCase):
             else:
                 self.assertEqual(row['status'], 'PARTIAL_RIGID_SEED_APPLIED')
                 self.assertEqual(row['remaining_permanent_relation_ids'], ['remaining-neck-link'])
-                self.assertEqual(report['rigid_alignment']['diagnostics'][0]['code'], 'COLLAR_ALIGNMENT_NOT_IMPLEMENTED')
+                # A single straight neckline has rank one. A collar seed must
+                # explicitly refuse that ambiguity rather than invent rotation.
+                self.assertEqual(report['rigid_alignment']['diagnostics'][0]['code'], 'RIGID_FRAME_AMBIGUOUS')
+                self.assertFalse(report['rigid_alignment']['pieces']['other']['applied'])
             self.assertEqual([data, frames, recipe, semantics], original)
 
     def test_renamed_and_reordered_source_uses_roles_without_name_inference(self):
@@ -244,6 +284,223 @@ class RigidGuideAlignment(unittest.TestCase):
         active = couple_source_seams(data, frames, recipe, semantics=semantics, subdivisions=3, clock=lambda: 0.)
         self.assertEqual(active, couple_source_seams(data, frames, recipe, semantics=semantics, subdivisions=3, clock=lambda: 0.))
         self.assertEqual(json.loads(json.dumps(active, allow_nan=False)), list(active))
+
+    def test_collar_all_source_relations_transport_the_whole_piece(self):
+        data, semantics, states, witnesses, shared, collar = prepared_collar()
+        before = copy.deepcopy([data, semantics, witnesses, states[collar]['original'], states[collar]['uv'],
+                                states[collar]['triangles'], states[collar]['segments']])
+        positions, receipt = prepare_role_rigid_seeds(data, semantics, states, witnesses, shared, subdivisions=3)
+        row = receipt['pieces'][collar]
+        self.assertEqual(row['expected_relation_ids'], ['join-a', 'join-b'])
+        self.assertEqual(set(row['relation_residuals']), {'join-a', 'join-b'})
+        self.assertTrue(row['applied']); self.assertEqual(row['transformed_controls'], len(states[collar]['original']))
+        self.assertEqual(row['status'], 'PARTIAL_RIGID_SEED_APPLIED')
+        self.assertEqual(receipt['status'], 'PARTIAL_ROLE_SEEDS_PREPARED')
+        self.assertEqual(row['proposal_scope'], 'PARTIAL_TEST_ONLY')
+        self.assertFalse(row['whole_piece_admission']); self.assertEqual(row['qualification'], 'NONE')
+        self.assertLess(row['fit']['after']['max_gap_cm'], 1e-12)
+        for index, point in enumerate(states[collar]['original']):
+            self.assertEqual(positions[collar][index], transform(row['fit'], point))
+        for pid in ('a', 'b'):
+            self.assertEqual(positions[pid], states[pid]['original'])
+        self.assertEqual(before, [data, semantics, witnesses, states[collar]['original'], states[collar]['uv'],
+                                  states[collar]['triangles'], states[collar]['segments']])
+
+    def test_collar_uses_inner_front_proposed_positions_not_old_originals(self):
+        data, semantics, states, witnesses, shared, collar = prepared_collar(joint=True)
+        front_positions, historical = _prepare_front_rigid_seeds(data, semantics, states, witnesses, budget(), subdivisions=3)
+        relations = sorted((row for row in data['seams'] if row['kind'] == 'permanent'
+            and collar in (row['piece_a'], row['piece_b'])), key=lambda row: row['id'])
+        view = {pid: {**state, 'original': front_positions[pid]} for pid, state in states.items()}
+        expected = proper_rigid_fit(_complete_rows(collar, relations, view, witnesses, data, 3, budget()), budget())
+        obsolete = proper_rigid_fit(_complete_rows(collar, relations, states, witnesses, data, 3, budget()), budget())
+        original = copy.deepcopy(states['mobile']['original'])
+        positions, receipt = prepare_role_rigid_seeds(data, semantics, states, witnesses, shared, subdivisions=3)
+        row = receipt['pieces'][collar]
+        self.assertEqual(row['fit'], expected); self.assertNotEqual(row['fit'], obsolete)
+        self.assertLess(row['fit']['after']['max_gap_cm'], 1e-12)
+        self.assertEqual(row['partner_controls_sha256']['mobile'], digest(front_positions['mobile']))
+        self.assertEqual(receipt['pieces']['mobile'], historical['pieces']['mobile'])
+        self.assertEqual(positions['mobile'], front_positions['mobile'])
+        self.assertEqual(states['mobile']['original'], original)
+        self.assertEqual(row['expected_relation_ids'], ['collar-c', 'collar-d', 'remaining-neck-link'])
+
+    def test_collar_closure_detachable_are_explicitly_excluded(self):
+        data, semantics, states, witnesses, shared, collar = prepared_collar(nonpermanent=True)
+        positions, receipt = prepare_role_rigid_seeds(data, semantics, states, witnesses, shared, subdivisions=3)
+        row = receipt['pieces'][collar]
+        self.assertTrue(row['applied'])
+        self.assertEqual(row['excluded_nonpermanent_relations'], [
+            {'id': 'declared-closure', 'kind': 'closure'}, {'id': 'declared-detachable', 'kind': 'detachable'}])
+        self.assertEqual(row['expected_relation_ids'], ['join-a', 'join-b'])
+        self.assertNotEqual(positions[collar], states[collar]['original'])
+
+    def test_collar_complete_witnesses_missing_duplicate_and_mutated_refuse(self):
+        for change in ('missing', 'duplicate', 'partition', 'orientation', 'pair', 'shape', 'partner'):
+            with self.subTest(change=change):
+                data, semantics, states, witnesses, shared, collar = prepared_collar()
+                if change == 'missing': witnesses.pop()
+                elif change == 'duplicate': witnesses.append(copy.deepcopy(witnesses[0]))
+                elif change == 'partition': witnesses[0]['common_fractions'].pop(1)
+                elif change == 'orientation': witnesses[0]['source_relation']['orientation'] = 'forward'
+                elif change == 'pair': witnesses[0]['paired_cage_controls'][1][1][1] += 1
+                elif change == 'shape': del witnesses[0]['common_fractions']
+                else: del states['b']
+                original = copy.deepcopy(states[collar]['original'])
+                positions, receipt = prepare_role_rigid_seeds(data, semantics, states, witnesses, shared, subdivisions=3)
+                row = receipt['pieces'][collar]
+                self.assertEqual(row['status'], 'INCOMPLETE_CORRESPONDENCES'); self.assertFalse(row['applied'])
+                self.assertEqual(positions[collar], original)
+                self.assertEqual(receipt['status'], 'ALIGNMENT_INCOMPLETE')
+
+    def test_collar_only_nondeclared_or_no_permanent_partners_is_not_admitted(self):
+        data, semantics, states, witnesses, shared, collar = prepared_collar()
+        data['seams'] = [{**row, 'kind': 'closure'} for row in data['seams']]
+        positions, receipt = prepare_role_rigid_seeds(data, semantics, states, witnesses, shared, subdivisions=3)
+        self.assertEqual(receipt['pieces'][collar]['status'], 'INCOMPLETE_CORRESPONDENCES')
+        self.assertEqual(positions[collar], states[collar]['original'])
+        data, semantics, states, witnesses, shared, collar = prepared_collar()
+        del states[collar]
+        positions, receipt = prepare_role_rigid_seeds(data, semantics, states, witnesses, shared, subdivisions=3)
+        self.assertEqual(receipt['unselected_collar_role_candidates'], [collar])
+        self.assertEqual(receipt['status'], 'ALIGNMENT_INCOMPLETE')
+        self.assertNotIn(collar, positions)
+
+    def test_collar_joint_collar_partner_is_explicitly_unsupported(self):
+        data, semantics, states, witnesses, shared, collar = prepared_collar()
+        semantics['a']['role'] = 'collar'
+        positions, receipt = prepare_role_rigid_seeds(data, semantics, states, witnesses, shared, subdivisions=3)
+        self.assertEqual(receipt['pieces'][collar]['status'], 'COLLAR_JOINT_SEED_NOT_SUPPORTED')
+        self.assertEqual(positions[collar], states[collar]['original'])
+
+    def test_collar_proper_rotation_preserves_every_pair_and_source_orientation(self):
+        data, semantics, states, witnesses, shared, collar = prepared_collar()
+        positions, receipt = prepare_role_rigid_seeds(data, semantics, states, witnesses, shared, subdivisions=3)
+        source = states[collar]['original']; moved = positions[collar]; fit = receipt['pieces'][collar]['fit']
+        for i, a in enumerate(source):
+            for j, b in enumerate(source):
+                self.assertAlmostEqual(math.dist(a, b), math.dist(moved[i], moved[j]), places=12)
+        self.assertAlmostEqual(fit['rotation_determinant'], 1., places=12)
+        self.assertEqual(states[collar]['triangles'], _prepare_piece(data['pieces'][collar],
+            collar_fixture()[1][collar], collar, 3, budget())['triangles'])
+
+    def test_collar_uv_shift_marks_stops_direction_and_inputs_preserved(self):
+        data, frames, recipe, semantics, collar = collar_fixture()
+        _, initial = couple_source_seams(data, frames, recipe, semantics=semantics, subdivisions=3, clock=lambda: 0.)
+        for piece in data['pieces'].values():
+            piece['vertices'] = [[u+2., v+1.] for u, v in piece['vertices']]
+            piece['declared_marks'] = [{'source_vertex_id': 0, 'role': 'notch'},
+                {'source_vertex_id': 1, 'role': 'stop'}]
+        for frame in frames.values(): frame['offset_uv_cm'] = [2., 1.]
+        before = copy.deepcopy([data, frames, recipe, semantics])
+        _, shifted = couple_source_seams(data, frames, recipe, semantics=semantics, subdivisions=3, clock=lambda: 0.)
+        self.assertEqual(initial['rigid_alignment']['pieces'][collar]['fit'], shifted['rigid_alignment']['pieces'][collar]['fit'])
+        self.assertEqual(before, [data, frames, recipe, semantics])
+        self.assertTrue(all(row['source_relation']['orientation'] == 'reverse' for row in shifted['relations']))
+        self.assertEqual(shifted['rigid_alignment']['pieces'][collar]['metric_after_coupling'], 'NOT_ASSESSED')
+        self.assertEqual(shifted['rigid_alignment']['pieces'][collar]['interior_propagation'], 'NOT_ASSESSED')
+
+    def test_collar_exact_total_caps_are_shared_with_preparation(self):
+        data, frames, recipe, semantics, collar = collar_fixture(joint=True)
+        _, legacy = couple_source_seams(data, frames, recipe, subdivisions=3, clock=lambda: 0.)
+        controls = sum(row['control_vertices'] for row in legacy['refinements'].values())
+        triangles = sum(row['control_triangles'] for row in legacy['refinements'].values())
+        _, active = couple_source_seams(data, frames, recipe, semantics=semantics, subdivisions=3,
+            budgets={'max_controls': controls, 'max_triangles': triangles}, clock=lambda: 0.)
+        self.assertTrue(active['rigid_alignment']['pieces'][collar]['applied'])
+        with self.assertRaisesRegex(StudioError, 'control or triangle budget'):
+            couple_source_seams(data, frames, recipe, semantics=semantics, subdivisions=3,
+                budgets={'max_controls': controls-1, 'max_triangles': triangles}, clock=lambda: 0.)
+
+    def test_collar_deadline_expires_during_transport_and_after_last_hash(self):
+        import a3d.rigid_guide_alignment as alignment
+        for phase in ('transform', 'output_digest'):
+            data, semantics, states, witnesses, shared, collar = prepared_collar()
+            originals = copy.deepcopy([data, semantics, witnesses, states[collar]['original']])
+            tick = [0.]; shared.clock = lambda: tick[0]
+            actual_transform, actual_digest = alignment.transform, alignment.digest
+            def expire_transform(fit, point):
+                value = actual_transform(fit, point); tick[0] = 61.; return value
+            def expire_digest(value):
+                result = actual_digest(value)
+                if isinstance(value, dict) and set(value) == set(states): tick[0] = 61.
+                return result
+            with patch('a3d.rigid_guide_alignment.'+('transform' if phase == 'transform' else 'digest'),
+                       expire_transform if phase == 'transform' else expire_digest):
+                with self.assertRaisesRegex(StudioError, 'time budget'):
+                    prepare_role_rigid_seeds(data, semantics, states, witnesses, shared, subdivisions=3)
+            self.assertEqual(originals, [data, semantics, witnesses, states[collar]['original']])
+
+    def test_collar_combined_correspondence_cap_checked_before_rows_allocation(self):
+        data, semantics, states, witnesses, shared, collar = prepared_collar()
+        shared.limits['max_controls'] = len(states[collar]['original'])
+        witness = witnesses[0]
+        witness['paired_cage_controls'] *= len(states[collar]['original'])
+        with patch('a3d.rigid_guide_alignment._complete_rows', side_effect=AssertionError('must not allocate')):
+            positions, receipt = prepare_role_rigid_seeds(data, semantics, states, witnesses, shared, subdivisions=3)
+        self.assertEqual(receipt['pieces'][collar]['status'], 'INCOMPLETE_CORRESPONDENCES')
+        self.assertEqual(positions[collar], states[collar]['original'])
+
+    def test_collar_no_improvement_keeps_best_original_without_retry(self):
+        data, semantics, states, witnesses, shared, collar = prepared_collar()
+        genuine = proper_rigid_fit(_complete_rows(collar, data['seams'], states, witnesses, data, 3, budget()), budget())
+        genuine['after']['weighted_rms_gap_cm'] = genuine['before']['weighted_rms_gap_cm']+1.
+        with patch('a3d.rigid_guide_alignment.proper_rigid_fit', return_value=genuine) as solve:
+            positions, receipt = prepare_role_rigid_seeds(data, semantics, states, witnesses, shared, subdivisions=3)
+        self.assertEqual(solve.call_count, 1)
+        self.assertEqual(positions[collar], states[collar]['original'])
+        self.assertEqual(receipt['pieces'][collar]['best_proposal'], 'ORIGINAL')
+        self.assertEqual(receipt['pieces'][collar]['status'], 'PARTIAL_RIGID_SEED_UNCHANGED')
+
+    def test_inner_front_path_is_exact_when_no_collar_is_selected(self):
+        for extra in (None, 'closure'):
+            data, semantics, states, witnesses, shared = prepared(extra)
+            historical = _prepare_front_rigid_seeds(data, semantics, states, witnesses, budget(), subdivisions=3)
+            current = prepare_role_rigid_seeds(data, semantics, states, witnesses, shared, subdivisions=3)
+            self.assertEqual(json.dumps(historical, sort_keys=True, separators=(',', ':')),
+                             json.dumps(current, sort_keys=True, separators=(',', ':')))
+
+    def test_collar_table_order_and_source_side_do_not_infer_partner_coordinates(self):
+        data, semantics, states, witnesses, shared, collar = prepared_collar()
+        first, first_receipt = prepare_role_rigid_seeds(data, semantics, states, witnesses, shared, subdivisions=3)
+        data['pieces'] = dict(reversed(list(data['pieces'].items())))
+        data['seams'].reverse(); witnesses.reverse()
+        states = dict(reversed(list(states.items())))
+        again, receipt = prepare_role_rigid_seeds(data, semantics, states, witnesses, budget(), subdivisions=3)
+        self.assertEqual(first, again)
+        self.assertEqual(first_receipt['pieces'][collar], receipt['pieces'][collar])
+        # Swap the explicit sides of each reverse relation and rebuild exact
+        # source witnesses. A collar on side A still uses the declared partner.
+        data, frames, recipe, semantics, collar = collar_fixture()
+        for seam in data['seams']:
+            seam['piece_a'], seam['piece_b'] = seam['piece_b'], seam['piece_a']
+            seam['edge_a'], seam['edge_b'] = seam['edge_b'], seam['edge_a']
+        _, report = couple_source_seams(data, frames, recipe, semantics=semantics, subdivisions=3, clock=lambda: 0.)
+        self.assertLess(report['rigid_alignment']['pieces'][collar]['fit']['after']['max_gap_cm'], 1e-12)
+
+    def test_collar_source_provenance_mutation_during_fit_refuses_return(self):
+        import a3d.rigid_guide_alignment as alignment
+        data, semantics, states, witnesses, shared, collar = prepared_collar()
+        actual = alignment.proper_rigid_fit
+        def changed(rows, shared_budget):
+            fit = actual(rows, shared_budget)
+            data['pieces'][collar]['declared_marks'] = [{'source_vertex_id': 0, 'role': 'changed'}]
+            return fit
+        with patch('a3d.rigid_guide_alignment.proper_rigid_fit', changed):
+            with self.assertRaisesRegex(ValueError, 'Caller source'):
+                prepare_role_rigid_seeds(data, semantics, states, witnesses, shared, subdivisions=3)
+
+    def test_collar_incongruent_partners_leave_measured_residual_without_scale_or_admission(self):
+        data, semantics, states, witnesses, shared, collar = prepared_collar()
+        states['b']['original'] = [[x+5., y, z] for x, y, z in states['b']['original']]
+        positions, receipt = prepare_role_rigid_seeds(data, semantics, states, witnesses, shared, subdivisions=3)
+        row = receipt['pieces'][collar]
+        self.assertGreater(row['fit']['after']['max_gap_cm'], 2.)
+        self.assertEqual(row['residual_assessment'], 'MEASURED_ONLY_NO_ACCEPTANCE_BOUND')
+        self.assertFalse(row['whole_piece_admission']); self.assertEqual(row['qualification'], 'NONE')
+        for i, a in enumerate(states[collar]['original']):
+            for j, b in enumerate(states[collar]['original']):
+                self.assertAlmostEqual(math.dist(a, b), math.dist(positions[collar][i], positions[collar][j]), places=12)
 
 
 if __name__ == '__main__':

@@ -1113,3 +1113,9 @@ est maintenant exécutée et sauvegardée : 144 faces respectent les bornes,
 48 les dépassent. La référence auxiliaire et les maillages natifs restent des
 candidats distincts. La localisation et une correction calculée précèdent
 l'admission de placement ; les patrons, le corps et les gates sont conservés.
+
+### 2026-10-05 — Seed rigide du col revu
+
+Le placement préalable du rôle `collar` utilise maintenant tous ses raccords permanents déclarés et les positions partenaires proposées après le seed du devant intérieur. Une rotation propre et une translation communes déplacent tous ses contrôles ; les patrons et le corps restent conservés.
+
+La revue indépendante reproduit 59 tests ciblés, 7 comparaisons historiques et 11 sondes. [Preuves exactes](automation-collar-rigid-alignment-evidence-20261005.json) et [contrat de la capacité](collar-rigid-alignment.md). Statut portable uniquement, qualification `NONE`. La propagation intérieure, les métriques après couplage, les contacts et la réduction des 48 défauts du champ auxiliaire historique restent à mesurer sur un nouveau candidat complet.

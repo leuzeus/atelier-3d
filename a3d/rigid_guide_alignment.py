@@ -259,7 +259,7 @@ def _complete_rows(pid, relations, states, witnesses, data, subdivisions, budget
     return rows
 
 
-def prepare_role_rigid_seeds(data, semantics, states, witnesses, budget, *, subdivisions):
+def _prepare_front_rigid_seeds(data, semantics, states, witnesses, budget, *, subdivisions):
     """Align front attachments only; diagnose remaining piece scope explicitly."""
     budget.check()
     original = {pid: state['original'] for pid, state in states.items()}
@@ -331,6 +331,151 @@ def prepare_role_rigid_seeds(data, semantics, states, witnesses, budget, *, subd
     receipt['status'] = ('ALIGNMENT_INCOMPLETE' if receipt['diagnostics'] else
         'PARTIAL_ROLE_SEEDS_PREPARED' if any(row['remaining_permanent_relation_ids'] for row in receipt['pieces'].values())
         else 'ROLE_SEEDS_PREPARED')
+    receipt['output_controls_sha256'] = digest(positions)
+    budget.check()
+    return positions, receipt
+
+
+def _collar_input_digest(data, semantics, states, witnesses, budget):
+    """Bind caller-owned source identities without serializing evaluators."""
+    rows = {}
+    for pid, state in sorted(states.items()):
+        budget.check()
+        rows[pid] = {'original': state['original'], 'uv': state['uv'],
+            'triangles': state['triangles'], 'inserted': state['inserted'],
+            'keys': sorted(state['keys'].items()),
+            'segments': sorted(state['segments'].items()),
+            'owners': [(edge, sorted(owners)) for edge, owners in sorted(state['owners'].items())],
+            'triangle_source_faces': state['triangle_source_faces']}
+    result = digest([data, semantics, rows, witnesses])
+    budget.check()
+    return result
+
+
+def _collar_complete_rows(pid, relations, states, witnesses, data, subdivisions, budget):
+    """Check bounded witness shapes before the unchanged source-chain reader."""
+    if not isinstance(witnesses, list):
+        raise _Refusal('INCOMPLETE_CORRESPONDENCES', 'Explicit source witnesses must be a list')
+    indexed = {}
+    for witness in witnesses:
+        budget.check()
+        if not isinstance(witness, dict) or not isinstance(witness.get('source_seam_id'), str):
+            raise _Refusal('INCOMPLETE_CORRESPONDENCES', 'Source witness identity is missing')
+        indexed.setdefault(witness['source_seam_id'], []).append(witness)
+    count = 0
+    for seam in relations:
+        budget.check()
+        found = indexed.get(seam['id'], [])
+        if (len(found) != 1 or found[0].get('source_relation') != seam
+                or not isinstance(found[0].get('common_fractions'), list)
+                or not isinstance(found[0].get('paired_cage_controls'), list)):
+            raise _Refusal('INCOMPLETE_CORRESPONDENCES', 'Missing, duplicate or malformed complete source witness')
+        count += len(found[0]['paired_cage_controls'])
+        if count > budget.limits['max_controls']:
+            raise _Refusal('INCOMPLETE_CORRESPONDENCES', 'Combined collar correspondences exceed the existing control cap')
+    return _complete_rows(pid, relations, states, witnesses, data, subdivisions, budget)
+
+
+def prepare_role_rigid_seeds(data, semantics, states, witnesses, budget, *, subdivisions):
+    """Preserve front seeds, then propose a complete-source rigid collar seed.
+
+    Partner targets are frozen AFTER the front seeds, before any collar seed.
+    The returned proposals are still partial: coupling, metric propagation and
+    contact checks are separate operations and cannot inherit an admission.
+    """
+    positions, receipt = _prepare_front_rigid_seeds(
+        data, semantics, states, witnesses, budget, subdivisions=subdivisions)
+    if any(row['code'] == 'RIGID_SEMANTICS_INCOMPLETE' for row in receipt['diagnostics']):
+        return positions, receipt
+    candidates = sorted(pid for pid in states if semantics[pid]['role'] == 'collar')
+    missing = sorted(pid for pid in semantics if semantics[pid]['role'] == 'collar' and pid not in states)
+    if not candidates and not missing:
+        return positions, receipt
+    budget.check()
+    before = _collar_input_digest(data, semantics, states, witnesses, budget)
+    code_before = sha(__file__)
+    receipt['coverage_scope'] = 'FRONT_ATTACHMENTS_AND_COMPLETE_COLLAR_PERMANENT_RELATIONS'
+    receipt['proposal_scope'] = 'PARTIAL_TEST_ONLY'
+    receipt['collar_partner_target_scope'] = 'PROPOSED_POSITIONS_AFTER_FRONT_SEEDS'
+    receipt['collar_input_sha256'] = before
+    receipt['unselected_collar_role_candidates'] = missing
+    receipt['diagnostics'] = [row for row in receipt['diagnostics']
+        if row['code'] != 'COLLAR_ALIGNMENT_NOT_IMPLEMENTED']
+    for pid in missing:
+        receipt['diagnostics'].append({'piece': pid, 'code': 'INCOMPLETE_CORRESPONDENCES',
+            'message': 'Declared collar has no prepared original controls'})
+    # Only a view: never edit states, their source identities or witnesses.
+    # Freeze this mapping once so sequential collar proposals cannot become
+    # accidental targets of another collar in the same call.
+    target_positions = dict(positions)
+    seed_states = {pid: {**state, 'original': target_positions[pid]} for pid, state in states.items()}
+    for pid in candidates:
+        budget.check()
+        attached = sorted((seam for seam in data['seams']
+            if pid in (seam['piece_a'], seam['piece_b'])), key=lambda seam: seam['id'])
+        permanent = [seam for seam in attached if seam['kind'] == 'permanent']
+        partners = sorted({seam['piece_b'] if seam['piece_a'] == pid else seam['piece_a'] for seam in permanent})
+        row = {'role': 'collar', 'coverage_scope': 'ALL_DECLARED_PERMANENT_RELATIONS',
+            'expected_relation_ids': [seam['id'] for seam in permanent],
+            'remaining_permanent_relation_ids': [],
+            'excluded_nonpermanent_relations': [{'id': seam['id'], 'kind': seam['kind']}
+                for seam in attached if seam['kind'] != 'permanent'],
+            'qualification': 'NONE', 'proposal_scope': 'PARTIAL_TEST_ONLY',
+            'whole_piece_admission': False, 'applied': False,
+            'partner_target_scope': 'PROPOSED_POSITIONS_AFTER_FRONT_SEEDS',
+            'residual_assessment': 'MEASURED_ONLY_NO_ACCEPTANCE_BOUND',
+            'metric_after_coupling': 'NOT_ASSESSED', 'contacts': 'NOT_ASSESSED',
+            'interior_propagation': 'NOT_ASSESSED'}
+        receipt['pieces'][pid] = row
+        try:
+            if not permanent or any(partner not in states for partner in partners):
+                raise _Refusal('INCOMPLETE_CORRESPONDENCES', 'Every declared permanent collar partner must be prepared')
+            if any(semantics[partner]['role'] == 'collar' for partner in partners):
+                raise _Refusal('COLLAR_JOINT_SEED_NOT_SUPPORTED', 'Collar-to-collar relations require an explicit joint solve')
+            original = states[pid]['original']
+            if (not isinstance(original, list) or not original
+                    or len(original) > budget.limits['max_controls']):
+                raise _Refusal('RIGID_INVALID_CORRESPONDENCES', 'Collar original controls must be bounded')
+            for point in original:
+                budget.check()
+                if not _vector(point):
+                    raise _Refusal('RIGID_INVALID_CORRESPONDENCES', 'Collar original controls must be finite')
+            row['source_controls_sha256'] = digest(original)
+            row['partner_controls_sha256'] = {partner: digest(target_positions[partner]) for partner in partners}
+            rows = _collar_complete_rows(pid, permanent, seed_states, witnesses, data, subdivisions, budget)
+            fit = proper_rigid_fit(rows, budget)
+            row['fit'] = fit
+            if fit['status'] != 'RIGID_SEED_PROPOSED':
+                raise _Refusal(fit['status'], fit.get('message', 'No determinate rigid collar seed'), fit.get('numerical'))
+            # Keep the original proposal if the sole bounded fit makes no
+            # strict objective improvement. No retry, tolerance or projection.
+            improved = fit['after']['weighted_rms_gap_cm'] < fit['before']['weighted_rms_gap_cm']
+            moved = []
+            for point in original:
+                budget.check()
+                value = transform(fit, point) if improved else list(point)
+                if not _vector(value):
+                    raise _Refusal('RIGID_NONFINITE_ARITHMETIC', 'Transported whole collar is not finite')
+                moved.append(value)
+            per_relation = {}
+            for seam in permanent:
+                budget.check()
+                selected = [value for value in rows if value['source_seam_id'] == seam['id']]
+                per_relation[seam['id']] = {'before': _summary(selected, check=budget.check),
+                    'after': _summary(selected, fit if improved else None, check=budget.check)}
+            row.update(status='PARTIAL_RIGID_SEED_APPLIED' if improved else 'PARTIAL_RIGID_SEED_UNCHANGED',
+                applied=improved, best_proposal='RIGID_SEED' if improved else 'ORIGINAL',
+                relation_residuals=per_relation, correspondence_controls=len(rows),
+                transformed_controls=len(moved) if improved else 0,
+                max_rigid_seed_displacement_cm=max(math.dist(a, b) for a, b in zip(original, moved)))
+            positions[pid] = moved
+        except _Refusal as error:
+            row.update(status=error.code, message=str(error))
+            receipt['diagnostics'].append({'piece': pid, 'code': error.code, 'message': str(error)})
+    budget.check()
+    if _collar_input_digest(data, semantics, states, witnesses, budget) != before or sha(__file__) != code_before:
+        raise _Refusal('RIGID_INPUT_CHANGED', 'Caller source, controls, witnesses or rigid code changed during preparation')
+    receipt['status'] = 'ALIGNMENT_INCOMPLETE' if receipt['diagnostics'] else 'PARTIAL_ROLE_SEEDS_PREPARED'
     receipt['output_controls_sha256'] = digest(positions)
     budget.check()
     return positions, receipt
