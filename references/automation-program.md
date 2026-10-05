@@ -1033,3 +1033,33 @@ Le package reste déclaré 0.7.0-rc.2 ; les ajouts documentaires suivants sont
 distincts du snapshot testé. La partition UV ne crée ni champ 3D qualifié ni
 budget agrégé entre appels. Les six surfaces réelles, contraintes, métrique,
 contacts et récupération restent à intégrer. L4 reste partiel et L5 non admis.
+
+### Cascade synchronisée : col et deux dos corrigés en essai UV isolé
+
+Le [nouveau reçu natif](automation-native-cascade-three-evidence-20261005.json)
+conserve les patrons approuvés et ajoute quatre fractions communes avec leurs
+partenaires. Les angles minimaux sont 15,073571° au dos gauche, 15,014254° au
+dos droit et 15,288697° au col, contre 12,372726° pour le précédent col. Les
+bords, aires et topologie restent contrôlés. Les distances cumulées depuis
+la naissance de chaque point, y compris après Float32, respectent 0,5 cm.
+Les tentatives sont débitées sans remboursement : 31 / 31 / 14.
+
+La revue indépendante passe 1 353 016 assertions et conserve 4 200 fichiers.
+La préparation complète native/portable est exacte sur 10 pièces, 24 relations,
+2 324 points de bords et 88 contrôles ajoutés. Les sept autres pièces n'ont pas
+été exécutées pour ce nouveau candidat et restent non qualifiées. Aucun nouveau
+rollback non monotone n'est exercé par ces trois historiques monotones.
+
+Le host révisé atteste cette campagne avec le QPC commun et la finalisation
+contrôlée. Le checkpoint natif post-persistance est 50,585448 s ; le consumer
+après lecture/hash est 50,992853 s. L'erratum distingue le snapshot host persisté
+avant écriture de la valeur tool-only après écriture. Le lancement prend
+62,165795 s sous watchdog 120 s ; le budget de calcul 90 s a une autre origine.
+Le bilan historique des dix pièces reste incomplet et conservé.
+
+L'audit borné du runtime produit ne démontre aucun mélange d'origines entre MCP
+et Blender : les chemins examinés transportent des durées et créent leurs
+échéances localement. Ses 18 sondes passent ; aucun patch du plugin n'est proposé.
+La cascade corrigée demeure un essai isolé, à intégrer dans les callers natifs.
+Elle ne qualifie ni présence physique de tous les anciens authored, ni surfaces
+3D, contacts, Cloth, fitting, mouvement ou acceptation des 15 textiles et boucle.

@@ -679,3 +679,13 @@ Les 1 272 tests logiciels et 14 contrats passent sur le candidat exact ; le
 build local inclut les traces et la partition. Ces résultats ne qualifient ni
 l'aisance, ni les contacts, ni le fitting du manteau. La livraison finale et
 l'installation restent soumises aux critères du programme.
+
+### Qualité UV du col corrigée, aisance et fitting toujours ouverts
+
+La [cascade revue](automation-native-cascade-three-evidence-20261005.json)
+amène le col à 15,288697° et les deux dos au-dessus de 15°, avec les bords
+approuvés conservés et un déplacement permanent borné à 0,5 cm. Ces preuves
+numériques portent sur trois maillages UV isolés. Les sept autres pièces du
+nouveau candidat restent non exécutées ; aucune réussite historique ne leur
+est transférée. L'intégration des guides 3D, leur métrique et leurs contacts
+doit précéder une nouvelle tentative de fitting sur le corps accepté.
