@@ -798,3 +798,47 @@ global déduit du témoin local. Un replay frais du col sur le code courant et l
 composition approuvée est distinct du résultat historique V9. L4 reste partiel,
 L5 non admis ; aucun Cloth, fitting, préversion finale ou installation n'est
 qualifié par ces expériences.
+
+### Référence et échéance partagées — source61
+
+Le commit `9276422` ajoute les options `displacement_reference` et `deadline`
+à la récupération métrique. L'entrée corrigée, l'alignement, les propositions
+et le meilleur retour utilisent la référence du guide avant correction : le
+déplacement déjà consommé n'est pas remis à zéro. Les contraintes numériques
+injectées restent distinctes des pins et des arrêts source. Les nouveaux appels
+vérifient le pas réel sans epsilon et n'admettent aucun résultat après expiration.
+L'arrêt est coopératif ; la validation finale peut dépasser l'échéance et reste
+alors une observation d'un résultat incomplet. Les appels sans ces options
+conservent les reçus et les nombres d'appels d'horloge historiques.
+
+La revue indépendante reproduit les 79 tests ciblés, huit sondes supplémentaires,
+12 reçus historiques et trois témoins d'horloge. Les 1 095 tests intégrés passent
+en 229,823 s (lancement 232,109 s), avec les 14 contrats indépendants. Le snapshot
+source61 contient 514 fichiers identiques au commit et conservés après les tests.
+Le build local vérifié reste un build de développement déclaré 0.7.0-rc.2,
+sans publication ni installation. Ce suivi documentaire est ajouté après cette
+capture. Le [reçu de la récupération partagée](automation-shared-recovery-evidence-20261004.json)
+lie le code, la revue, les tests et l'archive exacte.
+
+Le replay frais du col sur source60 et la composition approuvée est revu :
+12 segments et 362 subdivisions respectent leurs bornes IEEE, avec 11 itérations
+et un déplacement maximal de 1,3284480315009943 cm depuis sa nouvelle référence.
+Ces preuves sont distinctes du témoin V9 historique et n'accordent aucun gate
+au projet composé. Le [reçu du col courant](automation-current-neckline-evidence-20261004.json)
+lie cette courbe et le précontrôle séparé des six surfaces.
+
+Le payload auxiliaire conserve 20 278 contrôles, 38 316 triangles et 13 coutures ;
+730 propriétaires transitifs reçoivent la courbe, huit stops restent exacts et
+aucun pin physique n'est inventé. Ces cages restent refusées aux seuils déclarés
+2° et 15°, avant et après injection, sans optimisation. Le col a notamment une
+arête UV de 1,249999997 × 10⁻⁷ cm ; une face du devant gauche devient presque
+aplatie après injection. Le refus porte sur ce maillage auxiliaire et ne prouve
+pas l'impossibilité du patron ou du vêtement. L'enveloppe courbe+surfaces reste
+non installable tant que ses phases et son horloge commune ne sont pas déclarées.
+
+Le premier essai natif du raffinement des bords s'arrête avant CDT sur une
+divergence de comparaison de batch. L'ordre des clés int puis textuelles JSON
+est une cause portable reproduite sans écart scalaire ; sa portée native reste
+à établir par un diagnostic isolé. Le refus et ses entrées sont conservés.
+L4 reste partiel et L5 non admis ; aucune physique, qualification de fitting,
+revue artistique, préversion finale ou installation n'est acquise par cette unité.

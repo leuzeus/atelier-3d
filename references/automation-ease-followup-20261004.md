@@ -578,3 +578,23 @@ courants et les manches approuvées. La prochaine proposition porte sur des
 subdivisions dérivées synchronisées des bords, sans nouvelle fan ni modification
 du patron. Les témoins locaux et les réussites 1D ne deviennent pas une admission
 L5, une acceptation du manteau, une préversion finale ou une installation.
+
+### Référence de correction commune et précontrôle actuel
+
+Le commit `9276422` conserve la référence avant correction et l'échéance commune
+dans la récupération métrique. La revue indépendante et les 1 095 tests intégrés
+passent, avec 14 contrats ; voir le [reçu source61](automation-shared-recovery-evidence-20261004.json).
+Le corps approuvé et les patrons restent conservés ; aucun nouveau budget de
+déplacement n'est donné à une phase après l'injection du col.
+
+Le [replay courant du col](automation-current-neckline-evidence-20261004.json)
+respecte les longueurs de sa courbe sur la composition approuvée. Son extension
+aux six cages est refusée avant optimisation pour des triangles auxiliaires
+presque dégénérés, aux seuils existants. Aucune impossibilité du vêtement ou
+réussite du fitting n'en est déduite. La construction des supports de calcul,
+leur provenance et les raccords externes complets restent à corriger/vérifier.
+Le premier essai natif des bords est préservé après refus avant triangulation ;
+la comparaison exacte du batch fait l'objet d'un diagnostic distinct.
+
+Le build local source61 est vérifié mais ne constitue ni une préversion finale,
+ni une nouvelle installation. Les gates physiques et humains restent ouverts.
