@@ -1063,3 +1063,14 @@ et Blender : les chemins examinés transportent des durées et créent leurs
 La cascade corrigée demeure un essai isolé, à intégrer dans les callers natifs.
 Elle ne qualifie ni présence physique de tous les anciens authored, ni surfaces
 3D, contacts, Cloth, fitting, mouvement ou acceptation des 15 textiles et boucle.
+
+### Maillage synchronisé intégré, campagne native et volume encore ouverts
+
+Le [bilan source67](automation-synchronized-meshing-20261005.md) et son
+[reçu](automation-synchronized-meshing-evidence-20261005.json) lient le profil
+explicite, les revues, les 1392 tests intégrés, les 14 contrats et le
+build local au commit exact. Les bords réels passent leur comparaison publique
+UV. Le champ du col s'arrête au plafond de sortie avec un résultat absent ;
+son format compact séparé est en développement. La campagne native du profil,
+les surfaces 3D, contacts et fitting restent ouverts. Aucun PASS historique,
+portable ou de coupon n'est transféré au manteau complet.
