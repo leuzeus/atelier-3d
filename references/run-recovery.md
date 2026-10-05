@@ -31,6 +31,31 @@ il faut une nouvelle identité de spécification de run revue, plutôt que
 réécrire le journal ancien. Aucun PASS de géométrie, Cloth, fitting ou revue
 artistique n'est accordé par une restauration.
 
+Les nouvelles opérations natives archivent dès leur reçu les projections
+mutables connues : session, inventaire des candidats et scènes de travail
+`working-HEX` ou `working-recovered-HEX`. Les copies exactes deviennent des
+références immuables déclarées ; l'observation live reste distincte.
+
+Un reçu ancien peut encore référencer sa session live. Pour la restauration
+seulement, les références historiques sont authentifiées dans des archives
+distinctes, liées à la tentative et au SHA exact du reçu canonique. Si une
+restauration partielle a déjà changé le chemin de travail, la session peut
+être reconstruite en mémoire en remplaçant uniquement `working` par l'unique
+chemin de travail historique déclaré. Le JSON courant doit être strict et
+géré ; le résultat doit reproduire le SHA complet de la session historique.
+Un champ différent, un choix ambigu ou un artefact absent reste refusé. Les
+scènes Blender ne sont jamais reconstruites à partir de métadonnées.
+
+La lecture du descripteur ne crée pas d'archive et ne modifie pas SQLite. La
+restauration autorisée fige les octets authentifiés avant ouverture du
+checkpoint ou changement de session. Les archives divergentes sont conservées
+et refusées. Les octets du reçu sont hashés puis décodés depuis le même buffer.
+Les anciens reçus et événements restent inchangés ; les contrôles ordinaires
+de rejeu ne consomment pas ce fallback `RESTORATION_ONLY`.
+
+La régression réelle et la portée des tests sont consignées dans
+[la preuve de reprise](automation-session-recovery-evidence-20261005.json).
+
 Chaque restauration exige sa propre autorisation explicite d'exécution
 Blender. Les tests de `tests/test_returned_run_recovery.py` utilisent des faux
 fichiers Blender et contrôlent les contrats portables ; ils ne prouvent pas

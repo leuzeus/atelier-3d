@@ -5,19 +5,23 @@ Plan approuvé par l'utilisateur le 3 octobre 2026. Base : branche
 version 0.7.0-rc.2. Le programme est suivi ici pendant l'implémentation.
 
 **État courant du 5 octobre :** le build local distinct
-`0.7.0-rc.2.dev.2026100504` est installé par le gestionnaire natif de Codex ;
-ses 621 fichiers correspondent au stage préparé. Le code intégré exporté au
-commit `3d242c08d24efbc0c49ff13ad8e34701ebe81d42` a passé 1 592 tests et
-14 contrats sous Python 3.11. Les tests ciblés sous Python 3.13 ont une portée
-séparée. Le serveur connecté appelle encore le cache `dev.2026100503` remplacé :
-le contrôle actuel du pipeline retourne un schema introuvable de cette version,
-et `studio_doctor` est bloqué par le hook (`PermissionError`). La production
-native attend le redémarrage de Codex puis la vérification du runtime et du
-pipeline. Les travaux source et diagnostics indépendants peuvent continuer.
+`0.7.0-rc.2.dev.2026100505` est installé par le gestionnaire natif de Codex ;
+ses 633 fichiers correspondent au stage préparé. Le code intégré exporté au
+commit `074850e2a5bcf5176f4ea935fade3fd1399b2e86` a passé 1 635 tests,
+aucun SKIP, et 14 contrats sous Python 3.11. Les 71 tests ciblés sous chacun
+des deux Python et les deux descripteurs historiques réels authentifiés
+conservent leur portée. Le redémarrage utilisateur a réellement chargé
+`dev.2026100504` et rétabli l'admission du pipeline ; la compilation publique
+V4 est exécutée, mais son fitting reste incomplet. La restauration autorisée
+a sauvegardé une copie, puis échoué sur la session historique : elle n'est pas
+considérée terminée. Le nouveau build contient le correctif de ce mécanisme.
+Après cette installation, `studio_doctor` appelle encore le cache remplacé
+`dev.2026100504` et retourne son schema introuvable. La reprise native attend
+un nouveau redémarrage, puis la vérification de `dev.2026100505` et du pipeline.
 Les correctifs source `8e7a73d`, `af78094` et `6545a41` ajoutés ensuite passent
-79 tests ciblés sous chacun des deux Python ; ils ne sont pas encore construits
-ni installés. Les 1 592 tests historiques ne sont pas transférés à ce nouveau
-candidat. L'index UV essayé reste expérimental, désactivé en production, après
+79 tests ciblés sous chacun des deux Python ; ils sont maintenant intégrés au
+candidat validé et installé ci-dessus. Les 1 592 tests historiques gardent leur
+candidat propre. L'index UV essayé reste expérimental, désactivé en production, après
 un résultat réel défavorable ; aucun gain de performance n'est qualifié.
 Le statut historique de la planche reste `RECORDED_RECHECK_REQUIRED` ; aucune
 nouvelle revue de coupe n'est déduite ou créée par l'installation.
@@ -1671,3 +1675,62 @@ La capacité ouverte du torse, le col et le placement des épaules restent à
 traiter. Le vêtement complet, l'enfilage, le drapé, le fitting, les mouvements,
 les revues visuelles et la livraison finale restent non qualifiés. Aucun
 nouveau patron à approuver n'est produit par ce diagnostic.
+
+### 2026-10-05 — Rechargement vérifié, régression de reprise et correctif local
+
+Après le redémarrage confirmé par l'utilisateur, `studio_doctor` retourne
+`PASS` sur `dev.2026100504` (52 schemas) et `studio_check_pipeline` est admis.
+La requête publique V4 est réellement exécutée : compilation `READY_TO_PLAN`,
+15 textiles et une boucle dans le dossier, mais `FIT_PREFLIGHT_INCOMPLETE`.
+Les quatre propositions bras/poignets sont retrouvées, non admises. Les sections
+poitrine/taille/hanches épuisent leur budget inchangé et le col manque encore
+d'une ligne homologuée complète. Ces résultats ne qualifient ni le placement
+ni la capacité du torse. Le résultat complet et la requête sont conservés dans
+`program-restart-verification-v1` sur G:.
+
+La restauration exacte du checkpoint `pre-028b75a4767b4e28b491a65da4bc85c0.blend`
+est préparée par le dispatcher et autorisée par l'utilisateur. L'appel natif
+ouvre le checkpoint et sauvegarde `working-recovered-9f447501a5ab421fb0ce7931973301ce.blend`,
+puis refuse le second contrôle du reçu sur `.a3d/blender/session.json`.
+**Sauvegarde partielle, restauration canonique non terminée.** L'erreur,
+la copie partielle, le candidat refusé et son reçu sont préservés ; aucun second
+envoi Blender n'est effectué.
+
+Le commit `074850e` corrige le mécanisme générique de reprise. Les nouvelles
+sessions et scènes de travail récupérées sont archivées à leur origine native.
+Pour les anciennes références live, seule la restauration accepte des octets
+historiques authentifiés par leur SHA intégral et leur reçu canonique. La
+session réelle est reconstituée en mémoire en ne changeant que `working` :
+687 octets, SHA identique à `aba7b83c385c649d4e810c44b43aa9a0e1be6a5807baf6a7b3fc0f91947f3bef`.
+Les `.blend`, checkpoints et autres artefacts ne sont pas reconstruits. Le
+contrôle ordinaire de rejeu reste strict ; aucun historique n'est réécrit.
+
+**71 tests ciblés PASS sous Python 3.11 et 3.13**, puis authentification réelle
+en lecture seule du descripteur historique sous les deux Python, SQLite
+inchangée. La revue indépendante découvre un P2 de relecture du reçu ; il est
+corrigé en hashant et décodant le même buffer, avec deux tests de remplacement.
+Aucun défaut P2 ou supérieur ne reste confirmé dans le code revu.
+[Contrat de reprise](run-recovery.md),
+[preuve ciblée et refus natif](automation-session-recovery-evidence-20261005.json).
+
+L'export Git immuable `074850e2a5bcf5176f4ea935fade3fd1399b2e86` passe ensuite
+**1 635 tests en 210,694 s, aucun SKIP, et 14 contrats**. Le build vérifie
+632 fichiers source distribués exacts ; la préparation adapte seulement les
+métadonnées de version et les chemins natifs déclarés. Un premier comparateur
+du stage refuse l'ordre JSON de TEMP/TMP ; ce témoin est conservé et le
+comparateur corrigé est rejoué dans un dossier neuf, sans changement du plugin
+validé. Le gestionnaire natif installe `dev.2026100505` ; ses 633 fichiers sont
+comparés au stage et tous les anciens stages G: restent conservés. Les helpers
+de validation, stage et vérification sont génériques, à arguments explicites.
+Aucune confiance des hooks n'est scriptée, aucune release finale n'est publiée.
+[Preuves intégrées et installation](automation-session-recovery-installation-evidence-20261005.json).
+
+Le contrôle suivant utilise encore le cache remplacé `dev.2026100504` : un
+nouveau redémarrage de Codex est requis pour charger le correctif. L'entrée de
+reprise est : vérifier `dev.2026100505` et le pipeline, préparer de nouveau
+`restore_checkpoint` pour le même run/tentative, obtenir son autorisation exacte
+puis vérifier le reçu natif terminé. Le nouveau run de placement devra ensuite
+porter les identités actuelles du code et des entrées. Le vêtement reste
+RECONSTRUCTING ; aucun nouveau patron à approuver n'est produit. Les
+correspondances de mesure, le placement et la revue artistique restent à
+examiner ; construction complète, drapé, fitting et mouvement restent ouverts.
