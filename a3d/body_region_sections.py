@@ -15,6 +15,18 @@ from .core import ROOT, StudioError, contract, digest, inside, read_json, sha
 from .sewing import point_inside, segment_distance
 
 
+def _ordered_perimeter_sum(lengths):
+    """Preserve the stored 3.11 left-to-right additions across Python versions.
+
+    Perimeters are exact cache inputs. Builtin sum changed its floating-point
+    algorithm in 3.12; compensated summation would change existing measurements.
+    """
+    total = 0
+    for length in lengths:
+        total += length
+    return total
+
+
 def _point(value):
     return isinstance(value, (list, tuple)) and len(value) == 3 and all(
         type(x) in (int, float) and math.isfinite(x) for x in value)
@@ -163,7 +175,7 @@ def _section(vertices, triangles, triangle_ids, origin, normal, u, v, epsilon):
             if _touch(a,b,*edges[j],epsilon): return refuse('SELF_INTERSECTING_SECTION_LOOP')
     distance = min(segment_distance([0.,0.],a,b) for a,b in edges)
     if distance <= epsilon or not point_inside([0.,0.],polygon): return refuse('SOURCED_AXIS_OUTSIDE_OR_ON_SKIN')
-    curve = loop['points_cm']; girth = sum(math.dist(a,b) for a,b in zip(curve,curve[1:]+curve[:1]))
+    curve = loop['points_cm']; girth = _ordered_perimeter_sum(math.dist(a,b) for a,b in zip(curve,curve[1:]+curve[:1]))
     result.update(ok=True,status='MEASURED',reason=None,selected_loop=0,curve_cm=copy.deepcopy(curve),
                   girth_cm=girth,minimum_axis_boundary_distance_cm=distance,
                   numerical_error_bound_cm=2*epsilon*len(curve),confidence='EXACT_MESH_SECTION_ONLY')
@@ -237,7 +249,7 @@ def _hand(profile, geometry, declaration, specification, adapter, source_geometr
         'axis_source_landmarks':[wrist_name,hand_name], 'normal_world':normal,'u_world':u,'v_world':v,
         'source_face_ids':ids,'source_vertex_ids':vertices,'source_labels':sorted(labels),
         'hull_plane_cm':hull,'hull_world_cm':[[wrist[i]+p[0]*u[i]+p[1]*v[i] for i in range(3)] for p in hull],
-        'hull_perimeter_cm':sum(math.dist(a,b) for a,b in zip(hull,hull[1:]+hull[:1])),
+        'hull_perimeter_cm':_ordered_perimeter_sum(math.dist(a,b) for a,b in zip(hull,hull[1:]+hull[:1])),
         'projection_contains_all_declared_skin_vertices':True,'plane_source_axis':declaration['plane_reference_axis'],
         'numerical_error_bound_cm':epsilon,'numerical_margin_required_cm':epsilon,
         'anatomical_girth':'NOT_MEASURED','physical_hand_passage':'NOT_QUALIFIED','mesh_discretization_error':'NOT_ESTIMATED',
