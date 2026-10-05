@@ -71,6 +71,19 @@ def prepared_receipt(project,obj,payload,recipe,plan_ref):
                 or observed.get('status')!='GEOMETRIC_GATES_PASSED'):
             raise StudioError('Prepared native placement correction changed or was not geometrically admitted')
     spec=read_json(verified_reference(project,record['preparation_spec']))
+    if spec.get('meshing_profile'):
+        from a3d.meshing_profile import profile_binding
+        observation=record.get('meshing_observation',{})
+        work=payload.get('meshing_work',{})
+        if (observation.get('status')!='COMPLETED_MESH_BUILD_ONLY'
+            or payload.get('meshing_profile')!=profile_binding(spec['meshing_profile'])
+            or observation.get('profile')!=payload.get('meshing_profile')
+            or observation.get('work')!=work or work.get('component_id')!=payload['component_id']
+            or work.get('qualification')!='NONE' or work.get('admission')!='NONE'
+            or type(work.get('last_checkpoint'))not in(int,float)
+            or type(work.get('absolute_deadline'))not in(int,float)
+            or not work['last_checkpoint']<work['absolute_deadline']):
+            raise StudioError('Prepared synchronized meshing observation is missing, expired or changed')
     for key in ('assembly_plan','construction_dossier'):
         if spec.get(key):verified_reference(project,spec[key])
     verified_reference(project,record['recipe'])
@@ -153,6 +166,8 @@ def _material_assessment(data,recipe,spec,payload):
 
 
 def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_path):
+    import time
+    meshing_started=time.monotonic()
     import bpy
     from blender.operations import working
     from a3d.packages import extract_package
@@ -166,6 +181,12 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
     spec_path=inside(project.root,preparation_path);spec=contract('pattern-preparation',read_json(spec_path))
     recipe_file=inside(project.root,recipe_path);source_recipe=contract('sewing-recipe',read_json(recipe_file))
     recipe,migration=migrate_preparation_recipe(source_recipe,spec)
+    meshing_envelope=None
+    if spec.get('meshing_profile'):
+        from a3d.meshing_profile import create_envelope
+        meshing_envelope=create_envelope(spec['meshing_profile'],component_id,recipe,
+            spec['regular_mesh'],started_at=meshing_started)
+        meshing_envelope.check('before_source_package_capture')
     if spec['component_id']!=component_id or recipe['component_id']!=component_id:raise StudioError('Preparation component mismatch')
     if spec['regular_mesh']['min_spacing_cm']>spec['regular_mesh']['spacing_cm']:
         raise StudioError('Regular preparation minimum spacing cannot exceed its base spacing')
@@ -194,11 +215,27 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
             'issues':[{'category':'source_contract','code':'SOURCE_AUDIT_ERROR','message':str(exc)}]}
         problem('NEEDS_CORRECTION','source_pattern',exc)
     payload=None;plan=None;plan_ref=None;obj=None;preform=None;collision=None;statistics=None;dressing=None;layer_migration=None;placement_correction=None
+    meshing_observation=None
     try:
-        payload=build_mesh(data,recipe,regular_mesh=spec['regular_mesh'],dossier=dossier)
+        if meshing_envelope is not None:
+            payload=build_mesh(data,recipe,regular_mesh=spec['regular_mesh'],dossier=dossier,
+                meshing_profile=spec['meshing_profile'],meshing_envelope=meshing_envelope)
+        else:payload=build_mesh(data,recipe,regular_mesh=spec['regular_mesh'],dossier=dossier)
+        if meshing_envelope is not None:
+            meshing_observation={'status':'COMPLETED_MESH_BUILD_ONLY','qualification':'NONE',
+                'work':copy.deepcopy(payload['meshing_work']),'profile':copy.deepcopy(payload['meshing_profile'])}
     except StudioError as exc:
         payload=getattr(exc,'garment_payload',None)
         problem('NEEDS_CORRECTION','derived_mesh_or_initial_placement',exc)
+        if meshing_envelope is not None:
+            meshing_observation={'status':'REFUSED_OR_INCOMPLETE_MESH_BUILD','qualification':'NONE',
+                'reason':getattr(exc,'reason',None),'execution_status':getattr(exc,'status',None),
+                'message':str(exc),'last_phase':meshing_envelope.phase,
+                'attempted_work':dict(meshing_envelope._counts),'costs_refunded':False,
+                'terminal_snapshot':'NOT_AVAILABLE_NO_SUCCESS_CLOCK_CHECK',
+                'native_diagnostic':getattr(exc,'diagnostic',None)}
+            problem('NEEDS_CORRECTION','synchronized_meshing_incomplete',
+                'Synchronized mesh has no completed terminal observation; preform cannot clear this refusal')
     if payload:
         payload.update(package_sha256=component['package']['sha256'],source_garment=(source_dir/'garment.json').relative_to(project.root).as_posix(),
             source_pins=copy.deepcopy(payload['pins']),full_rest_area_cm2=_area(payload))
@@ -364,6 +401,7 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
         'object':obj.name if obj else None,'mesh_sha256':mesh_digest(obj) if obj else None,
         'simulation':'NOT_EXECUTED','fitting':'NOT_QUALIFIED','behavior':'NOT_QUALIFIED',
         'visual_validation':'NOT_EXECUTED','accepted':False,'export_eligible':False}
+    if meshing_envelope is not None:record['meshing_observation']=meshing_observation
     from blender.piece_inventory import collect, remember_candidate, save_report
     remember_candidate(project, component_id, obj)
     coverage = collect(project, component_id, focus=obj, previews=True)

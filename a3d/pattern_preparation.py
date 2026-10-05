@@ -436,8 +436,12 @@ def _notch_physical_identity(notch):
         binding['boundary_vertices'],binding['weights']) if weight!=0.))
 
 
-def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
+def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None, *,
+                               meshing_envelope=None, transport_2d=None):
     """Same source IDs/shared arc sampler, explicitly rebuilt at rim resolution."""
+    if (meshing_envelope is None)!=(transport_2d is None):
+        raise StudioError('Synchronized boundary preparation requires both envelope and native transport')
+    if meshing_envelope is not None:meshing_envelope.check('before_regular_boundary_capture')
     _, fine, _, maximum = _mesh_config(regular_mesh)
     derived = copy.deepcopy(recipe)
     derived['mesh']['spacing_cm'] = fine
@@ -469,8 +473,23 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
                 notch_sources.append({'seam_id': seam['id'], 'notch_id': mark['id'],
                     'piece': pid, 'side': side, 'source_local_parameter': position,
                     'symbol':mark.get('symbol'), 'source_mark':copy.deepcopy(mark)})
+    if meshing_envelope is not None:
+        from .boundary_gradation import _sampling_cost
+        meshing_envelope.reserve('sampling_calls',1)
+        meshing_envelope.reserve('sampling_point_slots',derived['mesh']['max_vertices'])
+        _sampling_cost(data,derived,{},meshing_envelope,
+            lambda:meshing_envelope.check('baseline_sampling_cost'))
+        meshing_envelope.check('before_baseline_sampling')
     boundaries, seams, seam_reports = prepare_boundaries(data, derived,
         regular_boundary_spacing_cm=fine)
+    gradation=None
+    if meshing_envelope is not None:
+        from .boundary_gradation import grade_shared_boundaries
+        meshing_envelope.check('after_baseline_sampling')
+        normalized=copy.deepcopy(regular_mesh);normalized.setdefault('target_min_angle_degrees',15.)
+        boundaries,seams,gradation=grade_shared_boundaries(data,derived,normalized,
+            boundaries,seams,transport_2d=transport_2d,envelope=meshing_envelope)
+        seam_reports=gradation['seam_reports']
     source_corner_bindings = _verify_prepared_source_corners(data, boundaries)
     for notch in notch_sources:
         notch.update(_bind_source_notch(data,boundaries,seams,notch))
@@ -485,7 +504,7 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
     count = sum(len(p['polygon']) for p in boundaries.values())
     if count > maximum:
         raise StudioError('Shared source boundary samples exceed the preparation vertex budget')
-    return boundaries, seams, {'version': 1, 'source_sha256': digest(data),
+    result={'version': 1, 'source_sha256': digest(data),
         'sampling': 'existing_common_source_arclength', 'boundary_spacing_cm': fine,
         'boundary_vertices': count, 'seams': seam_reports, 'source_immutable': True,
         'boundary_sampling_policy':next(iter(boundaries.values())).get('regular_sampling_report'),
@@ -495,6 +514,10 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
         'notch_index_space':'PIECE_BOUNDARY_LOCAL',
         'dossier_sha256': digest(dossier) if dossier is not None else None,
         'source_notches': notch_sources, 'ambiguous_source_notches': ambiguous_notches}
+    if meshing_envelope is not None:
+        result['source_boundary_gradation']=gradation
+        meshing_envelope.check('after_source_corner_and_notch_rebinding')
+    return boundaries,seams,result
 
 
 def regular_interior_points(boundary, mesh_config):

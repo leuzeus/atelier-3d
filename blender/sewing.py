@@ -201,16 +201,49 @@ def placed_point(point, placement):
     return list(rotation@Vector(local)+Vector(placement["position_cm"]))
 
 
-def build_mesh(data, recipe, regular_mesh=None, dossier=None):
+def build_mesh(data, recipe, regular_mesh=None, dossier=None, *,
+               meshing_profile=None, meshing_envelope=None):
+    synchronized=meshing_profile is not None
+    if not synchronized and meshing_envelope is not None:
+        raise StudioError('Meshing envelope requires the explicit synchronized profile')
+    if synchronized:
+        from a3d.meshing_profile import create_envelope,validate_profile,verify_inventory,verify_envelope,profile_binding
+        from mathutils import Vector
+        if not regular_mesh:raise StudioError('Synchronized meshing requires regular mesh settings')
+        validate_profile(meshing_profile,data['component_id'],recipe,regular_mesh)
+        if meshing_envelope is None:
+            meshing_envelope=create_envelope(meshing_profile,data['component_id'],recipe,regular_mesh)
+        verify_envelope(meshing_profile,data['component_id'],recipe,regular_mesh,meshing_envelope)
+        verify_inventory(meshing_profile,data,meshing_envelope)
     if regular_mesh:
         from a3d.pattern_preparation import prepare_regular_boundaries
-        boundaries,seams,sampling=prepare_regular_boundaries(data,recipe,regular_mesh,dossier)
+        if synchronized:
+            boundaries,seams,sampling=prepare_regular_boundaries(data,recipe,regular_mesh,dossier,
+                meshing_envelope=meshing_envelope,transport_2d=lambda p:list(Vector(p)))
+        else:boundaries,seams,sampling=prepare_regular_boundaries(data,recipe,regular_mesh,dossier)
         reports=sampling['seams']
     else:boundaries,seams,reports=prepare_boundaries(data,recipe)
     rest,placed,faces=[],[],[]
     panels={};pins={}
     for index,(pid,boundary) in enumerate(boundaries.items()):
-        verts,local_faces,mapping=triangulate(boundary,recipe,regular_mesh)
+        if synchronized:
+            from blender.bounded_pattern_meshing import triangulate as bounded_triangulate,ConditionedPointRefusal
+            meshing_envelope.check('before_piece:'+pid)
+            maximum=min(recipe['mesh']['max_vertices'],regular_mesh['max_vertices'])
+            future=sum(len(row['polygon'])for name,row in boundaries.items()if name not in panels and name!=pid)
+            available=maximum-len(rest)-future
+            if available<20:raise StudioError('Component vertex budget leaves no supported per-piece mesh allocation')
+            local_regular={**regular_mesh,'max_vertices':available}
+            boundary['piece_id']=pid
+            try:
+                verts,local_faces,mapping=bounded_triangulate(boundary,recipe,local_regular,envelope=meshing_envelope)
+            except ConditionedPointRefusal as cause:
+                error=StudioError('Synchronized native meshing refused: '+str(cause))
+                error.reason=cause.reason;error.status='REFUSED';error.diagnostic=cause.diagnostic
+                error.bounded_meshing_partial=getattr(cause,'bounded_meshing_partial',None)
+                raise error from cause
+            meshing_envelope.check('after_piece:'+pid)
+        else:verts,local_faces,mapping=triangulate(boundary,recipe,regular_mesh)
         offset=len(rest)
         rest.extend([[v[0],v[1],index*1000.] for v in verts])
         placed.extend(placed_point(v,recipe["placements"][pid]) for v in verts)
@@ -246,6 +279,11 @@ def build_mesh(data, recipe, regular_mesh=None, dossier=None):
         exc.garment_payload=payload
         raise
     payload.update(quality=quality,full_rest_area_cm2=quality['rest_area_cm2'])
+    if synchronized:
+        meshing_envelope.check('after_complete_mesh_quality')
+        payload['meshing_profile']=profile_binding(meshing_profile)
+        payload['meshing_work']=meshing_envelope.snapshot()
+        meshing_envelope.check('terminal_complete_mesh_build')
     return payload
 
 

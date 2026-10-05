@@ -66,6 +66,22 @@ class PreparedReceiptContracts(Case):
         atomic_json(self.root/'legacy.json',{'changed':True})
         with self.assertRaisesRegex(StudioError,'referenced artifact changed'):self.invoke()
 
+    def test_new_meshing_profile_cannot_reuse_historical_ready_or_incomplete_observation(self):
+        from tests.test_meshing_profile import profile
+        from a3d.meshing_profile import profile_binding
+        p=profile(['panel']);atomic_json(self.root/'spec.json',{'meshing_profile':p})
+        self.record['preparation_spec']=self.ref('spec')
+        with self.assertRaisesRegex(StudioError,'synchronized meshing'):self.invoke()
+        work={'component_id':'coat','qualification':'NONE','admission':'NONE','last_checkpoint':1.,'absolute_deadline':2.}
+        self.payload.update(meshing_profile=profile_binding(p),meshing_work=work)
+        self.record['meshing_observation']={'status':'COMPLETED_MESH_BUILD_ONLY','profile':profile_binding(p),'work':copy.deepcopy(work)}
+        self.invoke()
+        self.record['meshing_observation']['status']='REFUSED_OR_INCOMPLETE_MESH_BUILD'
+        with self.assertRaisesRegex(StudioError,'synchronized meshing'):self.invoke()
+        self.record['meshing_observation']['status']='COMPLETED_MESH_BUILD_ONLY'
+        self.payload['meshing_work']['last_checkpoint']=2.
+        with self.assertRaisesRegex(StudioError,'synchronized meshing'):self.invoke()
+
 
 class PreparationAdmission(Case):
     def test_new_operation_is_guarded_without_requiring_existing_blender_geometry(self):
