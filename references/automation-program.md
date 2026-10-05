@@ -1348,3 +1348,19 @@ et rationnelles, gardes et autorisations restent inchangés.
 Ce résultat qualifie le logiciel et la reconstruction numérique pure des guides.
 Le succès du nouveau raccordement natif, les contacts et l'admission du vêtement
 restent à mesurer sur leur candidat exact.
+
+Le build local `0.7.0-rc.2.dev.2026100503` est construit depuis l'export Git
+`8b4a375ca49e7e4db6330e918edbfe09515f51e3` : 601 fichiers distribués
+identiques à cet export et aux modules de la comparaison numérique. Le
+gestionnaire natif Codex l'installe ; ses 602 fichiers adaptés correspondent
+au stage vérifié. Les stages précédents restent conservés sur G:.
+[Preuve du build et de l'installation](automation-guide-portability-installation-20261005.json).
+L'observation MCP après installation échoue sur un fichier de l'ancien cache
+`dev.2026100502`. **Redémarrage de Codex requis** : le runtime corrigé connecté
+reste à vérifier. Reprendre ensuite l'admission et la préparation publique V3,
+puis un nouveau run et le raccordement exact à faire autoriser. Le reçu du
+refus précédent reste `INCOMPLETE` ; aucune permission n'est transférée aux
+nouveaux arguments. Restent placement, construction des 15 pièces et de la
+boucle, enfilage, drapé, fitting, mouvements, réouverture et revue artistique.
+Aucune nouvelle coupe ni revue anatomique n'est demandée à ce jalon. La
+publication finale reste soumise à ces contrôles produit effectivement exécutés.
