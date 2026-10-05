@@ -1139,3 +1139,9 @@ Le codec privé encode son DTO en JSON ASCII échappé, avec comptage exact et r
 Les 76 tests ciblés, six comparaisons V2 de l’auteur et neuf sondes indépendantes passent. La revue couvre notamment 265 caractères, dont le contrôle U+007F oublié lors du premier essai, et cinq mesures des buffers directs. [Preuves V3](automation-native-diagnostic-arrays-v3-evidence-20261005.json). Les échecs V1, les preuves V2 et le refus natif V5 restent conservés avec leur portée.
 
 La qualification reste `NONE` : aucun payload natif réel n’est exécuté par ce lot. Le nouvel adaptateur isolé doit encore être revu et essayé avant toute affirmation de persistance complète. La préparation du col conserve aussi le refus de revue de son premier lecteur de stdout ; son correctif LF est revu séparément avant exécution.
+
+### 2026-10-05 — Qualification logicielle source69
+
+Le commit `21509d9061d40ffce0f05601e0cd91c7169fad46` passe une suite complète de 1 511 tests en 215,119 s, puis les 14 contrats. Ses 583 fichiers exportés depuis Git et capturés restent identiques après exécution. Le build local est vérifié contre ces mêmes fichiers ; [preuves source69](automation-software-source69-evidence-20261005.json).
+
+L’archive conserve la version déclarée 0.7.0-rc.2 pour le développement local. Elle ne publie pas la préversion finale, n’installe pas le plugin et ne qualifie pas le manteau physique. Les preuves source68 restent historiques. La préservation mesurée par ce lot couvre l’export Git et la copie de test ; aucun checkpoint distinct des originaux avant source69 n’est revendiqué.
