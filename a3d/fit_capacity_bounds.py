@@ -17,6 +17,15 @@ def _sub(a,b):return [a[i]-b[i] for i in range(2)]
 def _lerp(a,b,t):return [a[i]+t*(b[i]-a[i]) for i in range(2)]
 
 
+def _source_boundary_chain(piece,name):
+    """Use a relation's declared edge, with actual unique outline vertices."""
+    ids=piece.get('edges',{}).get(name) if isinstance(name,str) else None
+    if (not isinstance(ids,list) or len(ids)<2 or any(type(i) is not int or not 0<=i<len(piece['vertices']) for i in ids) or
+            len(set(ids))!=len(ids)):
+        raise StudioError('Transverse capacity needs a valid declared source boundary chain')
+    return edge_chain(piece,name)
+
+
 def _roots(c0,c1,c2):
     scale=max(abs(c0),abs(c1),abs(c2),1e-30)
     if abs(c2)<=1e-14*scale:
@@ -65,10 +74,9 @@ def transverse_capacity_bound(compiled,piece_id):
     if not simple_polygon(polygon):raise StudioError('Transverse capacity requires a simple source material outline')
     seams=[link for link in compiled['links'] if link['piece_a']==link['piece_b']==piece_id and link['kind']=='permanent']
     if (len(seams)!=1 or seams[0]['orientation']!='reverse' or
-            {seams[0]['edge_a'],seams[0]['edge_b']}!={'underarm-front','underarm-back'} or
             seams[0]['component_id']!=row['component_id'] or seams[0]['source_ref']!=row['package_source_ref']):
-        raise StudioError('Transverse capacity requires exactly one compatible permanent unary underarm source seam')
-    seam=seams[0];ids_a,a,_=edge_chain(piece,seam['edge_a']);ids_b,b,_=edge_chain(piece,seam['edge_b'])
+        raise StudioError('Transverse capacity requires exactly one compatible permanent unary source seam')
+    seam=seams[0];ids_a,a,_=_source_boundary_chain(piece,seam['edge_a']);ids_b,b,_=_source_boundary_chain(piece,seam['edge_b'])
     if set(ids_a)&set(ids_b):raise StudioError('Unary transverse closure cannot reuse a source endpoint or boundary atom')
     b=list(reversed(b));lengths_a=chain_lengths(a);lengths_b=chain_lengths(b)
     breaks=sorted({*(s/lengths_a[-1] for s in lengths_a),*(s/lengths_b[-1] for s in lengths_b)})
@@ -120,6 +128,22 @@ def compare_body_section(bound,section):
             'numeric_ease_target':'NOT_DEFINED','physical_impossibility':'NOT_ESTABLISHED','fitting':'NOT_EXECUTED','acceptance':'NOT_GRANTED'}
 
 
+def _middle_upper_arm_section(descriptor,side):
+    """Select a unique declared measured section by domain, never by its ID."""
+    matches=[]
+    for region in descriptor['supplement']['regions']:
+        if region['side']!=side or region['domain']!='SHOULDER_TO_ELBOW_ONLY':continue
+        matches.extend((region,section) for section in region['sections'] if section['parameter']==.5)
+    if len(matches)!=1:
+        raise StudioError('Capacity proposal needs one unique declared middle upper-arm source section')
+    region,section=matches[0]
+    if descriptor['sections'].get(section['id'])!={'region':region,'section':section}:
+        raise StudioError('Capacity proposal body section differs from its actual declared source region')
+    if section.get('status')!='MEASURED' or section.get('ok') is not True:
+        raise StudioError('Capacity proposal needs an actually measured middle upper-arm source section')
+    return section
+
+
 def project_capacity_bounds(project,compiled_path,body_policy_path=None,body_supplement_ref=None):
     from .production_dossier import compile_project_dossier
     compiled_file=inside(project.root,compiled_path);compiled=read_json(compiled_file)
@@ -138,10 +162,8 @@ def project_capacity_bounds(project,compiled_path,body_policy_path=None,body_sup
         region_evidence={key:copy.deepcopy(descriptor[key]) for key in ('identity','specification_ref','supplement_ref','native_body_origin')}
         for bound in bounds:
             if bound['role']!='sleeve':continue
-            found=descriptor['sections'].get('upper.'+bound['side']+'.section.1')
-            if (found is None or found['region']['side']!=bound['side'] or found['region']['domain']!='SHOULDER_TO_ELBOW_ONLY' or
-                    found['section']['parameter']!=.5):raise StudioError('Capacity proposal needs the actual declared middle upper-arm source section')
-            signals.append(dict(compare_body_section(bound,found['section']),piece_id=bound['piece_id']))
+            section=_middle_upper_arm_section(descriptor,bound['side'])
+            signals.append(dict(compare_body_section(bound,section),piece_id=bound['piece_id']))
     result={'version':1,'status':'NOMINAL_CAPACITY_PROPOSAL','compiled_ref':{'path':compiled_path,'sha256':sha(compiled_file)},
             'dossier_ref':source,'metadata_ref':metadata,'bounds':bounds,'body_region_evidence':region_evidence,'signals':signals,
             'numeric_ease_targets':'NOT_DEFINED','design_variant':'NOT_CREATED','body_changed':False,'patterns_changed':False,
