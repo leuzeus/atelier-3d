@@ -11,7 +11,7 @@ ou exécuté par ses tests.
 
 Le module [native_diagnostic_arrays.py](../a3d/native_diagnostic_arrays.py) expose
 deux fonctions internes : `pack_native_diagnostic_arrays` produit des bytes
-JSON UTF-8 avec un LF ; `unpack_native_diagnostic_arrays` reconstruit la donnée
+JSON ASCIIescaped, encodés en UTF-8 avec un LF ; `unpack_native_diagnostic_arrays` reconstruit la donnée
 native. Le résultat est complet ou une `StudioError` est levée. Il n'existe pas
 de retour partiel admis, de `READY`, ni de qualification physique implicite.
 
@@ -132,6 +132,40 @@ Cette réserve remplace `3 * taille + 128` ; aucun plafond n'est relevé, et le
 témoin à l'ancien cap refuse désormais avant d'allouer ces buffers. Le
 conservatisme supplémentaire peut provoquer un refus plus tôt ; ce n'est pas
 une preuve que le payload natif réel pourra être stocké.
+
+Le correctif V3 change uniquement la représentation JSON privée encodée et
+son compte exact. `ensure_ascii=True` conserve la valeur Unicode après parse,
+avec six caractères ASCII pour un codepoint BMP et douze pour un codepoint
+astral. Quotes, backslash et caractères de contrôle gardent les échappements
+JSON exacts. Les surrogates présents comme code units restent refusés, y
+compris une paire de code units ; aucune normalisation n'est ajoutée.
+Le caractère DEL U+007F est aussi échappé sur six caractères, comme l'impose
+le sérialiseur ASCII Python ; il ne suit pas le compte UTF-8 natif d'un octet.
+`_stats` compte les clés et chaînes de ce DTO encodé dans cette convention.
+La taille inclut le LF effectivement émis et le reçu complet stabilisé.
+
+La réserve des trois buffers de sérialisation est maintenant
+`3 * taille_ASCII_exacte + 256`, débitée avant `json.dumps` : deux chaînes Python
+ASCII d'un octet par caractère, puis les bytes et leurs en-têtes. Les autres
+réserves de matérialisation, parsing, lecture de code et hash final persistent.
+Un refus conserve les débits sans remboursement. La nouvelle représentation
+augmente les bytes du Unicode dense et peut atteindre les 8 MiB plus tôt.
+Elle évite l'élargissement de toute la chaîne Python par un seul emoji ; cela
+ne garantit ni un gain de temps ni la réussite de stockage du payload réel.
+
+Les fonctions `_utf8_size`, `_scalar_size`, le hash natif et `_expanded_stats`
+conservent leur convention UTF-8 et leurs comptes de l'expansion équivalente
+au DTO natif V3. Aucun conteneur, ordre de map, rapport, ID ou bit IEEE n'est
+supprimé ou modifié. Le nouveau code a une identité propre : les anciens
+packets et preuves restent liés à leur codec exact. Une future préparation
+expérimentale devra lier cette nouvelle identité et sa revue ; aucun caller
+historique n'est modifié par ce module.
+
+L'essai encodé réel avec le codec V2 a refusé l'allocation sans sauvegarder de
+payload complet. Son calcul et la géométrie des pièces restent inconnus ou
+non attestés. La réserve JSON est une piste analytique parmi les réserves de
+matérialisation et de guards ; le diagnostic ne démontre pas une cause unique.
+La V3 reste un candidat portable à revoir, sans nouvel essai natif exécuté.
 
 Les refus de quota distinguent `NODES`, `DEPTH`, `BYTES`, `WORK` et `ALLOCATION`.
 Le diagnostic fournit un chemin limité à douze composants de 48 caractères,

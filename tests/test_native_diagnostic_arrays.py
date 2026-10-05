@@ -52,11 +52,14 @@ def nodes(value):
 def dump(value):return json.dumps(value,ensure_ascii=False,allow_nan=False,separators=(',',':')).encode('utf-8')
 
 
+def encoded_dump(value):return json.dumps(value,ensure_ascii=True,allow_nan=False,separators=(',',':')).encode('utf-8')
+
+
 def reseal(packet):
     packet['receipt']['output_nodes']=nodes(packet)
     for _ in range(10):
-        size=len(dump(packet))+1
-        if packet['receipt']['output_bytes']==size:return dump(packet)+b'\n'
+        size=len(encoded_dump(packet))+1
+        if packet['receipt']['output_bytes']==size:return encoded_dump(packet)+b'\n'
         packet['receipt']['output_bytes']=size
     raise AssertionError('Fixture size did not settle')
 
@@ -362,6 +365,7 @@ class NativeDiagnosticArraysTests(unittest.TestCase):
     def test_wide_unicode_serialization_reservation_covers_buffers(self):
         value={'text':'a'*100000+'😀'};observed={};real=codec.json.dumps
         def measure(*args,**kwargs):
+            self.assertTrue(kwargs['ensure_ascii'])
             text=real(*args,**kwargs);line=text+'\n';encoded=line.encode('utf-8')
             observed['minimal_buffers']=sum(sys.getsizeof(v)for v in(text,line,encoded))
             observed['size']=len(encoded)
@@ -369,15 +373,15 @@ class NativeDiagnosticArraysTests(unittest.TestCase):
         with patch.object(codec.json,'dumps',measure):
             raw=codec.pack_native_diagnostic_arrays(value,budget=budget())
         self.assertEqual(observed['size'],len(raw))
-        self.assertGreater(observed['minimal_buffers'],len(raw)*3+128)
-        self.assertLessEqual(observed['minimal_buffers'],len(raw)*9+256)
+        self.assertTrue(raw.isascii())
+        self.assertLessEqual(observed['minimal_buffers'],len(raw)*3+256)
 
     def test_old_unicode_cap_refuses_before_serialization_without_refund(self):
         value={'text':'a'*100000+'😀'};before=copy.deepcopy(value)
         b=budget(limits={'max_allocation_bytes':733377})
         with patch.object(codec.json,'dumps',side_effect=AssertionError('Serialization must not run'))as serializer:
             error=self.refuse('ALLOCATION',lambda:codec.pack_native_diagnostic_arrays(value,budget=b))
-        self.assertFalse(serializer.called);self.assertGreater(error.requested,733377)
+        self.assertFalse(serializer.called);self.assertGreater(error.used+error.requested,error.limit)
         self.assertGreater(b.usage['nodes'],0);self.assertGreater(b.usage['bytes'],0)
         self.exact(before,value,canonical_int=False)
 
@@ -390,6 +394,98 @@ class NativeDiagnosticArraysTests(unittest.TestCase):
         self.assertEqual(exact_budget.usage['allocation_bytes'],cap)
         error=self.refuse('ALLOCATION',lambda:codec.pack_native_diagnostic_arrays(value,budget=budget(limits={'max_allocation_bytes':cap-1})))
         self.assertEqual(error.limit,cap-1)
+
+    def test_encoded_string_size_all_escape_boundaries(self):
+        strings=['',chr(0),chr(8),chr(11),chr(31),'"\\\t\n\r\f',chr(32),chr(126),chr(127),
+            chr(128),chr(255),chr(256),chr(2047),chr(2048),chr(65535),chr(65536),chr(0x10ffff)]
+        for text in strings:
+            with self.subTest(codepoints=[ord(c)for c in text]):
+                b=budget();expected=len(encoded_dump(text))
+                self.assertEqual(codec._encoded_string_size(text,b,('fixture',)),expected)
+                self.assertEqual(b.usage['work'],len(text))
+
+    def test_encoded_stats_nested_unicode_keys_receipts_and_blobs(self):
+        value={'é漢😀':[1.,2.,3.,4.,5.,6.,7.,8.], 'reports':('é',{'quoted"':'\x00\t\\😀'})}
+        _,raw=self.roundtrip(value);packet=json.loads(raw)
+        count,size=codec._stats(packet,budget())
+        self.assertEqual((count,size+1),(nodes(packet),len(raw)))
+        self.assertEqual(raw,encoded_dump(packet)+b'\n')
+        self.assertTrue(raw.isascii());self.assertNotIn(b'\xc3\xa9',raw)
+
+    def test_native_utf8_and_encoded_ascii_scopes_stay_distinct(self):
+        text='é漢😀';self.assertEqual(codec._utf8_size(text,budget(),()),11)
+        self.assertEqual(codec._scalar_size(text,budget(),()),11)
+        self.assertEqual(codec._encoded_string_size(text,budget(),()),26)
+        value={'é漢😀':('漢',-0.,math.nextafter(1.,math.inf))}
+        packet,raw=self.roundtrip(value)
+        plan=codec._validate(packet['payload'],budget(),None)
+        count,size=codec._expanded_stats(plan,budget())
+        self.assertEqual((count,size),(nodes(v3(value)),len(dump(v3(value)))))
+        self.assertLess(size,len(encoded_dump(v3(value))))
+
+    def test_encoded_bmp_and_astral_roundtrip_size_growth_is_explicit(self):
+        for text in('é'*1000,'漢'*1000,'😀'*1000):
+            packet,raw=self.roundtrip({'text':text})
+            self.assertGreater(len(raw),len(dump(packet))+1)
+            self.assertEqual(packet['receipt']['output_bytes'],len(raw))
+
+    def test_surrogates_refused_in_values_keys_and_direct_encoded_scan(self):
+        for text in('\ud800','\udfff','\ud83d\ude00'):
+            self.refuse('INVALID_STRING',lambda:codec._encoded_string_size(text,budget(),('key',)))
+            for value in(text,{text:'report'},{'report':text}):
+                self.refuse('INVALID_STRING',lambda value=value:codec.pack_native_diagnostic_arrays(value,budget=budget()))
+
+    def test_escaped_surrogate_in_packet_is_refused_after_parse(self):
+        packet,_=self.roundtrip({'key':'safe'})
+        packet['payload']['entries'][0][1]='\ud800'
+        # The runtime scanner must refuse it, even though json.dumps itself
+        # is willing to emit the invalid code unit in ASCII escaped form.
+        self.refuse('INVALID_STRING',lambda:codec.unpack_native_diagnostic_arrays(reseal(packet),budget=budget()))
+
+    def test_ascii_reserve_is_exact_before_dumps(self):
+        value={'text':'a'*100000+'😀'};observed={};b=None;real=codec._dumps
+        def check(phase):
+            if phase=='codec_before_serialization':observed['usage']=b.usage
+        def dumps(item):
+            observed['raw']=real(item);return observed['raw']
+        b=budget(check=check)
+        with patch.object(codec,'_dumps',dumps):raw=codec.pack_native_diagnostic_arrays(value,budget=b)
+        needed=len(raw)*3+256;before=observed['usage']['allocation_bytes']-needed
+        limited=budget(limits={'max_allocation_bytes':before+needed-1})
+        with patch.object(codec,'_dumps',side_effect=AssertionError('Dumps must not allocate'))as serializer:
+            error=self.refuse('ALLOCATION',lambda:codec.pack_native_diagnostic_arrays(value,budget=limited))
+        self.assertEqual((error.used,error.requested,error.limit),(before,needed,before+needed-1))
+        self.assertFalse(serializer.called);self.assertGreater(limited.usage['bytes'],0)
+        self.assertEqual(limited.usage['allocation_bytes'],before)
+
+    def test_unicode_encoded_output_quota_counts_physical_lf(self):
+        value={'汉😀':'é漢😀'};_,raw=self.roundtrip(value)
+        self.assertEqual(codec.pack_native_diagnostic_arrays(value,budget=budget(limits={'max_bytes':len(raw)})),raw)
+        with patch.object(codec,'_dumps',side_effect=AssertionError('Output cap before dumps'))as serializer:
+            self.refuse('BYTES',lambda:codec.pack_native_diagnostic_arrays(value,budget=budget(limits={'max_bytes':len(raw)-1})))
+        self.assertFalse(serializer.called)
+
+    def test_dense_unicode_hard_eight_mib_boundary(self):
+        raw=codec.pack_native_diagnostic_arrays({'text':''},budget=budget());packet=json.loads(raw)
+        maximum=codec._HARD['max_bytes'];packet['receipt']['output_bytes']=maximum
+        overhead=len(encoded_dump(packet))+1;count,tail=divmod(maximum-overhead,6)
+        value={'text':'é'*count+'a'*tail}
+        actual=codec.pack_native_diagnostic_arrays(value,budget=budget())
+        self.assertEqual(len(actual),maximum);self.assertEqual(json.loads(actual)['receipt']['output_bytes'],maximum)
+        with patch.object(codec,'_dumps',side_effect=AssertionError('Hard cap before dumps'))as serializer:
+            self.refuse('BYTES',lambda:codec.pack_native_diagnostic_arrays({'text':value['text']+'a'},budget=budget()))
+        self.assertFalse(serializer.called)
+
+    def test_ascii_scanner_observes_same_budget_clock_and_no_refund(self):
+        phases=[];b=budget(check=phases.append)
+        codec._encoded_string_size('😀'*2049,b,())
+        self.assertEqual(phases.count('codec_string_scan'),3);self.assertEqual(b.usage['work'],2049)
+        def stop(phase):
+            if phase=='codec_string_scan':
+                error=StudioError('deadline');error.reason='DEADLINE_EXHAUSTED';error.status='INCOMPLETE';raise error
+        b=budget(check=stop)
+        self.refuse('DEADLINE_EXHAUSTED',lambda:codec._encoded_string_size('😀'*2049,b,()))
+        self.assertEqual(b.usage['work'],2049)
 
     def test_no_hidden_clock_or_native_import(self):
         import ast

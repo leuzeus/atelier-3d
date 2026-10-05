@@ -1131,3 +1131,11 @@ Cette preuve couvre le logiciel et son build local 0.7.0-rc.2. Elle ne publie ni
 L’unique processus isolé V5 termine avec un diagnostic de réserve mémoire `ALLOCATION`. Seule la capture des entrées est sauvegardée ; le calcul final reste `UNKNOWN_OR_UNATTESTED`, sans nombre de pièces ou qualité admis. [Diagnostic actuel](automation-native-storage-diagnostic-20261005.md) et preuves exactes associées.
 
 Les plafonds sont conservés. Le correctif suivant prépare un JSON ASCIIescaped compté exactement, en préservant le texte après parse et les conventions UTF-8 du hash et du DTO développé. Il attend tests, revue et nouvel essai propre ; aucun gain réel ou admission du manteau n’est annoncé.
+
+### 2026-10-05 — Stockage ASCII du codec V3 revu
+
+Le codec privé encode son DTO en JSON ASCII échappé, avec comptage exact et réserve de `3N + 256` avant sérialisation. Les conventions UTF-8 du hash natif et du DTO développé, les types, valeurs, IDs, rapports, plafonds et horloges sont conservés. Unicode dense peut accroître la sortie et atteindre plus tôt le plafond d’octets.
+
+Les 76 tests ciblés, six comparaisons V2 de l’auteur et neuf sondes indépendantes passent. La revue couvre notamment 265 caractères, dont le contrôle U+007F oublié lors du premier essai, et cinq mesures des buffers directs. [Preuves V3](automation-native-diagnostic-arrays-v3-evidence-20261005.json). Les échecs V1, les preuves V2 et le refus natif V5 restent conservés avec leur portée.
+
+La qualification reste `NONE` : aucun payload natif réel n’est exécuté par ce lot. Le nouvel adaptateur isolé doit encore être revu et essayé avant toute affirmation de persistance complète. La préparation du col conserve aussi le refus de revue de son premier lecteur de stdout ; son correctif LF est revu séparément avant exécution.

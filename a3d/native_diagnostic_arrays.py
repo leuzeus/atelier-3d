@@ -133,6 +133,19 @@ def _scalar_size(value,budget,path):
     _fail('UNSUPPORTED_TYPE',path)
 
 
+def _encoded_string_size(text,budget,path):
+    """Exact ASCIIescaped JSON size, only for the closed encoded DTO."""
+    n=2;budget.reserve('work',len(text),path)
+    for i,c in enumerate(text):
+        if i%1024==0:budget.check('codec_string_scan')
+        x=ord(c)
+        if 0xd800<=x<=0xdfff:_fail('INVALID_STRING',path)
+        if c in '"\\':n+=2
+        elif x<32:n+=2 if c in '\b\f\n\r\t'else 6
+        else:n+=1 if x<127 else 6 if x<65536 else 12
+    return n
+
+
 def _hash_native(value,budget,vector_type):
     h=hashlib.sha256();active=set()
     def feed(raw):h.update(struct.pack('<Q',len(raw)));h.update(raw)
@@ -246,7 +259,8 @@ def _stats(item,budget,path=(),depth=0):
     if t is dict:
         nodes=1;size=2+max(0,len(item)-1)
         for k,v in item.items():
-            budget.step(path+(k,),depth+1);nodes+=1;size+=_scalar_size(k,budget,path)+1
+            budget.step(path+(k,),depth+1);nodes+=1
+            size+=(_encoded_string_size(k,budget,path)if type(k)is str else _scalar_size(k,budget,path))+1
             n,b=_stats(v,budget,path+(k,),depth+1);nodes+=n;size+=b
         return nodes,size
     if t is list:
@@ -254,7 +268,7 @@ def _stats(item,budget,path=(),depth=0):
         for i,v in enumerate(item):
             n,b=_stats(v,budget,path+(i,),depth+1);nodes+=n;size+=b
         return nodes,size
-    return 1,_scalar_size(item,budget,path)
+    return 1,_encoded_string_size(item,budget,path)if t is str else _scalar_size(item,budget,path)
 
 
 def _materialize(item,budget,path=()):
@@ -284,6 +298,10 @@ def _code(budget):
     result=hashlib.sha256(raw).hexdigest();budget.check('codec_after_code_hash');return result
 
 
+def _dumps(item):
+    return (json.dumps(item,ensure_ascii=True,allow_nan=False,separators=(',',':'))+'\n').encode('utf-8')
+
+
 def _pack(value, *, budget, vector_type=None):
     """Return one JSON+LF bytes artifact; all wrappers/receipt are charged."""
     b=_budget(budget);vector_type=_vector_type(vector_type);code=_code(b)
@@ -299,12 +317,12 @@ def _pack(value, *, budget, vector_type=None):
     else:_fail('INVALID_ACCOUNTING')
     b.reserve('nodes',nodes);b.reserve('bytes',size)
     materialized=_materialize(packet,b)
-    # One non-BMP character can widen each entire Python JSON string to four
-    # bytes per character. Reserve both strings plus UTF-8 bytes and headers;
-    # each character count is bounded by the exact UTF-8 size already known.
-    b.reserve('allocation_bytes',size*9+256)
+    # The closed DTO is ASCIIescaped: both Python strings are one-byte ASCII.
+    # Reserve their two buffers, JSON+LF bytes and headers before allocation.
+    # Native hashing and expanded V3 byte accounting retain their UTF-8 scope.
+    b.reserve('allocation_bytes',size*3+256)
     b.check('codec_before_serialization')
-    raw=(json.dumps(materialized,ensure_ascii=False,allow_nan=False,separators=(',',':'))+'\n').encode('utf-8')
+    raw=_dumps(materialized)
     if len(raw)!=size:_fail('INVALID_ACCOUNTING')
     b.check('codec_pack_return')
     if _code(b)!=code:_fail('CODE_CHANGED')
