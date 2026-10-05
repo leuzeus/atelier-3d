@@ -1119,3 +1119,9 @@ l'admission de placement ; les patrons, le corps et les gates sont conservés.
 Le placement préalable du rôle `collar` utilise maintenant tous ses raccords permanents déclarés et les positions partenaires proposées après le seed du devant intérieur. Une rotation propre et une translation communes déplacent tous ses contrôles ; les patrons et le corps restent conservés.
 
 La revue indépendante reproduit 59 tests ciblés, 7 comparaisons historiques et 11 sondes. [Preuves exactes](automation-collar-rigid-alignment-evidence-20261005.json) et [contrat de la capacité](collar-rigid-alignment.md). Statut portable uniquement, qualification `NONE`. La propagation intérieure, les métriques après couplage, les contacts et la réduction des 48 défauts du champ auxiliaire historique restent à mesurer sur un nouveau candidat complet.
+
+### 2026-10-05 — Qualification logicielle source68
+
+Le commit `65f8965deed6a03475f3f1c66f70c8685db3c4e9` est exporté et capturé sur 579 fichiers exacts. Une exécution locale donne 1 501 tests PASS en 197,576 s et 14 contrats PASS. L’archive de développement est vérifiée contre ces mêmes fichiers et le Git exporté. [Preuves du candidat](automation-software-source68-evidence-20261005.json).
+
+Cette preuve couvre le logiciel et son build local 0.7.0-rc.2. Elle ne publie ni préversion finale ni installation et ne qualifie pas le maillage, le placement ou le fitting. Le préflight natif V4 conserve son refus de revue pour attestation incohérente des lectures ; V5 prépare la correction ciblée avant un nouvel essai isolé.
