@@ -1336,3 +1336,15 @@ Les comparaisons V1 et V2 restent conservées. Le nouveau binding public reste
 à exécuter après installation, rechargement, régénération des dérivés et
 autorisation distincte de ses arguments exacts. La requête V3 est préparée
 dans le projet composé ; aucune nouvelle coupe n'est proposée à la revue.
+
+Validation intégrée du correctif `18dbde47950ebb9ece6c2946e8971c32bbb98881` :
+**1 558 tests PASS en 190,091 s et 14 contrats PASS**, dont sept régressions
+numériques supplémentaires. Les tests ciblés passent aussi sous le Python
+autonome de Blender. Les journaux initiaux restent conservés : une fixture
+de test non sensible a été corrigée avant la suite finale. La revue indépendante
+ne relève aucun défaut P2 ou supérieur confirmé ; les seuils, sommes entières
+et rationnelles, gardes et autorisations restent inchangés.
+[Preuves de la portabilité et des tests](automation-guide-portability-evidence-20261005.json).
+Ce résultat qualifie le logiciel et la reconstruction numérique pure des guides.
+Le succès du nouveau raccordement natif, les contacts et l'admission du vêtement
+restent à mesurer sur leur candidat exact.
