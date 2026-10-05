@@ -188,6 +188,16 @@ def _bary(point, triangle):
 
 
 def _clip(poly, triangle, budget):
+    budget.check('exact clipping bounds')
+    if poly:
+        # Strict separation of exact coordinate intervals proves an empty
+        # intersection without constructing any intermediate rational point.
+        # Equality must still use clipping so tangent edges/vertices survive.
+        for axis in range(2):
+            if (max(p[axis] for p in poly) < min(p[axis] for p in triangle) or
+                    max(p[axis] for p in triangle) < min(p[axis] for p in poly)):
+                budget.check('exact clipping separated return')
+                return []
     if _cross(*triangle) < 0:
         triangle = list(reversed(triangle))
     for a, b in zip(triangle, triangle[1:]+triangle[:1]):
@@ -211,6 +221,7 @@ def _clip(poly, triangle, budget):
                 poly.append(p)
         if len(poly) > 1 and poly[-1] == poly[0]:
             poly.pop()
+    budget.check('exact clipping return')
     return poly
 
 
