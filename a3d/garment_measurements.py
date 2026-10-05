@@ -399,7 +399,11 @@ def intersect_guide_material_plane(piece,frame,triangles,section,seam_edges,*,ma
         if len(frame['uv_cm'])>max_points or len(frame['triangles'])>max_faces:
             raise StudioError('Guide-plane cage computational budget exhausted')
         check_time();compiled=_compile_cage(frame,'measurement',check_time);check_time()
-        def evaluate(uv):return _cage_point(frame,compiled,uv,'measurement',check_time)[0]
+        from .cage_lookup import CageLookup
+        lookup=CageLookup(frame,compiled,check_time,bary_min=-1e-8,bary_max=1+1e-8)
+        def evaluate(uv):
+            candidates=lookup.candidates(uv,check_time)
+            return _cage_point(lookup.frame,candidates,uv,'measurement',check_time)[0]
     else:
         raise StudioError('Guide-plane measurement requires explicit arc sections or a source UV cage')
     vertices={};nodes={};segments=set();bindings={};edges={};edge_directions={};faces=set();area=0.

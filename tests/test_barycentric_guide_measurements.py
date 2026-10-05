@@ -1,6 +1,6 @@
 import copy
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from a3d.core import StudioError, digest
 from a3d.pattern_assembly import _compile_cage, _cage_point
@@ -24,6 +24,29 @@ def fixture():
 
 
 class BarycentricGuideMeasurements(unittest.TestCase):
+    def test_indexed_complete_material_curve_equals_full_scan_for_distinct_source_frames(self):
+        class FullScan:
+            def __init__(self,frame,compiled,check_time=None,**kwargs):
+                self.frame=frame;self.compiled=compiled
+            def candidates(self,uv,check_time=None):
+                if check_time is not None:check_time()
+                return self.compiled
+
+        for rotated in (False,True):
+            piece,frame,triangles,section=fixture()
+            if rotated:
+                transform=lambda p:[13.+.8*p[0]-.6*p[1],-7.+.6*p[0]+.8*p[1]]
+                piece['vertices']=[transform(p)for p in piece['vertices']]
+                frame['uv_cm']=[transform(p)for p in frame['uv_cm']]
+                triangles=[[transform(p)for p in face]for face in triangles]
+            before=digest([piece,frame,triangles,section])
+            indexed=intersect_guide_material_plane(piece,frame,triangles,section,['left','right'])
+            with patch('a3d.cage_lookup.CageLookup',FullScan):
+                reference=intersect_guide_material_plane(piece,frame,triangles,section,['left','right'])
+            self.assertEqual(indexed,reference)
+            self.assertEqual(before,digest([piece,frame,triangles,section]))
+            self.assertEqual(indexed['qualification'],'NONE')
+
     def test_closed_source_seam_and_oblique_material_path_use_same_cage_as_placement(self):
         piece,frame,triangles,section=fixture();before=digest([piece,frame,triangles,section])
         compiled=_compile_cage(frame,'fixture')
