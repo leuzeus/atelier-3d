@@ -1391,3 +1391,42 @@ Son exécution demande une autorisation distincte. Le premier refus et sa
 restauration restent conservés ; aucun nouveau binding, placement, Cloth ou
 fitting n'est exécuté à ce jalon. Aucune nouvelle coupe n'attend de revue ;
 les revues visuelles du montage et la revue artistique restent à réaliser.
+
+### 2026-10-05 — Raccordement natif V2 exécuté et réconcilié
+
+Après la demande présentant l'opération exacte, l'utilisateur répond
+« continue ». Le code enregistré de `bind_component_preparations` est exécuté
+sans changement, sur le runtime connecté `dev.2026100503`. Le reçu natif
+`attempt.2dd7013e4b5e416e9f25ab302e68533e` retourne
+`NATIVE_PREPARATION_INPUTS_BOUND` en **180,6607187 secondes**. Le journal
+`run.1a4b661f07cc4215abf1535c70529df8` est réconcilié `COMPLETED`, sans
+qualification ni acceptation produit. Le contrôle natif reconstruit les guides
+et confirme leur comparaison intégrale sans arrondi. Les 21 références de
+fichiers du reçu et le checkpoint d'entrée sont vérifiés sur disque.
+[Preuve du raccordement V2](automation-native-binding-v2-evidence-20261005.json).
+
+Les trois composants textiles ont leurs recettes, plans, préparations et runs :
+10 pièces pour le manteau, 4 pour capuche–empiècements et 1 pour la ceinture.
+La boucle reste dans l'inventaire source compilé ; elle n'est pas construite
+par cette opération textile. Les sondes temporaires ne laissent aucun vêtement
+dans la scène : le mannequin accepté reste seul, à échelle unité et avec sa
+collision de 0,3 cm. La scène de récupération reste sauvegardée sur disque ;
+l'état live est marqué modifié après les sondes, sans nouvelle scène
+finale sauvegardée ni acceptée. Aucun placement, Cloth ou fitting n'est exécuté.
+
+La sonde capuche–empiècements révèle un **défaut de maillage dérivé** : angle
+minimal 1,794312°, aire minimale 0,000141379 cm² et arête minimale
+0,005035583 cm. `probe_quality = NEEDS_CORRECTION` reste dans le binding.
+Une correction de ce dérivé doit préserver les contours, crans et relations
+approuvés ; ce constat ne démontre aucun défaut de coupe. Le manteau garde
+son alignement partiel à corriger. Aucun seuil d'admission n'est assoupli.
+
+Le run séparé du manteau `run.04d8b017e9d340e4834eb1e26d4eafd0` prépare
+`prepare_pattern_assembly` avec sa recette et sa préparation issues du binding
+V2. La tentative `attempt.c5b8a1c8f91949edb10e65c54bca7477` reste
+`AWAITING_CONFIRMATION` ; son code exact est enregistré dans le projet composé.
+Elle produira un candidat distinct, ses mesures et vues techniques. Le statut
+final peut rester `NEEDS_CORRECTION` ; seul `READY` autorise la suite de ce run.
+Cette nouvelle opération n'est pas couverte par la permission du raccordement.
+Les revues de placement et artistique restent à effectuer sur les fichiers
+examinés ; aucune nouvelle revue de découpe n'est demandée à ce jalon.
