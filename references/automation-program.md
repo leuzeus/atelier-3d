@@ -1100,3 +1100,8 @@ mais refusent la sortie complète sous la limite de stockage. Les qualités par 
 restent absentes et non qualifiées ; aucun PASS historique n'est transféré. La suite
 porte sur ces frontières de transport et de stockage, puis les métriques, contacts,
 construction physique et revues du candidat exact.
+
+La [mise à jour de transport du col](automation-current-collar-transport-evidence-20261005.json)
+confirme désormais le stdout UTF-8/LF physique exact sur l'essai V3 complet,
+sous les caps conservés. Les métriques réelles sont la prochaine unité ; ce
+résultat de persistance n'admet toujours pas le placement ou le fitting.

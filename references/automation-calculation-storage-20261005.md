@@ -129,3 +129,28 @@ Les prochaines étapes sont la correction séparée du transport stdout et
 l'examen d'un stockage compact natif, puis les contrôles réels du champ et
 du vêtement. Aucun statut logiciel ou compteur de calcul ne leur donne un
 PASS implicite.
+
+## Mise à jour : frontière stdout corrigée et vérifiée sur le col réel
+
+Le nouvel essai V3 conserve la compilation complète et ses entrées sans augmenter
+les plafonds. Il passe ses contrôles de persistance et de transport : les
+**2 165 octets physiques de stdout** correspondent au débit déclaré, avec un LF
+binaire exact. Les **267 903 nœuds et 7 173 249 octets** agrégés incluent le fichier
+de résultat et cette attestation. Les 1 021 fichiers protégés restent identiques
+avant/après. Le col V2 et son écart CRLF restent conservés, sans reclassement.
+
+Le checkpoint terminal V3 est à **51,578 s**, avant émission physique ; le processus
+observé termine en **51,719456 s** sous son watchdog distinct. Les 743 sommets et
+1 098 triangles de référence, 125 sommets / 192 faces du porteur, 751 samples,
+sept marks et sept relations sont conservés. Une erreur ROOT de hash d'argument
+a été refusée avant le processus de calcul et la création de la sortie ; elle est
+conservée séparément. La commande corrigée lance un seul calcul.
+
+Le [reçu V3](automation-current-collar-transport-evidence-20261005.json) lie les
+48 tests du pilote, ses quatre sondes indépendantes, les six sondes du lecteur
+de transport et les artefacts réels. Il lie aussi la CI logicielle réussie sur
+Windows 3.11 et Ubuntu 3.13 au commit `06c1cf2` ; son nombre de tests n'est pas
+extrait des logs fournisseur. Cette CI ne qualifie pas le vêtement.
+
+Le transport est corrigé pour cet essai. Les métriques d'étirement du col réel,
+les contraintes, les contacts, le placement et le fitting restent ouverts.

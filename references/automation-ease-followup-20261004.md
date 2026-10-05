@@ -719,3 +719,8 @@ V2/V3 incomplets au stockage. Le module privé de métriques passe 92 tests et n
 sondes ; ses contrôles sur le col réel restent à exécuter. Ces résultats ne
 modifient ni le mannequin accepté, ni l'intention de manteau ample, ni les patrons
 approuvés. Les contacts, la couverture, le drapé et le fitting restent ouverts.
+
+L'essai col compact V3 corrige et mesure la frontière stdout : ses octets
+physiques UTF-8/LF correspondent au reçu. Les [preuves V3](automation-current-collar-transport-evidence-20261005.json)
+conservent le V2 et sa différence CRLF. Les métriques sur ce champ frais restent
+à exécuter avant de conclure sur son étirement ou sa compatibilité.
