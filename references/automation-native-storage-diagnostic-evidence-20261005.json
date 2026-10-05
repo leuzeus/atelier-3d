@@ -1,0 +1,230 @@
+{
+  "version": 1,
+  "date": "2026-10-05",
+  "status": "REAL_NATIVE_V5_STORAGE_ALLOCATION_INCOMPLETE",
+  "purpose": "TEST_ONLY",
+  "qualification": "NONE",
+  "product_admission": "NONE",
+  "source_scope": "SOURCE67_NUMERICAL_FLAT_MESH_WITH_PRIVATE_CODEC_V2",
+  "root_observation_summary": {
+    "FAIL": [],
+    "PASS": [
+      "PERSISTED_DIAGNOSTIC_BYTES_AND_BINDINGS",
+      "QPC_WINDOW_AND_PROCESS_TRACE",
+      "ENCODED_BEFORE_IDENTITY_METADATA_ONLY",
+      "CURRENT_INPUTS_PRESERVED"
+    ],
+    "SKIP": [
+      "COMPLETE_NATIVE_CALCULATION",
+      "NATIVE_AFTER_INPUT_INVENTORY",
+      "GEOMETRY_MEASUREMENTS",
+      "CODEC_EXPANSION",
+      "CONTACTS_PHYSICS_FITTING",
+      "AFTER_WRITE_BYTE_TIME_ATTESTATION",
+      "BINARY_REHASH"
+    ],
+    "actual_input_before": {
+      "bytes": 59877,
+      "json_nodes": 1806,
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-synchronized-profile-result-v5\\native\\actual-input-before.json",
+      "sha256": "698953209ae6f6d6d69415d8566219de65a33f8bf55aacefe91f1dc674b5a694"
+    },
+    "admission": "NONE",
+    "automatic_retry": false,
+    "calculation_status": "UNKNOWN_OR_UNATTESTED",
+    "candidate_id": "test-native-synchronized-profile-v5-source67",
+    "checkpoint_scope": "CODEC_RESERVATION_REFUSAL_NOT_COMPLETE_CALCULATION_OR_PERSISTED_RESULT",
+    "completed_piece_count": "NOT_ATTESTED",
+    "diagnostic": {
+      "admission": "NONE",
+      "artifact_presence": "NOT_ATTESTED",
+      "calculation_status": "UNKNOWN_OR_UNATTESTED",
+      "complete_expansion": "NOT_EXECUTED",
+      "costs_refunded": false,
+      "native_process_exit_code": 2,
+      "qualification": "NONE",
+      "reason": "ALLOCATION",
+      "status": "HOST_RECORDED_DIAGNOSTIC_NOT_PERSISTED",
+      "storage_usage": {
+        "allocation_bytes": 237891893,
+        "bytes": 6611634,
+        "nodes": 235808,
+        "work": 12269277
+      }
+    },
+    "engine_sha256": "4933826eb49dfeeab90eb24594f22062700af2512e028bb0ee08d9bcdcd7a32a",
+    "existing_observation_files": {
+      "launch-receipt.json": {
+        "bytes": 5697,
+        "sha256": "43f2dbea0e107080bc3cb36d6cd6252b9626589f42ba7d54743b018edd5ff24d"
+      },
+      "native/actual-input-before.json": {
+        "bytes": 59877,
+        "sha256": "698953209ae6f6d6d69415d8566219de65a33f8bf55aacefe91f1dc674b5a694"
+      },
+      "process-trace.json": {
+        "bytes": 1480,
+        "sha256": "21a46036ea40901e9ee780cbe6836175fa1eea59e44fed659b9083d4e59ed02f"
+      },
+      "stderr.log": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout.log": {
+        "bytes": 1390,
+        "sha256": "aed27e6160db06eaa8c04662a710e50aeedd5f0621427286d72822cae7798d5f"
+      }
+    },
+    "freeze_author": "review_current_neckline",
+    "gate_sha256": "bb0839c813403f096a3c381692f70be7a30cb8512903d90afc6fa56f60cf6e71",
+    "host_process_seconds": 68.18028660002165,
+    "independent_producer_review": false,
+    "launch_receipt_persistence_deadline_qualification": "NOT_ATTESTED",
+    "launcher_sha256": "9439e6044f9d852f793c64e45c555a6e8e7c50448dd026b56f8d6db3be6628ae",
+    "native_budget_seconds": 90.0,
+    "native_receipt_presence": "ABSENT",
+    "observation_author": "ROOT_NATIVE_EXECUTION",
+    "physical_diagnostic_LF_exact": true,
+    "physical_diagnostic_line_bytes": 1326,
+    "preflight_frozen_sha256": "ec62af6140b42f6502489ccd3ae75b8e4548c06207520415723d47bf420eb70e",
+    "process_count_observed": 1,
+    "process_exit_code": 2,
+    "process_pid": 29120,
+    "producer_refusal_checkpoint_seconds": 67.97356329998001,
+    "protected_input_count": 602,
+    "qualification": "NONE",
+    "refused_allocation_request_size": "NOT_REPORTED",
+    "remaining_allocation_charge_bytes": 30543563,
+    "request_sha256": "2ade46dfb1316b80fed26dc41b6b5200c9fd8043b7690dbf93326e73ca77de41",
+    "requested_piece_count": 10,
+    "run_id": "test-native-synchronized-profile-v5-run1",
+    "source_commit": "0f18f0b1e17748fc8f3723108904f2b3d3b51e5c",
+    "source_file_count": 559,
+    "source_identity_sha256": "259d3b361f75feef7133a6156b62d72d2b58e74705e23952a290821eb753e031",
+    "source_readback_scope": "CURRENT_FROZEN_SOURCE67_MATCHES_BEFORE_INVENTORY_NOT_NATIVE_AFTER_COMPUTATION_PROOF",
+    "status": "FROZEN_ROOT_NATIVE_V5_STORAGE_REFUSAL_OBSERVATION_ONLY",
+    "storage_caps": {
+      "max_allocation_bytes": 268435456,
+      "max_bytes": 8388608,
+      "max_depth": 128,
+      "max_nodes": 500000,
+      "max_work": 100000000
+    },
+    "storage_reservations": {
+      "allocation_bytes": 237891893,
+      "bytes": 6611634,
+      "nodes": 235808,
+      "work": 12269277
+    },
+    "storage_usage_is_saved_payload_bytes": false,
+    "storage_window": {
+      "clock": "CPYTHON_WINDOWS_QPC_PERF_COUNTER",
+      "deadline": 396923.6947805,
+      "origin": 396803.6947805,
+      "origin_scope": "FINAL_GUARD_END_BEFORE_ENGINE_POPEN_ORIGIN",
+      "seconds": 120.0
+    },
+    "watchdog_seconds": 120.0
+  },
+  "saved_before": {
+    "path": "program-native-synchronized-profile-result-v5/native/actual-input-before.json",
+    "bytes": 59877,
+    "sha256": "698953209ae6f6d6d69415d8566219de65a33f8bf55aacefe91f1dc674b5a694"
+  },
+  "native_result": "ABSENT",
+  "native_calculation_status": "UNKNOWN_OR_UNATTESTED",
+  "diagnostic_reason": "ALLOCATION",
+  "usage": {
+    "nodes": 235808,
+    "bytes": 6611634,
+    "work": 12269277,
+    "allocation_bytes": 237891893
+  },
+  "usage_scope": "CUMULATIVE_RESERVATIONS_NOT_SAVED_PAYLOAD_OR_MEASURED_RSS",
+  "rejected_allocation_size": "NOT_REPORTED",
+  "readback_scope": "SAME_AGENT_AS_ROOT_OBSERVATION_FREEZER_NOT_INDEPENDENT_PRODUCER_REVIEW",
+  "proofs": [
+    {
+      "path": "program-native-synchronized-profile-root-gate-v6.json",
+      "bytes": 5185,
+      "sha256": "bb0839c813403f096a3c381692f70be7a30cb8512903d90afc6fa56f60cf6e71"
+    },
+    {
+      "path": "program-native-synchronized-profile-v5-prelaunch-refusal-v1.json",
+      "bytes": 1507,
+      "sha256": "74a8e41696c6cff21085a74a103b0b757a7d0dee738e145f13cd84aaf1a9b79d"
+    },
+    {
+      "path": "program-native-synchronized-profile-preflight-v5/FROZEN.json",
+      "bytes": 5422,
+      "sha256": "ec62af6140b42f6502489ccd3ae75b8e4548c06207520415723d47bf420eb70e"
+    },
+    {
+      "path": "program-native-synchronized-profile-review-v5/FROZEN.json",
+      "bytes": 5751,
+      "sha256": "f4a49a5c4755097aba7e90fa83e7af0878fc1003177610aa15d4d665c48cf2d5"
+    },
+    {
+      "path": "program-native-synchronized-launcher-v5/FROZEN.json",
+      "bytes": 614,
+      "sha256": "2c300de4c8c83d63a72c0bc00834aa4e8745b08adb5288914ac5ad030a0a99fa"
+    },
+    {
+      "path": "program-native-synchronized-launcher-review-v5/FROZEN.json",
+      "bytes": 4627,
+      "sha256": "3911742b8f51022294256d87a6503bb1337d0d4ad0304f8f61ff9d38e9dbe8f2"
+    },
+    {
+      "path": "program-native-synchronized-profile-result-v5/FROZEN.json",
+      "bytes": 1365,
+      "sha256": "8ce0b75af73f501b2fb2822e7fbcd18fb671762b905324e68f4e09e65d581269"
+    },
+    {
+      "path": "program-native-synchronized-profile-result-v5/summary.json",
+      "bytes": 3866,
+      "sha256": "5040f42c5f33073ab53558c2476f71f1ab72c14fe6a4112ebd8e9fe1b5d4d801"
+    },
+    {
+      "path": "program-native-synchronized-profile-result-v5/launch-receipt.json",
+      "bytes": 5697,
+      "sha256": "43f2dbea0e107080bc3cb36d6cd6252b9626589f42ba7d54743b018edd5ff24d"
+    },
+    {
+      "path": "program-native-synchronized-profile-result-v5/stdout.log",
+      "bytes": 1390,
+      "sha256": "aed27e6160db06eaa8c04662a710e50aeedd5f0621427286d72822cae7798d5f"
+    },
+    {
+      "path": "program-native-synchronized-profile-result-v5/native/actual-input-before.json",
+      "bytes": 59877,
+      "sha256": "698953209ae6f6d6d69415d8566219de65a33f8bf55aacefe91f1dc674b5a694"
+    },
+    {
+      "path": "program-native-synchronized-profile-result-review-v5/FROZEN.json",
+      "bytes": 674,
+      "sha256": "c66b63a09d208bd3f6a00c5ad5c46c1c14e75c96d07b6274ce32f5d3bf951779"
+    },
+    {
+      "path": "program-native-synchronized-profile-result-review-v5/receipt.json",
+      "bytes": 1414,
+      "sha256": "c57974d485d543b2844d07b928e177e9e4bc2aaac8477dce07db622e27481f02"
+    },
+    {
+      "path": "program-native-codec-allocation-analysis-v1/FROZEN.json",
+      "bytes": 1298,
+      "sha256": "4afcf26accc758add975c74aebc3c54c7195ef3a013a62af59d141e91320c900"
+    }
+  ],
+  "old_prelaunch_path_refusal": "PRESERVED_NO_PROCESS_STARTED",
+  "next_action": "Prepare and review ASCIIescaped JSON counting and buffer reservation under unchanged limits before a new isolated trial.",
+  "NOT_QUALIFIED": [
+    "COMPLETED_PIECE_COUNT",
+    "NATIVE_MESH_QUALITY",
+    "PLACEMENT",
+    "CONTACTS",
+    "CLOTH",
+    "FITTING",
+    "GARMENT_ACCEPTANCE"
+  ],
+  "automatic_retry": false
+}

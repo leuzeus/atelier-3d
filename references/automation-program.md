@@ -1125,3 +1125,9 @@ La revue indépendante reproduit 59 tests ciblés, 7 comparaisons historiques et
 Le commit `65f8965deed6a03475f3f1c66f70c8685db3c4e9` est exporté et capturé sur 579 fichiers exacts. Une exécution locale donne 1 501 tests PASS en 197,576 s et 14 contrats PASS. L’archive de développement est vérifiée contre ces mêmes fichiers et le Git exporté. [Preuves du candidat](automation-software-source68-evidence-20261005.json).
 
 Cette preuve couvre le logiciel et son build local 0.7.0-rc.2. Elle ne publie ni préversion finale ni installation et ne qualifie pas le maillage, le placement ou le fitting. Le préflight natif V4 conserve son refus de revue pour attestation incohérente des lectures ; V5 prépare la correction ciblée avant un nouvel essai isolé.
+
+### 2026-10-05 — Essai natif V5 : stockage incomplet
+
+L’unique processus isolé V5 termine avec un diagnostic de réserve mémoire `ALLOCATION`. Seule la capture des entrées est sauvegardée ; le calcul final reste `UNKNOWN_OR_UNATTESTED`, sans nombre de pièces ou qualité admis. [Diagnostic actuel](automation-native-storage-diagnostic-20261005.md) et preuves exactes associées.
+
+Les plafonds sont conservés. Le correctif suivant prépare un JSON ASCIIescaped compté exactement, en préservant le texte après parse et les conventions UTF-8 du hash et du DTO développé. Il attend tests, revue et nouvel essai propre ; aucun gain réel ou admission du manteau n’est annoncé.
