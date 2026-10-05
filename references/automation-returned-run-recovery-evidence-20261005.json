@@ -1,0 +1,48 @@
+{
+  "scope": "PORTABLE_CONTRACTS_AND_READ_ONLY_ADMISSION_ONLY",
+  "code_sha256": {
+    "a3d/guard.py": "76853d9d1a43e46d34248299fbf449c33deae17b394575f1dbc620717c5b29a3",
+    "a3d/runs.py": "1a36ed73bc9c0865c7a9896585ec43bff030eb9c01c7acb27895d59868903ee2",
+    "blender/operations.py": "9f5c4ae940454c19a3e41a9868b14c400ab99ab9f13e7eef9c01c63ea014315a",
+    "tests/test_returned_run_recovery.py": "61b4cc6aa67334d0e0fbb2161cfdbe345f589312b52de974114440e21815fdb3",
+    "references/run-recovery.md": "bf697ea7ca89c3f1669778106a44d5584a655b504bc0391b69717ac8a4932f07"
+  },
+  "tests": {
+    "python311": {
+      "count": 47,
+      "seconds": 8.082,
+      "status": "PASS",
+      "log": "python311-v2.log",
+      "log_sha256": "7b3971880d7bcf6091d7bdedfaae50ec93a4150c64971e0f298ce4cd99b36a60"
+    },
+    "python313": {
+      "count": 47,
+      "seconds": 9.751,
+      "status": "PASS",
+      "log": "python313-v2.log",
+      "log_sha256": "798e55461b6ee24566383d2c88d2c8374c1cbcf87719f4c97f783af7fd0bed08"
+    }
+  },
+  "earlier_failure": {
+    "log": "python311-first.log",
+    "cause": "Response omitted restored key; corrected before final tests"
+  },
+  "historical_admission": {
+    "python311": "historical-dev0503-admission.json",
+    "python313": "historical-dev0503-admission-python313.json",
+    "database_unchanged": true,
+    "proof_sha256": {
+      "historical-dev0503-admission.json": "4a49c981b836fc69733b42b8c8e4ac881f634098c74b5191823f665c2641a5a6",
+      "historical-dev0503-admission-python313.json": "46d775940ababde12670d763fb19e3817cd639a4ee9ed0308e415d7982f2a243"
+    }
+  },
+  "native_restoration": "NOT_EXECUTED",
+  "project_mutated": false,
+  "installation": "NOT_EXECUTED",
+  "qualification": "NONE",
+  "worker_evidence_sha256": "dd2f0381d7c1d6b074ec4402829ca0ec2418b7010064dd05dcbbd12a7456f870",
+  "independent_review": {
+    "status": "NO_P2_OR_HIGHER_CONFIRMED",
+    "historical_restore_is_not_current_replay_admission": true
+  }
+}

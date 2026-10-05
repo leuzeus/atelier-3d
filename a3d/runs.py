@@ -300,6 +300,11 @@ def create_run(project, kind, specification_path):
 
 def _verified_receipt(project, db, run, unit, attempt):
     _verify_unit(project, unit)
+    return _registered_receipt(project, db, run, unit, attempt)
+
+
+def _registered_receipt(project, db, run, unit, attempt):
+    """Authenticate stored native facts; this alone never admits current replay."""
     for ref in attempt['inputs']: _reference(project, ref)
     ref = _reference(project, attempt['receipt'])
     row = db.execute('SELECT kind,doc FROM events WHERE id=?', (attempt['receipt_event_id'],)).fetchone()
@@ -319,6 +324,75 @@ def _verified_receipt(project, db, run, unit, attempt):
     for artifact in receipt['files']: _reference(project, artifact)
     if receipt.get('entry_checkpoint'): _reference(project, receipt['entry_checkpoint'])
     return receipt
+
+
+def returned_run_recovery(project, run_id, attempt_id):
+    """Read-only recovery of an exact returned boundary, including after a code patch.
+
+    Historical code is authenticated against its canonical registration, not
+    replaced by current code. next_run_step still requires current identities.
+    """
+    ident(run_id); ident(attempt_id)
+    with closing(sqlite3.connect(project.db.as_uri()+'?mode=ro', uri=True)) as db:
+        state = project.state(db)
+        if state.get('pending_blender_operation'):
+            raise StudioError('Returned run recovery cannot replace a pending Blender operation')
+        run = _load(db, run_id)
+        if run['project_id'] != state['project_id'] or run['asset_id'] != state['asset']['id']:
+            raise StudioError('Returned run recovery targets another project or asset')
+        matches = [(unit, unit['attempts'][-1]) for unit in run['units'] if unit['attempts']
+                   and unit['attempts'][-1]['id'] == attempt_id]
+        if len(matches) != 1:
+            raise StudioError('Recovery requires the latest native attempt of its unit')
+        unit, attempt = matches[0]
+        if (unit['executor'] != 'blender' or unit['status'] not in ('NEEDS_CORRECTION', 'INCOMPLETE')
+                or attempt['status'] != unit['status']):
+            raise StudioError('Recovery requires a returned refused or incomplete Blender unit')
+        unresolved = {'AWAITING_CONFIRMATION', 'WAITING_RESULT', 'UNKNOWN_COMPLETION', 'SUBMITTING',
+                      'WAITING_EXTERNAL', 'SUBMISSION_UNKNOWN', 'WAITING_OUTPUTS'}
+        for row in db.execute('SELECT doc FROM runs'):
+            for other in json.loads(row[0])['units']:
+                if (other['status'] in unresolved or other['attempts']
+                        and other['attempts'][-1].get('external_pending')):
+                    raise StudioError('Reconcile another unresolved run operation before recovery')
+        _reference(project, run['specification'])
+        for ref in run['inputs']: _reference(project, ref)
+        for ref in unit['inputs']: _reference(project, ref)
+        created = [json.loads(row[0]) for row in db.execute("SELECT doc FROM events WHERE kind='run_created'")]
+        if not any(event.get('run_id') == run_id and event.get('fingerprint') == run['fingerprint'] for event in created):
+            raise StudioError('Recovery run lacks its canonical creation fingerprint')
+        expected_binding = digest({'run_fingerprint': run['fingerprint'], 'attempt_id': attempt['id'],
+            'unit_id': unit['id'], 'operation': attempt['operation'],
+            'arguments': attempt['arguments'], 'inputs': attempt['inputs']})
+        if expected_binding != attempt['binding_sha256']:
+            raise StudioError('Recovery attempt binding changed')
+        receipt = _registered_receipt(project, db, run, unit, attempt)
+        if (receipt.get('code_sources') != unit['code_sources']
+                or digest(unit['code_sources']) != unit['runtime_sha256']):
+            raise StudioError('Recovery historical code identity differs from native receipt')
+        registrations = [json.loads(row[0]) for row in db.execute(
+            "SELECT doc FROM events WHERE kind='run_native_registered' AND id>?", (attempt['receipt_event_id'],))]
+        if not any(event.get('run_id') == run_id and event.get('unit_id') == unit['id']
+                   and event.get('attempt_id') == attempt_id and event.get('status') == unit['status']
+                   for event in registrations):
+            raise StudioError('Recovery result status lacks its canonical registration')
+        checkpoint = _reference(project, attempt.get('entry_checkpoint'))
+        if receipt.get('entry_checkpoint') != checkpoint or not _verified_native_checkpoint(project, db, run, unit, attempt):
+            raise StudioError('Recovery requires its exact native dispatcher entry checkpoint')
+        binding = {'run_id': run_id, 'unit_id': unit['id'], 'attempt_id': attempt_id,
+                   'binding_sha256': attempt['binding_sha256']}
+        restored = None
+        for row in db.execute("SELECT doc FROM events WHERE kind='blender_recovered' AND id>? ORDER BY id DESC",
+                              (attempt['receipt_event_id'],)):
+            event = json.loads(row[0])
+            if event.get('run_binding') == binding and event.get('checkpoint') == checkpoint:
+                restored = event
+                break
+        if restored:
+            _reference(project, restored['working_ref'])
+        return {'checkpoint': checkpoint, 'run_binding': binding,
+                'restored_event': restored, 'restoration_only': True,
+                'replay_requires_current_inputs_and_code': True, 'qualification': 'NOT_GRANTED'}
 
 
 def _resolve(project, db, run, value):
@@ -380,7 +454,7 @@ def _recovery(project, pending):
             'resume_mode': 'RESTORE_ENTRY_CHECKPOINT_THEN_REPLAY_UNIT', 'continuous_physics_resume': False}
 
 
-def _restored(db, attempt):
+def _restored(db, attempt, run_id=None):
     checkpoint = attempt.get('entry_checkpoint')
     if not checkpoint:
         return False
@@ -388,7 +462,13 @@ def _restored(db, attempt):
                    attempt.get('checkpoint_boundary_event_id', attempt.get('checkpoint_event_id', 0)))
     rows = db.execute("SELECT doc FROM events WHERE kind='blender_recovered' AND id>? ORDER BY id", (boundary,))
     for row in rows:
-        recorded = json.loads(row[0]).get('checkpoint', {})
+        event = json.loads(row[0])
+        binding = event.get('run_binding')
+        if binding is not None and (binding.get('attempt_id') != attempt['id']
+                or binding.get('binding_sha256') != attempt['binding_sha256']
+                or run_id is not None and binding.get('run_id') != run_id):
+            continue
+        recorded = event.get('checkpoint', {})
         if all(recorded.get(key) == checkpoint[key] for key in ('path', 'sha256')):
             return True
     return False
@@ -481,7 +561,7 @@ def next_run_step(project, run_id):
             last = interrupted['attempts'][-1]
             _verify_unit(project, interrupted)
             _discover_native_checkpoint(project, db, run, interrupted, last)
-            if (_verified_native_checkpoint(project, db, run, interrupted, last) and _restored(db, last)):
+            if (_verified_native_checkpoint(project, db, run, interrupted, last) and _restored(db, last, run['run_id'])):
                 last['status'] = 'INTERRUPTED'
                 interrupted['status'] = run['status'] = 'INCOMPLETE'
                 interrupted['reason'] = 'NATIVE_INTERRUPTED_ENTRY_CHECKPOINT_RESTORED'
@@ -521,7 +601,7 @@ def next_run_step(project, run_id):
                         'reason': 'NATIVE_RETURN_NOT_ESTABLISHED', 'executed': False}
             if unit['status'] in ('NEEDS_CORRECTION', 'INCOMPLETE'):
                 last = unit['attempts'][-1]
-                if unit['executor'] != 'blender' or not _restored(db, last):
+                if unit['executor'] != 'blender' or not _restored(db, last, run['run_id']):
                     return {'run_id': run_id, 'status': unit['status'], 'unit_id': unit['id'],
                             'reason': 'RESTORE_ENTRY_CHECKPOINT_BEFORE_REPLAY', 'executed': False}
             budgets = unit.get('budgets', run['budgets'])

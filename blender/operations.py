@@ -459,24 +459,52 @@ def _perform(project_root, operation, arguments):
     return receipt
 
 
-def restore_checkpoint(project_root):
+def restore_checkpoint(project_root, run_id=None, attempt_id=None):
     import bpy
     project, session = working(project_root)
-    pending = project.state()["pending_blender_operation"]
-    source = inside(project.root, pending["checkpoint"]["path"])
+    if (run_id is None) != (attempt_id is None):
+        raise StudioError('Returned run recovery requires both run and attempt identity')
+    recovery = None
+    if run_id is not None:
+        from a3d.runs import returned_run_recovery
+        recovery = returned_run_recovery(project, run_id, attempt_id)
+        previous = recovery['restored_event']
+        if previous:
+            if Path(session['working']).resolve() != inside(project.root, previous['working_ref']['path']):
+                raise StudioError('Recovered run boundary is no longer the current working scene')
+            if bpy.data.is_dirty:
+                raise StudioError('Recovered run scene has unsaved changes; idempotent recovery is not established')
+            return {'restored': previous['working'], 'checkpoint': recovery['checkpoint'],
+                    'run_binding': recovery['run_binding'], 'already_restored': True,
+                    'visual_validation': 'NOT_EXECUTED', 'qualification': 'NOT_GRANTED'}
+        saved = recovery['checkpoint']
+    else:
+        pending = project.state()["pending_blender_operation"]
+        saved = pending['checkpoint']
+    source = inside(project.root, saved['path'])
+    if sha(source) != saved['sha256']:
+        raise StudioError('Recovery checkpoint changed before native opening')
     bpy.ops.wm.open_mainfile(filepath=str(source))
     # A failed scene stays on disk for diagnosis; recovery gets a new path.
     restored = project.data / ("blender/working-recovered-" + uuid.uuid4().hex + ".blend")
     bpy.ops.wm.save_as_mainfile(filepath=str(restored), check_existing=False)
     session["working"] = str(restored)
     atomic_json(project.data / "blender/session.json", session)
+    working(project_root)
     with project.transaction() as db:
         state = project.state(db)
-        state.pop("pending_blender_operation")
-        if pending["operation"] == "assemble":
-            state["evidence"].pop("assembly-result", None)
-        project.save(db, state, "blender_recovered", {"checkpoint": pending["checkpoint"], "working": str(restored)})
-    return {"restored": str(restored), "checkpoint": pending["checkpoint"], "visual_validation": "NOT_EXECUTED"}
+        detail = {'checkpoint': saved, 'working': str(restored)}
+        if recovery:
+            returned_run_recovery(project, run_id, attempt_id)
+            detail.update(run_binding=recovery['run_binding'], working_ref={
+                'path': restored.relative_to(project.root).as_posix(), 'sha256': sha(restored)},
+                restoration_only=True, qualification='NOT_GRANTED')
+        else:
+            state.pop("pending_blender_operation")
+            if pending["operation"] == "assemble":
+                state["evidence"].pop("assembly-result", None)
+        project.save(db, state, "blender_recovered", detail)
+    return dict(detail, restored=str(restored), already_restored=False, visual_validation='NOT_EXECUTED')
 
 
 def dispatch(project_root, operation, arguments):
@@ -485,7 +513,7 @@ def dispatch(project_root, operation, arguments):
     project = Project(project_root)
     admit_operation(project, operation, arguments)
     if operation == "restore_checkpoint":
-        return restore_checkpoint(project_root)
+        return restore_checkpoint(project_root, **arguments)
     if operation in ('prepare_body_target', 'prepare_body_motion', 'render_asset_review', 'run_material_bench',
                      'inspect_dressing_plan', 'export_blender_animation', 'prepare_asset_finishing',
                      'inspect_reconstructed_part', 'prepare_reconstructed_part', 'run_garment_motion',

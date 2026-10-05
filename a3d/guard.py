@@ -271,6 +271,8 @@ def admit_operation(project, operation, arguments):
             raise StudioError('Legacy checkpoint recovery requires an existing receipt path')
     if operation == "run_script" and arguments.get("purpose") == "simulate":
         required = required | {"simulation_plan"}
+    if operation == 'restore_checkpoint' and arguments:
+        required = {'run_id', 'attempt_id'}
     if set(arguments) != required:
         raise StudioError("Unexpected/missing operation arguments")
     from .lifecycle import no_pending_operation
@@ -282,6 +284,10 @@ def admit_operation(project, operation, arguments):
         (inspect_rejection if operation == 'inspect_garment_failure' else inspect_failure)(project, **arguments)
         return
     if operation == "restore_checkpoint":
+        if arguments:
+            from .runs import returned_run_recovery
+            returned_run_recovery(project, **arguments)
+            return
         pending = state.get("pending_blender_operation")
         if not pending:
             raise StudioError("No interrupted operation to recover")
