@@ -11,6 +11,7 @@ import json
 import zipfile
 import time
 import struct
+from fractions import Fraction
 
 from .core import StudioError,contract,digest,inside,read_json,sha
 from .sewing import edge_chain,sample_chain
@@ -133,6 +134,74 @@ def _limb_v(frame,section):
         'oblique_plane_material_curve':'NOT_DERIVED','correspondence':'NOMINAL_AXIS_PROJECTION_PROPOSAL'}
 
 
+def _collar_guide_row(frame,pid,ends):
+    """Evaluate the whole material row, including every guide-cell break.
+
+    Exact source-UV interval clipping proves cage coverage. Existing native
+    guide evaluators retain their correspondence checks and numerical gates.
+    """
+    from .pattern_assembly import _compile_arc_sections,_section_point,_compile_cage,_cage_point
+    try:
+        has_arc='arc_sections'in frame
+        has_cage=any(key in frame for key in ('uv_cm','target_cm','triangles'))
+        if has_arc==has_cage:
+            raise StudioError('Collar measurement needs one supported guide representation: arc sections or explicit UV cage')
+        a,b=ends
+        if a[1]!=b[1] or a[0]==b[0]:
+            raise StudioError('Collar measurement needs a complete noncollapsed constant-V source row')
+        parameters={Fraction(0),Fraction(1)}
+        if has_arc:
+            compiled=_compile_arc_sections(frame,pid)
+            if len(compiled)<2 or frame.get('u_direction',1)not in (-1,1):
+                raise StudioError('Collar measurement arc guide lacks two valid source sections')
+            for section in compiled:
+                for stop in section['cumulative_length_cm']:
+                    u=(stop-section['arc_offset_cm'])/frame.get('u_direction',1)
+                    parameter=(Fraction(u)-Fraction(a[0]))/(Fraction(b[0])-Fraction(a[0]))
+                    if 0<parameter<1:parameters.add(parameter)
+            evaluate=lambda uv:_section_point(frame,compiled,uv,pid)
+            representation='ARC_SECTIONS'
+        else:
+            compiled=_compile_cage(frame,pid);intervals=[]
+            start=[Fraction(x)for x in a];delta=[Fraction(y)-x for x,y in zip(start,b)]
+            for _,_,p,q,r,_ in compiled:
+                p,q,r=[[Fraction(x)for x in point]for point in (p,q,r)]
+                denominator=(q[0]-p[0])*(r[1]-p[1])-(q[1]-p[1])*(r[0]-p[0])
+                beta=((start[0]-p[0])*(r[1]-p[1])-(start[1]-p[1])*(r[0]-p[0]))/denominator
+                gamma=((q[0]-p[0])*(start[1]-p[1])-(q[1]-p[1])*(start[0]-p[0]))/denominator
+                db=(delta[0]*(r[1]-p[1])-delta[1]*(r[0]-p[0]))/denominator
+                dg=((q[0]-p[0])*delta[1]-(q[1]-p[1])*delta[0])/denominator
+                lo,hi=Fraction(0),Fraction(1)
+                for value,slope in ((1-beta-gamma,-db-dg),(beta,db),(gamma,dg)):
+                    if slope>0:lo=max(lo,-value/slope)
+                    elif slope<0:hi=min(hi,-value/slope)
+                    elif value<0:lo,hi=Fraction(1),Fraction(0);break
+                if lo<=hi:
+                    intervals.append((lo,hi));parameters.update((lo,hi))
+            cursor=Fraction(0)
+            for lo,hi in sorted(intervals):
+                if lo>cursor:raise StudioError('Collar material row crosses an uncovered explicit guide-cage domain')
+                cursor=max(cursor,hi)
+            if cursor!=1 or not intervals:
+                raise StudioError('Collar material row is not fully covered by its explicit guide cage')
+            evaluate=lambda uv:_cage_point(frame,compiled,uv,pid)
+            representation='EXPLICIT_UV_CAGE'
+        stops=sorted(parameters)
+        # Midpoints also exercise overlapping-cell correspondence in each
+        # open interval, rather than accepting its two endpoints alone.
+        parameters.update((lo+hi)/2 for lo,hi in zip(stops,stops[1:]))
+        uv=[];world=[];bindings=[]
+        for parameter in sorted(parameters):
+            point=[float(Fraction(x)+parameter*(Fraction(y)-Fraction(x)))for x,y in zip(a,b)]
+            mapped,binding=evaluate(point);uv.append(point);world.append(mapped);bindings.append(binding)
+        return {'representation':representation,'source_uv_polyline_cm':uv,
+            'guide_world_polyline_cm':world,'guide_bindings':bindings,
+            'coverage':'COMPLETE_SOURCE_ROW_AT_ALL_GUIDE_CELL_BREAKS','qualification':'NONE'}
+    except StudioError:raise
+    except (KeyError,TypeError,ValueError,IndexError,ZeroDivisionError,OverflowError) as error:
+        raise StudioError('Collar measurement guide representation is malformed or unsupported: '+pid)from error
+
+
 def collar_open_path_options(compiled,profile,guides,request):
     """Source closure endpoint rows, without choosing/engaging the closure."""
     owners=[(pid,row)for pid,row in compiled['textiles'].items()
@@ -149,16 +218,19 @@ def collar_open_path_options(compiled,profile,guides,request):
     lo=max(domain[0]for domain in domains);hi=min(domain[1]for domain in domains)
     if hi-lo<=1e-8:raise StudioError('Collar closure sides have no common source band-height domain')
     frame=guides[row['component_id']]['panels'][pid];basis=profile['frame'];neck=profile['landmarks']['neck'];options=[]
-    from .pattern_assembly import _compile_arc_sections,_section_point
-    arc=_compile_arc_sections(frame,pid)
     for index,v in enumerate((lo,hi)):
         segment,span=_span(compiled,pid,closure['edge_a'],closure['edge_b'],v)
-        world=[_section_point(frame,arc,p,pid)[0]for p in span['source_uv_cm']]
+        row_guide=_collar_guide_row(frame,pid,span['source_uv_cm'])
+        span['guide_source_row']=row_guide
+        world=row_guide['guide_world_polyline_cm']
         heights=[_dot(_sub(p,basis['origin_cm']),basis['up'])for p in world]
-        try:
-            correspondence=_torso_v(frame,profile,neck['section']['height_cm'])
-            corresponds=(neck['section']['status']=='MEASURED'and abs(correspondence['source_v_cm']-v)<=1e-7)
-        except StudioError:corresponds=False
+        corresponds=(neck['section']['status']=='MEASURED'and
+            all(abs(height-neck['section']['height_cm'])<=1e-7 for height in heights))
+        if 'arc_sections'in frame:
+            try:
+                correspondence=_torso_v(frame,profile,neck['section']['height_cm'])
+                corresponds=corresponds and abs(correspondence['source_v_cm']-v)<=1e-7
+            except StudioError:corresponds=False
         option={'id':request['id']+'.open-source-endpoint-row.'+str(index),
             'path_kind':'open_material_span','segments':[segment],'joins':[],'engaged_links':[],
             'source_closure':copy.deepcopy(closure),'source_closure_state':'NOT_ENGAGED_PROPOSAL',
