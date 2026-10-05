@@ -5,7 +5,7 @@ import sqlite3
 import sys
 import types
 import unittest
-from contextlib import closing
+from contextlib import closing, nullcontext
 from pathlib import Path
 from unittest.mock import patch
 
@@ -24,13 +24,19 @@ class ReturnedRunRecovery(unittest.TestCase):
     events = fixtures.Runs.events
     native_entry = fixtures.Runs.native_entry
 
-    def returned(self, outcome='NEEDS_CORRECTION', elapsed=1.):
+    def returned(self, outcome='NEEDS_CORRECTION', elapsed=1., legacy_session=False):
         run = self.create(); prepared = next_run_step(self.project, run['run_id'])
         ref = self.native_entry()
         record_native_run_checkpoint(self.project, 'inspect', {}, ref)
         modules = {'a3d.runs': sha(ROOT/'a3d/runs.py')}
         result = {'readiness': outcome, 'runtime': {'loaded_modules': modules,
                   'loaded_source_sha256': digest(modules)}}
+        if legacy_session:
+            self.fake_blender()
+            result.update(session={'path': '.a3d/blender/session.json',
+                                  'sha256': sha(self.project.data/'blender/session.json')},
+                          working={'path': '.a3d/blender/working-abcd.blend',
+                                   'sha256': sha(self.project.data/'blender/working-abcd.blend')})
         with self.project.transaction() as db:
             state = self.project.state(db)
             binding = state['pending_blender_operation']['run_binding']
@@ -40,14 +46,17 @@ class ReturnedRunRecovery(unittest.TestCase):
                 'operation': 'inspect', 'arguments': {}, 'result': result,
                 'result_sha256': digest(result), 'entry_checkpoint': ref,
                 'elapsed_seconds': elapsed, 'runtime_sha256': digest(modules)})
-        record_native_run_result(self.project, 'inspect', {}, result, ref, elapsed)
+        legacy = patch('a3d.run_projection_archive.archive_projection_references',
+                       side_effect=lambda project, attempt, refs: (refs, [])) if legacy_session else nullcontext()
+        with legacy:
+            record_native_run_result(self.project, 'inspect', {}, result, ref, elapsed)
         reconciled = next_run_step(self.project, run['run_id'])
         self.assertTrue(reconciled['reconciled'])
         self.assertNotIn('pending_blender_operation', self.project.state())
         return run, {'run_id': run['run_id'], 'attempt_id': prepared['attempt_id']}, ref
 
     def fake_blender(self):
-        working = self.project.data/'blender/working-test.blend'
+        working = self.project.data/'blender/working-abcd.blend'
         working.parent.mkdir(exist_ok=True)
         working.write_bytes(b'rejected candidate scene')
         atomic_json(self.project.data/'blender/session.json', {
@@ -107,6 +116,97 @@ class ReturnedRunRecovery(unittest.TestCase):
             with self.assertRaisesRegex(StudioError, 'code fingerprint changed'):
                 next_run_step(self.project, run['run_id'])
         self.assertEqual(len(calls), 2)
+
+    def test_legacy_session_archived_before_native_mutation_and_receipt_unchanged(self):
+        run, args, ref = self.returned(legacy_session=True)
+        receipt_ref = run_status(self.project, run['run_id'])['units'][0]['attempts'][-1]['receipt']
+        receipt_bytes = (self.root/receipt_ref['path']).read_bytes()
+        original_session = (self.project.data/'blender/session.json').read_bytes()
+        bpy, calls = self.fake_blender()
+        before = sha(self.project.db)
+        descriptor = returned_run_recovery(self.project, **args)
+        self.assertEqual(sha(self.project.db), before)
+        self.assertFalse(any((self.project.data/'runs/native/projections').rglob('*')))
+        with patch.dict(sys.modules, {'bpy': bpy}):
+            restored = dispatch(str(self.root), 'restore_checkpoint', args)
+            repeat = dispatch(str(self.root), 'restore_checkpoint', args)
+        self.assertFalse(restored['already_restored'])
+        self.assertTrue(repeat['already_restored'])
+        self.assertEqual([kind for kind, _ in calls], ['open', 'save'])
+        archived = next(row for row in descriptor['historical_project_projections']
+                        if row['observed_ref']['path'] == '.a3d/blender/session.json')
+        self.assertEqual((self.root/archived['archive_ref']['path']).read_bytes(), original_session)
+        self.assertEqual((self.root/receipt_ref['path']).read_bytes(), receipt_bytes)
+        # Historical recovery never converts an old live reference into current admission.
+        from a3d.native_evidence import native_observation_origin
+        with self.assertRaisesRegex(StudioError, 'reference changed'):
+            native_observation_origin(self.project, lambda doc: True)
+
+    def test_partial_restore_reconstructs_exact_legacy_session_then_reopens_entry(self):
+        run, args, ref = self.returned(legacy_session=True)
+        original_session = (self.project.data/'blender/session.json').read_bytes()
+        bpy, calls = self.fake_blender()
+        partial = self.project.data/'blender/working-recovered-cdef.blend'
+        partial.write_bytes(b'partial saved boundary')
+        session_path = self.project.data/'blender/session.json'
+        session = json.loads(original_session)
+        session['working'] = str(partial)
+        atomic_json(session_path, session)
+        bpy.data.filepath = str(partial)
+        before = sha(self.project.db)
+        descriptor = returned_run_recovery(self.project, **args)
+        self.assertIsNone(descriptor['restored_event'])
+        self.assertEqual(sha(self.project.db), before)
+        with patch.dict(sys.modules, {'bpy': bpy}):
+            restored = dispatch(str(self.root), 'restore_checkpoint', args)
+        self.assertEqual(restored['checkpoint'], ref)
+        self.assertEqual([kind for kind, _ in calls], ['open', 'save'])
+        archived = next(row for row in descriptor['historical_project_projections']
+                        if row['observed_ref']['path'] == '.a3d/blender/session.json')
+        self.assertEqual((self.root/archived['archive_ref']['path']).read_bytes(), original_session)
+
+    def test_historical_descriptor_checks_the_exact_receipt_bytes_it_decodes(self):
+        run, args, _ = self.returned(legacy_session=True)
+        receipt_ref = run_status(self.project, run['run_id'])['units'][0]['attempts'][-1]['receipt']
+        path = self.root/receipt_ref['path']
+        read_bytes = Path.read_bytes
+        before = sha(self.project.db)
+
+        def changed_bytes(selected):
+            data = read_bytes(selected)
+            return data+b' ' if selected == path else data
+
+        with patch.object(Path, 'read_bytes', changed_bytes):
+            with self.assertRaisesRegex(StudioError, 'before historical decoding'):
+                returned_run_recovery(self.project, **args)
+        self.assertEqual(sha(self.project.db), before)
+
+    def test_receipt_changed_after_descriptor_is_refused_before_archive_and_open(self):
+        run, args, _ = self.returned(legacy_session=True)
+        receipt_ref = run_status(self.project, run['run_id'])['units'][0]['attempts'][-1]['receipt']
+        path = self.root/receipt_ref['path']
+        read_bytes = Path.read_bytes
+        reads = 0
+        bpy, calls = self.fake_blender()
+        before = sha(self.project.db)
+
+        def changed_second_read(selected):
+            nonlocal reads
+            data = read_bytes(selected)
+            if selected == path:
+                reads += 1
+                if reads == 2:
+                    return data+b' '
+            return data
+
+        with patch.object(Path, 'read_bytes', changed_second_read), patch.dict(sys.modules, {'bpy': bpy}):
+            from blender.operations import restore_checkpoint
+            with self.assertRaisesRegex(StudioError, 'before archival'):
+                restore_checkpoint(str(self.root), **args)
+        self.assertEqual(reads, 2)
+        self.assertEqual(calls, [])
+        self.assertFalse(any((self.project.data/'runs/native/projections').rglob('*')))
+        self.assertEqual(sha(self.project.db), before)
 
     def test_completed_attempt_cannot_be_recovered(self):
         _, args, _ = self.returned('READY')

@@ -478,6 +478,16 @@ def restore_checkpoint(project_root, run_id=None, attempt_id=None):
                     'run_binding': recovery['run_binding'], 'already_restored': True,
                     'visual_validation': 'NOT_EXECUTED', 'qualification': 'NOT_GRANTED'}
         saved = recovery['checkpoint']
+        # Preserve exact historical projections before changing the live session.
+        # Only this authorized restoration persists the archive; it grants no replay.
+        from a3d.run_projection_archive import archive_recovery_projections
+        from hashlib import sha256
+        receipt_ref = recovery['native_receipt_ref']
+        receipt_path = inside(project.root, receipt_ref['path'])
+        receipt_bytes = receipt_path.read_bytes()
+        if sha256(receipt_bytes).hexdigest() != receipt_ref['sha256']:
+            raise StudioError('Recovery native receipt changed before archival')
+        archive_recovery_projections(project, json.loads(receipt_bytes.decode('utf-8-sig')))
     else:
         pending = project.state()["pending_blender_operation"]
         saved = pending['checkpoint']

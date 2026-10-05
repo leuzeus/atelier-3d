@@ -303,7 +303,7 @@ def _verified_receipt(project, db, run, unit, attempt):
     return _registered_receipt(project, db, run, unit, attempt)
 
 
-def _registered_receipt(project, db, run, unit, attempt):
+def _registered_receipt(project, db, run, unit, attempt, recovery_projections=False):
     """Authenticate stored native facts; this alone never admits current replay."""
     for ref in attempt['inputs']: _reference(project, ref)
     ref = _reference(project, attempt['receipt'])
@@ -312,7 +312,11 @@ def _registered_receipt(project, db, run, unit, attempt):
                 'receipt': ref, 'binding_sha256': attempt['binding_sha256']}
     if not row or row[0] != 'run_native_receipt' or json.loads(row[1]) != expected:
         raise StudioError('Native run receipt has no matching canonical dispatch registration')
-    receipt = json.loads(inside(project.root, ref['path']).read_text())
+    from hashlib import sha256
+    receipt_bytes = inside(project.root, ref['path']).read_bytes()
+    if sha256(receipt_bytes).hexdigest() != ref['sha256']:
+        raise StudioError('Native run receipt changed before historical decoding')
+    receipt = json.loads(receipt_bytes.decode('utf-8-sig'))
     if (receipt.get('origin') != 'NATIVE_DISPATCH' or receipt.get('binding_sha256') != attempt['binding_sha256']
             or receipt.get('run_id') != run['run_id'] or receipt.get('unit_id') != unit['id']
             or receipt.get('attempt_id') != attempt['id'] or receipt.get('operation') != attempt['operation']
@@ -321,7 +325,14 @@ def _registered_receipt(project, db, run, unit, attempt):
         raise StudioError('Native run receipt is stale or belongs to another unit')
     from .run_projection_archive import verify_projection_archives
     verify_projection_archives(project, receipt)
-    for artifact in receipt['files']: _reference(project, artifact)
+    recovery_paths = set()
+    if recovery_projections:
+        from .run_projection_archive import verify_recovery_projections
+        recovery_paths = {row['observed_ref']['path']
+                          for row in verify_recovery_projections(project, receipt)}
+    for artifact in receipt['files']:
+        if artifact['path'] not in recovery_paths:
+            _reference(project, artifact)
     if receipt.get('entry_checkpoint'): _reference(project, receipt['entry_checkpoint'])
     return receipt
 
@@ -366,7 +377,7 @@ def returned_run_recovery(project, run_id, attempt_id):
             'arguments': attempt['arguments'], 'inputs': attempt['inputs']})
         if expected_binding != attempt['binding_sha256']:
             raise StudioError('Recovery attempt binding changed')
-        receipt = _registered_receipt(project, db, run, unit, attempt)
+        receipt = _registered_receipt(project, db, run, unit, attempt, recovery_projections=True)
         if (receipt.get('code_sources') != unit['code_sources']
                 or digest(unit['code_sources']) != unit['runtime_sha256']):
             raise StudioError('Recovery historical code identity differs from native receipt')
@@ -390,7 +401,10 @@ def returned_run_recovery(project, run_id, attempt_id):
                 break
         if restored:
             _reference(project, restored['working_ref'])
+        from .run_projection_archive import verify_recovery_projections
         return {'checkpoint': checkpoint, 'run_binding': binding,
+                'native_receipt_ref': copy.deepcopy(attempt['receipt']),
+                'historical_project_projections': verify_recovery_projections(project, receipt),
                 'restored_event': restored, 'restoration_only': True,
                 'replay_requires_current_inputs_and_code': True, 'qualification': 'NOT_GRANTED'}
 

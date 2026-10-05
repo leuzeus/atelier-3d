@@ -1,17 +1,26 @@
 """Archive known mutable display projections without weakening artifact checks."""
 import copy
+import hashlib
+import json
+import os
 import re
 import shutil
+from pathlib import Path
 
 from .core import StudioError,ident,inside,sha
 
 
 ROLE='MUTABLE_PROJECT_PROJECTION_NOT_ARTIFACT'
+RECOVERY_ROLE='RESTORATION_ONLY'
+
+
+def _is_working_projection(path):
+    return isinstance(path,str) and re.fullmatch(r'\.a3d/blender/working-(?:recovered-)?[0-9a-f]+\.blend',path) is not None
 
 
 def is_project_projection(path):
-    return (path=='.a3d/blender/piece-candidates.json' or
-            isinstance(path,str) and re.fullmatch(r'\.a3d/blender/working-[0-9a-f]+\.blend',path) is not None)
+    return (path in ('.a3d/blender/piece-candidates.json','.a3d/blender/session.json') or
+            _is_working_projection(path))
 
 
 def _archive_path(attempt_id,reference):
@@ -88,3 +97,110 @@ def archived_result_view(project,receipt,result):
         if isinstance(value,list):return [visit(item) for item in value]
         return copy.deepcopy(value)
     return visit(result)
+
+
+def _exact_bytes(project,reference):
+    path=inside(project.root,reference['path'],False)
+    if not path.is_file():return None
+    data=path.read_bytes()
+    return data if hashlib.sha256(data).hexdigest()==reference['sha256'] else None
+
+
+def _session_reconstruction(project,reference,working_refs):
+    if len(working_refs)!=1:
+        raise StudioError('Historical session reconstruction requires one exact working reference')
+    source=inside(project.root,reference['path'],False)
+    if not source.is_file():raise StudioError('Current managed session is missing')
+    def unique_object(pairs):
+        result={}
+        for key,value in pairs:
+            if key in result:raise StudioError('Managed session has duplicate JSON fields')
+            result[key]=value
+        return result
+    def reject_constant(value):raise StudioError('Managed session has nonfinite JSON values')
+    try:
+        session=json.loads(source.read_bytes().decode('utf-8'),object_pairs_hook=unique_object,
+                           parse_constant=reject_constant)
+        if not isinstance(session,dict) or not isinstance(session.get('working'),str):
+            raise StudioError('Managed session requires its existing working field')
+        current=Path(session['working'])
+        root=Path(project.root).resolve(strict=True)
+        if not current.is_absolute():raise StudioError('Managed session working must be absolute')
+        relative=current.relative_to(root).as_posix()
+        if not _is_working_projection(relative) or inside(root,relative)!=current:
+            raise StudioError('Current session working is not an exact managed working path')
+        session['working']=str(inside(root,working_refs[0]['path'],False))
+        data=json.dumps(session,ensure_ascii=False,indent=2,allow_nan=False).encode('utf-8')+b'\n'
+    except (ValueError,UnicodeError,OSError,TypeError) as error:
+        raise StudioError('Historical session cannot be reconstructed from strict managed JSON') from error
+    if hashlib.sha256(data).hexdigest()!=reference['sha256']:
+        raise StudioError('Historical session reconstruction differs from its exact SHA-256')
+    return data
+
+
+def _recovery_projection_bytes(project,receipt):
+    """Canonical receipt authentication belongs to the caller; no state is written."""
+    ident(receipt['attempt_id'])
+    references=receipt.get('files')
+    if not isinstance(references,list):raise StudioError('Recovery files must be a list')
+    verify_projection_archives(project,receipt)
+    paths=set();validated=[]
+    for reference in references:
+        if (not isinstance(reference,dict) or set(reference)!={'path','sha256'} or
+                not isinstance(reference['path'],str) or reference['path'] in paths or
+                not isinstance(reference['sha256'],str) or re.fullmatch(r'[0-9a-f]{64}',reference['sha256']) is None):
+            raise StudioError('Recovery requires unique exact file references')
+        inside(project.root,reference['path'],False)
+        paths.add(reference['path']);validated.append(reference)
+    working_refs=[ref for ref in validated if _is_working_projection(ref['path'])]
+    results=[];deferred=[]
+    for reference in validated:
+        if not is_project_projection(reference['path']):
+            if _exact_bytes(project,reference) is None:
+                raise StudioError('Immutable recovery artifact is absent or changed: '+reference['path'])
+            continue
+        target_path=_archive_path(receipt['attempt_id'],reference)
+        target=inside(project.root,target_path,False)
+        archive_ref={'path':target_path,'sha256':reference['sha256']}
+        row={'observed_ref':copy.deepcopy(reference),'archive_ref':archive_ref,'role':RECOVERY_ROLE}
+        if target.exists():
+            data=_exact_bytes(project,archive_ref)
+            if data is None:raise StudioError('Historical projection archive differs; preserve the orphan')
+            row['evidence_source']='EXACT_ARCHIVE'
+        else:
+            data=_exact_bytes(project,reference)
+            if data is not None:row['evidence_source']='EXACT_LIVE'
+            elif reference['path']=='.a3d/blender/session.json':
+                deferred.append((reference,row));continue
+            else:raise StudioError('Historical projection is absent or changed without an exact archive')
+        results.append((row,data))
+    for reference,row in deferred:
+        data=_session_reconstruction(project,reference,working_refs)
+        row['evidence_source']='EXACT_SESSION_RECONSTRUCTION'
+        results.append((row,data))
+    return sorted(results,key=lambda item:item[0]['observed_ref']['path'])
+
+
+def verify_recovery_projections(project,receipt):
+    """Read-only historical identity proof for restoration; never authorizes replay."""
+    return [row for row,_ in _recovery_projection_bytes(project,receipt)]
+
+
+def archive_recovery_projections(project,receipt):
+    """Freeze exact legacy projections before an authorized restoration mutates them.
+
+    Does not rewrite receipts, SQLite, or live files. Existing differing archives
+    remain untouched. All inputs are authenticated before the first archive write.
+    """
+    rows=_recovery_projection_bytes(project,receipt)
+    for row,data in rows:
+        reference=row['archive_ref'];target=inside(project.root,reference['path'],False)
+        target.parent.mkdir(parents=True,exist_ok=True)
+        try:
+            with target.open('xb') as writer:
+                writer.write(data);writer.flush();os.fsync(writer.fileno())
+        except FileExistsError:
+            pass
+        if _exact_bytes(project,reference) is None:
+            raise StudioError('Historical projection archive differs; preserve the orphan')
+    return verify_recovery_projections(project,receipt)
