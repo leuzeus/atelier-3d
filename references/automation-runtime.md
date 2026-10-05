@@ -43,7 +43,7 @@ Voir [la préparation du corps cible](garment-body-target.md),
 | `studio_select_catalog_body` | `project_root`, `asset_id`, éventuellement `target_stature_cm` et `target_provenance` ensemble | Copie une base explicitement choisie ; une stature déclarée prépare le dossier cible et son opération native |
 | `studio_prepare_body_target` | `project_root`, `selection_path`, `target_path` | Valide les cibles et prépare le code natif d'une copie mesurée ; ne l'exécute pas |
 | `studio_import_approved_design` | `project_root`, `source_project_root`, éventuellement `pattern_variant` | Introduit les décisions humaines et fichiers exacts dans un nouveau projet `INIT` ; peut composer une variante de patrons déjà revue dans sa seule portée |
-| `studio_compile_production_dossier` | `project_root`, `dossier_path`, `specification_path`, éventuellement `fit_profile_path` et `body_region_options_path` | Renvoie compilation et précontrôle du fitting ; prépare les domaines corporels sourcés si les options sont explicites |
+| `studio_compile_production_dossier` | `project_root`, `dossier_path`, `specification_path`, éventuellement `fit_profile_path`, `body_region_options_path`, ou le trio de préparation décrit ci-dessous | Renvoie compilation et précontrôle du fitting ; peut préparer les domaines corporels ou les guides et templates sourcés |
 | `studio_plan_garment_assembly` | `project_root`, `specification_path` | Planifie groupes permanents, couches et dépendances ; ne déforme ni ne simule la scène |
 
 L'import exige le même asset et un contexte d'exécution distinct. Son option
@@ -90,6 +90,46 @@ les artefacts réellement créés ou introduits dans le projet. Le résultat
 `body_region_preparation` reste `PREPARED_NOT_MEASURED` ; sa politique peut ensuite
 être sauvegardée et mesurée par le [service de sections corporelles](body-region-sections.md).
 Cette préparation ne modifie pas le mannequin ni ses mensurations approuvées.
+
+### Préparer les guides et templates initiaux
+
+Le même compilateur accepte ensemble `preparation_parameters_path`,
+`standard_recipe_path` et `preparation_output_dir`. Le fichier de paramètres
+déclare, pour chaque composant textile, les options existantes de mélange,
+surfaces mesurées et sections de peau ; un couplage de bords ajoute sa recette
+source et ses budgets explicites. Le corps doit déjà avoir un reçu natif
+canonique dans ce projet. Le compilateur réutilise les producteurs existants,
+sans coordonnées ajoutées par un script propre au vêtement.
+
+```json
+{
+  "project_root": "G:/projets/atelier-3d/work/mon-vetement",
+  "dossier_path": "preparation/construction-dossier.json",
+  "specification_path": "preparation/production-metadata.json",
+  "preparation_parameters_path": "preparation/guide-parameters.json",
+  "standard_recipe_path": "preparation/standard-sewing-recipe.json",
+  "preparation_output_dir": "preparation/component-proposals-v1"
+}
+```
+
+La sortie `component_preparation` référence les cinq fichiers créés : politique
+de guides, guides, plan d'assemblage, templates de composants et rapport. Les
+cinq `compiler_inputs` des templates désignent le plan, les guides, les
+métadonnées de production, la recette standard et le dossier, avec leurs
+empreintes de fichiers. Les sources, le corps natif et le code du générateur
+sont revérifiés avant publication des propositions.
+
+Le dossier de sortie doit être neuf et rester dans le projet. Une sortie
+partielle est conservée après refus ; choisir un nouveau dossier après la
+correction ciblée. Le MCP conserve le message original du refus et renvoie la
+phase connue dans `structuredContent`. Cette préparation initiale ne se
+combine pas avec les options de mesure de guides déjà existants.
+
+Le plan de groupes traversant plusieurs couches reste une proposition. La
+voie native couplée doit encore être admise par son consommateur. Les colliders
+et le mapping du maillage sont à produire réellement dans Blender ; ils ne
+sont pas fabriqués dans les templates. Aucun placement, Cloth, fitting ou avis
+artistique n'est accordé par `SOURCE_PREPARATION_TEMPLATES_READY`.
 
 ## Programmes, suivi et arrêt
 

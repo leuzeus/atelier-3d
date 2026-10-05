@@ -17,10 +17,13 @@ Les 14 entrées exactes du corps accepté sont vérifiées et disponibles dans c
 projet. Les opérations publiques `prepare`, puis `start_clean_construction`,
 ont été exécutées après leurs autorisations distinctes. La copie témoin et la
 scène vide de construction sont conservées sur G:, avec reçu natif
-`COMPLETED` et fichier précédent inchangé. Le run
-`run.74b32ba8748a452a93e1983fa1664357` prépare maintenant
-`introduce_body_target`, arguments `{"context_path":"preparation/body-context-v1.json"}`,
-et attend sa propre autorisation. Suivent le placement admis, le premier drapé
+`COMPLETED` et fichier précédent inchangé. Après autorisation de
+`introduce_body_target`, le run `run.74b32ba8748a452a93e1983fa1664357`
+est terminé et réconcilié. Le corps accepté est présent, sans transformation
+anatomique, avec collision de 0,3 cm et checkpoint enregistré. Sa portée reste
+`EXACT_BODY_CONTEXT_ONLY`, sans Cloth ou fitting. La compilation actuelle
+couvre les 15 textiles et la boucle ; les guides initiaux doivent encore être
+produits par le parcours public avant le placement admis, le premier drapé
 et le fitting mesuré. La préversion finale et l'acceptation du vêtement complet
 restent ouvertes ; les essais privés différés ne sont pas repris.
 
@@ -1183,3 +1186,20 @@ Le contrôle du projet composé `44f03e6c-dc68-4adb-85b9-e30f88b1aeaa` est actue
 Après admission, réunir les artefacts exacts et les décisions existantes du corps accepté, préparer les opérations du plugin et demander l’autorisation pour chaque exécution Blender. L’archive source69 existante est un build de développement, pas une installation ni un runtime connecté. La préversion GitHub finale attend toujours l’acceptation prévue par L11.
 
 Le texte de la PR est envoyé depuis un fichier UTF-8 sans BOM et relu depuis GitHub pour vérifier son contenu exact et ses accents. Ce contrôle documentaire ne qualifie pas le produit.
+
+### 2026-10-05 — Corps accepté présent dans la construction actuelle
+
+Le run public `run.74b32ba8748a452a93e1983fa1664357` est terminé après
+l'autorisation distincte d'introduire le mannequin. Le reçu canonique et le
+checkpoint natif sont vérifiés : [preuve du contexte corporel](automation-body-context-20261005.json).
+La scène contient le corps masculin accepté à 180 cm, sans redimensionnement
+ou déformation, avec collision de 0,3 cm. Aucune pièce de vêtement n'a encore
+été construite dans cette scène ; aucun Cloth ou fitting n'est exécuté.
+
+La compilation actuelle couvre les 15 textiles et la boucle. La préparation
+initiale des guides et templates manquait dans l'interface publique. Une
+branche optionnelle du compilateur réutilise maintenant ses producteurs
+existants avec paramètres, recette et dossier de sortie explicites. Elle doit
+être chargée dans le runtime connecté avant l'essai réel du manteau. Les
+paramètres et recettes exacts sont disponibles dans le projet ; aucun ancien
+guide, mapping ou résultat de placement n'est transféré.

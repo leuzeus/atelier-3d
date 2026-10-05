@@ -71,14 +71,24 @@ def prepare_body_target(project_root, selection_path, target_path):
     return result
 
 
-@tool('studio_compile_production_dossier', 'Compile exact approved sources and return separate compilation and fit preflight. Optional measured guides prepare source homology proposals; optional body options prepare measurement policy. Missing numeric ease remains incomplete. No fitting acceptance.',
+@tool('studio_compile_production_dossier', 'Compile exact approved sources and return separate compilation and fit preflight. Optional explicit preparation parameters, standard recipe and fresh output directory prepare source-bound guides and component templates using the existing measured native body. Existing measured guides prepare source homology proposals; optional body options prepare measurement policy. Missing numeric ease remains incomplete. Never executes Blender or grants placement/fitting acceptance.',
       {**P, 'dossier_path': S, 'specification_path': S, 'fit_profile_path': S, 'body_region_options_path': S,
        'measurement_guides_path': S, 'measurement_mesh_refs': O,
-       'measurement_guide_policy_path': S}, ('project_root', 'dossier_path', 'specification_path'))
+       'measurement_guide_policy_path': S, 'preparation_parameters_path': S,
+       'standard_recipe_path': S, 'preparation_output_dir': S},
+      ('project_root', 'dossier_path', 'specification_path'), read_only=False)
 def compile_dossier(project_root, dossier_path, specification_path, fit_profile_path=None, body_region_options_path=None,
-                    measurement_guides_path=None, measurement_mesh_refs=None, measurement_guide_policy_path=None):
+                    measurement_guides_path=None, measurement_mesh_refs=None, measurement_guide_policy_path=None,
+                    preparation_parameters_path=None, standard_recipe_path=None, preparation_output_dir=None):
     from .production_dossier import compile_project_dossier
     from .core import inside
+    preparation_options = (preparation_parameters_path, standard_recipe_path, preparation_output_dir)
+    prepare_components = all(value is not None for value in preparation_options)
+    if any(value is not None for value in preparation_options) and not prepare_components:
+        raise StudioError('Component preparation requires explicit parameters, standard recipe and a fresh output directory together')
+    if prepare_components and any(value is not None for value in
+            (measurement_guides_path, measurement_mesh_refs, measurement_guide_policy_path)):
+        raise StudioError('Initial component preparation cannot be mixed with measurements of existing guides')
     if body_region_options_path is not None and fit_profile_path is None:
         raise StudioError('Body region preparation requires the exact fit profile identifying the target body')
     if measurement_guides_path is not None and fit_profile_path is None:
@@ -106,6 +116,10 @@ def compile_dossier(project_root, dossier_path, specification_path, fit_profile_
         result['measurement_proposals'] = propose_compiled_measurement_paths(
             project, compilation, measurement_guides_path, fit_profile_path,
             derived_mesh_refs=measurement_mesh_refs, guide_policy_path=measurement_guide_policy_path)
+    if prepare_components:
+        from .production_preparation import prepare_project_component_preparation
+        result['component_preparation'] = prepare_project_component_preparation(
+            project, compilation, preparation_parameters_path, standard_recipe_path, preparation_output_dir)
     return result
 
 
