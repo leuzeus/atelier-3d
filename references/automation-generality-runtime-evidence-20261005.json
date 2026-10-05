@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "observed_date": "2026-10-05",
+  "source_commit_before_documentation": "aea7654aea90e743f27126e06f63a5e384012b58",
+  "project_root": "G:/projets/atelier-3d/work/garment-automation-v1/program-reviewed-design-main-v1/execution-project",
+  "project_id": "44f03e6c-dc68-4adb-85b9-e30f88b1aeaa",
+  "user_constraint": "Production scripts must be generic across garments; justify unsupported domains; continue ongoing work.",
+  "live_observations": {
+    "studio_project_status": {
+      "returned": true,
+      "stage": "RECONSTRUCTING",
+      "pending_blender_operation": null,
+      "piece_completeness": "NON_VERIFIABLE",
+      "live_scene": "NOT_REINSPECTED"
+    },
+    "studio_doctor": {
+      "returned": false,
+      "blocked_by": "PreToolUse hook",
+      "message": "Atelier 3D admission unavailable: PermissionError"
+    },
+    "studio_check_pipeline": {
+      "returned": true,
+      "admitted": false,
+      "issue": "No such file or directory: C:/Users/leuz9/.codex/plugins/cache/atelier-3d-local/atelier-3d/0.7.0-rc.2.dev.2026100503/schemas/package.schema.json",
+      "scope": "Current stage prerequisites only"
+    }
+  },
+  "runtime_conclusion": "CONNECTED_SERVER_STILL_USES_REPLACED_DEV2026100503_CACHE",
+  "required_before_native_production": [
+    "Restart Codex",
+    "Verify connected runtime and its package files",
+    "Recheck current pipeline admission",
+    "Prepare and obtain exact permission for each Blender operation"
+  ],
+  "independent_work": [
+    "Record generic production contract and explicit capability domains",
+    "Read-only profiling of material-section kernels using preserved source inputs"
+  ],
+  "native_execution_this_checkpoint": "NOT_EXECUTED",
+  "public_measurement_compilation_v4": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "qualification": "NONE",
+  "scope": "CURRENT_RUNTIME_BLOCK_AND_DEVELOPMENT_CONSTRAINT_ONLY"
+}

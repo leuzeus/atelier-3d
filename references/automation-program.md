@@ -4,15 +4,23 @@ Plan approuvé par l'utilisateur le 3 octobre 2026. Base : branche
 `codex/garment-automation-v1`, commit `8dfeac77c3b1bc3b11a4dbe6401eb2b1bb0a54ea`,
 version 0.7.0-rc.2. Le programme est suivi ici pendant l'implémentation.
 
-**État courant du 5 octobre :** le nouveau build local distinct
-`0.7.0-rc.2.dev.2026100501` est installé par le gestionnaire natif de Codex et
-vérifié sur ses 592 fichiers. Son runtime connecté attend le rechargement de
-Codex. Avant cette installation, `studio_doctor` confirmait le build
-`0.7.0-rc.2.dev.21509` et `studio_check_pipeline` admettait le projet composé
-`44f03e6c-dc68-4adb-85b9-e30f88b1aeaa`, sans problème listé. Le statut historique
-de la planche reste `RECORDED_RECHECK_REQUIRED` ; l'admission actuelle vérifie
-la composition et ses décisions exactes. Aucune nouvelle revue de coupe n'est
-déduite ou créée par l'installation.
+**État courant du 5 octobre :** le build local distinct
+`0.7.0-rc.2.dev.2026100504` est installé par le gestionnaire natif de Codex ;
+ses 621 fichiers correspondent au stage préparé. Le code intégré exporté au
+commit `3d242c08d24efbc0c49ff13ad8e34701ebe81d42` a passé 1 592 tests et
+14 contrats sous Python 3.11. Les tests ciblés sous Python 3.13 ont une portée
+séparée. Le serveur connecté appelle encore le cache `dev.2026100503` remplacé :
+le contrôle actuel du pipeline retourne un schema introuvable de cette version,
+et `studio_doctor` est bloqué par le hook (`PermissionError`). La production
+native attend le redémarrage de Codex puis la vérification du runtime et du
+pipeline. Les travaux source et diagnostics indépendants peuvent continuer.
+Les correctifs source `8e7a73d`, `af78094` et `6545a41` ajoutés ensuite passent
+79 tests ciblés sous chacun des deux Python ; ils ne sont pas encore construits
+ni installés. Les 1 592 tests historiques ne sont pas transférés à ce nouveau
+candidat. L'index UV essayé reste expérimental, désactivé en production, après
+un résultat réel défavorable ; aucun gain de performance n'est qualifié.
+Le statut historique de la planche reste `RECORDED_RECHECK_REQUIRED` ; aucune
+nouvelle revue de coupe n'est déduite ou créée par l'installation.
 
 Les 14 entrées exactes du corps accepté sont vérifiées et disponibles dans ce
 projet. Les opérations publiques `prepare`, puis `start_clean_construction`,
@@ -23,10 +31,12 @@ scène vide de construction sont conservées sur G:, avec reçu natif
 est terminé et réconcilié. Le corps accepté est présent, sans transformation
 anatomique, avec collision de 0,3 cm et checkpoint enregistré. Sa portée reste
 `EXACT_BODY_CONTEXT_ONLY`, sans Cloth ou fitting. La compilation actuelle
-couvre les 15 textiles et la boucle ; les guides initiaux doivent encore être
-produits par le nouveau parcours public avant le placement admis, le premier drapé
-et le fitting mesuré. La préversion finale et l'acceptation du vêtement complet
-restent ouvertes ; les essais privés différés ne sont pas repris.
+couvre les 15 textiles et la boucle. Les guides et le raccordement natif des
+entrées ont été préparés ; le candidat manteau exécuté reste refusé, avec
+10/15 textiles et la boucle absente. Les sections du torse épuisent actuellement
+leur budget ; la capacité et la couverture ouvertes restent indéterminées.
+Le placement admis, le premier drapé et le fitting mesuré restent à réaliser.
+La préversion finale et l'acceptation du vêtement complet restent ouvertes.
 
 ## Objectif et acceptation
 
@@ -51,6 +61,14 @@ des décisions humaines réelles, liées aux fichiers examinés.
 
 Réutiliser SQLite, le planificateur, les packages, le dispatcher Blender, les
 checkpoints, contrôles métriques et contacts, et le moniteur de convergence.
+
+**Contrainte utilisateur du 5 octobre :** chaque script de production doit
+être générique pour les vêtements. Les identités, géométries, relations,
+repères, cibles et budgets viennent des contrats structurés ; aucun cas propre
+au manteau courant n'est encodé comme méthode de production. Une méthode dont
+le domaine ne peut pas être universel doit déclarer ses conditions, justifier
+sa limite et refuser les données incompatibles. Les diagnostics et travaux
+déjà autorisés continuent. Voir [le contrat de généralité](garment-automation-generality.md).
 
 | Interface proposée | Responsabilité |
 | --- | --- |
@@ -1598,3 +1616,58 @@ le candidat conservé, boucle absente, aucun Cloth/fitting actuel. Aucun nouveau
 patron à examiner n'est produit à ce jalon. Les revues de correspondance de
 mesure, de placement et artistique restent humaines. La préversion finale
 GitHub attend toujours les critères du vêtement complet.
+
+### 2026-10-05 — Généralité des scripts et essai d'index UV non qualifié
+
+La nouvelle consigne utilisateur est enregistrée dans le
+[contrat de généralité](garment-automation-generality.md) : les calculs
+consomment les géométries, relations, mesures et budgets déclarés ; les domaines
+non pris en charge sont expliqués. Les runners réutilisables prennent leurs
+chemins et sélections en arguments. Les anciens reçus de campagne restent
+conservés et ne deviennent pas des interfaces de production.
+
+Le commit `8e7a73d` retire deux dépendances de nommage de la borne transverse.
+Les bords sont dérivés de la relation source unique ; la section anatomique
+vient du domaine épaule–coude déclaré, côté exact et paramètre 0,5, avec
+concordance de l'index authentifié. **17 tests PASS sous Python 3.11 et 3.13**,
+résultats identiques et revue indépendante. Le domaine reste une manche ou
+manchette simple compatible avec cette preuve ; aucune homologie supplémentaire
+n'est inventée. [Preuve ciblée](automation-capacity-generality-evidence-20261005.json).
+
+Le profilage portable localise la recherche barycentrique exhaustive comme
+coût principal sur les entrées conservées : 5 242 triangles source et
+11 922 cellules de guide. L'instrumentation consomme elle-même le budget et
+ses temps cumulés se recouvrent ; elle n'est pas un benchmark de production.
+Les sections du torse restent incomplètes au budget inchangé de 15 secondes.
+[Observations](automation-material-section-profile-evidence-20261005.json).
+
+Les commits `af78094` et `6545a41` construisent un index par intervalles
+conservateurs des opérations existantes, y compris les coefficients entiers
+exactement convertibles. Le rejeu réel garde typiquement environ 9 269 cellules
+sur 11 922 et progresse moins vite : 568/575/572 faces terminées pour
+poitrine/taille/hanches, puis refus au budget. **L'accélération est non
+qualifiée et plus lente dans cet essai.** Le parcours exhaustif est rétabli
+comme défaut de production ; l'index reste un opt-in strict du noyau
+expérimental, avec backend indiqué dans le résultat et sans activation publique.
+Les sources, tolérances et critères d'admission sont conservés.
+
+Le candidat final de cette unité passe **79 tests ciblés sous chacun des
+deux Python** (2,364 s et 2,670 s), avec revue indépendante sans défaut P2 ou
+supérieur confirmé. Ces tests couvrent les mesures, refus, provenance et
+compatibilité du parcours par défaut ; ils ne qualifient pas une capacité
+complète du torse ni le vêtement. La suite complète n'est pas rejouée sur ce
+candidat. [Contrat et essai négatif](cage-material-lookup.md),
+[preuve du défaut de production conservé](automation-cage-production-default-evidence-20261005.json).
+
+Le contrôle live reste bloqué sur `dev.2026100503` ; l'utilisateur confirme
+ne pas avoir redémarré Codex. La copie installée reste `dev.2026100504`, issue
+du candidat intégré précédent. **Aucun nouveau build, installation, appel
+Blender ou release GitHub n'est effectué pour cette unité.**
+[Observation du runtime](automation-generality-runtime-evidence-20261005.json).
+
+La reprise native attend toujours le redémarrage, la vérification du serveur et
+du pipeline, puis la préparation de l'opération exacte et son autorisation.
+La capacité ouverte du torse, le col et le placement des épaules restent à
+traiter. Le vêtement complet, l'enfilage, le drapé, le fitting, les mouvements,
+les revues visuelles et la livraison finale restent non qualifiés. Aucun
+nouveau patron à approuver n'est produit par ce diagnostic.

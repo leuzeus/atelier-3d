@@ -7,6 +7,10 @@ fitting et décision humaine sont distincts. Le [programme approuvé](automation
 décrit les lots ; la [fiche de validation](automation-validation.md) décrit les
 preuves disponibles et celles qui restent nécessaires.
 
+Les scripts de production suivent [le contrat de généralité des vêtements](garment-automation-generality.md) :
+les données du candidat viennent des contrats ; les domaines non pris en charge
+restent explicites et justifiés.
+
 Cette fiche décrit les interfaces du checkout de développement. Une installation
 existante doit être vérifiée avec `studio_doctor` avant de supposer qu'elle expose
 ces mêmes appels. Elle ne constitue ni une publication ni une nouvelle installation.
