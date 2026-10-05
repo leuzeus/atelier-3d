@@ -1558,3 +1558,43 @@ non exécutée à ce jalon ; aucun fitting n'est transféré. Les dix sections
 corporelles valides, les deux refusées et le corps accepté restent inchangés.
 [Preuve du code](automation-body-region-portability-evidence-20261005.json),
 [références actuelles](automation-current-body-v2-evidence-20261005.json).
+
+### 2026-10-05 — Code intégré validé, build local installé, redémarrage requis
+
+Le candidat Git `3d242c08d24efbc0c49ff13ad8e34701ebe81d42` est exporté dans
+un répertoire immuable sur G:. La suite complète retourne **1 592 tests PASS
+en 203,286 secondes** sous Python 3.11, puis **14 contrats PASS**. Les fichiers
+source restent identiques avant/après les tests. Les vérifications ciblées
+des nouveaux correctifs sous Python 3.13 conservent leur portée séparée.
+
+Le build local est comparé octet par octet à cet export validé : **620 fichiers
+source**. Le gestionnaire natif Codex installe
+`0.7.0-rc.2.dev.2026100504`, puis les **621 fichiers installés** sont comparés
+à son stage préparé. Les stages G: précédents 21509, 0501, 0502 et 0503 restent
+conservés. Aucune confiance des hooks n'est scriptée.
+
+La copie sur disque est vérifiée ; le serveur connecté appelle encore le cache
+`dev.2026100503` remplacé. Son `studio_doctor` retourne le chemin de schema
+introuvable de cette ancienne version. **RESTART_REQUIRED** est donc observé,
+pas déduit d'une simple recommandation. Aucune restauration ni nouvelle
+préparation native n'est tentée avec ce serveur périmé.
+[Preuves intégrées](automation-integrated-recovery-installation-evidence-20261005.json).
+
+Entrée de reprise après redémarrage de Codex : vérifier `studio_doctor` et le
+runtime connecté `dev.2026100504`, puis le pipeline courant. La requête publique
+de mesure `preparation/coat-fit-measurement-public-request-current-v4.json`
+utilise le supplément corporel séparé V2 et les sources exactes du candidat
+conservé. Terminer le diagnostic de capacité du torse, du col et de couverture
+ouverte, en conservant les budgets/refus. Préparer ensuite la restauration
+native du run `run.04d8b017e9d340e4834eb1e26d4eafd0`, tentative
+`attempt.c5b8a1c8f91949edb10e65c54bca7477`, et demander sa permission exacte
+avant exécution. Le checkpoint attendu reste
+`pre-028b75a4767b4e28b491a65da4bc85c0.blend`, SHA
+`376aa273e226cef381f00a717d66db49f794e2c8450928189143c97adca7c301`.
+Un nouveau run devra porter les identités actuelles du code et des entrées.
+
+Le produit reste **RECONSTRUCTING** : placement refusé, 10/15 textiles dans
+le candidat conservé, boucle absente, aucun Cloth/fitting actuel. Aucun nouveau
+patron à examiner n'est produit à ce jalon. Les revues de correspondance de
+mesure, de placement et artistique restent humaines. La préversion finale
+GitHub attend toujours les critères du vêtement complet.

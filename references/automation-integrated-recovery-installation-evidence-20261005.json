@@ -1,0 +1,69 @@
+{
+  "scope": "INTEGRATED_SOFTWARE_BUILD_NATIVE_INSTALL_AND_RUNTIME_OBSERVATION",
+  "source_commit": "3d242c08d24efbc0c49ff13ad8e34701ebe81d42",
+  "tests": {
+    "status": "PASS",
+    "source_commit": "3d242c08d24efbc0c49ff13ad8e34701ebe81d42",
+    "python": "3.11.0 (main, Oct 24 2022, 18:26:48) [MSC v.1933 64 bit (AMD64)]",
+    "tests": 1592,
+    "elapsed_seconds": 204.8192872000509,
+    "test_seconds": 203.286,
+    "log_sha256": "eac1b35afa7b380f3214a3e7ba8af3316fe450dc76b3958496d0071dddf8e858",
+    "source_unchanged": true,
+    "native_execution": false,
+    "qualification": "NONE",
+    "installed_runtime_changed": false
+  },
+  "contracts": {
+    "exit_code": 0,
+    "log_sha256": "c103412537739b27ec7ed6d2d97f551aac61fe267a0028ea686761e37916e8d6",
+    "source_commit": "3d242c08d24efbc0c49ff13ad8e34701ebe81d42",
+    "qualification": "NONE",
+    "passed": 14
+  },
+  "build": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-recovery-local-build-v1\\atelier-3d-development-recovery.zip",
+    "files": 620,
+    "bytes": 3306544,
+    "sha256": "09122a0ea7e5a6d47ea7acf807d7f9503cf49cb25f24d272b7979321d1dc7019",
+    "checksums": "PASS",
+    "git_export_sha256": "10258c5384971d487c23022f2ae5b0d8865389ae0202737d8b99d893d50c90de",
+    "source_files": 620,
+    "comparison": "EXACT_VALIDATED_GIT_EXPORT_BYTES"
+  },
+  "installation": {
+    "status": "PASS_EXACT_NATIVE_INSTALLED_COPY",
+    "version": "0.7.0-rc.2.dev.2026100504",
+    "source_commit": "3d242c08d24efbc0c49ff13ad8e34701ebe81d42",
+    "files": 621,
+    "installed_path": "C:\\Users\\leuz9\\.codex\\plugins\\cache\\atelier-3d-local\\atelier-3d\\0.7.0-rc.2.dev.2026100504",
+    "method": "NATIVE_CODEX_PLUGIN_ADD",
+    "preserved_g_stages": [
+      "0.7.0-rc.2.dev.21509",
+      "0.7.0-rc.2.dev.2026100501",
+      "0.7.0-rc.2.dev.2026100502",
+      "0.7.0-rc.2.dev.2026100503"
+    ],
+    "connected_runtime": "RESTART_REQUIRED_NOT_VERIFIED",
+    "native_restoration": "NOT_EXECUTED",
+    "fitting": "NOT_EXECUTED",
+    "qualification": "NONE"
+  },
+  "connected_runtime": {
+    "status": "RESTART_REQUIRED",
+    "actual_error": "[Errno 2] No such file or directory: 'C:\\\\Users\\\\leuz9\\\\.codex\\\\plugins\\\\cache\\\\atelier-3d-local\\\\atelier-3d\\\\0.7.0-rc.2.dev.2026100503\\\\schemas\\\\config.schema.json'",
+    "installed_runtime_not_yet_verified": true
+  },
+  "files_sha256": {
+    "program-integrated-recovery-validation-v1\\tests-receipt.json": "6e1076d78d1e4dcb6bb140bf253bc822e902d565926b1a0503a904160cbf3252",
+    "program-integrated-recovery-validation-v1\\contracts-receipt.json": "739679f65ed03409cdb634a525f67efd468497a92770daf42bdffde40a48e616",
+    "program-development-runtime-recovery-v1\\installation-preparation.json": "dcda01a74a687b9b5f700d91f03aa0035cb7f98298c914ce44b2e32db1dc17ad",
+    "program-development-runtime-recovery-v1\\installation-verification.json": "9370dfe5b7adf02eaf8f6e616908463ab388497d41c1359036a252be0cbf4009",
+    "program-development-runtime-recovery-v1\\connected-doctor-result.json": "e72a79cebf2b3e033133a5d7a8ed493d8c8686eff421c9093ca1aa0175ec6dcf"
+  },
+  "native_restoration": "NOT_EXECUTED",
+  "placement": "CURRENT_CANDIDATE_NEEDS_CORRECTION",
+  "fitting": "NOT_EXECUTED",
+  "github_release": "NOT_PUBLISHED_PRODUCT_GATES_PENDING",
+  "qualification": "NONE"
+}
