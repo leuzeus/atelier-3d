@@ -1074,3 +1074,13 @@ UV. Le champ du col s'arrête au plafond de sortie avec un résultat absent ;
 son format compact séparé est en développement. La campagne native du profil,
 les surfaces 3D, contacts et fitting restent ouverts. Aucun PASS historique,
 portable ou de coupon n'est transféré au manteau complet.
+
+### Stockage compact exact : module revu, col réel à exécuter
+
+Le [format compact](material-surface-compact.md) et son
+[reçu de revue](automation-material-surface-compact-evidence-20261005.json)
+conservent la référence complète et les coûts cumulés. Les 129 tests ciblés,
+15 sondes et 12 résultats V1 complets passent. Le commit `7b703b5` ajoute
+uniquement ce stockage ; le build source67 le précède et ne l'inclut pas.
+Le col réel, l'observer, les métriques et contraintes restent à exécuter ou
+développer. Aucun résultat de stockage n'admet le placement ou le fitting.
