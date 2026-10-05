@@ -5,7 +5,7 @@ from .cloth_metrics import triangle_metrics
 
 
 def improve_interior(vertices,faces,boundary_indices,*,target_angle,min_edge,max_displacement,passes=8,
-                     displacement_reference=None):
+                     displacement_reference=None,check=None):
     """Improve only derived interior coordinates under explicit finite budgets.
 
     Both windings are supported; every triangle retains its initial sign.
@@ -14,6 +14,11 @@ def improve_interior(vertices,faces,boundary_indices,*,target_angle,min_edge,max
     An explicit displacement reference bounds cumulative movement; anchors
     remain fixed to the call entry, independently of that reference.
     """
+    if check is not None and not callable(check):
+        raise StudioError('Interior refinement needs a callable cooperative checkpoint')
+    def checkpoint(phase):
+        if check is not None:check('interior_refinement:'+phase)
+    checkpoint('before_capture')
     if (not vertices or not faces
             or any(len(p)!=2 or any(type(x) not in (float,int) or not math.isfinite(x) for x in p) for p in vertices)
             or type(passes) is not int or passes<0
@@ -21,6 +26,7 @@ def improve_interior(vertices,faces,boundary_indices,*,target_angle,min_edge,max
             or not 0<target_angle<=60 or min_edge<=0 or max_displacement<0):
         raise StudioError('Interior refinement needs finite 2D geometry and nonnegative bounded settings')
     source=[list(v) for v in vertices];points=[p[:] for p in source]
+    checkpoint('after_capture')
     reference=None;entry_displacement=None
     if displacement_reference is not None:
         try:
@@ -40,6 +46,7 @@ def improve_interior(vertices,faces,boundary_indices,*,target_angle,min_edge,max
         raise StudioError('Interior refinement boundary anchor index is invalid')
     edges={};orientation=[]
     for fi,face in enumerate(faces):
+        checkpoint('topology_face')
         if len(face)!=3 or len(set(face))!=3 or any(type(i) is not int or not 0<=i<len(points) for i in face):
             raise StudioError('Interior refinement requires valid indexed triangles')
         a,b,c=[points[i] for i in face]
@@ -56,15 +63,20 @@ def improve_interior(vertices,faces,boundary_indices,*,target_angle,min_edge,max
     boundary={i for edge,uses in edges.items() if len(uses)==1 for i in edge}
     fixed.update(boundary)
     def state(ids):
-        rows=[triangle_metrics([points[i] for i in faces[f]]) for f in ids]
+        rows=[]
+        for f in ids:
+            checkpoint('metric_face')
+            rows.append(triangle_metrics([points[i] for i in faces[f]]))
         return (min((r['min_angle_degrees'] for r in rows),default=180.),
             min((min(r['edges_cm']) for r in rows),default=math.inf),
             sum(max(0.,target_angle-r['min_angle_degrees'])**2 for r in rows),
             [r['min_angle_degrees'] for r in rows])
     before=state(range(len(faces)));moves=0;completed=0
     for iteration in range(passes):
+        checkpoint('pass')
         changed=False
         for i in range(len(points)):
+            checkpoint('vertex')
             if i in fixed or not incident[i]:continue
             old=state(incident[i])
             if old[0]>=target_angle-1e-7:continue
@@ -84,7 +96,9 @@ def improve_interior(vertices,faces,boundary_indices,*,target_angle,min_edge,max
                 targets.append([mid[k]+normal[k]*height for k in range(2)])
             best=None;best_state=None
             for target in targets:
+                checkpoint('target')
                 for fraction in (1.,.5,.25,.125,.0625):
+                    checkpoint('trial')
                     trial=[origin[k]+fraction*(target[k]-origin[k]) for k in range(2)]
                     trial_displacement=math.dist(source[i] if reference is None else reference[i],trial)
                     if trial_displacement>max_displacement or (reference is not None and not math.isfinite(trial_displacement)):continue
@@ -115,6 +129,7 @@ def improve_interior(vertices,faces,boundary_indices,*,target_angle,min_edge,max
         'target_reached':bool(faces) and after[0]>=target_angle-1e-7 and after[1]>=min_edge,
         'remaining_bad_faces':[f for f in range(len(faces)) if state([f])[0]<target_angle-1e-7 or state([f])[1]<min_edge]}
     if reference is not None:
+        checkpoint('permanent_reference_validation')
         cumulative=max(math.dist(a,b) for a,b in zip(reference,points))
         if not math.isfinite(cumulative) or cumulative>max_displacement:
             raise StudioError('Interior refinement result exceeds its permanent displacement budget')
@@ -125,4 +140,5 @@ def improve_interior(vertices,faces,boundary_indices,*,target_angle,min_edge,max
             'maximum_entry_displacement_cm':entry_displacement,
             'maximum_cumulative_displacement_cm':cumulative,'budget_cm':max_displacement,
             'fixed_anchor_policy':'UNCHANGED_FROM_CALL_ENTRY'}
+    checkpoint('after_final_report')
     return points,report
