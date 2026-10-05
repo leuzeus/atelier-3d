@@ -1477,3 +1477,39 @@ initiales de capacité ne valent pas mesures actuelles ; les chemins homologues,
 la couverture du devant ouvert et les couches doivent être établis avant
 admission physique. Une correction de conception produira une variante à
 examiner ; aucune ancienne approbation ne sera transférée à cette variante.
+
+### 2026-10-05 — Mesures actuelles et dispatch du col
+
+Le correctif `c453bad` lit les deux représentations réellement déclarées du
+guide de col. Pour une cage UV, il prouve la couverture de toute la ligne source
+par découpage rationnel des triangles, puis évalue les ruptures et milieux
+d'intervalles. Une représentation malformée retourne un diagnostic localisé.
+Les seuils, longueurs source et exigences de revue humaine restent conservés.
+**28 tests ciblés PASS sous chacun des Python 3.11 et 3.13**, avec revue
+indépendante sans défaut P2 ou supérieur confirmé. Le correctif source n'est pas
+installé dans le runtime connecté `dev.2026100503`.
+
+Le corps exact est remesuré en lecture seule par les noyaux existants : dix
+sections supplémentaires valides sur douze. Les deux sections à l'épaule sont
+refusées pour contours ouverts ou branchés et restent exclues de la fiche.
+Les maxima transversaux des manches approuvées sont 45,439902 et 45,476989 cm ;
+ils constituent des bornes nominales et ne qualifient pas l'aisance portée.
+
+La compilation source V3 relie les mesures corporelles valides et produit deux
+propositions homologues aux poignets : bord source distal de 25 cm contre
+17,395739 et 17,441566 cm pour le corps. La revue humaine de ces correspondances
+reste requise, `admissible_for_fit` reste faux, et le fitting est non exécuté.
+Six diagnostics subsistent : provenance UV native du torse et du haut des
+manches, et absence de ligne entière du col au plan du cou mesuré. Le col est
+contrôlé sur 725 points pour V=0 et 17 points pour V=7 ; des extrémités seules
+ne suffisent pas. Les cibles numériques du manteau ample sont conservées dans
+une proposition rattachée au dossier actuel, sans transférer l'approbation
+historique de son ancien dossier.
+
+[Bilan dimensionnel et portée des mesures](current-coat-dimensions.md).
+La prochaine correction doit réconcilier la provenance native, la couverture
+ouverte et les guides anatomiques avant toute nouvelle admission de placement.
+La restauration du checkpoint et tout rejeu Blender nécessitent une nouvelle
+permission exacte. La découpe approuvée reste conservée ; aucune nouvelle
+variante à approuver n'est produite à ce jalon. La revue des correspondances,
+la revue du placement et la revue artistique finales restent à effectuer.
