@@ -16,7 +16,7 @@ from blender import bounded_pattern_meshing as mesh
 
 
 def frozen_kernel_text():
-    value=json.loads((Path(__file__).parent/'fixtures/native-shared-reference-v4.json').read_bytes())
+    value=json.loads((Path(__file__).parent/'data/native-shared-reference-v4.json').read_bytes())
     raw=value['source_utf8'].encode('utf-8')
     if hashlib.sha256(raw).hexdigest()!=mesh.FROZEN_KERNEL_SHA256:
         raise AssertionError('Historical kernel fixture must retain its exact frozen bytes')
