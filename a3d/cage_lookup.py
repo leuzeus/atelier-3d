@@ -16,6 +16,16 @@ _LOWER = -1e-8
 _UPPER = 1 + 1e-8
 
 
+def _exact_float(value):
+    """Only exact finite coefficient representations may enter the hierarchy."""
+    if type(value) not in (int, float):
+        raise ValueError('Unproved coefficient type')
+    converted = float(value)
+    if not math.isfinite(converted) or converted != value:
+        raise ValueError('Coefficient has no exact finite floating representation')
+    return converted
+
+
 def _freeze(value):
     if isinstance(value, dict):
         return MappingProxyType({key: _freeze(item) for key, item in value.items()})
@@ -81,7 +91,9 @@ class CageLookup:
     ``frame`` and ``compiled`` are frozen copies for the unchanged narrow phase.
     Later mutations of caller inputs cannot change this snapshot. ``matches``
     is an explicit provenance check when a consumer wants to reuse the instance.
-    Integer or otherwise unproved coefficients/query points use the full scan.
+    Coefficients admit integers only when their computed values have exact finite
+    float representations. Integer query points still use the full scan because
+    their original arithmetic could retain integer intermediates.
     Explicit predicate bounds may widen the current narrow phase's bounds but
     cannot silently narrow them; such an unsupported configuration uses all cells.
     """
@@ -120,14 +132,15 @@ class CageLookup:
             try:
                 _, _, a, b, c, denominator = row
                 values = (a[0], a[1], b[0], b[1], c[0], c[1], denominator)
-                if any(type(value) is not float or not math.isfinite(value) for value in values) or denominator == 0:
+                if any(type(value) not in (int, float) or
+                       (type(value) is float and not math.isfinite(value)) for value in values) or denominator == 0:
                     supported = False
                     break
-                # Exactly the subtractions in the original beta/gamma formulas.
-                coefficient = (a[0], a[1], b[0]-a[0], b[1]-a[1], c[0]-a[0], c[1]-a[1], denominator)
-                if any(not math.isfinite(value) for value in coefficient):
-                    supported = False
-                    break
+                # Subtract in ORIGINAL types first. For example, integer b-a can
+                # equal 1 exactly even when converting b before subtraction would
+                # lose that value. The narrow phase keeps the original row.
+                raw = (a[0], a[1], b[0]-a[0], b[1]-a[1], c[0]-a[0], c[1]-a[1], denominator)
+                coefficient = tuple(_exact_float(value) for value in raw)
                 coefficients.append(coefficient)
             except (TypeError, ValueError, IndexError, OverflowError):
                 supported = False

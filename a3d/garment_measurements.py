@@ -366,7 +366,7 @@ def reconcile_source_boundary_uv(piece,panel,rest_cm,*,seam_witnesses=None,
 
 def intersect_guide_material_plane(piece,frame,triangles,section,seam_edges,*,max_faces=50000,
                                    max_points=20000,max_seconds=15.,epsilon_cm=1e-7,clock=time.monotonic,
-                                   triangulated_boundary_uv=None):
+                                   triangulated_boundary_uv=None,use_cage_lookup=False):
     """Intersect real source-UV triangles evaluated on the declared guide.
 
     Barycentric UV interpolation measures the flat material polyline, independent
@@ -374,6 +374,8 @@ def intersect_guide_material_plane(piece,frame,triangles,section,seam_edges,*,ma
     garment or an accepted anatomical homology. No triangulator is invented.
     """
     from .pattern_assembly import _compile_arc_sections,_section_point,_compile_cage,_cage_point
+    if type(use_cage_lookup)is not bool:
+        raise StudioError('Experimental cage lookup selection must be an explicit boolean')
     if (type(max_faces)is not int or max_faces<1 or type(max_points)is not int or max_points<2
             or type(max_seconds)not in(int,float) or not math.isfinite(max_seconds) or max_seconds<=0
             or type(epsilon_cm)not in(int,float) or not math.isfinite(epsilon_cm) or not 0<epsilon_cm<=1e-4
@@ -391,6 +393,7 @@ def intersect_guide_material_plane(piece,frame,triangles,section,seam_edges,*,ma
         if clock()-started>max_seconds:raise StudioError('Guide-plane material computation time budget exhausted')
     source=digest([piece,frame,triangles,section,seam_edges,boundary])
     if 'arc_sections' in frame:
+        evaluation_backend='ARC_SECTIONS'
         compiled=_compile_arc_sections(frame,'measurement')
         def evaluate(uv):return _section_point(frame,compiled,uv,'measurement')[0]
     elif 'uv_cm' in frame:
@@ -399,11 +402,16 @@ def intersect_guide_material_plane(piece,frame,triangles,section,seam_edges,*,ma
         if len(frame['uv_cm'])>max_points or len(frame['triangles'])>max_faces:
             raise StudioError('Guide-plane cage computational budget exhausted')
         check_time();compiled=_compile_cage(frame,'measurement',check_time);check_time()
-        from .cage_lookup import CageLookup
-        lookup=CageLookup(frame,compiled,check_time,bary_min=-1e-8,bary_max=1+1e-8)
-        def evaluate(uv):
-            candidates=lookup.candidates(uv,check_time)
-            return _cage_point(lookup.frame,candidates,uv,'measurement',check_time)[0]
+        evaluation_backend='LINEAR_CAGE'
+        if use_cage_lookup:
+            from .cage_lookup import CageLookup
+            lookup=CageLookup(frame,compiled,check_time,bary_min=-1e-8,bary_max=1+1e-8)
+            evaluation_backend='EXPERIMENTAL_INTERVAL_CAGE'
+            def evaluate(uv):
+                candidates=lookup.candidates(uv,check_time)
+                return _cage_point(lookup.frame,candidates,uv,'measurement',check_time)[0]
+        else:
+            def evaluate(uv):return _cage_point(frame,compiled,uv,'measurement',check_time)[0]
     else:
         raise StudioError('Guide-plane measurement requires explicit arc sections or a source UV cage')
     vertices={};nodes={};segments=set();bindings={};edges={};edge_directions={};faces=set();area=0.
@@ -515,6 +523,7 @@ def intersect_guide_material_plane(piece,frame,triangles,section,seam_edges,*,ma
     if digest([piece,frame,triangles,section,seam_edges,boundary])!=source:raise StudioError('Guide-plane intersection changed its exact source inputs')
     check_time()
     result={'status':'DISCRETIZED_GUIDE_MATERIAL_CURVE_MEASURED','from':selectors[0],'to':selectors[1],
+        'guide_evaluation_backend':evaluation_backend,
         'source_uv_polyline_cm':points,'guide_world_polyline_cm':worlds,
         'source_material_length_cm':sum(math.dist(a,b)for a,b in zip(points,points[1:])),
         'guide_world_length_cm':sum(math.dist(a,b)for a,b in zip(worlds,worlds[1:])),

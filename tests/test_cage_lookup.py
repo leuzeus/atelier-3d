@@ -121,7 +121,7 @@ class CageLookupTests(unittest.TestCase):
         for edit in ('integer','nonfinite','zero','extreme'):
             changed=copy.deepcopy(compiled)
             triangle_id,ids,a,b,c,denominator=changed[0]
-            if edit=='integer':a[0]=0
+            if edit=='integer':a[0]=2**53+1
             elif edit=='nonfinite':a[0]=float('inf')
             elif edit=='zero':denominator=0.
             else:a[0]=-1e308;b[0]=1e308
@@ -142,6 +142,50 @@ class CageLookupTests(unittest.TestCase):
         self.assertEqual(outcome(lookup.frame,lookup.candidates([.3,.2]),[.3,.2]),expected)
         with self.assertRaises(FrozenInstanceError):lookup.bary_min=-1.
         with self.assertRaises(TypeError):lookup.frame['target_cm'][0][0]=50.
+
+    def test_exact_integer_and_mixed_coefficients_match_original_arithmetic(self):
+        frames=[]
+        integer=lattice(4)
+        integer['uv_cm']=[[int(x),int(y)]for x,y in integer['uv_cm']]
+        frames.append(integer)
+        mixed=copy.deepcopy(integer)
+        mixed['uv_cm']=[[(float(value)if (i+axis)%3==0 else value)for axis,value in enumerate(point)]
+            for i,point in enumerate(mixed['uv_cm'])]
+        frames.append(mixed)
+        for frame in frames:
+            compiled=_compile_cage(frame,'fixture');lookup=CageLookup(frame,compiled,leaf_size=2)
+            for uv in ([.2,.3],[1.,1.],[math.nextafter(1.,math.inf),2.5],[-1e-8,.25],[3.5,3.5]):
+                result=self.assert_reference(frame,compiled,lookup,uv)
+                self.assertFalse(result.full_scan_fallback)
+        # b itself is not representable, but ORIGINAL b-a=1 is exact.
+        origin=2**53
+        frame={'uv_cm':[[origin,0],[origin+1,0],[origin,1]],
+            'target_cm':[[0.,0.,0.],[1.,0.,0.],[0.,1.,0.]],'triangles':[[0,1,2]]}
+        compiled=_compile_cage(frame,'fixture');lookup=CageLookup(frame,compiled,leaf_size=1)
+        result=self.assert_reference(frame,compiled,lookup,[float(origin),.25])
+        self.assertFalse(result.full_scan_fallback)
+        self.assertEqual(_cage_point(lookup.frame,result.entries,[float(origin),.25],'fixture')[0],[0.,.25,0.])
+        # Exact large powers and an integer denominator require no magnitude cap.
+        power=2**80
+        frame={'uv_cm':[[power,0],[2*power,0],[power,power]],
+            'target_cm':[[0.,0.,0.],[1.,0.,0.],[0.,1.,0.]],'triangles':[[0,1,2]]}
+        compiled=_compile_cage(frame,'fixture');lookup=CageLookup(frame,compiled,leaf_size=1)
+        self.assertFalse(self.assert_reference(frame,compiled,lookup,[1.5*power,.25*power]).full_scan_fallback)
+
+    def test_unrepresentable_integer_origin_coefficients_denominator_and_huge_fall_back(self):
+        frame=lattice(2);compiled=_compile_cage(frame,'fixture')
+        for changed_field in ('origin','coefficient','denominator','huge'):
+            rows=copy.deepcopy(compiled)
+            tid,ids,a,b,c,denominator=rows[0]
+            if changed_field=='origin':a[0]=2**53+1
+            elif changed_field=='coefficient':a[0]=0;b[0]=2**53+1
+            elif changed_field=='denominator':denominator=2**53+1
+            else:a[0]=10**1000
+            rows[0]=(tid,ids,a,b,c,denominator)
+            with self.subTest(field=changed_field):
+                result=CageLookup(frame,rows).query([.2,.3])
+                self.assertTrue(result.full_scan_fallback)
+                self.assertEqual([row[0]for row in result.entries],[row[0]for row in rows])
 
     def test_time_checks_propagate_in_build_query_and_fallback(self):
         frame=lattice(4);compiled=_compile_cage(frame,'fixture')
