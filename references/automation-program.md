@@ -4,10 +4,11 @@ Plan approuvé par l'utilisateur le 3 octobre 2026. Base : branche
 `codex/garment-automation-v1`, commit `8dfeac77c3b1bc3b11a4dbe6401eb2b1bb0a54ea`,
 version 0.7.0-rc.2. Le programme est suivi ici pendant l'implémentation.
 
-**État courant après reprise du 5 octobre :** le build local distinct
-`0.7.0-rc.2.dev.21509` est installé par le gestionnaire natif de Codex et
-vérifié sur ses 584 fichiers. Après redémarrage, `studio_doctor` confirme cette
-version et `studio_check_pipeline` admet le projet composé
+**État courant du 5 octobre :** le nouveau build local distinct
+`0.7.0-rc.2.dev.2026100501` est installé par le gestionnaire natif de Codex et
+vérifié sur ses 592 fichiers. Son runtime connecté attend le rechargement de
+Codex. Avant cette installation, `studio_doctor` confirmait le build
+`0.7.0-rc.2.dev.21509` et `studio_check_pipeline` admettait le projet composé
 `44f03e6c-dc68-4adb-85b9-e30f88b1aeaa`, sans problème listé. Le statut historique
 de la planche reste `RECORDED_RECHECK_REQUIRED` ; l'admission actuelle vérifie
 la composition et ses décisions exactes. Aucune nouvelle revue de coupe n'est
@@ -23,7 +24,7 @@ est terminé et réconcilié. Le corps accepté est présent, sans transformatio
 anatomique, avec collision de 0,3 cm et checkpoint enregistré. Sa portée reste
 `EXACT_BODY_CONTEXT_ONLY`, sans Cloth ou fitting. La compilation actuelle
 couvre les 15 textiles et la boucle ; les guides initiaux doivent encore être
-produits par le parcours public avant le placement admis, le premier drapé
+produits par le nouveau parcours public avant le placement admis, le premier drapé
 et le fitting mesuré. La préversion finale et l'acceptation du vêtement complet
 restent ouvertes ; les essais privés différés ne sont pas repris.
 
@@ -1203,3 +1204,18 @@ existants avec paramètres, recette et dossier de sortie explicites. Elle doit
 être chargée dans le runtime connecté avant l'essai réel du manteau. Les
 paramètres et recettes exacts sont disponibles dans le projet ; aucun ancien
 guide, mapping ou résultat de placement n'est transféré.
+
+### 2026-10-05 — Préparation publique testée et nouveau build installé
+
+Le commit `11d0b807f716c0df4216cce9c1e0b6158561c79e` expose la préparation
+initiale dans `studio_compile_production_dossier`. Les 1 528 tests logiciels
+et les 14 contrats passent ; la revue indépendante clôture les deux défauts
+de diagnostic corrigés. [Preuves logicielles et installation](automation-public-preparation-evidence-20261005.json).
+
+Le build `0.7.0-rc.2.dev.2026100501` est installé par Codex et ses 592 fichiers
+sont vérifiés. La copie précédente sur G: reste disponible. Le runtime connecté
+doit être rechargé avant la vérification `studio_doctor`, la nouvelle admission
+du projet et l'appel réel de préparation. La requête est prête dans
+`preparation/public-source-preparation-request-v1.json` du projet composé.
+Les guides du manteau ne sont pas encore calculés par ce build, et aucun
+résultat de placement, physique ou fitting n'est accordé.
