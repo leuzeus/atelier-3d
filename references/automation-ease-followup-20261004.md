@@ -638,3 +638,13 @@ budgets ; les trois baselines historiques sont conservées exactement.
 Le contrôle des dix pièces et du champ en volume reste nécessaire avant toute
 admission du placement. L'aisance, le drapé et le fitting du manteau ample
 demeurent à mesurer sur le candidat complet, sans redimensionner le corps approuvé.
+
+### Point du 5 octobre : mesures numériques et volume encore à qualifier
+
+Le [champ 3D source63](automation-material-surface-field-evidence-20261005.json)
+est revu et testé sur des cas portables. Les [dix pièces principales](automation-native-full-ten-evidence-20261005.json)
+ont neuf traitements atteignant leurs seuils UV ; le col demande une correction
+calculée de son maillage auxiliaire. Le bilan global est incomplet après
+dépassement du délai terminal. Ces observations conservent leur portée : les
+15 textiles et la boucle, l'aisance du manteau ample, les contacts, le drapé
+et le fitting restent à vérifier sur le corps masculin approuvé à 180 cm.

@@ -951,3 +951,27 @@ campagne native des dix pièces est en préparation. La présence physique de
 chaque ancien sommet collinéaire authored reste à établir. Le caller de
 production n'est pas modifié. Placement, contacts, Cloth, fitting et acceptation
 artistique restent ouverts ; aucun PASS de ces trois pièces ne leur est transféré.
+
+### Champ 3D intégré et campagne des dix pièces : état du 5 octobre
+
+Le [champ affine 3D](material-surface-field.md) est intégré au commit `71a284e`.
+Il conserve la référence avant injection, les supports matériels exacts et les
+budgets communs ; aucun caller de production n'est modifié. La revue V3 passe
+98 tests et 38 contrôles indépendants, après correction de deux refus conservés.
+Le [reçu source63](automation-material-surface-field-evidence-20261005.json)
+lie les 1 194 tests, les 14 contrats, les 528 fichiers exacts et le build local.
+Les six cages actuelles ne sont pas encore compilées ; leur taille exige un
+traitement borné adapté. Contraintes et récupération restent à qualifier.
+
+Les [observations natives des dix pièces](automation-native-full-ten-evidence-20261005.json)
+sont revues : neuf traitements atteignent les seuils numériques, le col reste
+à 12,372726°. Les treize cas sont clos à 86,390 s et 895 517 assertions passent.
+Le bilan final dépasse ensuite le plafond de 90 s : la campagne reste incomplète,
+malgré le statut COMPLETE erroné du reçu original, conservé. Le correctif host
+est séparé et en revue ; aucune relance ni hausse de budget n'est implicite.
+Une borne sur quatre triangles actuels du col ne prouve aucune impossibilité
+du patron. La correction des subdivisions et de leurs partenaires est en cours.
+
+L4 reste partiel, L5 non admis. Le vêtement complet, les contacts, le drapé,
+le fitting, les mouvements et la revue artistique restent à réaliser. Le build
+de développement reste déclaré 0.7.0-rc.2, sans nouvelle installation ni release.

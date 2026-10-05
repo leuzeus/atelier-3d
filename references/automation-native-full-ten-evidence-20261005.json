@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "status": "MEASURED_COMPONENT_OBSERVATIONS_GLOBAL_CAMPAIGN_INCOMPLETE",
+  "qualification": "NONE",
+  "product_admission": "NONE",
+  "source_scope": {
+    "main_pieces": 10,
+    "relations": 24,
+    "new_shared_fractions": 40,
+    "new_boundary_controls": 80,
+    "whole_product_textiles": 15,
+    "rigid_buckles": 1
+  },
+  "observations": {
+    "completed_cases": 13,
+    "completed_before_seconds": 86.3903819,
+    "treatments_meeting_numeric_thresholds": [
+      "back-left",
+      "back-right",
+      "cuff-left",
+      "cuff-right",
+      "front-left",
+      "front-right",
+      "inner-front",
+      "sleeve-left",
+      "sleeve-right"
+    ],
+    "treatments": {
+      "back-left": {
+        "quality": "TARGET_REACHED",
+        "min_angle_degrees": 15.174374439980117,
+        "min_edge_cm": 0.010898330561834733
+      },
+      "back-right": {
+        "quality": "TARGET_REACHED",
+        "min_angle_degrees": 15.174374439980117,
+        "min_edge_cm": 0.010898330561834733
+      },
+      "collar": {
+        "quality": "NEEDS_CORRECTION",
+        "min_angle_degrees": 12.372726277413026,
+        "min_edge_cm": 0.08353554762747706
+      },
+      "cuff-left": {
+        "quality": "TARGET_REACHED",
+        "min_angle_degrees": 24.252644851756983,
+        "min_edge_cm": 0.452387695024777
+      },
+      "cuff-right": {
+        "quality": "TARGET_REACHED",
+        "min_angle_degrees": 26.217896983802376,
+        "min_edge_cm": 0.6014695948097767
+      },
+      "front-left": {
+        "quality": "TARGET_REACHED",
+        "min_angle_degrees": 15.125134259232947,
+        "min_edge_cm": 0.010898330561834733
+      },
+      "front-right": {
+        "quality": "TARGET_REACHED",
+        "min_angle_degrees": 15.125134259232947,
+        "min_edge_cm": 0.010898330561834733
+      },
+      "inner-front": {
+        "quality": "TARGET_REACHED",
+        "min_angle_degrees": 20.289508277497728,
+        "min_edge_cm": 0.40775215566285977
+      },
+      "sleeve-left": {
+        "quality": "TARGET_REACHED",
+        "min_angle_degrees": 15.038750451109664,
+        "min_edge_cm": 0.010717377891351377
+      },
+      "sleeve-right": {
+        "quality": "TARGET_REACHED",
+        "min_angle_degrees": 15.050576822413186,
+        "min_edge_cm": 0.010718619335232849
+      }
+    }
+  },
+  "deadline": {
+    "global_seconds": 90,
+    "original_receipt_elapsed_seconds": 90.71818730002269,
+    "original_status": "TEST_ONLY_COMPLETE_COMPONENT_NUMERICAL_CAMPAIGN_MEASURED",
+    "original_status_accepted": false,
+    "finding": "P2_MISSING_AFTER_INVENTORIES_AND_PERSISTENCE_CLOCK_CHECK",
+    "separate_host_fix": "PREPARED_V2_AWAITING_INDEPENDENT_REVIEW_NOT_EXECUTED",
+    "retry": false,
+    "budget_increased": false
+  },
+  "independent_validation": {
+    "assertions": 895517,
+    "preserved_files": 3920,
+    "geometry_and_identity": "PASS",
+    "terminal_deadline": "FAIL"
+  },
+  "collar": {
+    "reason": "NEEDS_CORRECTION",
+    "best_angle_degrees": 12.372726277413026,
+    "local_same_apex_and_birth_disk_bound_degrees": 13.0199179451,
+    "bound_scope": "FOUR_MEASURED_TRIANGLES_ONLY_NOT_GLOBAL_PATTERN_IMPOSSIBILITY",
+    "second_candidate_angle_degrees": 10.3163821173,
+    "worse_candidate_rolled_back_exactly": true,
+    "attempted_insertions_charged": 8,
+    "cdt_attempts": 2,
+    "remesh_attempts": 1
+  },
+  "remaining": {
+    "authored_physical_presence": "UNSPECIFIED_NOT_CLAIMED",
+    "guides_3D": "NOT_QUALIFIED",
+    "placement": "NOT_ADMITTED",
+    "Cloth": "NOT_EXECUTED",
+    "fitting": "NOT_EXECUTED",
+    "art": "NOT_REVIEWED",
+    "release": "NOT_PUBLISHED",
+    "installation": "NOT_PERFORMED"
+  },
+  "references": {
+    "program-native-graded-full-ten-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-full-ten-v1\\FROZEN.json",
+        "sha256": "01aec15958edf7cef3e2083c5b80fe358ff8b013dea4e0ca090afad34040fc73"
+      }
+    },
+    "program-native-graded-full-ten-preflight-review-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-full-ten-preflight-review-v1\\FROZEN.json",
+        "sha256": "c1c938ff12eb2e4261eba7fbc58803323d0adb5b861b214312b1dabaf75594fd"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-full-ten-preflight-review-v1\\receipt.json",
+        "sha256": "32883d1aafd37620d4f4eb84ac1cc6c0f805ab649f1113ca4923cdb23f00cabf"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-full-ten-preflight-review-v1\\report.md",
+        "sha256": "ebf5fcef4aef1965b6f4dceed1c0d84a2cee51e50c17f9e298e7af7594132115"
+      }
+    },
+    "program-native-graded-full-ten-result-review-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-full-ten-result-review-v1\\FROZEN.json",
+        "sha256": "227d7dfd93f8bb801c9e9dca7dfc694356a78688b43d01a17d824c359ac19552"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-full-ten-result-review-v1\\receipt.json",
+        "sha256": "7ecfd5e024dfbf0c2ada860a611a9db4d38365cf43aaa7d91db9e68a620d2f73"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-full-ten-result-review-v1\\report.md",
+        "sha256": "67888b5134dd03bf9bedec698ac164b24df9626d952eea568cd26aab609a8f0e"
+      }
+    },
+    "native_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-full-ten-v1\\output-v1\\receipt.json",
+      "sha256": "989a4ea8f6bccac65bec71088d42231de228c306fa968fb578d780db1ff697e3"
+    }
+  }
+}
