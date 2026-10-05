@@ -1,0 +1,42 @@
+{
+  "scope": "SEPARATE_CURRENT_BODY_REGION_SUPPLEMENT_NO_ACCEPTANCE_TRANSFER",
+  "code_sha256": "4f65370885aff0123390f49eb82ac438101817a67caaa239792e4114beaaf2e0",
+  "code_matches_git_export_bytes": true,
+  "files_sha256": {
+    "preparation/body-region-policy-current-v1.json": "02a00cab0fdc53c9b6bff0df25399f959b38ab5e5d05a95f539153b85d321c56",
+    "preparation/body-region-supplement-current-v1.json": "4ce17bf1b826e45a6f37cfd7ae9120182ceb21f70790cd643cd572362cd8a30c",
+    "preparation/body-region-supplement-current-v2.json": "e4b26d75608fffd63b61e85154a01f81042f2ae623a26de7e0cfbd22e60bd60b",
+    "preparation/body-region-remeasurement-summary-current-v2.json": "be3c7fe6eba3b0fd64b6b37237752cd25c42f610ab62b1f802644d5b39fd918c",
+    "preparation/coat-fit-intent-proposal-current-v4.json": "0ed3b61e7fa16077116c9fc7e33a906c0f8888e210f16680fa91952943443d9a"
+  },
+  "descriptor_python313": {
+    "status": "CURRENT_V2_DESCRIPTOR_AUTHENTICATED",
+    "python": "3.13.13 (main, May  8 2026, 12:37:03) [MSC v.1944 64 bit (AMD64)]",
+    "supplement_sha256": "e4b26d75608fffd63b61e85154a01f81042f2ae623a26de7e0cfbd22e60bd60b",
+    "same_structured_result_as_reviewed_cross_python_result": true,
+    "native_body_origin": {
+      "event_id": 23,
+      "receipt": {
+        "path": ".a3d/runs/native/attempt.8c48bcd1ae1249c5a97011bc95ec61f4.json",
+        "sha256": "65589246127ab5c6008d1869822d227e44a5c39bd42ca34708500c332d7ec969"
+      },
+      "run_id": "run.74b32ba8748a452a93e1983fa1664357",
+      "unit_id": "bodycontext",
+      "attempt_id": "attempt.8c48bcd1ae1249c5a97011bc95ec61f4"
+    },
+    "native_execution": false,
+    "fitting": "NOT_EXECUTED"
+  },
+  "descriptor_proof_sha256": "ae6c476d4286737917cc221fc0e2f9edf0b0fb717426cd84d79e4d26c8510823",
+  "measurement_cache_key": "cb719e778cef45b8f3f10b96fe9964a3c8c9f87a7249a6d723034dc95a380e08",
+  "old_supplement_preserved": true,
+  "new_file_serialization": "UTF8_LF",
+  "reviewed_worker_serialization": "UTF8_CRLF",
+  "structured_results_equal": true,
+  "body_unchanged": true,
+  "human_approval_recorded": false,
+  "native_execution": false,
+  "fitting": "NOT_EXECUTED",
+  "public_full_v4_compilation": "NOT_EXECUTED",
+  "qualification": "NONE"
+}

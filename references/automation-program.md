@@ -1539,3 +1539,22 @@ Blender réelle reste non exécutée et exige une nouvelle permission.
 Ces corrections sont des commits source validés dans leurs périmètres. La
 validation du code intégré, son build local et son chargement dans le runtime
 doivent être enregistrés séparément. Aucune préversion finale n'est publiée.
+
+### 2026-10-05 — Supplément corporel portable et références séparées
+
+Le commit `d3daa5e` fixe uniquement l'ordre d'accumulation de deux périmètres
+dans `body_region_sections`. Le premier écart réel mesuré était de
+7,105427357601002 × 10⁻¹⁵ cm sous Python 3.13. Points, plans, axes et statuts
+restaient identiques. **26 tests ciblés PASS sous les deux Python** et revue
+indépendante sans P2 confirmé. Les nouveaux résultats complets sont identiques
+entre runtimes ; les métriques historiques Python 3.11 sont conservées exactement.
+L'identité du code et le cache changent légitimement. L'ancien supplément reste
+archivé et strictement refusé ; il n'est pas réécrit.
+
+Un supplément actuel V2 séparé est produit avec le nouveau code, en UTF-8 LF,
+et son descripteur est réellement authentifié sous Python 3.11 et 3.13. La fiche
+proposée V4 utilise cette référence. La compilation publique complète V4 reste
+non exécutée à ce jalon ; aucun fitting n'est transféré. Les dix sections
+corporelles valides, les deux refusées et le corps accepté restent inchangés.
+[Preuve du code](automation-body-region-portability-evidence-20261005.json),
+[références actuelles](automation-current-body-v2-evidence-20261005.json).

@@ -46,3 +46,21 @@ placement admis avant Cloth. Aucun fitting n'est exécuté.
 Preuves : [réconciliation actuelle](automation-current-dimension-reconciliation-evidence-20261005.json),
 [candidat natif conservé](automation-coat-native-preparation-v2-evidence-20261005.json),
 [correctif des guides de mesure](automation-measurement-guide-dispatch-evidence-20261005.json).
+
+Après le correctif de lecture UV, le diagnostic source V3 produit aussi deux
+propositions pour les hauts de bras : 45,204894 et 45,240336 cm de matière,
+soit des différences nominales de 7,764992 et 7,763347 cm avec les sections
+corporelles. La revue d'homologie demeure requise. Les trois chemins du torse
+épuisent maintenant leur budget de calcul de 15 secondes chacun ; aucun chemin
+complet ni capacité de torse n'est obtenu. [Preuves UV](source-uv-storage.md).
+
+Le correctif des périmètres corporels conserve les résultats métriques Python
+3.11 exactement et produit les mêmes nouveaux résultats sous Python 3.13.
+L'ancien supplément reste intact et refusé pour identité de code périmée.
+Un supplément séparé `body-region-supplement-current-v2.json` et une fiche
+proposée V4 portent la nouvelle identité ; le descripteur V2 est effectivement
+authentifié sous les deux runtimes. Le corps, les cibles, les dix sections
+valides et les deux sections refusées restent identiques. La compilation
+publique complète V4 et le fitting restent à exécuter.
+[Preuves de portabilité](automation-body-region-portability-evidence-20261005.json),
+[références V2 actuelles](automation-current-body-v2-evidence-20261005.json).
