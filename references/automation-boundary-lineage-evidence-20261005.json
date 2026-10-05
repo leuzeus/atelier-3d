@@ -1,0 +1,132 @@
+{
+  "scope": "PURE_SOURCE_BOUNDARY_LINEAGE_FIX",
+  "qualification": "NONE",
+  "native": "NOT_EXECUTED",
+  "installed_runtime_changed": false,
+  "commits_created_by_worker": false,
+  "tests": {
+    "python311": {
+      "count": 115,
+      "elapsed_seconds": 12.424,
+      "status": "PASS",
+      "modules": [
+        "tests.test_boundary_gradation",
+        "tests.test_pattern_preparation",
+        "tests.test_pattern_preparation_corners",
+        "tests.test_sewing"
+      ]
+    },
+    "python313": {
+      "count": 115,
+      "elapsed_seconds": 13.497,
+      "status": "PASS",
+      "modules": [
+        "tests.test_boundary_gradation",
+        "tests.test_pattern_preparation",
+        "tests.test_pattern_preparation_corners",
+        "tests.test_sewing"
+      ]
+    }
+  },
+  "files_sha256": {
+    "source\\a3d\\boundary_gradation.py": "0214c418f4356ad9807ea9943e9a36fd8d671aac3d0856477bc3a5f7d60c53ec",
+    "source\\tests\\test_boundary_gradation.py": "66c0f8141772fb9c81f37f74b4a90c29171dd94f62082394de43f081b5793536",
+    "program-hood-boundary-lineage-v1\\probe.py": "42ab19ebc8381ba0f9f0c94c596e2bc8d196db7dd0dfd9bd8a8d399aeeed1dc3",
+    "program-hood-boundary-lineage-v1\\boundary-gradation-before.py": "dcc7209531a44e01f93be2c3f70158428d9f101870c030382a27bfd5b4e4ce19",
+    "program-hood-boundary-lineage-v1\\python311-receipt.json": "adb1b160bc8e3bf452bc9e5fc0a13dff9aeee1b65747c940a8c09079549c7fc2",
+    "program-hood-boundary-lineage-v1\\python313-receipt.json": "032395f735d64fcd16bc4a7618e4170522be3c49fc3b8af1f60cbbaae844d080",
+    "program-hood-boundary-lineage-v1\\python311-tests.log": "f5e2dd90ed8e4c2820d3855d9140eccfee13ff4a789c662bbf857ece95556abd",
+    "program-hood-boundary-lineage-v1\\python313-tests.log": "bb01a9d674c2905d1897780291a5616e87336f8d42ca8483ba6661a72c693495",
+    "program-hood-boundary-lineage-v1\\python311-consumers-tests.log": "9620da49487eaab83bd69782173c777fd39bba5223941ed5a4487f19d3506567",
+    "program-hood-boundary-lineage-v1\\python313-consumers-tests.log": "6f9154d7500e4ceedf22192a8dfa9e567f357e708a8574ae99c78ff4ba5a2f64"
+  },
+  "initial_sandbox_observation": {
+    "tests": 112,
+    "errors": 7,
+    "reason": "Windows Path.resolve(strict=True) WinError5 on isolated G: test fixtures",
+    "resolution": "Same tests rerun with approved Python escalation; final115tests PASS on both Python runtimes"
+  },
+  "limitations": [
+    "Local _source_identity checks declared route, exact self-consistent provenance UV and replayed storage key; it does not authenticate canonical last-writer fraction in isolation.",
+    "Public grade_shared_boundaries checks exact old coordinate conservation against canonical source resampling; altered writer+UV4/100ULP refuses.",
+    "Exact hood package source identity corrected; full synchronized gradation still refuses SELECTED_SOURCE_SEGMENT_HAS_NO_EXISTING_SEAM_OWNER.",
+    "No CDT, native Blender, placement, Cloth, fitting or product qualification executed."
+  ],
+  "python311-exact-package": {
+    "before": {
+      "status": "REFUSED",
+      "reason": "SOURCE_SEAM_SAMPLE_CHANGED",
+      "message": "SOURCE_SEAM_SAMPLE_CHANGED"
+    },
+    "after": {
+      "status": "SOURCE_IDENTITY_CHECKED",
+      "qualification": "NONE"
+    },
+    "baseline_vertices": 570,
+    "inputs_unchanged": true,
+    "files_unchanged": true,
+    "next_refusal": "SELECTED_SOURCE_SEGMENT_HAS_NO_EXISTING_SEAM_OWNER"
+  },
+  "python313-exact-package": {
+    "before": {
+      "status": "REFUSED",
+      "reason": "SOURCE_SEAM_SAMPLE_CHANGED",
+      "message": "SOURCE_SEAM_SAMPLE_CHANGED"
+    },
+    "after": {
+      "status": "SOURCE_IDENTITY_CHECKED",
+      "qualification": "NONE"
+    },
+    "baseline_vertices": 570,
+    "inputs_unchanged": true,
+    "files_unchanged": true,
+    "next_refusal": "SELECTED_SOURCE_SEGMENT_HAS_NO_EXISTING_SEAM_OWNER"
+  },
+  "consumer_tests": {
+    "python311": {
+      "count": 66,
+      "elapsed_seconds": 0.252,
+      "status": "PASS",
+      "modules": [
+        "tests.test_bounded_pattern_meshing",
+        "tests.test_meshing_profile",
+        "tests.test_meshing_envelope",
+        "tests.test_protected_boundary_refinement"
+      ],
+      "log": "program-hood-boundary-lineage-v1\\python311-consumers-tests.log",
+      "sha256": "9620da49487eaab83bd69782173c777fd39bba5223941ed5a4487f19d3506567"
+    },
+    "python313": {
+      "count": 66,
+      "elapsed_seconds": 0.318,
+      "status": "PASS",
+      "modules": [
+        "tests.test_bounded_pattern_meshing",
+        "tests.test_meshing_profile",
+        "tests.test_meshing_envelope",
+        "tests.test_protected_boundary_refinement"
+      ],
+      "log": "program-hood-boundary-lineage-v1\\python313-consumers-tests.log",
+      "sha256": "6f9154d7500e4ceedf22192a8dfa9e567f357e708a8574ae99c78ff4ba5a2f64"
+    }
+  },
+  "initial_115_tests_preserved": true,
+  "validation_file_sha256": "245b4c4562f9c3d62b96ebd20571e37d6274a4df4dcc8e6d07622ead9a59083f",
+  "independent_review": {
+    "status": "NO_REMAINING_P2_OR_HIGHER_CONFIRMED",
+    "scope": [
+      "a3d/boundary_gradation.py",
+      "tests/test_boundary_gradation.py"
+    ],
+    "resolved_findings": [
+      "Restrict interpolation routes to actual declared seam/free-run sampler paths.",
+      "Public regression refuses altered interpolation writer plus modified UV at4/100ULP."
+    ],
+    "not_qualified": [
+      "CDT",
+      "placement",
+      "Cloth",
+      "fitting"
+    ]
+  }
+}

@@ -176,10 +176,46 @@ def _existing_source_perimeter_key(source, chain, parameter, perimeter, check):
 
 
 def _source_identity(data, boundaries, seams, recipe, check):
+    """Check exact captured route/UV consistency, without native admission.
+
+    Public grading also re-samples the declared source and requires every old
+    coordinate at its exact retained key. This local check alone does not
+    authenticate a caller-asserted interpolation as the canonical last writer.
+    """
     if set(boundaries) != set(data['pieces']) or set(seams) != {s['id'] for s in data['seams']}:
         raise GradedBoundaryRefusal('SOURCE_PIECE_OR_SEAM_INVENTORY_CHANGED')
     if len(data['seams']) != len(seams):
         raise GradedBoundaryRefusal('DUPLICATE_SOURCE_SEAM_ID')
+    # Replay the sampler's declared oriented seam and uncovered free-run
+    # routes. Adjacency alone would admit an invented backtracking chain.
+    routes = {pid: set() for pid in data['pieces']}
+    covered = {pid: set() for pid in data['pieces']}
+    for seam in data['seams']:
+        for side in ('a', 'b'):
+            check(); pid = seam['piece_' + side]
+            if pid not in routes:
+                raise GradedBoundaryRefusal('MISSING_DECLARED_SOURCE_PARTNER')
+            chain, _, _ = edge_chain(data['pieces'][pid], seam['edge_' + side])
+            if side == 'b' and seam['orientation'] == 'reverse':
+                chain = list(reversed(chain))
+            routes[pid].add(tuple(chain))
+            covered[pid].update(tuple(sorted((a,b))) for a,b in zip(chain,chain[1:]))
+    for pid, piece in data['pieces'].items():
+        check(); n = len(piece['vertices'])
+        anchors = {0} | {i for edge in piece['edges'].values() for i in (edge[0],edge[-1])}
+        for i in range(n):
+            check()
+            if ((tuple(sorted(((i-1)%n,i))) in covered[pid]) !=
+                (tuple(sorted((i,(i+1)%n))) in covered[pid])):
+                anchors.add(i)
+        anchors = sorted(anchors)
+        for start, end in zip(anchors,anchors[1:]+[anchors[0]+n]):
+            check(); chain = [i%n for i in range(start,end+1)]
+            sewn = [tuple(sorted((a,b))) in covered[pid] for a,b in zip(chain,chain[1:])]
+            if not any(sewn):
+                routes[pid].add(tuple(chain))
+            elif not all(sewn):
+                raise GradedBoundaryRefusal('INVALID_SOURCE_ARC_IDENTITY')
     for pid, row in sorted(boundaries.items()):
         check(); source = data['pieces'][pid]['vertices']
         if row['source'] != source or row['source_sha256'] != digest(source):
@@ -215,9 +251,13 @@ def _source_identity(data, boundaries, seams, recipe, check):
                 chain, parameter = identity['source_chain'], identity['source_parameter']
                 if (len(chain) < 2 or any(type(j) is not int or not 0 <= j < len(source) for j in chain)
                     or any((b-a) % len(source) not in (1, len(source)-1) for a,b in zip(chain,chain[1:]))
+                    or tuple(chain) not in routes[pid]
                     or type(parameter) not in (int,float) or not math.isfinite(parameter) or not 0 <= parameter <= 1):
                     raise GradedBoundaryRefusal('INVALID_SOURCE_ARC_IDENTITY')
                 expected = sample_chain([source[j] for j in chain], parameter)
+                if _existing_source_perimeter_key(source, chain, parameter,
+                        row['perimeter'], check) != key:
+                    raise GradedBoundaryRefusal('SOURCE_MATERIAL_UV_CHANGED')
             else:
                 raise GradedBoundaryRefusal('UNKNOWN_SOURCE_MATERIAL_IDENTITY')
             if point != expected or identity.get('source_perimeter_key_cm', key) != key:
@@ -248,21 +288,37 @@ def _source_identity(data, boundaries, seams, recipe, check):
                 if type(index) is not int or not 0 <= index < len(boundaries[pid]['polygon']):
                     raise GradedBoundaryRefusal('INVALID_SOURCE_SEAM_BOUNDARY_ID')
                 if boundaries[pid]['polygon'][index] != sample_chain(chain, parameter):
-                    # The sampler preserves an exact authored vertex when
-                    # paired fractions coalesce to its existing storage key.
-                    # Its own provenance and UV were checked above. Replay
-                    # that precise key binding, never tolerate a UV error.
+                    # The sampler may bind a common fraction to the last
+                    # interpolation written at its existing storage key, or
+                    # preserve an authored vertex there. Its exact UV and
+                    # provenance were checked above; replay both key routes
+                    # without re-interpolating or tolerating a UV error.
                     row = boundaries[pid]; identity = row['sample_provenance'][index]
-                    vertex = identity.get('source_vertex')
-                    if (identity['kind'] != 'SOURCE_VERTEX' or type(vertex) is not int
-                        or vertex not in chain_ids or row['polygon'][index] != row['source'][vertex]):
+                    if identity['kind'] == 'SOURCE_VERTEX':
+                        vertex = identity.get('source_vertex')
+                        if (type(vertex) is not int or vertex not in chain_ids
+                            or row['polygon'][index] != row['source'][vertex]):
+                            raise GradedBoundaryRefusal('SOURCE_SEAM_SAMPLE_CHANGED')
+                        stored_key = round(row['perimeter'][vertex] % row['perimeter'][-1], 8)
+                        if abs(stored_key-row['perimeter'][-1]) < 1e-8:
+                            stored_key = 0.
+                    elif identity['kind'] == 'SOURCE_ARC_INTERPOLATION':
+                        stored_chain = identity['source_chain']
+                        stored_parameter = identity['source_parameter']
+                        lengths = chain_lengths([row['source'][j] for j in stored_chain])
+                        check()
+                        # Exact authored stops take the sampler's vertex
+                        # branch. A fabricated interpolation cannot replace
+                        # that mandatory material identity in this fallback.
+                        if any(stored_parameter == stop / lengths[-1] for stop in lengths):
+                            raise GradedBoundaryRefusal('SOURCE_SEAM_SAMPLE_CHANGED')
+                        stored_key = _existing_source_perimeter_key(row['source'],
+                            stored_chain, stored_parameter, row['perimeter'], check)
+                    else:
                         raise GradedBoundaryRefusal('SOURCE_SEAM_SAMPLE_CHANGED')
-                    vertex_key = round(row['perimeter'][vertex] % row['perimeter'][-1], 8)
-                    if abs(vertex_key-row['perimeter'][-1]) < 1e-8:
-                        vertex_key = 0.
                     route_key = _existing_source_perimeter_key(row['source'],
                         chain_ids, parameter, row['perimeter'], check)
-                    if row['keys'][index] != vertex_key or route_key != vertex_key:
+                    if row['keys'][index] != stored_key or route_key != stored_key:
                         raise GradedBoundaryRefusal('SOURCE_SEAM_SAMPLE_CHANGED')
 
 

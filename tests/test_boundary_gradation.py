@@ -434,4 +434,87 @@ class SourceVertexSeamBindingTests(unittest.TestCase):
         self.assertEqual(calls,[True]);self.assertEqual(items,before)
 
 
+class SourceInterpolationSeamBindingTests(unittest.TestCase):
+    """A checked sampler key alias preserves the last writer's exact UV."""
+    def alias(self, reverse=False):
+        items=fixture(reverse);relation=items[4]['join'];row=items[3]['left']
+        ordinal=next(j for j,index in enumerate(relation['a'])
+            if row['sample_provenance'][index]['kind']=='SOURCE_ARC_INTERPOLATION'
+            and 0.1 < relation['parameters'][j] < 0.5)
+        original=relation['parameters'][ordinal]
+        relation['parameters'][ordinal]=math.nextafter(math.nextafter(original,1.),1.)
+        index=relation['a'][ordinal]
+        return items,ordinal,index
+
+    def identity(self, items):
+        return g._source_identity(items[0],items[3],items[4],items[1],lambda:None)
+
+    def test_existing_interpolation_storage_alias_preserves_exact_uv(self):
+        for reverse in (False,True):
+            items,ordinal,index=self.alias(reverse);before=copy.deepcopy(items)
+            row=items[3]['left'];identity=row['sample_provenance'][index]
+            chain=identity['source_chain'];common=items[4]['join']['parameters'][ordinal]
+            self.assertNotEqual(row['polygon'][index],
+                g.sample_chain([row['source'][j] for j in chain],common))
+            self.assertEqual(row['keys'][index],g._existing_source_perimeter_key(
+                row['source'],chain,common,row['perimeter'],lambda:None))
+            self.identity(items);self.assertEqual(items,before)
+
+    def test_changed_uv_provenance_or_route_refuses_without_mutation(self):
+        for mutation in ('uv','parameter','chain','key','local_index','common_route'):
+            items,ordinal,index=self.alias();row=items[3]['left']
+            identity=row['sample_provenance'][index]
+            if mutation=='uv':row['polygon'][index][0]=math.nextafter(row['polygon'][index][0],math.inf)
+            elif mutation=='parameter':identity['source_parameter']+=0.01
+            elif mutation=='chain':identity['source_chain']=[3,4,5,0]
+            elif mutation=='key':identity['source_perimeter_key_cm']=math.nextafter(row['keys'][index],math.inf)
+            elif mutation=='local_index':identity['derived_boundary_vertex']=index+1
+            else:items[4]['join']['parameters'][ordinal]+=0.000001
+            before=copy.deepcopy(items)
+            with self.subTest(mutation=mutation),self.assertRaises(g.GradedBoundaryRefusal):self.identity(items)
+            self.assertEqual(items,before)
+
+    def test_valid_uv_from_foreign_storage_route_cannot_replace_sample(self):
+        items,_,index=self.alias();row=items[3]['left'];identity=row['sample_provenance'][index]
+        identity['source_parameter']+=0.01
+        row['polygon'][index]=g.sample_chain([row['source'][j] for j in identity['source_chain']],
+            identity['source_parameter'])
+        with self.assertRaises(g.GradedBoundaryRefusal) as caught:self.identity(items)
+        self.assertEqual(caught.exception.reason,'SOURCE_MATERIAL_UV_CHANGED')
+
+    def test_alias_is_produced_by_unchanged_source_sampler(self):
+        items=list(fixture());original=1/3
+        trailing=math.nextafter(math.nextafter(original,1.),1.)
+        items[3],items[4],_=prepare_boundaries(items[0],items[1],
+            seam_parameters={'join':[original,trailing]},regular_boundary_spacing_cm=1.)
+        row=items[3]['left'];relation=items[4]['join']
+        index=relation['a'][relation['parameters'].index(original)]
+        self.assertEqual(row['sample_provenance'][index]['source_parameter'],trailing)
+        self.assertNotEqual(row['polygon'][index],g.sample_chain(row['source'][:4],original))
+        before=copy.deepcopy(items);self.identity(items);self.assertEqual(items,before)
+
+    def test_backtracking_chain_cannot_fabricate_valid_uv_and_storage_key(self):
+        items,_,index=self.alias();row=items[3]['left'];identity=row['sample_provenance'][index]
+        chain=[0,1,0,1,2,3];parameter=1.2/3.2
+        identity.update(source_chain=chain,source_parameter=parameter)
+        row['polygon'][index]=g.sample_chain([row['source'][j] for j in chain],parameter)
+        with self.assertRaises(g.GradedBoundaryRefusal) as caught:self.identity(items)
+        self.assertEqual(caught.exception.reason,'INVALID_SOURCE_ARC_IDENTITY')
+
+    def test_public_gradation_refuses_fabricated_writer_and_exact_modified_uv(self):
+        # The local identity check proves route/UV self-consistency. Public
+        # grading additionally compares against a canonical source resample;
+        # an invented last-writer fraction cannot qualify by matching a key.
+        for steps in (4,100):
+            items,_,index=self.alias();row=items[3]['left'];identity=row['sample_provenance'][index]
+            for _ in range(steps):
+                identity['source_parameter']=math.nextafter(identity['source_parameter'],math.inf)
+            row['polygon'][index]=g.sample_chain([row['source'][j] for j in identity['source_chain']],
+                identity['source_parameter'])
+            before=copy.deepcopy(items)
+            with self.subTest(steps=steps),self.assertRaises(g.GradedBoundaryRefusal) as caught:call(items)
+            self.assertEqual(caught.exception.reason,'OLD_PREPARED_COORDINATE_OR_IDENTITY_CHANGED')
+            self.assertEqual(items,before)
+
+
 if __name__=='__main__':unittest.main()
