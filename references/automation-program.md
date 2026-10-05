@@ -4,6 +4,22 @@ Plan approuvé par l'utilisateur le 3 octobre 2026. Base : branche
 `codex/garment-automation-v1`, commit `8dfeac77c3b1bc3b11a4dbe6401eb2b1bb0a54ea`,
 version 0.7.0-rc.2. Le programme est suivi ici pendant l'implémentation.
 
+**État courant après reprise du 5 octobre :** le build local distinct
+`0.7.0-rc.2.dev.21509` est installé par le gestionnaire natif de Codex et
+vérifié sur ses 584 fichiers. Après redémarrage, `studio_doctor` confirme cette
+version et `studio_check_pipeline` admet le projet composé
+`44f03e6c-dc68-4adb-85b9-e30f88b1aeaa`, sans problème listé. Le statut historique
+de la planche reste `RECORDED_RECHECK_REQUIRED` ; l'admission actuelle vérifie
+la composition et ses décisions exactes. Aucune nouvelle revue de coupe n'est
+déduite ou créée par l'installation.
+
+Les 14 entrées exactes du corps accepté sont vérifiées et disponibles dans ce
+projet. L'opération publique `prepare`, arguments `{}`, est préparée et attend
+son autorisation d'exécution ; aucune session Blender de ce projet n'est encore
+créée. Suivent l'introduction native du corps puis le placement admis, le premier
+drapé et le fitting mesuré. La préversion finale et l'acceptation du vêtement
+complet restent ouvertes ; les essais privés différés ne sont pas repris.
+
 ## Objectif et acceptation
 
 Produire un parcours reproductible depuis les références et les données
