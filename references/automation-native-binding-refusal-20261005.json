@@ -1,0 +1,127 @@
+{
+  "scope": "ACTUAL_NATIVE_BINDING_REFUSAL_ONLY",
+  "project_id": "44f03e6c-dc68-4adb-85b9-e30f88b1aeaa",
+  "code_commit": "06173c2301e83901d6ac468dc8e4e1981b6fa9b0",
+  "runtime_version": "0.7.0-rc.2.dev.2026100502",
+  "run_id": "run.433754fe078b4a46b1f689aec50cbf54",
+  "run_status": "INCOMPLETE",
+  "attempt_id": "attempt.d49dd370520b41bcb0dea15c05430152",
+  "elapsed_seconds": 99.72978289995808,
+  "receipt": {
+    "path": ".a3d/runs/native/attempt.d49dd370520b41bcb0dea15c05430152.json",
+    "sha256": "b291aa2bc7b9ee14a42af0591a3d2137749a3ae5e5d6d0524d179828a001cfca"
+  },
+  "entry_checkpoint": {
+    "path": ".a3d/checkpoints/pre-1ee33dda87744f768cfb4001c98108c1.blend",
+    "sha256": "034a3efb442e93a433a6612055f4f2a3fea2200a28ef8d9442f8645958a51327"
+  },
+  "operation": "bind_component_preparations",
+  "arguments": {
+    "body_geometry_ref": {
+      "path": ".a3d/outputs/body-target-7538c9a47520482ca744f85c201f6529/geometry.json",
+      "sha256": "ad81aa69409ab4b2220152f68c1c12c90e475ba6b24613e33d5eb142d54de0c7"
+    },
+    "body_object": "A3D.BodyTarget.MainMale180",
+    "output_directory": "preparation/native-source-bindings-v1",
+    "policy_path": "preparation/public-source-preparation-v2/guide-policy.json",
+    "templates_path": "preparation/public-source-preparation-v2/component-templates.json"
+  },
+  "execution_permission": {
+    "source": "Direct human reply to exact bind_component_preparations question",
+    "answer": "Autoriser ce raccordement natif des entrées"
+  },
+  "native_result": {
+    "status": "error",
+    "message": "Traceback (most recent call last):\n  File \"C:\\Users\\leuz9\\AppData\\Roaming\\Blender Foundation\\Blender\\5.2\\extensions\\user_default\\mcp\\mcp_to_blender_server.py\", line 252, in _execute_code\n    exec(code, namespace)\n    ~~~~^^^^^^^^^^^^^^^^^\n  File \"<string>\", line 4, in <module>\n  File \"C:\\Users\\leuz9\\.codex\\plugins\\cache\\atelier-3d-local\\atelier-3d\\0.7.0-rc.2.dev.2026100502\\blender\\bootstrap.py\", line 43, in dispatch_current\n    result = module.dispatch(project_root, operation, arguments)\n  File \"C:\\Users\\leuz9\\.codex\\plugins\\cache\\atelier-3d-local\\atelier-3d\\0.7.0-rc.2.dev.2026100502\\blender\\operations.py\", line 520, in dispatch\n    result = _perform(project_root, operation, arguments)\n  File \"C:\\Users\\leuz9\\.codex\\plugins\\cache\\atelier-3d-local\\atelier-3d\\0.7.0-rc.2.dev.2026100502\\blender\\operations.py\", line 312, in _perform\n    return bind_component_preparations(Project(project_root), **arguments)\n  File \"C:\\Users\\leuz9\\.codex\\plugins\\cache\\atelier-3d-local\\atelier-3d\\0.7.0-rc.2.dev.2026100502\\blender\\textile_executor.py\", line 343, in bind_component_preparations\n    guide_reconstruction=verify_project_guides(project,compiled,verified(project,inputs['guides_ref']),policy_path)\n  File \"C:\\Users\\leuz9\\.codex\\plugins\\cache\\atelier-3d-local\\atelier-3d\\0.7.0-rc.2.dev.2026100502\\a3d\\garment_guide_policy.py\", line 180, in verify_project_guides\n    evidence=verify_guide_policy(compiled,profile,geometry,ref,data,policy,guides,source_seam_recipes=recipes)\n  File \"C:\\Users\\leuz9\\.codex\\plugins\\cache\\atelier-3d-local\\atelier-3d\\0.7.0-rc.2.dev.2026100502\\a3d\\garment_guide_policy.py\", line 123, in verify_guide_policy\n    expected,evidence=reconstruct_guide_policy(compiled,profile,geometry,geometry_ref,source_data,policy,\n                      ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n        source_seam_recipes=source_seam_recipes)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\leuz9\\.codex\\plugins\\cache\\atelier-3d-local\\atelier-3d\\0.7.0-rc.2.dev.2026100502\\a3d\\garment_guide_policy.py\", line 98, in reconstruct_guide_policy\n    raise StudioError('Guide policy skin-section evidence differs from exact source remeasurement')\na3d.core.StudioError: Guide policy skin-section evidence differs from exact source remeasurement\n",
+    "stdout": "Infos: Copie enregistrée sous « pre-1ee33dda87744f768cfb4001c98108c1.blend »\n"
+  },
+  "outputs": "NO_BINDING_OUTPUT_DIRECTORY_CREATED_BEFORE_REFUSAL",
+  "qualification": "NOT_GRANTED",
+  "placement": "NOT_EXECUTED",
+  "simulation": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "recovery": {
+    "operation": "restore_checkpoint",
+    "status": "EXECUTED_SUCCESSFULLY",
+    "execution_permission": {
+      "source": "Direct human reply to exact restore_checkpoint question",
+      "answer": "Autoriser la restauration du checkpoint"
+    },
+    "native_result": {
+      "status": "ok",
+      "result": {
+        "restored": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\blender\\working-recovered-f6e077dcc6134de09cde3774057afb1f.blend",
+        "checkpoint": {
+          "created_at": "2026-10-05T17:06:15.513600+00:00",
+          "path": ".a3d/checkpoints/pre-1ee33dda87744f768cfb4001c98108c1.blend",
+          "sha256": "034a3efb442e93a433a6612055f4f2a3fea2200a28ef8d9442f8645958a51327"
+        },
+        "visual_validation": "NOT_EXECUTED",
+        "runtime": {
+          "version": "0.7.0-rc.2.dev.2026100502",
+          "root": "C:\\Users\\leuz9\\.codex\\plugins\\cache\\atelier-3d-local\\atelier-3d\\0.7.0-rc.2.dev.2026100502",
+          "loaded_source_sha256": "6e924aad4132773c8e425ead7d4a7e2ef0f40c5c73fa96dba77e78ec5f0b1021",
+          "loaded_modules": {
+            "blender": "bec1b4acc358aa5c4717f4d100acd13bc9541f39f38c08c7d9c948846519a9b0",
+            "a3d": "a5a9232af179d7d1b8d3f972efa8e70ac5d660f275f11b0760be6ec2e756a578",
+            "a3d.core": "469481522a435053ed36aec44ca40723563136af201394226147749c5e8b7e0d",
+            "a3d.store": "bf8f2e30b97c09e173b90a72c54ab56a028dc05e77870e38411feae9649dd90a",
+            "blender.operations": "a54f5951a7f43064ab6d2e8f09cd96763d686e5da171968aca6b3ee802318b68",
+            "a3d.run_diagnostics": "0849914fe1d7b3c382094825d34c4d01215d13c95fff5ca8d0171c2abb696a8a",
+            "a3d.runs": "1561e2aaf6bfc137b2dfb94251e6f714bf1871e34eac64f258d3a1b27b74d111",
+            "a3d.packages": "ed02446e11fb75f04b15bfa1cc05a8b0a504c3e8c5cefaec635ea33b063ff9a8",
+            "a3d.planning": "71498dc21a71dac10199870744a97f43c465479e415d7667e908854366defd01",
+            "a3d.guard": "011e0d0c08867678121f01720cfe61c4bd739fbd24bdd2d1288298e2a0f9808a",
+            "a3d.lifecycle": "4d0bc51eebc766872f055a23312dbb53aa8ff1c0eb9cf76b3e676cd0a04998e7"
+          }
+        }
+      },
+      "stdout": "Infos: Enregistré sous « working-recovered-f6e077dcc6134de09cde3774057afb1f.blend »\n"
+    },
+    "scene_summary": {
+      "status": "ok",
+      "result": {
+        "status": "ok",
+        "filepath": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\blender\\working-recovered-f6e077dcc6134de09cde3774057afb1f.blend",
+        "is_saved": true,
+        "is_dirty": false,
+        "age_seconds": 427.2,
+        "file_size_bytes": 479681,
+        "backups": []
+      }
+    },
+    "objects_summary": {
+      "status": "ok",
+      "result": {
+        "status": "ok",
+        "scene_name": "Scene",
+        "active_workspace": "Layout",
+        "active_object": null,
+        "object_mode": null,
+        "camera_object": null,
+        "collections": [
+          {
+            "name": "Scene Collection",
+            "exclude": false,
+            "hide_viewport": false,
+            "objects": [
+              {
+                "name": "A3D.BodyTarget.MainMale180",
+                "type": "MESH",
+                "parent": null,
+                "data_name": "A3D.BodyTargetMesh.7538c9a47520482ca744f85c201f6529",
+                "selected": false,
+                "visible": true,
+                "hide_viewport": false
+              }
+            ],
+            "children": []
+          }
+        ]
+      }
+    },
+    "pending_blender_operation": null,
+    "failed_run_and_receipt_preserved": true
+  },
+  "next": "Correct explicit float aggregation, verify exact cross-Python guide reconstruction, regenerate dependent policy using public interface, then request new binding permission."
+}
