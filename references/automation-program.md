@@ -1364,3 +1364,30 @@ nouveaux arguments. Restent placement, construction des 15 pièces et de la
 boucle, enfilage, drapé, fitting, mouvements, réouverture et revue artistique.
 Aucune nouvelle coupe ni revue anatomique n'est demandée à ce jalon. La
 publication finale reste soumise à ces contrôles produit effectivement exécutés.
+
+### 2026-10-05 — Runtime corrigé rechargé, préparation V3 et nouveau run
+
+Le MCP chargé confirme `0.7.0-rc.2.dev.2026100503` ; `studio_doctor` passe et
+le projet composé est admis. L'appel public V3 produit réellement les cinq
+artefacts de préparation. La politique et les guides complets correspondent
+exactement aux digests canoniques de la comparaison des deux Python, en lisant
+les fichiers physiques sans conversion des types numériques par le transport.
+Le rapport public ajoute ses preuves d'origine native. La compilation couvre
+les 15 textiles et la boucle ; les sources anatomiques et les patrons sont
+conservés. [Preuve de la préparation V3](automation-public-preparation-v3-evidence-20261005.json).
+
+La lecture Blender confirme la scène de récupération sauvegardée, non modifiée,
+avec le seul `A3D.BodyTarget.MainMale180`. Le manteau garde son diagnostic
+d'alignement partiel à corriger : aucune admission de placement n'est accordée.
+L'appel sans profil de fitting conserve séparément `FIT_METADATA_REQUIRED` ;
+l'intention ample et les décisions existantes ne sont pas redemandées.
+
+Le nouveau run `run.1a4b661f07cc4215abf1535c70529df8` conserve 15 références
+d'entrée exactes. Sa tentative `attempt.2dd7013e4b5e416e9f25ab302e68533e`
+prépare `bind_component_preparations` vers `preparation/native-source-bindings-v2`
+et reste `AWAITING_CONFIRMATION`. Le code exact et son empreinte sont sauvegardés
+dans `preparation/native-source-binding-run-step-v2.py` du projet composé.
+Son exécution demande une autorisation distincte. Le premier refus et sa
+restauration restent conservés ; aucun nouveau binding, placement, Cloth ou
+fitting n'est exécuté à ce jalon. Aucune nouvelle coupe n'attend de revue ;
+les revues visuelles du montage et la revue artistique restent à réaliser.
