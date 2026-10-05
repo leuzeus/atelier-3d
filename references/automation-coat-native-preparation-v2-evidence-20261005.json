@@ -1,0 +1,656 @@
+{
+  "status": "VERIFIED_NATIVE_COAT_PREPARATION_NEEDS_CORRECTION",
+  "project_root": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project",
+  "native_receipt": {
+    "path": ".a3d/runs/native/attempt.c5b8a1c8f91949edb10e65c54bca7477.json",
+    "sha256": "caa5751a802762da7392eb2588b1f6e5445dd5b5c2ca767fb2e5b37e73ec19d6"
+  },
+  "run_id": "run.04d8b017e9d340e4834eb1e26d4eafd0",
+  "attempt_id": "attempt.c5b8a1c8f91949edb10e65c54bca7477",
+  "elapsed_seconds": 287.6968375000288,
+  "transport": {
+    "status": "MCP_TIMED_OUT_AFTER_300_SECONDS",
+    "resubmitted": false,
+    "actual_native_execution": "RETURNED",
+    "canonical_reconciliation": "NEEDS_CORRECTION_RESTORE_ENTRY_CHECKPOINT_BEFORE_REPLAY"
+  },
+  "checkpoint": {
+    "path": ".a3d/checkpoints/pre-028b75a4767b4e28b491a65da4bc85c0.blend",
+    "sha256": "376aa273e226cef381f00a717d66db49f794e2c8450928189143c97adca7c301"
+  },
+  "files_verified": [
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/assembly-plan.json",
+      "sha256": "13a333d5f9f00ac9516454ef6bfd96d775525c38f9f89d85a298febf11066de7"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/master-preparation-v001.blend",
+      "sha256": "316cbd841870c13059359597dcb1ce85269dd3edfec7e7023f67990953ae736d"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/mesh.json",
+      "sha256": "90e8792259e8ec92ee60f633e3c3d55082990b73990fc28048a6957932d7fde4"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/neutral-back.png",
+      "sha256": "1359b5602c3c99a5116cc05f6214d7ed5c991a72d778f2d6175afbc1cd4891d1"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/neutral-connection-1.png",
+      "sha256": "a9e77b3f1654b32f7a56791a1a2318fc9d70a8303d0df775b29306d89c2502f2"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/neutral-connection-2.png",
+      "sha256": "28478b3bc8eba13273ac36cade43f47408d6ceebdaaef6b2c661f9ee7c6aeeca"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/neutral-front.png",
+      "sha256": "369961ff9fd0b33863684c6e64ae81bad6b8c80494aad4a7c8e13c779c577ce2"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/neutral-side.png",
+      "sha256": "8491abebdab6543c6614f7c432107aec31799d0ff5a9287fd4fd564e4593be93"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/neutral-threequarter.png",
+      "sha256": "6696e9db40e96690e59b9fd682cf187b03015587305d1ad048dd5e92455bf8ab"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/placement-correction.json",
+      "sha256": "7c49682aca260f9568188253df7baed76cff93b12e47094470bc27ca512b5535"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/receipt.json",
+      "sha256": "62e256219a0629b4e060baf2fd1e051f26002bbc9b3c42fa251272d2a4dfe181"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/recipe.json",
+      "sha256": "f10c1de41bec2ce60cebec654a098dcc7f5a86c140579f2cda6b36db3f6f4b24"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/review.html",
+      "sha256": "2743d84d73bd1919468afeb16d78ce97214343d74dbd5838bade79e13788e94c"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/wireframe-back.png",
+      "sha256": "6ae25a74f84c8564e19446e5e1cd8d0750e05c581a35bcd7cf41674669f01c77"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/wireframe-connection-1.png",
+      "sha256": "d2ead17494f050a1bfc6e0bfa6fbe34813fddd177aa7e1c170d40845e247a276"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/wireframe-connection-2.png",
+      "sha256": "10786d7574d3aebeefcce7423463da665ce00602eccf3f5d1bd81b3e9350d475"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/wireframe-front.png",
+      "sha256": "4ec1c86d1a76dd4f9284bf6bfa7a4488eee47a360c8c7e4ec06d8c59a1f62c88"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/wireframe-side.png",
+      "sha256": "c01644db45de44889373a3efd32448bb91c69434f779188d0b335db2556b7899"
+    },
+    {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/wireframe-threequarter.png",
+      "sha256": "667ee39e72eb67c527640d9c0bfe1bc7618a61e2f798f98849a54780f6c35c05"
+    },
+    {
+      "path": ".a3d/blender/session.json",
+      "sha256": "aba7b83c385c649d4e810c44b43aa9a0e1be6a5807baf6a7b3fc0f91947f3bef"
+    },
+    {
+      "path": ".a3d/blender/working-recovered-f6e077dcc6134de09cde3774057afb1f.blend",
+      "sha256": "ceb19ec18f2dd6a1331097100eddc050b15322531adb102dfc3d1b84a4c8b749"
+    },
+    {
+      "path": ".a3d/checkpoints/pre-028b75a4767b4e28b491a65da4bc85c0.blend",
+      "sha256": "376aa273e226cef381f00a717d66db49f794e2c8450928189143c97adca7c301"
+    },
+    {
+      "path": ".a3d/evidence/reviewed-pattern-composition-dossier.json",
+      "sha256": "620457742c3038ed981976ccb641558a269a8e042d651c3bbee3d01039c01711"
+    },
+    {
+      "path": ".a3d/outputs/construction-c1f0612ceb914bb284d2129480439984/board.json",
+      "sha256": "ab171bfc1e3a393df6a831f3d31dde8f45a75b3ad5620a34f90ed94b4b32a0ae"
+    },
+    {
+      "path": ".a3d/runs/native/projections/attempt.c5b8a1c8f91949edb10e65c54bca7477/piece-candidates-ac7ba11342a50c705ac8ac73f0702e09b095fafaa252b1b75b4e4965832dddf9.json",
+      "sha256": "ac7ba11342a50c705ac8ac73f0702e09b095fafaa252b1b75b4e4965832dddf9"
+    },
+    {
+      "path": "packages/belt-v1.garmentpkg",
+      "sha256": "5817ea66475ffa40f4c27277499c9f7cdd3b89f1565f68ba510b643dc85d13b8"
+    },
+    {
+      "path": "packages/buckle-v1.partpkg",
+      "sha256": "dc5d34cb525cb839ec1dab2366700052030980656f8db236e41856714bd3695f"
+    },
+    {
+      "path": "packages/hood-yoke-v1.garmentpkg",
+      "sha256": "d2cbf768f1ec2fc83613c929308e2f27c5675cd4ad6e5d371246729ecc40080c"
+    },
+    {
+      "path": "preparation/native-source-bindings-v2/garment.coat/plan.json",
+      "sha256": "13a333d5f9f00ac9516454ef6bfd96d775525c38f9f89d85a298febf11066de7"
+    },
+    {
+      "path": "preparation/native-source-bindings-v2/garment.coat/preparation.json",
+      "sha256": "03ae6e90d17441665eaae7351b1e7f3cc8c537997bd2e42c22fdf7be1638b0be"
+    },
+    {
+      "path": "preparation/native-source-bindings-v2/garment.coat/recipe.json",
+      "sha256": "f10c1de41bec2ce60cebec654a098dcc7f5a86c140579f2cda6b36db3f6f4b24"
+    },
+    {
+      "path": "variants/ease-variant-dense-v2/packages/garment.coat.garmentpkg",
+      "sha256": "771eddd4dec57f4c938d8b16932ee0a3757c9cc9b5c73ea8675bf2a2f9742bad"
+    }
+  ],
+  "master": {
+    "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/master-preparation-v001.blend",
+    "sha256": "316cbd841870c13059359597dcb1ce85269dd3edfec7e7023f67990953ae736d"
+  },
+  "technical_views": {
+    "neutral-front": {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/neutral-front.png",
+      "sha256": "369961ff9fd0b33863684c6e64ae81bad6b8c80494aad4a7c8e13c779c577ce2"
+    },
+    "neutral-side": {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/neutral-side.png",
+      "sha256": "8491abebdab6543c6614f7c432107aec31799d0ff5a9287fd4fd564e4593be93"
+    },
+    "neutral-back": {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/neutral-back.png",
+      "sha256": "1359b5602c3c99a5116cc05f6214d7ed5c991a72d778f2d6175afbc1cd4891d1"
+    },
+    "neutral-threequarter": {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/neutral-threequarter.png",
+      "sha256": "6696e9db40e96690e59b9fd682cf187b03015587305d1ad048dd5e92455bf8ab"
+    },
+    "wireframe-front": {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/wireframe-front.png",
+      "sha256": "4ec1c86d1a76dd4f9284bf6bfa7a4488eee47a360c8c7e4ec06d8c59a1f62c88"
+    },
+    "wireframe-side": {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/wireframe-side.png",
+      "sha256": "c01644db45de44889373a3efd32448bb91c69434f779188d0b335db2556b7899"
+    },
+    "wireframe-back": {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/wireframe-back.png",
+      "sha256": "6ae25a74f84c8564e19446e5e1cd8d0750e05c581a35bcd7cf41674669f01c77"
+    },
+    "wireframe-threequarter": {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/wireframe-threequarter.png",
+      "sha256": "667ee39e72eb67c527640d9c0bfe1bc7618a61e2f798f98849a54780f6c35c05"
+    },
+    "neutral-connection-1": {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/neutral-connection-1.png",
+      "sha256": "a9e77b3f1654b32f7a56791a1a2318fc9d70a8303d0df775b29306d89c2502f2",
+      "seam_id": "cuff-join-left",
+      "focus_cm": [
+        31.776192784309387,
+        -3.9936091750860214,
+        110.42011976242065
+      ]
+    },
+    "wireframe-connection-1": {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/wireframe-connection-1.png",
+      "sha256": "d2ead17494f050a1bfc6e0bfa6fbe34813fddd177aa7e1c170d40845e247a276",
+      "seam_id": "cuff-join-left",
+      "focus_cm": [
+        31.776192784309387,
+        -3.9936091750860214,
+        110.42011976242065
+      ]
+    },
+    "neutral-connection-2": {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/neutral-connection-2.png",
+      "sha256": "28478b3bc8eba13273ac36cade43f47408d6ceebdaaef6b2c661f9ee7c6aeeca",
+      "seam_id": "cuff-join-right",
+      "focus_cm": [
+        -31.773298978805542,
+        -4.000122100114822,
+        110.42436361312866
+      ]
+    },
+    "wireframe-connection-2": {
+      "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/wireframe-connection-2.png",
+      "sha256": "10786d7574d3aebeefcce7423463da665ce00602eccf3f5d1bd81b3e9350d475",
+      "seam_id": "cuff-join-right",
+      "focus_cm": [
+        -31.773298978805542,
+        -4.000122100114822,
+        110.42436361312866
+      ]
+    }
+  },
+  "readiness": "NEEDS_CORRECTION",
+  "source_audit": {
+    "status": "SOURCE_AUDITED",
+    "issues": []
+  },
+  "problems": [
+    {
+      "readiness": "NEEDS_CORRECTION",
+      "category": "geometry_safety",
+      "message": "Source cloth metric rejected: degenerate_or_sliver, compression, stretch, principal_compression, principal_stretch"
+    },
+    {
+      "readiness": "NEEDS_CLARIFICATION",
+      "category": "layer_order",
+      "message": "SEPARATE_PER_LAYER_NATIVE_SIMULATIONS_REQUIRED"
+    },
+    {
+      "readiness": "NEEDS_CORRECTION",
+      "category": "placement_correction",
+      "message": "METRIC_RECOVERY_IMMUTABLE_SOURCE_MESH_QUALITY"
+    },
+    {
+      "readiness": "NEEDS_CORRECTION",
+      "category": "placement_or_layer_contacts",
+      "message": "The prepared preform violates collision reserve or separate-layer contact checks"
+    },
+    {
+      "readiness": "NEEDS_CLARIFICATION",
+      "category": "placement_enfilage",
+      "message": "LEGACY_DRESSING_NOT_ASSESSED"
+    },
+    {
+      "readiness": "NEEDS_CORRECTION",
+      "category": "strict_native_geometry",
+      "message": "Source cloth metric rejected: degenerate_or_sliver, compression, stretch, principal_compression, principal_stretch"
+    },
+    {
+      "readiness": "NEEDS_CORRECTION",
+      "category": "preparation_assessment",
+      "message": "MIN_SOURCE_ANGLE_DEGREES, MIN_PLACED_ANGLE_DEGREES, MIN_PRINCIPAL_STRETCH, MAX_PRINCIPAL_STRETCH, PLACEMENT_CONTACT"
+    }
+  ],
+  "piece_completeness": {
+    "summary": "garment.coat : 10/10 ; Vêtement : 10/15 pièces textiles présentes ; 5 pièces manquantes",
+    "report": {
+      "schema_version": 1,
+      "scope": {
+        "kind": "component",
+        "component_id": "garment.coat"
+      },
+      "expected_inventory": {
+        "project_id": "44f03e6c-dc68-4adb-85b9-e30f88b1aeaa",
+        "asset_id": "robe-bleu-nuit-nouveau-20261003",
+        "construction_board": {
+          "path": ".a3d/outputs/construction-c1f0612ceb914bb284d2129480439984/board.json",
+          "recorded_at": "2026-10-03T18:11:14.074787+00:00",
+          "sha256": "ab171bfc1e3a393df6a831f3d31dde8f45a75b3ad5620a34f90ed94b4b32a0ae"
+        },
+        "components": {
+          "garment.belt": {
+            "package": {
+              "manifest": {
+                "asset_id": "robe-bleu-nuit-nouveau-20261003",
+                "checksums": {
+                  "garment.json": "fa76f2a90f247b14043893b441bdd2ee36108b4c2631d9346d37608898fb481e",
+                  "pattern.svg": "9944aa4c521364d081c39ff34baeb3e80a3bd9f6cb9e2672e30d6cc0da5abdb6"
+                },
+                "component_id": "garment.belt",
+                "coordinate_system": {
+                  "front": "-Y",
+                  "handedness": "right",
+                  "up": "Z"
+                },
+                "created_at": "2026-10-03T18:01:19.072820+00:00",
+                "dependencies": [],
+                "entrypoints": {
+                  "component": "garment.json"
+                },
+                "format": "codex-3d-package",
+                "package_id": "982d34a3-4df5-4905-867c-999a6ad9d557",
+                "pipeline": "PATTERN_SEWN",
+                "provenance": {
+                  "created_by": "Codex / Atelier 3D",
+                  "notes": "New polygon patterns in cm for provisional 180cm stature. Schemas, contours, triangles, seam lengths and paired notches checked locally. Simulation margin0cm; material values uncalibrated; no fitting or 3D acceptance.",
+                  "source": "reference.original sha256:1d158fe59b9ae9a055d32c00754d9df816a94abd494fe42191b2d59240034701"
+                },
+                "schema_version": "1.0",
+                "units": "cm"
+              },
+              "path": "packages/belt-v1.garmentpkg",
+              "sha256": "5817ea66475ffa40f4c27277499c9f7cdd3b89f1565f68ba510b643dc85d13b8"
+            },
+            "kind": "textile",
+            "label": "garment.belt",
+            "pieces": [
+              "belt"
+            ],
+            "source_sha256": "89dd25194073f0967f553cb901ec32b48d4b6757202cf55c525df734c141d6cf"
+          },
+          "garment.coat": {
+            "package": {
+              "manifest": {
+                "asset_id": "robe-bleu-nuit-nouveau-20261003",
+                "checksums": {
+                  "garment.json": "96db2c9630e78739cf5c7a64ab9da95881f2fe6960f57f0ead20f4346931e261",
+                  "pattern.svg": "0d748639f3b5d51c5596e45ec5524218d7547c03022cfbb23cf1d73133a1f76a",
+                  "variant-provenance.json": "943b173ef44f0350f8a6d3e97a6c5b82c2a22e0354d1b7c8c697d7bef3178a77",
+                  "variant-source-dossier.json": "7d98d25c6fb9e253b2c30be7ec3281e3840e8902cb4a2f216a06427d5da748fd"
+                },
+                "component_id": "garment.coat",
+                "coordinate_system": {
+                  "front": "-Y",
+                  "handedness": "right",
+                  "up": "Z"
+                },
+                "created_at": "2026-10-04T15:33:25.437683+00:00",
+                "dependencies": [],
+                "entrypoints": {
+                  "component": "garment.json"
+                },
+                "format": "codex-3d-package",
+                "package_id": "cb4ff9de-7296-4432-8968-0c05b3bde6e4",
+                "pipeline": "PATTERN_SEWN",
+                "provenance": {
+                  "created_by": "Atelier 3D source-bound pattern grader",
+                  "notes": "Separate PATTERN_PROPOSAL_ONLY; exact lineage in variant-provenance.json; no fitting or design acceptance.",
+                  "source": "pattern-ease-variant"
+                },
+                "schema_version": "1.0",
+                "units": "cm"
+              },
+              "path": "variants/ease-variant-dense-v2/packages/garment.coat.garmentpkg",
+              "sha256": "771eddd4dec57f4c938d8b16932ee0a3757c9cc9b5c73ea8675bf2a2f9742bad"
+            },
+            "kind": "textile",
+            "label": "garment.coat",
+            "pieces": [
+              "back-left",
+              "back-right",
+              "collar",
+              "cuff-left",
+              "cuff-right",
+              "front-left",
+              "front-right",
+              "inner-front",
+              "sleeve-left",
+              "sleeve-right"
+            ],
+            "source_sha256": "a62e641025f6fb0e3cd00fa5d04eed3545dac7cb694a4866824b78b945d6fab3"
+          },
+          "garment.hood-yoke": {
+            "package": {
+              "manifest": {
+                "asset_id": "robe-bleu-nuit-nouveau-20261003",
+                "checksums": {
+                  "garment.json": "6fe5632bae6b7c68c5a9c70a669d657d5c632522dc6ae396d66bc9f9464e54bf",
+                  "pattern.svg": "cc26a4eb67d277215e43e8d1148fea883467c55a83d367a6dd6e3c398df129bd"
+                },
+                "component_id": "garment.hood-yoke",
+                "coordinate_system": {
+                  "front": "-Y",
+                  "handedness": "right",
+                  "up": "Z"
+                },
+                "created_at": "2026-10-03T18:01:15.188790+00:00",
+                "dependencies": [],
+                "entrypoints": {
+                  "component": "garment.json"
+                },
+                "format": "codex-3d-package",
+                "package_id": "72169db6-e7fe-4d9c-bd1e-81fea5b91aa5",
+                "pipeline": "PATTERN_SEWN",
+                "provenance": {
+                  "created_by": "Codex / Atelier 3D",
+                  "notes": "New polygon patterns in cm for provisional 180cm stature. Schemas, contours, triangles, seam lengths and paired notches checked locally. Simulation margin0cm; material values uncalibrated; no fitting or 3D acceptance.",
+                  "source": "reference.original sha256:1d158fe59b9ae9a055d32c00754d9df816a94abd494fe42191b2d59240034701"
+                },
+                "schema_version": "1.0",
+                "units": "cm"
+              },
+              "path": "packages/hood-yoke-v1.garmentpkg",
+              "sha256": "d2cbf768f1ec2fc83613c929308e2f27c5675cd4ad6e5d371246729ecc40080c"
+            },
+            "kind": "textile",
+            "label": "garment.hood-yoke",
+            "pieces": [
+              "hood-left",
+              "hood-right",
+              "yoke-lower",
+              "yoke-upper"
+            ],
+            "source_sha256": "b09538e1b6bf35c8bc975887f318db021a483d0fd7fd39b243314dd04136edc9"
+          },
+          "prop.buckle": {
+            "package": {
+              "manifest": {
+                "asset_id": "robe-bleu-nuit-nouveau-20261003",
+                "checksums": {
+                  "front.png": "fe6c93338c3cc5c6fe005d934c0098ed3dd1f74ea382a9ebc008d852ecaf507e",
+                  "left.png": "779310e227fa271c61d2c04482a81ddbac0d780eb2c4459b5b7f780c03564c17",
+                  "part.json": "3fa3679fa525fa2ef3aad1d45e7f13d179f7c927bb3ecef8bac47cf97ae9780c"
+                },
+                "component_id": "prop.buckle",
+                "coordinate_system": {
+                  "front": "-Y",
+                  "handedness": "right",
+                  "up": "Z"
+                },
+                "created_at": "2026-10-03T17:56:43.134612+00:00",
+                "dependencies": [],
+                "entrypoints": {
+                  "component": "part.json"
+                },
+                "format": "codex-3d-package",
+                "package_id": "20e02ce0-5758-42e0-a800-6d29f2556cd4",
+                "pipeline": "MULTIVIEW_PART",
+                "provenance": {
+                  "created_by": "Codex + built-in ImageGen",
+                  "notes": "New proposed views, front and left, recorded in preparation/buckle/generation-provenance.json. Thickness inferred. Human review PENDING; no reconstruction.",
+                  "source": "reference.original sha256:1d158fe59b9ae9a055d32c00754d9df816a94abd494fe42191b2d59240034701"
+                },
+                "schema_version": "1.0",
+                "units": "cm"
+              },
+              "path": "packages/buckle-v1.partpkg",
+              "sha256": "dc5d34cb525cb839ec1dab2366700052030980656f8db236e41856714bd3695f"
+            },
+            "kind": "rigid",
+            "label": "prop.buckle",
+            "pieces": [],
+            "source_sha256": null
+          }
+        }
+      },
+      "inventory_sha256": "2ec6ee33ddaee9b067ab8e9da3021fbb1be4f1b6674f6de37c9b21d82309ead5",
+      "global": {
+        "status": "INCOMPLETE",
+        "expected": 15,
+        "present": 10,
+        "visible_in_view_layer": 10,
+        "missing": [
+          [
+            "garment.belt",
+            "belt"
+          ],
+          [
+            "garment.hood-yoke",
+            "hood-left"
+          ],
+          [
+            "garment.hood-yoke",
+            "hood-right"
+          ],
+          [
+            "garment.hood-yoke",
+            "yoke-lower"
+          ],
+          [
+            "garment.hood-yoke",
+            "yoke-upper"
+          ]
+        ],
+        "duplicates": [],
+        "unknown": [],
+        "unexpected": [],
+        "capture_visibility": "NOT_VERIFIED",
+        "technical_acceptance": "NOT_INFERRED"
+      },
+      "components": {
+        "garment.belt": {
+          "status": "INCOMPLETE",
+          "expected": 1,
+          "present": 0,
+          "visible_in_view_layer": 0,
+          "missing": [
+            [
+              "garment.belt",
+              "belt"
+            ]
+          ],
+          "duplicates": [],
+          "unknown": [],
+          "unexpected": [],
+          "capture_visibility": "NOT_VERIFIED",
+          "technical_acceptance": "NOT_INFERRED"
+        },
+        "garment.coat": {
+          "status": "COMPLETE",
+          "expected": 10,
+          "present": 10,
+          "visible_in_view_layer": 10,
+          "missing": [],
+          "duplicates": [],
+          "unknown": [],
+          "unexpected": [],
+          "capture_visibility": "NOT_VERIFIED",
+          "technical_acceptance": "NOT_INFERRED"
+        },
+        "garment.hood-yoke": {
+          "status": "INCOMPLETE",
+          "expected": 4,
+          "present": 0,
+          "visible_in_view_layer": 0,
+          "missing": [
+            [
+              "garment.hood-yoke",
+              "hood-left"
+            ],
+            [
+              "garment.hood-yoke",
+              "hood-right"
+            ],
+            [
+              "garment.hood-yoke",
+              "yoke-lower"
+            ],
+            [
+              "garment.hood-yoke",
+              "yoke-upper"
+            ]
+          ],
+          "duplicates": [],
+          "unknown": [],
+          "unexpected": [],
+          "capture_visibility": "NOT_VERIFIED",
+          "technical_acceptance": "NOT_INFERRED"
+        }
+      },
+      "rigid_components": [
+        "prop.buckle"
+      ],
+      "observations": [
+        {
+          "component_id": "garment.coat",
+          "object": "A3D.Prepared.garment.coat",
+          "package_sha256": "771eddd4dec57f4c938d8b16932ee0a3757c9cc9b5c73ea8675bf2a2f9742bad",
+          "pieces": [
+            "back-left",
+            "back-right",
+            "collar",
+            "cuff-left",
+            "cuff-right",
+            "front-left",
+            "front-right",
+            "inner-front",
+            "sleeve-left",
+            "sleeve-right"
+          ],
+          "source_sha256": "a62e641025f6fb0e3cd00fa5d04eed3545dac7cb694a4866824b78b945d6fab3",
+          "mesh_sha256": "8d552f13eebfe892ae06eebe8a7610416aa96dcc8f26372c20bdad4d1b8161aa",
+          "visible": true,
+          "render_enabled": true,
+          "readiness": "NOT_INFERRED",
+          "correspondence": {
+            "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/mesh.json",
+            "sha256": "90e8792259e8ec92ee60f633e3c3d55082990b73990fc28048a6957932d7fde4"
+          }
+        }
+      ],
+      "summary": "garment.coat : 10/10 ; Vêtement : 10/15 pièces textiles présentes ; 5 pièces manquantes",
+      "qualification": "PRESENCE_ONLY_NOT_SIMULATION_OR_VISUAL_ACCEPTANCE",
+      "observed_at": "2026-10-05T19:02:25.460906+00:00",
+      "project_revision": 27,
+      "candidate_mode": "preview",
+      "scene_sha256": "78bf1898a377f1d7c2e58c95bc85620c9bba4cf839ef0c87ed90d87954c85458",
+      "scene_objects": [
+        {
+          "object": "A3D.Prepared.garment.coat",
+          "component_id": "garment.coat",
+          "role": "preparation-candidate",
+          "mesh_sha256": "8d552f13eebfe892ae06eebe8a7610416aa96dcc8f26372c20bdad4d1b8161aa",
+          "map_sha256": "90e8792259e8ec92ee60f633e3c3d55082990b73990fc28048a6957932d7fde4",
+          "visible": true,
+          "hide_render": false
+        }
+      ],
+      "excluded_objects": [],
+      "collection_errors": [],
+      "dependencies": [
+        {
+          "path": ".a3d/blender/session.json",
+          "sha256": "aba7b83c385c649d4e810c44b43aa9a0e1be6a5807baf6a7b3fc0f91947f3bef"
+        },
+        {
+          "path": ".a3d/blender/piece-candidates.json",
+          "sha256": "ac7ba11342a50c705ac8ac73f0702e09b095fafaa252b1b75b4e4965832dddf9"
+        },
+        {
+          "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/mesh.json",
+          "sha256": "90e8792259e8ec92ee60f633e3c3d55082990b73990fc28048a6957932d7fde4"
+        }
+      ],
+      "is_dirty": true,
+      "capture_visibility": "NOT_VERIFIED",
+      "rigid_scene_presence": [],
+      "artifact": {
+        "path": ".a3d/blender/working-recovered-f6e077dcc6134de09cde3774057afb1f.blend",
+        "sha256": "ceb19ec18f2dd6a1331097100eddc050b15322531adb102dfc3d1b84a4c8b749"
+      },
+      "review": {
+        "path": ".a3d/blender/pattern-preparation/attempt-a55b834780ac4ba1a3cee42dd76ba326/review.html",
+        "sha256": "2743d84d73bd1919468afeb16d78ce97214343d74dbd5838bade79e13788e94c"
+      }
+    }
+  },
+  "qualification": "NOT_GRANTED",
+  "accepted": false,
+  "simulation": "NOT_EXECUTED",
+  "fitting": "NOT_QUALIFIED",
+  "visual_diagnostic": {
+    "examined_views": [
+      "neutral-front",
+      "neutral-side",
+      "neutral-back"
+    ],
+    "findings": [
+      "Body visibly exposed through prepared upper torso and shoulders.",
+      "Sleeves do not visibly envelope the accepted arms correctly.",
+      "Candidate does not reproduce the approved original silhouette."
+    ],
+    "scope": "Pixel examination of exact unqualified prepared candidate; no human artistic acceptance."
+  },
+  "measurement_order": {
+    "accepted": "Design/cutting, male180 anatomy and ample intention remain accepted.",
+    "missing": "Reconcile source homologous measurement paths, exact open-front coverage and ample ease before physical production.",
+    "not_inferred": "Cut capacity deficit is not established from preform penetration or the source audit alone."
+  }
+}

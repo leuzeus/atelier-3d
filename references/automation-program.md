@@ -1430,3 +1430,50 @@ final peut rester `NEEDS_CORRECTION` ; seul `READY` autorise la suite de ce run.
 Cette nouvelle opération n'est pas couverte par la permission du raccordement.
 Les revues de placement et artistique restent à effectuer sur les fichiers
 examinés ; aucune nouvelle revue de découpe n'est demandée à ce jalon.
+
+Le correctif de provenance d'interpolation est livré séparément au commit
+`661be50` : comparaisons UV exactes, routes réellement déclarées du sampler,
+aucun epsilon ou fusion ajoutés. Deux lots ciblés sous chaque Python conservent
+115 tests de bord/préparation/couture et 66 tests des consommateurs du profil,
+soit 181 tests exécutés sous chacun de Python 3.11 et 3.13. La revue indépendante
+ne relève aucun défaut P2 ou supérieur restant dans ce périmètre.
+[Portée du contrôle et refus suivant conservé](source-boundary-lineage.md).
+Ce correctif source n'est pas installé dans le runtime natif `dev.2026100503`.
+
+### 2026-10-05 — Candidat manteau mesuré, refusé et conservé
+
+L'utilisateur autorise explicitement `prepare_pattern_assembly` pour
+`garment.coat`, avec les fichiers exacts du binding V2. Le code est exécuté
+sans changement sous le runtime installé `dev.2026100503`. L'appel MCP expire
+après 300 secondes ; aucune nouvelle soumission n'est faite. Le reçu natif
+arrive ensuite et atteste une opération `RETURNED` en **287,6968375 secondes**.
+La réconciliation canonique conserve le résultat **NEEDS_CORRECTION** et
+requiert le checkpoint d'entrée avant un éventuel rejeu. Ce timeout de transport
+n'est pas traité comme une preuve d'arrêt ou comme une permission de relancer.
+[Preuves du candidat exact](automation-coat-native-preparation-v2-evidence-20261005.json).
+
+La scène maître et les 32 références de sortie sont vérifiées sur disque.
+Les vues neutres face, profil et dos sont effectivement ouvertes et examinées :
+le corps traverse le haut du torse et les épaules ; les manches ne l'enveloppent
+pas correctement. La silhouette n'est pas celle du manteau original. La
+complétude locale est **10/10 pièces du manteau** ; la complétude globale est
+**10/15 textiles, cinq absents**. La boucle rigide reste également à construire.
+Le candidat et ses images sont des diagnostics conservés, sans acceptation
+visuelle humaine ni admission physique. Aucun Cloth ou fitting n'est exécuté.
+
+L'audit des patrons source est `SOURCE_AUDITED`, sans problème de contrat
+signalé. Le candidat reste refusé pour triangles effilés, métrique source et
+placée, compression/étirement, contacts, ordre des couches non qualifié et
+enfilage non évalué. La récupération métrique ne peut réparer une mauvaise
+qualité de triangulation source en conservant ce même maillage. Le découpage
+approuvé ne devient pas un verdict de capacité des patrons.
+
+Le retour de méthode est intégré : conserver l'original et le découpage, puis
+réconcilier explicitement les dimensions et proportions extrapolées des
+patrons avec le corps masculin accepté et l'intention ample. L'image originale
+est réouverte et son SHA-256 vérifié contre le dossier enregistré. La hauteur
+visuelle du vêtement et la stature corporelle sont distinctes. Les hypothèses
+initiales de capacité ne valent pas mesures actuelles ; les chemins homologues,
+la couverture du devant ouvert et les couches doivent être établis avant
+admission physique. Une correction de conception produira une variante à
+examiner ; aucune ancienne approbation ne sera transférée à cette variante.
