@@ -837,8 +837,37 @@ pas l'impossibilité du patron ou du vêtement. L'enveloppe courbe+surfaces rest
 non installable tant que ses phases et son horloge commune ne sont pas déclarées.
 
 Le premier essai natif du raffinement des bords s'arrête avant CDT sur une
-divergence de comparaison de batch. L'ordre des clés int puis textuelles JSON
+divergence de comparaison de batch. L'ordre des clés numériques puis textuelles JSON
 est une cause portable reproduite sans écart scalaire ; sa portée native reste
 à établir par un diagnostic isolé. Le refus et ses entrées sont conservés.
 L4 reste partiel et L5 non admis ; aucune physique, qualification de fitting,
 revue artistique, préversion finale ou installation n'est acquise par cette unité.
+
+### Bords gradés — refus natif attribué et conservé
+
+Le diagnostic isolé confirme la divergence de sérialisation : 4 632 clés
+numériques (`int` et `float`) deviennent textuelles dans JSON. Les 78 853 valeurs
+et leurs types sont conservés exactement. La comparaison corrigée s'appuie sur
+ces identités, sans epsilon ; le diagnostic seul n'exécute aucune CDT.
+
+Le replay V3 conserve dix pièces préparées, 24 relations, les 2 236 anciens
+contrôles et 40 fractions nouvelles transportées en 80 contrôles débités. Les
+trois baselines sont reproduites à l'octet près. Les nouveaux angles minimums
+sont 1,834793° et 1,699532° aux manches, puis 0,715063° au devant gauche : les
+trois candidats restent refusés au seuil de 15°.
+
+La seconde triangulation restitue exactement les positions déjà acceptées des
+premiers points refusés. Le lisseur repart de l'entrée courante et leur ajoute
+un déplacement ; le contrôle depuis leurs naissances permanentes refuse alors
+0,622328 / 0,629737 / 0,591643 cm contre 0,5 cm. Les références sont correctes.
+L'arrêt final découle de ce dépassement, sans stagnation d'insertion. Le meilleur
+état est restauré exactement ; les 35 / 35 / 16 insertions tentées restent
+débitées. La revue indépendante confirme les six résultats et conserve 2 702
+fichiers. Le [reçu des bords gradés](automation-graded-boundary-evidence-20261004.json)
+lie les preuves et leur portée.
+
+La prochaine correction donne au lisseur une référence permanente explicite.
+Le noyau Blender livré reste inchangé pendant cette étude ; aucun plafond
+n'est relevé. Une meilleure proposition de maillage et la qualification du
+vêtement restent à établir. Les refus du maillage auxiliaire ne constituent
+aucune preuve d'impossibilité des patrons. L4 reste partiel, L5 non admis.

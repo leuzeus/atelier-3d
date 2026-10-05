@@ -598,3 +598,14 @@ la comparaison exacte du batch fait l'objet d'un diagnostic distinct.
 
 Le build local source61 est vérifié mais ne constitue ni une préversion finale,
 ni une nouvelle installation. Les gates physiques et humains restent ouverts.
+
+### Raffinement gradé : cause du refus mesurée
+
+Les [six résultats natifs V3](automation-graded-boundary-evidence-20261004.json)
+sont revus : trois baselines byte exactes et trois candidats gradés refusés.
+Leur seconde étape de lissage dépasse le déplacement cumulé autorisé depuis
+les naissances des points, alors que la triangulation conserve exactement
+l'état précédent. Les contrôles bloquent ces propositions et restaurent le
+meilleur candidat. Le calcul de proposition doit utiliser la même référence
+permanente. Les patrons, les limites et le corps approuvés restent conservés.
+Cette analyse n'accorde aucun PASS de placement, de physique ou de fitting.
