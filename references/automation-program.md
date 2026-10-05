@@ -927,3 +927,27 @@ pour le porteur col étudié : ce certificat concerne ce modèle précis. Dix
 cassures de la trace proposée manquent au porteur actuel. La compilation et
 l'évaluation du nouveau champ sont la prochaine unité ; les contraintes,
 la récupération et les contrôles des six pièces restent à qualifier.
+
+### Résultats natifs V4 : trois maillages corrigés, revue indépendante terminée
+
+La référence permanente du lisseur corrige le dépassement cumulatif mesuré en
+V3. Sur les mêmes patrons et contrôles préparés, les angles minimaux deviennent
+15,038750° pour la manche gauche, 15,050577° pour la droite et 15,125134° pour le
+devant gauche. Les déplacements réellement transportés restent au plus à
+0,499282 / 0,494336 / 0,499595 cm de leur naissance permanente. Les plafonds et
+les seuils de 15°, 0,001 cm et 0,5 cm sont conservés.
+
+La revue indépendante vérifie les six géométries, frontières et identités,
+les références après chaque triangulation et les budgets non remboursés :
+448 184 assertions passent et 3 939 fichiers restent conservés. Les trois
+baselines restent byte exactes, avec leur refus historique. L'essai natif prend
+49,872 s, le lancement 55,859 s ; aucun gain de performance comparatif n'est
+qualifié. Le [reçu V4](automation-native-shared-reference-v4-evidence-20261004.json)
+lie les sorties exactes et les deux revues.
+
+Cette preuve porte sur trois maillages numériques UV. Le batch complet garde
+dix pièces, 24 relations, 40 fractions communes et 80 contrôles ajoutés ; la
+campagne native des dix pièces est en préparation. La présence physique de
+chaque ancien sommet collinéaire authored reste à établir. Le caller de
+production n'est pas modifié. Placement, contacts, Cloth, fitting et acceptation
+artistique restent ouverts ; aucun PASS de ces trois pièces ne leur est transféré.

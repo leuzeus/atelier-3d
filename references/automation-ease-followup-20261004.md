@@ -628,3 +628,13 @@ et 14 contrats passent sur le commit exact ; le build local est vérifié.
 Les mesures du prochain essai natif restent nécessaires. Le champ en volume,
 les contacts et l'aisance doivent encore être contrôlés sur un candidat admis.
 Ces preuves logicielles ne constituent pas un fitting ni une revue artistique.
+
+### Trois maillages numériques corrigés sans changer les patrons
+
+Le [replay V4 revu](automation-native-shared-reference-v4-evidence-20261004.json)
+atteint les seuils de qualité UV sur les deux manches approuvées et le devant
+gauche. La correction conserve la même référence cumulative, les bords et les
+budgets ; les trois baselines historiques sont conservées exactement.
+Le contrôle des dix pièces et du champ en volume reste nécessaire avant toute
+admission du placement. L'aisance, le drapé et le fitting du manteau ample
+demeurent à mesurer sur le candidat complet, sans redimensionner le corps approuvé.
