@@ -293,13 +293,15 @@ def _source_selector_at_point(piece,edge,point,epsilon):
     return {'edge':edge,'fraction':hits[0]}
 
 
-def reconcile_source_boundary_uv(piece,panel,rest_cm,*,seam_witnesses=None):
+def reconcile_source_boundary_uv(piece,panel,rest_cm,*,seam_witnesses=None,
+                                 canonical_storage=None,native_observation=None,piece_id=None):
     """Recover source anchors from their recorded perimeter coordinates.
 
-    The native CDT historically stored binary32 UV. Reconstruction is permitted
-    only when the immutable contour identity and binary32 round-trip prove that
-    cause. An authenticated named-seam parameter can disambiguate a perimeter
-    key straddling a binary32 midpoint; its exact round-trip is still required.
+    A trusted canonical writer replay binds exact source-double anchors or
+    historical binary32 anchors to their stored source provenance. Without that
+    context the historical binary32 round-trip remains mandatory. An
+    authenticated named-seam parameter can disambiguate a perimeter key
+    straddling a binary32 midpoint; its exact round-trip is still required.
     The native mesh is never changed. Source perimeter keys carry eight
     decimal places, so their material uncertainty is at most 0.5e-8 cm.
     """
@@ -310,6 +312,13 @@ def reconcile_source_boundary_uv(piece,panel,rest_cm,*,seam_witnesses=None):
             or any(type(index)is not int or not 0<=index<len(rest_cm)for index in ids)):
         raise StudioError('UV precision reconciliation requires complete actual source perimeter bindings')
     chain=piece['vertices']+[piece['vertices'][0]]
+    storage_bindings=None
+    if canonical_storage is not None:
+        from .source_uv_witnesses import checked_source_boundary_storage
+        if (not native_observation or native_observation.get('rest_cm')!=rest_cm
+            or native_observation.get('panels',{}).get(piece_id)!=panel):
+            raise StudioError('Source UV storage reconciliation differs from its exact native observation')
+        storage_bindings=checked_source_boundary_storage(piece,piece_id,native_observation,canonical_storage)
     from .sewing import chain_lengths
     stops=chain_lengths(chain);total=stops[-1];reconstructed={};evidence=[]
     f32=lambda x:struct.unpack('f',struct.pack('f',x))[0]
@@ -320,18 +329,35 @@ def reconcile_source_boundary_uv(piece,panel,rest_cm,*,seam_witnesses=None):
         if len(corners)>1:raise StudioError('UV precision reconciliation cannot disambiguate collapsed source perimeter stops')
         uv=copy.deepcopy(chain[corners[0]])if corners else sample_chain(chain,key/total)
         native=rest_cm[index][:2];binary32=list(map(f32,uv));witness=None
-        if native!=binary32 and seam_witnesses and index in seam_witnesses:
+        if storage_bindings is not None:
+            binding=storage_bindings[str(index)]
+            if binding['source_perimeter_key_cm']!=key:
+                raise StudioError('Canonical source UV storage has another exact perimeter key')
+            uv=copy.deepcopy(binding['source_uv_cm']);binary32=list(map(f32,uv))
+            expected=uv if canonical_storage['storage_mode']=='SOURCE_DOUBLE'else binary32
+            if native!=expected:raise StudioError('Native source UV differs from its exact canonical writer storage')
+            if seam_witnesses and index in seam_witnesses:witness=copy.deepcopy(seam_witnesses[index])
+        elif native!=binary32 and seam_witnesses and index in seam_witnesses:
             witness=copy.deepcopy(seam_witnesses[index]);uv=copy.deepcopy(witness['source_uv_cm'])
             binary32=list(map(f32,uv))
-        if native!=binary32:
+        if storage_bindings is None and native!=binary32:
             raise StudioError('Native source UV differs from its immutable perimeter position and exact binary32 round-trip')
         delta=math.dist(uv,native)
         reconstructed[index]=uv
         evidence.append({'vertex':index,'source_perimeter_key_cm':key,'native_uv_cm':copy.deepcopy(native),
             'source_uv_cm':uv,'native_to_source_delta_cm':delta,'binary32_round_trip':'EXACT',
-            'source_stop':'EXACT_ORIGINAL_CORNER'if corners else('CANONICAL_NAMED_SEAM_PARAMETER'if witness else'RECORDED_SOURCE_ARCLENGTH'),
+            **({'storage_mode':canonical_storage['storage_mode'],'storage_round_trip':'EXACT',
+                'binary32_round_trip':'EXACT'if native==binary32 else'NOT_APPLICABLE_SOURCE_DOUBLE',
+                'canonical_source_provenance':copy.deepcopy(storage_bindings[str(index)]['source_provenance']),
+                'canonical_replay_sha256':canonical_storage['content_sha256']}
+               if storage_bindings is not None else{}),
+            'source_stop':('CANONICAL_WRITER_SOURCE_PARAMETER'if storage_bindings is not None else
+                ('EXACT_ORIGINAL_CORNER'if corners else('CANONICAL_NAMED_SEAM_PARAMETER'if witness else'RECORDED_SOURCE_ARCLENGTH'))),
             **({'canonical_seam_witness':witness}if witness else{})})
-    return reconstructed,{'status':'IMMUTABLE_SOURCE_BOUNDARY_RECONSTRUCTED_FROM_NATIVE_BINARY32',
+    return reconstructed,{'status':'IMMUTABLE_SOURCE_BOUNDARY_CHECKED_FROM_CANONICAL_WRITER_STORAGE'if storage_bindings is not None
+                          else'IMMUTABLE_SOURCE_BOUNDARY_RECONSTRUCTED_FROM_NATIVE_BINARY32',
+        **({'storage_mode':canonical_storage['storage_mode'],'canonical_replay_sha256':canonical_storage['content_sha256']}
+           if storage_bindings is not None else{}),
         'source_contour_sha256':panel['source_contour_sha256'],'source_perimeter_keys_sha256':digest(keys),
         'boundary_vertex_bindings':evidence,'maximum_native_to_source_delta_cm':max(row['native_to_source_delta_cm']for row in evidence),
         'perimeter_key_uncertainty_cm':.5e-8,'native_mesh_changed':False,'source_cut_changed':False,
@@ -511,6 +537,8 @@ def _source_guide_curve(row,pid,frame,source_meshes,section,seam_edges,source_li
             or not isinstance(native['panels'].get(pid),dict)
             or not isinstance(native.get('rest_cm'),list)or not isinstance(native.get('faces'),list)):
         raise StudioError('Measured guide mesh is missing its actual source panel or indexed triangulation')
+    if native.get('_source_uv_storage_error'):
+        raise StudioError(native['_source_uv_storage_error'])
     panel=native['panels'][pid]
     if (not isinstance(panel.get('indices'),list)or not isinstance(panel.get('boundary'),list)
             or len(panel['boundary'])<3
@@ -522,8 +550,10 @@ def _source_guide_curve(row,pid,frame,source_meshes,section,seam_edges,source_li
     if source['binding_issues']:raise StudioError('Measured guide mesh has invalid actual source face/UV correspondence')
     actual_triangles=[uv for uv,owner in zip(source['source_rest_triangles_cm'],source['source_face_pieces'])if owner==pid]
     from .source_uv_witnesses import source_boundary_seam_witnesses
-    witnesses=source_boundary_seam_witnesses(row['source_geometry'],pid,cid,native,source_links)
-    restored,reconciliation=reconcile_source_boundary_uv(row['source_geometry'],panel,native['rest_cm'],seam_witnesses=witnesses)
+    storage=native.get('_canonical_source_uv_storage')
+    witnesses=source_boundary_seam_witnesses(row['source_geometry'],pid,cid,native,source_links,canonical_storage=storage)
+    restored,reconciliation=reconcile_source_boundary_uv(row['source_geometry'],panel,native['rest_cm'],seam_witnesses=witnesses,
+        canonical_storage=storage,native_observation=native,piece_id=pid)
     owned_faces=[face for face,owner in zip(native['faces'],source['source_face_pieces'])if owner==pid]
     triangles=[[copy.deepcopy(restored.get(index,native['rest_cm'][index][:2]))for index in face]for face in owned_faces]
     boundary=[restored[index]for index in native['panels'][pid]['boundary']]
@@ -737,10 +767,11 @@ def propose_compiled_measurement_paths(project,compiled,guides_path,fit_path,bod
         guide_reconstruction={'status':'NEEDS_DATA','diagnostics':[{'code':'GUIDE_POLICY_MISSING',
             'message':'A versioned source/body/skin/code policy is required to reconstruct the supplied guide coordinates'}],
             'qualification':'NONE','admissible_for_fit':False,'comparison':'NOT_EXECUTED'}
-    source_meshes={};mesh_origins={}
+    source_meshes={};mesh_origins={};storage_input_refs=[]
     for cid,ref in sorted((derived_mesh_refs or {}).items()):
         if cid not in source_data:raise StudioError('Measurement derived mesh belongs to an undeclared source component')
         payload=load(ref);component=next(row for row in compiled['components']if row['id']==cid)
+        payload.pop('_canonical_source_uv_storage',None);payload.pop('_source_uv_storage_error',None)
         garment_path=inside(project.root,payload['source_garment'])
         if (payload.get('component_id')!=cid or payload.get('source_garment_sha256')!=digest(source_data[cid])
                 or payload.get('package_sha256')!=component['package_source_ref']['sha256']
@@ -753,6 +784,26 @@ def propose_compiled_measurement_paths(project,compiled,guides_path,fit_path,bod
         if ref not in preparation['files']:raise StudioError('Measurement source triangulation has no actual canonical native preparation origin')
         source_meshes[cid]=payload;mesh_origins[cid]={'derived_mesh_ref':copy.deepcopy(ref),'native_preparation_origin':receipt,
             'placement_readiness':preparation['result']['readiness'],'placement_qualification':'NOT_TRANSFERRED'}
+        try:
+            from .source_uv_witnesses import replay_source_boundary_storage
+            result=preparation['result']
+            replay_refs=[result[key]for key in ('recipe','preparation_spec','construction_dossier')]
+            if any(reference not in preparation['files']for reference in replay_refs):
+                raise StudioError('Canonical source UV writer inputs lack exact native receipt ownership')
+            recipe=contract('sewing-recipe',load(replay_refs[0]))
+            spec=contract('pattern-preparation',load(replay_refs[1]));dossier=load(replay_refs[2])
+            if spec.get('meshing_profile'):
+                raise StudioError('Canonical source UV replay needs the exact synchronized writer profile; unsupported replay is refused')
+            storage=replay_source_boundary_storage(source_data[cid],recipe,payload,spec['regular_mesh'],dossier)
+            payload['_canonical_source_uv_storage']=storage
+            storage_input_refs.extend(replay_refs)
+            mesh_origins[cid]['source_uv_storage']={key:storage[key]for key in ('status','storage_mode','content_sha256')}
+        except StudioError as error:
+            payload['_source_uv_storage_error']=str(error)
+            mesh_origins[cid]['source_uv_storage']={'status':'NEEDS_DATA','message':str(error),'qualification':'NONE'}
+        except (KeyError,TypeError) as error:
+            payload['_source_uv_storage_error']='Canonical source UV replay lacks authenticated native writer inputs'
+            mesh_origins[cid]['source_uv_storage']={'status':'NEEDS_DATA','message':payload['_source_uv_storage_error'],'qualification':'NONE'}
     descriptor=None;failure=None
     if declaration:
         from .body_region_sections import body_region_descriptor
@@ -771,6 +822,11 @@ def propose_compiled_measurement_paths(project,compiled,guides_path,fit_path,bod
             if row.get('source_seam_coupling'):
                 result['input_refs'].append(copy.deepcopy(row['source_seam_coupling']['recipe_ref']))
     if mesh_origins:result['source_uv_triangulations']=mesh_origins
+    if storage_input_refs:
+        for reference in storage_input_refs:
+            if sha(inside(project.root,reference['path']))!=reference['sha256']:
+                raise StudioError('Canonical source UV writer input changed during measurement reconstruction')
+        result['input_refs'].extend(copy.deepcopy(storage_input_refs))
     if declaration:result['body_regions']=copy.deepcopy(declaration)
     if failure:result['body_region_source_reconciliation']={'status':'NEEDS_DATA','message':failure}
     if guide_policy_path and sha(policy_path)!=policy_sha256:

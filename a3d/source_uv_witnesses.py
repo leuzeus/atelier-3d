@@ -1,14 +1,110 @@
-"""Exact source sewing witnesses for quantized native boundary coordinates.
+"""Exact writer replay and source sewing witnesses for native boundary UV.
 
 The caller authenticates the source piece, compiled links and native observation.
-This pure helper only proves coordinates at explicitly paired sewing samples. It
-does not search for a nearby contour point or qualify a garment for fitting.
+The replay authenticates the writer's stored anchors; sewing witnesses bind its
+paired samples. Neither searches nearby points nor qualifies garment fitting.
 """
 import math
 import struct
+import copy
 
 from .core import StudioError, digest
 from .sewing import chain_lengths, edge_chain, sample_chain
+
+
+def _boundary_observation(native):
+    return {'component_id':native.get('component_id'),'panels':native.get('panels'),
+        'seams':native.get('seams'),'boundary_uv':{pid:[native['rest_cm'][i][:2]for i in panel['boundary']]
+            for pid,panel in native['panels'].items()}}
+
+
+def replay_source_boundary_storage(data,recipe,native,regular_mesh,dossier=None):
+    """Authenticate source anchors against the existing writer's exact sampler.
+
+    Source/package and native-receipt authentication belongs to the wrapper.
+    This pure replay proves full inventories, order, keys, paired parameters and
+    stored last-writer provenance. It cannot grant geometry or fitting gates.
+    """
+    from .pattern_preparation import prepare_regular_boundaries
+    try:
+        if (native.get('component_id')!=data['component_id'] or recipe['component_id']!=data['component_id']
+            or native.get('source_garment_sha256')!=digest(data)
+            or native.get('regular_preparation_mesh')!=regular_mesh):
+            raise StudioError('Canonical source UV replay differs from its source, component or regular mesh')
+        if native.get('meshing_profile'):
+            raise StudioError('Canonical source UV replay needs the exact synchronized writer profile; unsupported replay is refused')
+        fields={key:recipe[key]for key in ('component_id','mesh','placements','seams','pins')}
+        for key in ('experimental_prefit','trial_mode'):
+            if key in recipe:fields[key]=recipe[key]
+        if 'trial_mode'in recipe:fields['trial_pieces']=recipe['trial_pieces']
+        if native.get('recipe_mesh_sha256')!=digest(fields):
+            raise StudioError('Canonical source UV replay recipe differs from the native writer recipe')
+        before=digest([data,recipe,native,regular_mesh,dossier])
+        parts,seams,_=prepare_regular_boundaries(data,recipe,regular_mesh,dossier)
+        if set(parts)!=set(native['panels']) or set(seams)!=set(native['seams']):
+            raise StudioError('Canonical source UV replay piece or seam inventory differs')
+        boundaries={};all_double=True;all_binary32=True;owned=set()
+        for pid,row in parts.items():
+            panel,indices,boundary=_panel(native,pid,len(native['rest_cm']))
+            if owned & indices:raise StudioError('Canonical source UV replay panel ownership overlaps')
+            owned.update(indices)
+            if (panel['source_contour_sha256']!=row['source_sha256']
+                or panel['boundary_source_arclength_cm']!=row['keys']
+                or len(panel['boundary'])!=len(row['polygon'])
+                or set(panel['edges'])!=set(row['edges'])):
+                raise StudioError('Canonical source UV replay contour, perimeter order or named edges differ: '+pid)
+            mapping=panel['boundary']
+            if any(panel['edges'][name]!=[mapping[index]for index in ids]for name,ids in row['edges'].items()):
+                raise StudioError('Canonical source UV replay named-edge ownership or order differs: '+pid)
+            bindings={}
+            for index,key,point,provenance in zip(mapping,row['keys'],row['polygon'],row['sample_provenance']):
+                actual=native['rest_cm'][index]
+                if not isinstance(actual,list)or len(actual)!=3 or any(not _number(x)for x in actual):
+                    raise StudioError('Canonical source UV replay needs finite actual rest coordinates')
+                all_double=all_double and actual[:2]==point
+                all_binary32=all_binary32 and actual[:2]==_binary32(point)
+                bindings[str(index)]={'source_uv_cm':copy.deepcopy(point),'source_perimeter_key_cm':key,
+                    'source_provenance':copy.deepcopy(provenance)}
+            boundaries[pid]={'source_contour_sha256':row['source_sha256'],'bindings':bindings}
+        if owned!=set(range(len(native['rest_cm']))):
+            raise StudioError('Canonical source UV replay has unowned native rest vertices')
+        for sid,row in seams.items():
+            actual=native['seams'][sid]
+            pairs=[[native['panels'][row['piece_a']]['boundary'][a],
+                    native['panels'][row['piece_b']]['boundary'][b]]for a,b in zip(row['a'],row['b'])]
+            if (any(actual.get(key)!=row[key]for key in ('piece_a','piece_b','kind','parameters'))
+                or actual.get('pairs')!=pairs):
+                raise StudioError('Canonical source UV replay seam parameters, relation or pairing differ: '+sid)
+        if not all_double and not all_binary32:
+            raise StudioError('Native source UV differs from both exact source-double and exact binary32 writer storage')
+        if digest([data,recipe,native,regular_mesh,dossier])!=before:
+            raise StudioError('Canonical source UV replay changed its exact inputs')
+        result={'version':1,'status':'CANONICAL_SOURCE_BOUNDARY_REPLAY_CHECKED',
+            'storage_mode':'SOURCE_DOUBLE'if all_double else'BINARY32',
+            'source_garment_sha256':digest(data),'recipe_mesh_sha256':digest(fields),
+            'regular_mesh_sha256':digest(regular_mesh),'boundaries':boundaries,
+            'native_boundary_observation_sha256':digest(_boundary_observation(native)),
+            'qualification':'NONE','native_mesh_changed':False,'source_cut_changed':False}
+        result['content_sha256']=digest(result)
+        return result
+    except StudioError:raise
+    except (KeyError,TypeError,IndexError,ValueError,OverflowError) as error:
+        raise StudioError('Canonical source UV replay lacks complete valid writer inputs')from error
+
+
+def checked_source_boundary_storage(piece,pid,native,storage):
+    """Bind a trusted canonical replay to this exact observed source and mesh."""
+    try:
+        if (storage['status']!='CANONICAL_SOURCE_BOUNDARY_REPLAY_CHECKED'
+            or storage['storage_mode']not in ('SOURCE_DOUBLE','BINARY32')
+            or storage['content_sha256']!=digest({k:v for k,v in storage.items()if k!='content_sha256'})
+            or storage['native_boundary_observation_sha256']!=digest(_boundary_observation(native))
+            or storage['boundaries'][pid]['source_contour_sha256']!=digest(piece['vertices'])):
+            raise StudioError('Canonical source UV replay changed or belongs to another observed source boundary')
+        return storage['boundaries'][pid]['bindings']
+    except StudioError:raise
+    except (KeyError,TypeError,IndexError) as error:
+        raise StudioError('Canonical source UV replay binding is incomplete')from error
 
 
 def _number(value):
@@ -86,7 +182,7 @@ def _perimeter_witness(piece, source_ids, points, parameter, perimeter):
     raise StudioError('Source sewing witness has no semantic boundary segment')
 
 
-def source_boundary_seam_witnesses(piece, pid, cid, native, links):
+def source_boundary_seam_witnesses(piece, pid, cid, native, links, *, canonical_storage=None):
     """Return ``{native_index: {source_uv_cm, evidence}}`` for exact witnesses.
 
     Missing sewing observations produce an empty mapping. A present relation,
@@ -125,6 +221,8 @@ def source_boundary_seam_witnesses(piece, pid, cid, native, links):
             for key in keys) or len(set(keys)) != len(keys):
         raise StudioError('Source sewing witness requires unique exact rounded source perimeter keys')
     key_by_index = dict(zip(panel['boundary'], keys))
+    stored_bindings=(checked_source_boundary_storage(piece,pid,native,canonical_storage)
+                     if canonical_storage is not None else None)
     seams = native.get('seams')
     if not isinstance(seams, dict) or not isinstance(links, list):
         raise StudioError('Source sewing witness requires native seams and compiled source links')
@@ -197,13 +295,28 @@ def source_boundary_seam_witnesses(piece, pid, cid, native, links):
                         not _number(value) for value in point):
                     raise StudioError('Native sewing witness requires a finite actual rest vertex')
                 native_uv = point[:2]
-                if native_uv != _binary32(native_uv) or native_uv != _binary32(source_uv):
+                if stored_bindings is not None:
+                    binding=stored_bindings[str(index)]
+                    source_uv=copy.deepcopy(binding['source_uv_cm'])
+                    expected=source_uv if canonical_storage['storage_mode']=='SOURCE_DOUBLE'else _binary32(source_uv)
+                    if binding['source_perimeter_key_cm']!=key_by_index[index]or native_uv!=expected:
+                        raise StudioError('Native sewing UV differs from its exact canonical writer storage')
+                elif native_uv != _binary32(native_uv) or native_uv != _binary32(source_uv):
                     raise StudioError('Native sewing UV differs from its exact source parameter binary32 round-trip')
                 position, segment, fraction = _perimeter_witness(
                     piece, sampler_ids, sampler_points, common_parameter, perimeter)
                 key = key_by_index[index]
                 if round(position, 8) != key:
                     raise StudioError('Native sewing witness perimeter key differs from its exact source parameter')
+                common_position=position
+                if stored_bindings is not None:
+                    provenance=stored_bindings[str(index)]['source_provenance']
+                    if provenance['kind']=='SOURCE_VERTEX':
+                        position=perimeter[provenance['source_vertex']]%perimeter[-1]
+                    else:
+                        chain=provenance['source_chain']
+                        position,_,_=_perimeter_witness(piece,chain,[piece['vertices'][i]for i in chain],
+                            provenance['source_parameter'],perimeter)
                 witness = {'source_link_id': sid, 'source_link_sha256': digest(link),
                     'side': side, 'edge': name, 'kind': link['kind'],
                     'orientation': link['orientation'], 'pair_index': pair_index,
@@ -211,6 +324,7 @@ def source_boundary_seam_witnesses(piece, pid, cid, native, links):
                     'sampler': 'REVERSED_NAMED_EDGE' if reverse_sampler else 'NAMED_EDGE',
                     'sampler_parameter': common_parameter,
                     'source_segment_vertex_ids': segment, 'source_segment_fraction': fraction}
+                if stored_bindings is not None:witness['common_source_perimeter_position_cm']=common_position
                 if 'source_ref' in link:
                     witness['source_ref'] = dict(link['source_ref']) if isinstance(link['source_ref'], dict) \
                         else link['source_ref']
@@ -226,6 +340,11 @@ def source_boundary_seam_witnesses(piece, pid, cid, native, links):
                         'piece': pid, 'component_id': cid, 'source_contour_sha256': digest(piece['vertices']),
                         'source_perimeter_key_cm': key, 'source_perimeter_position_cm': position,
                         'native_uv_cm': native_uv, 'binary32_round_trip': 'EXACT',
+                        **({'storage_mode':canonical_storage['storage_mode'],
+                            'storage_round_trip':'EXACT','canonical_source_provenance':copy.deepcopy(stored_bindings[str(index)]['source_provenance']),
+                            'canonical_replay_sha256':canonical_storage['content_sha256'],
+                            'binary32_round_trip':'EXACT'if native_uv==_binary32(source_uv)else'NOT_APPLICABLE_SOURCE_DOUBLE'}
+                           if stored_bindings is not None else{}),
                         'perimeter_key_round_trip': 'EXACT', 'witnesses': [witness],
                         'source_cut_changed': False, 'native_mesh_changed': False,
                         'qualification': 'NONE', 'admissible_for_fit': False}}

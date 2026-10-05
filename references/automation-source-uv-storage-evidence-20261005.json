@@ -1,0 +1,187 @@
+{
+  "status": "SCOPED_SOURCE_FIX_VALIDATED_NOT_INSTALLED",
+  "source_sha256": {
+    "a3d/source_uv_witnesses.py": "d2ac33f1ebb2ebc7281d82d5817afcab712e84a63ce755cb6af84823fda369bc",
+    "a3d/garment_measurements.py": "7f67b16bc53dfff64dbcc7282e6fabb1e66317261824fce8f1990e0201af7f5d",
+    "tests/test_source_uv_storage.py": "9f9bd5c51555473e72eb2131816b00c4371c628853014c044a228b03b79af954"
+  },
+  "tests": {
+    "python311": {
+      "count": 45,
+      "result": "PASS",
+      "seconds": 1.502,
+      "log": "python311-tests.log",
+      "log_sha256": "65e14ed11fc723e95f4f521076c0c6ca79323d44e94f80b797613785e4d14381"
+    },
+    "python313": {
+      "count": 45,
+      "result": "PASS",
+      "seconds": 1.599,
+      "log": "python313-tests.log",
+      "log_sha256": "b6d35e77f649e3f512d0ec5299cc1880606da4828bf74258584f29277416bde2"
+    }
+  },
+  "tests_modules": [
+    "tests.test_source_uv_storage",
+    "tests.test_source_uv_witnesses",
+    "tests.test_garment_measurements",
+    "tests.test_collar_measurement_guide_dispatch"
+  ],
+  "diff_check": "PASS",
+  "implementation": {
+    "sampler": "UNCHANGED_CANONICAL_PREPARE_REGULAR_BOUNDARIES",
+    "storage_modes": [
+      "SOURCE_DOUBLE",
+      "BINARY32"
+    ],
+    "comparison": "EXACT_FLOAT_EQUALITY",
+    "canonical_checks": [
+      "source digest",
+      "recipe mesh digest",
+      "regular preparation parameters",
+      "piece/seam inventory",
+      "disjoint exhaustive panel ownership",
+      "ordered boundary keys and named edges",
+      "canonical paired parameters and ordered global indices",
+      "all boundary stored UV",
+      "SOURCE_VERTEX and SOURCE_ARC_INTERPOLATION last-writer provenance"
+    ],
+    "replay_context": "TRUSTED_EPHEMERAL_WRAPPER_RESULT_NOT_PUBLIC_CALLER_AUTHORITY",
+    "wrapper": "REBUILDS_CONTEXT_FROM_AUTHENTICATED_NATIVE_RECEIPT_REFERENCES",
+    "source_writer_changed": false,
+    "uv_tolerance_added": false,
+    "source_cut_changed": false
+  },
+  "product_readonly_probe": {
+    "status": "READ_ONLY_COMPILER_RETURNED",
+    "compilation_status": "READY_TO_PLAN",
+    "measurement_status": "MEASUREMENT_PATH_PROPOSALS_NEED_REVIEW",
+    "proposal_sha256": "a505eb95d544b8b2785742e7118d12f7dfa9e1510a7021ed668437866a5ec7f3",
+    "proposals": [
+      {
+        "id": "coat.upper-arm.left",
+        "material_length_cm": 45.20489425393275,
+        "body_girth_cm": 37.43990234168494,
+        "admissible_for_fit": false
+      },
+      {
+        "id": "coat.upper-arm.right",
+        "material_length_cm": 45.24033562461178,
+        "body_girth_cm": 37.47698884036007,
+        "admissible_for_fit": false
+      },
+      {
+        "id": "coat.wrist.left",
+        "material_length_cm": 25.0,
+        "body_girth_cm": 17.39573913140808,
+        "admissible_for_fit": false
+      },
+      {
+        "id": "coat.wrist.right",
+        "material_length_cm": 25.0,
+        "body_girth_cm": 17.441565861380564,
+        "admissible_for_fit": false
+      }
+    ],
+    "diagnostics": [
+      {
+        "id": "coat.chest",
+        "message": "Guide-plane material computation time budget exhausted",
+        "source_join": null,
+        "guide_plane_material_candidate": null
+      },
+      {
+        "id": "coat.hip",
+        "message": "Guide-plane material computation time budget exhausted",
+        "source_join": null,
+        "guide_plane_material_candidate": null
+      },
+      {
+        "id": "coat.neck",
+        "message": "Open collar needs one actual measured neck-plane source row with complete declared neckline attachments",
+        "source_join": null,
+        "guide_plane_material_candidate": null
+      },
+      {
+        "id": "coat.waist",
+        "message": "Guide-plane material computation time budget exhausted",
+        "source_join": null,
+        "guide_plane_material_candidate": null
+      }
+    ],
+    "source_uv_storage": {
+      "garment.coat": {
+        "status": "CANONICAL_SOURCE_BOUNDARY_REPLAY_CHECKED",
+        "storage_mode": "SOURCE_DOUBLE",
+        "content_sha256": "a87814865540b91350351ef05c27f740874792f81fe070f39d19603525623578"
+      }
+    },
+    "qualification": "NONE",
+    "fitting": "NOT_EXECUTED",
+    "source_mutated": false,
+    "python": "3.11.0 (main, Oct 24 2022, 18:26:48) [MSC v.1933 64 bit (AMD64)]",
+    "elapsed_seconds": 91.27017830003751,
+    "input_sha256": {
+      ".a3d\\evidence\\reviewed-pattern-composition-dossier.json": "620457742c3038ed981976ccb641558a269a8e042d651c3bbee3d01039c01711",
+      "preparation\\production-metadata-composed-v1.json": "73640c7c46bf413a8c8cc31af3f0f1f4ee620b74eb9530c11635ec3a3d800799",
+      "preparation\\coat-fit-intent-proposal-current-v3.json": "bdcb97cac2a378d55b79e0aea19168d64090474c66c5c0a49efc0cc4ca8c000d",
+      "preparation\\public-source-preparation-v3\\guides.json": "43eb5587d201db505c44f2896a5944afa8dbbb4fcaa1abc7624eea9cc3745593",
+      "preparation\\public-source-preparation-v3\\guide-policy.json": "d927439522f74b9f4c7836ca332f84a6da2e5f69579e1296d61607defa90aca4",
+      "preparation\\body-region-policy-options-current-v1.json": "daf8e9540063c39bacdaee4f6954d1a6360c3a0721cf37349978adf5675b21a8",
+      ".a3d\\blender\\pattern-preparation\\attempt-a55b834780ac4ba1a3cee42dd76ba326\\mesh.json": "90e8792259e8ec92ee60f633e3c3d55082990b73990fc28048a6957932d7fde4"
+    },
+    "input_files_unchanged": true,
+    "installed_runtime_changed": false,
+    "native": "NOT_EXECUTED"
+  },
+  "remaining_limits": [
+    "Synchronized meshing profile needs its own exact writer replay and is refused locally",
+    "Pure helper context must come from trusted replay; a digest is integrity rather than independent external authentication",
+    "Three torso sections exhausted unchanged guide-plane time budget; no material capacity or homology accepted",
+    "Collar has no full source row in measured neck plane",
+    "Four limb proposals still require exact homology review; no fitting or admission granted",
+    "Current installed runtime remains old dev.2026100503; native project unchanged"
+  ],
+  "qualification": "NONE",
+  "fitting": "NOT_EXECUTED",
+  "blender": "NOT_EXECUTED",
+  "installation": "NOT_EXECUTED",
+  "commit": "NOT_EXECUTED",
+  "artifact_sha256": {
+    "python311-tests.log": "65e14ed11fc723e95f4f521076c0c6ca79323d44e94f80b797613785e4d14381",
+    "python313-tests.log": "b6d35e77f649e3f512d0ec5299cc1880606da4828bf74258584f29277416bde2",
+    "probe.py": "21a9cf55b713ed03cab13aa6726aa31e82e5bf236170368cfacae293996641b3",
+    "request-v3.json": "2330b51c3804ab6ff725a7620257e637e2cfb85375fc0401e7eb02beda3b0198",
+    "python311-result-v3.json": "c846c9699a661c9b7eb8dddfcd9cc5808fb95bebab2490431d689f4935fa763d",
+    "python311-receipt-v3.json": "9ad4e376d5de3354a77cff47a517fc7119faa9294ea297d545e9458db8f3498b",
+    "python313-receipt-v3.json": "596bc05ade899c64475e02756f0669fbe5104fda0d3b7b19438d00eb20c80f58",
+    "python313-budget-observation.json": "69ec2e14b6c75df0cedc16b1cf135ce606ff1ae2255520f2957170f9453227c6",
+    "budget-probe.py": "1153778e60e1b28d71fe3d667790f8b47f682cc5d205150779b333ca9ed09b9d"
+  },
+  "additional_profiled_python313_readonly_probe": {
+    "status": "REFUSED",
+    "error": {
+      "type": "StudioError",
+      "message": "Body region supplement differs from actual canonical source remeasurement"
+    },
+    "python": "3.13.13 (main, May  8 2026, 12:37:03) [MSC v.1944 64 bit (AMD64)]",
+    "elapsed_seconds": 11.340452300035395,
+    "input_sha256": {
+      ".a3d\\evidence\\reviewed-pattern-composition-dossier.json": "620457742c3038ed981976ccb641558a269a8e042d651c3bbee3d01039c01711",
+      "preparation\\production-metadata-composed-v1.json": "73640c7c46bf413a8c8cc31af3f0f1f4ee620b74eb9530c11635ec3a3d800799",
+      "preparation\\coat-fit-intent-proposal-current-v3.json": "bdcb97cac2a378d55b79e0aea19168d64090474c66c5c0a49efc0cc4ca8c000d",
+      "preparation\\public-source-preparation-v3\\guides.json": "43eb5587d201db505c44f2896a5944afa8dbbb4fcaa1abc7624eea9cc3745593",
+      "preparation\\public-source-preparation-v3\\guide-policy.json": "d927439522f74b9f4c7836ca332f84a6da2e5f69579e1296d61607defa90aca4",
+      "preparation\\body-region-policy-options-current-v1.json": "daf8e9540063c39bacdaee4f6954d1a6360c3a0721cf37349978adf5675b21a8",
+      ".a3d\\blender\\pattern-preparation\\attempt-a55b834780ac4ba1a3cee42dd76ba326\\mesh.json": "90e8792259e8ec92ee60f633e3c3d55082990b73990fc28048a6957932d7fde4"
+    },
+    "input_files_unchanged": true,
+    "installed_runtime_changed": false,
+    "native": "NOT_EXECUTED"
+  },
+  "validation_sha256": "9bf600ac46e160a4e9bb9565aff759ffede003c892e22d1b7c7de2299beed562",
+  "independent_review": {
+    "status": "NO_P2_OR_HIGHER_CONFIRMED",
+    "replay_context_is_internal_and_rebuilt_by_authenticated_wrapper": true
+  }
+}
