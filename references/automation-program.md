@@ -1252,3 +1252,16 @@ clôture les deux défauts et vérifie les tests terminés, sans revendiquer un 
 natif. La prochaine requête publique est enregistrée dans
 `preparation/public-source-preparation-request-v2.json` ; elle conserve les
 entrées et demande un dossier neuf.
+
+Le commit `06173c2301e83901d6ac468dc8e4e1981b6fa9b0` est empaqueté depuis
+son export Git exact : 595 fichiers source. Le build local distinct
+`0.7.0-rc.2.dev.2026100502` est installé par le gestionnaire natif Codex ;
+les 596 fichiers adaptés correspondent au stage vérifié. Les anciens stages
+sur G: sont conservés. [Preuves du correctif et de l'installation](automation-source-binding-evidence-20261005.json).
+
+Après installation, `studio_doctor` échoue sur un fichier de l'ancien cache
+`dev.2026100501`, remplacé par le gestionnaire natif. Le serveur connecté reste
+à recharger : redémarrer Codex, vérifier la nouvelle identité et l'admission,
+puis exécuter la requête V2. Préparer ensuite le binding public exact et demander
+son autorisation Blender distincte. Aucun binding ou placement nouveau n'est
+exécuté ; le fitting et la préversion finale restent soumis aux gates produit.
