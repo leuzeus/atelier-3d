@@ -1145,3 +1145,9 @@ La qualification reste `NONE` : aucun payload natif réel n’est exécuté par 
 Le commit `21509d9061d40ffce0f05601e0cd91c7169fad46` passe une suite complète de 1 511 tests en 215,119 s, puis les 14 contrats. Ses 583 fichiers exportés depuis Git et capturés restent identiques après exécution. Le build local est vérifié contre ces mêmes fichiers ; [preuves source69](automation-software-source69-evidence-20261005.json).
 
 L’archive conserve la version déclarée 0.7.0-rc.2 pour le développement local. Elle ne publie pas la préversion finale, n’installe pas le plugin et ne qualifie pas le manteau physique. Les preuves source68 restent historiques. La préservation mesurée par ce lot couvre l’export Git et la copie de test ; aucun checkpoint distinct des originaux avant source69 n’est revendiqué.
+
+La [CI du commit exact](https://github.com/leuzeus/atelier-3d/actions/runs/37321173885) passe sur Windows 3.11 et Ubuntu 3.13, avec tests, contrats Windows et archives. Le compteur de tests provient de l’exécution locale ; il n’est pas extrait des logs du fournisseur.
+
+### 2026-10-05 — Référence du col : diagnostic à préciser
+
+L’unique essai de référence fraîche se termine en 30,078 s avec `StudioError`, sans référence complète. [Observations et limites](automation-current-collar-reference-diagnostic-20261005.md). La lecture indépendante confirme le refus et la préservation des entrées, mais le message et la phase sont absents du diagnostic. La nouvelle opération prépare leur capture bornée avant un nouvel essai ; aucune cause géométrique ou qualité n’est inventée.
