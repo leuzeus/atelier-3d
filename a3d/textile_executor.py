@@ -238,6 +238,38 @@ def _source_metric_recovery(data, semantics, guide, preform_budget, budgets):
     return result
 
 
+def _template_guide_assessment(data, guide):
+    """Complete proposal inputs may still require native placement correction.
+
+    Only the existing partial proper-rigid seed warning can cross this input
+    boundary. Missing guides or a refused alignment cannot. This never admits
+    the geometry and keeps the generator's TEST_ONLY proposal scope intact.
+    """
+    message = 'Source preparation requires complete measured guides: '+data['component_id']
+    if (not isinstance(guide, dict) or not isinstance(guide.get('panels'), dict)
+            or set(guide['panels']) != set(data['pieces'])):
+        raise StudioError(message)
+    if guide.get('status') == 'GARMENT_GUIDES_PREPARED':
+        return None
+    coupling = guide.get('source_seam_coupling')
+    alignment = coupling.get('rigid_alignment', {}) if isinstance(coupling, dict) else {}
+    diagnostics = guide.get('diagnostics')
+    if (guide.get('status') != 'PARTIAL_GUIDES' or guide.get('pending_pieces') != []
+            or not isinstance(diagnostics, list) or not diagnostics
+            or any(not isinstance(row, dict) or row.get('family') != 'source_rigid_alignment'
+                   or row.get('code') != 'PARTIAL_SOURCE_RELATION_ALIGNMENT' for row in diagnostics)
+            or not isinstance(alignment, dict)
+            or alignment.get('status') != 'PARTIAL_ROLE_SEEDS_PREPARED'
+            or alignment.get('diagnostics') != []
+            or alignment.get('proposal_scope') != 'PARTIAL_TEST_ONLY'
+            or alignment.get('whole_piece_admission') is not False):
+        raise StudioError(message)
+    return {'status': 'NEEDS_CORRECTION', 'source_guide_status': guide['status'],
+            'alignment_status': alignment['status'], 'proposal_scope': alignment['proposal_scope'],
+            'whole_piece_admission': False, 'diagnostics': copy.deepcopy(diagnostics),
+            'qualification': 'NONE', 'simulation': 'NOT_EXECUTED', 'fitting': 'NOT_EXECUTED'}
+
+
 def prepare_component_templates(assembly_plan, sources, guides, standard_recipe, dossier, dossier_ref, compiler_inputs=None):
     """Prepare portable native inputs without claiming a native mesh identity.
 
@@ -257,8 +289,7 @@ def prepare_component_templates(assembly_plan, sources, guides, standard_recipe,
         _reference(source['source_ref']); data = source['data']
         if data['component_id'] != cid: raise StudioError('Source preparation component differs')
         guide = guides.get(cid,{})
-        if guide.get('status')!='GARMENT_GUIDES_PREPARED' or set(guide.get('panels',{}))!=set(data['pieces']):
-            raise StudioError('Source preparation requires complete measured guides: '+cid)
+        guide_assessment = _template_guide_assessment(data, guide)
         semantics={pid:{k:v for k,v in assembly_plan['piece_semantics'][pid].items()
                        if k not in ('id','component_id','edges','source_ref')} for pid in data['pieces']}
         if guide.get('source_sha256')!=digest(data) or guide.get('semantics_sha256')!=digest(semantics):
@@ -328,6 +359,10 @@ def prepare_component_templates(assembly_plan, sources, guides, standard_recipe,
             'cloth_limit_cm':recipe['limits']['max_displacement_cm'],
             'correction_limit_cm':spec['placement_correction']['budgets']['max_displacement_cm'],
             'basis':'SOURCE_FLAT_SEED_TO_DECLARED_GUIDE_BEFORE_EXECUTION'}
+        if guide_assessment:
+            prepared[cid]['guide_assessment'] = guide_assessment
+            diagnostic.append({'component_id': cid, 'category': 'guide_placement',
+                'assessment': 'NEEDS_CORRECTION', 'guide_assessment': copy.deepcopy(guide_assessment)})
         if prepared[cid]['source_audit']['status']!='SOURCE_AUDITED':
             diagnostic.append({'component_id':cid,'category':'source_audit','assessment':prepared[cid]['source_audit']['status']})
     if digest([assembly_plan,sources,guides,standard_recipe,dossier,dossier_ref])!=before:

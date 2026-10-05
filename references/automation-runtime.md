@@ -481,6 +481,27 @@ ne sont pas réécrits ni admis par cette nouvelle capacité.
 
 ## Couplage explicite des guides
 
+La complétude des entrées et l'admission du placement sont distinctes. Un guide
+`PARTIAL_GUIDES` peut produire des templates seulement si tous les panneaux
+source sont présents, aucune pièce n'est en attente et l'unique défaut déclaré
+est `PARTIAL_SOURCE_RELATION_ALIGNMENT`, avec les graines rigides préparées,
+sans erreur interne ni admission de pièce. Son diagnostic reste intact ; le
+composant produit porte `guide_assessment.status = NEEDS_CORRECTION`.
+Les autres guides incomplets restent refusés.
+
+L'opération publique `studio_blender_operation` peut préparer
+`bind_component_preparations` avec `templates_path`, `body_object`,
+`body_geometry_ref`, `output_directory` neuf et `policy_path` obligatoire.
+La référence `envelope_review` est optionnelle. Après autorisation distincte
+d'exécution Blender, le consommateur natif existant reconstruit les entrées,
+vérifie le corps connecté et produit les mappings réels ainsi que les fichiers
+de préparation. Il ne place pas le vêtement et ne lance pas Cloth. Les unités
+`prepare_pattern_assembly` produites exigent toujours `READY` pour poursuivre.
+La première tentative utilise un dossier neuf. Après interruption, un binding
+complet peut être rejoué aux mêmes arguments : ses références et tous ses
+fichiers sont revérifiés par reconstruction, sans écrasement. Un dossier
+partiel reste conservé et exige un nouveau dossier et une nouvelle opération.
+
 Une politique de guides peut déclarer `source_seam_coupling` pour un composant :
 pièces sélectionnées, subdivisions, budgets et `recipe_ref` exact. La politique
 conserve aussi le digest du contenu de la recette. Le wrapper projet vérifie

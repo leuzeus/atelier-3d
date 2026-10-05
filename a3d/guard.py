@@ -25,6 +25,75 @@ def parse_code(code):
 
 def admit_operation(project, operation, arguments):
     state = project.state()
+    if operation == 'bind_component_preparations':
+        from .lifecycle import no_pending_operation
+        from .core import digest
+        from .dressing import _reference
+        from .production_dossier import compile_project_dossier
+        from .garment_guide_policy import _project_inputs
+        no_pending_operation(state)
+        expected = {'templates_path', 'body_object', 'body_geometry_ref', 'output_directory', 'policy_path'}
+        if set(arguments) not in (expected, expected | {'envelope_review'}):
+            raise StudioError('Unexpected/missing source preparation binding arguments')
+        if state['stage'] != 'RECONSTRUCTING':
+            raise StudioError('Source preparation binding requires active reconstruction')
+        require_board(project, state)
+        if not isinstance(arguments['body_object'], str) or not arguments['body_object']:
+            raise StudioError('Source preparation binding requires the explicit measured body object')
+        output = inside(project.root, arguments['output_directory'], False)
+        if output.exists() and not (output.is_dir() and (output/'binding.json').is_file()):
+            raise StudioError('Native preparation binding stopped before its boundary; preserve it and choose a fresh output directory')
+        templates = read_json(inside(project.root, arguments['templates_path']))
+        if (templates.get('status') != 'SOURCE_PREPARATION_TEMPLATES_READY'
+                or templates.get('prepared_sha256') != digest({k:v for k,v in templates.items() if k!='prepared_sha256'})):
+            raise StudioError('Source preparation binding requires exact complete proposal templates')
+        inputs = templates.get('compiler_inputs', {})
+        if set(inputs) != {'assembly_plan_ref', 'guides_ref', 'production_spec_ref', 'standard_recipe_ref', 'dossier_ref'}:
+            raise StudioError('Source preparation binding requires all compiler input references')
+        for ref in [*inputs.values(), arguments['body_geometry_ref']]:
+            _reference(ref)
+            if sha(inside(project.root, ref['path'])) != ref['sha256']:
+                raise StudioError('Source preparation binding input changed: '+ref['path'])
+        policy = read_json(inside(project.root, arguments['policy_path']))
+        compiled = compile_project_dossier(project, inputs['dossier_ref']['path'], inputs['production_spec_ref']['path'])
+        _, _, geometry_ref, _, _ = _project_inputs(project, compiled)
+        if (templates['body_ref'] != compiled['assembly_spec']['body_ref']
+                or arguments['body_geometry_ref'] != geometry_ref
+                or policy.get('compiled_sha256') != digest(compiled)
+                or policy.get('body_ref') != templates['body_ref'] or policy.get('geometry_ref') != geometry_ref):
+            raise StudioError('Source preparation binding belongs to another current source or native body')
+        owners = {row['id'] for row in compiled['components'] if row['pipeline']=='PATTERN_SEWN'}
+        if set(templates.get('components', {})) != owners:
+            raise StudioError('Source preparation binding must cover all exact textile components')
+        declared = {name for node in compiled['assembly_spec']['layers']['nodes']
+                    if node['kind'] == 'body' for name in node['colliders']}
+        if declared != {arguments['body_object']}:
+            raise StudioError('Native collider identity differs from the explicit source layer graph')
+        if output.exists():
+            previous = read_json(output/'binding.json')
+            if (previous.get('status') != 'NATIVE_PREPARATION_INPUTS_BOUND'
+                    or previous.get('templates') != {'path': arguments['templates_path'],
+                                                     'sha256': sha(inside(project.root, arguments['templates_path']))}
+                    or previous.get('body_ref') != templates['body_ref']
+                    or previous.get('body_geometry_ref') != geometry_ref
+                    or previous.get('collider', {}).get('object') != arguments['body_object']
+                    or previous.get('guide_reconstruction', {}).get('policy_ref') != {
+                        'path': arguments['policy_path'], 'sha256': sha(inside(project.root, arguments['policy_path']))}):
+                raise StudioError('Persisted native preparation binding differs from its exact source or body')
+            ref = previous.get('run_specification'); _reference(ref)
+            if sha(inside(project.root, ref['path'])) != ref['sha256']:
+                raise StudioError('Persisted native preparation run specification changed')
+        for cid in sorted(owners):
+            _, component = project.ready(cid)
+            package = {key: component['package'][key] for key in ('path', 'sha256')}
+            source = next(row for row in compiled['components'] if row['id'] == cid)['package_source_ref']
+            if source != package or templates['components'][cid].get('source_ref') != package:
+                raise StudioError('Preparation source package differs from canonical approved component')
+        if 'envelope_review' in arguments:
+            ref = arguments['envelope_review']; _reference(ref)
+            if sha(inside(project.root, ref['path'])) != ref['sha256']:
+                raise StudioError('Source preparation binding envelope review changed')
+        return
     if operation == 'introduce_body_target':
         from .lifecycle import no_pending_operation
         from .body_context import body_context_descriptor

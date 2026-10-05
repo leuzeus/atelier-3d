@@ -120,6 +120,7 @@ def prepare_project_component_preparation(project, compilation, parameters_path,
                         'policy_ref': artifacts['guide_policy'], 'parameters_ref': parameters_ref}
         artifacts['guide_report'] = save('guide-report.json', guide_report)
         return {'version': 1, 'status': templates['status'], 'artifacts': artifacts,
+                'diagnostics': copy.deepcopy(templates['diagnostics']),
                 'parameters_ref': parameters_ref, 'compiler_inputs': compiler_inputs,
                 'native_body_origin': copy.deepcopy(origin), 'body_ref': copy.deepcopy(policy['body_ref']),
                 'geometry_ref': copy.deepcopy(geometry_ref), 'qualification': 'NONE',

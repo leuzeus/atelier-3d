@@ -307,6 +307,9 @@ def inspect(project_root):
 
 
 def _perform(project_root, operation, arguments):
+    if operation == 'bind_component_preparations':
+        from blender.textile_executor import bind_component_preparations
+        return bind_component_preparations(Project(project_root), **arguments)
     if operation == 'run_dressing_program':
         from blender.dressing_executor import run_dressing_program
         return run_dressing_program(project_root, **arguments)

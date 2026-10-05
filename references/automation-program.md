@@ -1219,3 +1219,36 @@ du projet et l'appel réel de préparation. La requête est prête dans
 `preparation/public-source-preparation-request-v1.json` du projet composé.
 Les guides du manteau ne sont pas encore calculés par ce build, et aucun
 résultat de placement, physique ou fitting n'est accordé.
+
+### 2026-10-05 — Runtime rechargé et distinction entre guides et placement
+
+Après le redémarrage, le MCP confirme `0.7.0-rc.2.dev.2026100501`, son chemin
+installé et son empreinte. L'admission du projet composé passe. L'appel public
+de préparation a réellement calculé les guides et le plan, puis a refusé les
+templates du manteau : [tentative exacte](automation-public-preparation-attempt-20261005.json).
+Les dix panneaux sont présents, sans pièce en attente ; le défaut déclaré est
+l'alignement encore partiel des relations source. Cette observation ne démontre
+aucun défaut du corps ou du découpage approuvé.
+
+Le correctif distingue la complétude des entrées de l'admission du placement.
+Seul ce diagnostic partiel précis peut produire un template marqué
+`NEEDS_CORRECTION` ; les guides source et les critères finaux restent inchangés.
+Les diagnostics sont transmis par l'interface publique. Le consommateur natif
+existant `bind_component_preparations` est raccordé au dispatcher contrôlé :
+origine native du corps, références exactes, package canonique, policy obligatoire,
+collider déclaré, checkpoint et reprise vérifiée d'un binding complet. Un
+répertoire partiel reste conservé et exige une nouvelle opération.
+
+La revue indépendante a relevé puis fait corriger le refus de reprise d'un
+binding complet et le contrôle tardif du package canonique. Les tests et le
+build local de ce correctif sont enregistrés séparément ; aucun essai Blender
+du nouveau binding, placement, Cloth ou fitting n'est exécuté à ce jalon.
+
+Validation du candidat intégré : **1 551 tests logiciels PASS en 201,091 s**,
+dont les 23 nouveaux cas de complétude et de binding ; **14 contrats PASS**.
+Les journaux sont conservés sur G: dans `program-public-binding-tests-v1.log`
+et `program-public-binding-contracts-v1.json`. La dernière relecture indépendante
+clôture les deux défauts et vérifie les tests terminés, sans revendiquer un essai
+natif. La prochaine requête publique est enregistrée dans
+`preparation/public-source-preparation-request-v2.json` ; elle conserve les
+entrées et demande un dossier neuf.

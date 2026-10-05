@@ -26,6 +26,7 @@ FAILED_RESULTS = {'FAIL', 'FAILED', 'REFUSED', 'NEEDS_CORRECTION', 'NEEDS_CLARIF
 KNOWN_RESULTS = {'PASS', 'READY', 'COMPLETED', 'SUCCEEDED', 'SUCCESS', 'PREPARED', 'NOT_QUALIFIED',
                  'GEOMETRY_ONLY', 'HEIGHT_ONLY', 'REVIEW_REQUIRED', 'CREATED', 'CONFIGURED', 'EXPORTED'}
 OPERATION_MODULES = {
+    'bind_component_preparations': ['blender/textile_executor.py', 'a3d/production_preparation.py', 'a3d/garment_guide_policy.py'],
     'inspect': [], 'prepare': [], 'resume': [], 'restore_checkpoint': [], 'assemble': [], 'garment': ['blender/sewing.py'],
     'run_script': ['blender/sewing.py'], 'verify_legacy_import': ['blender/legacy.py'],
     'frame_view': ['blender/viewport.py'], 'prepare_body_target': ['blender/body_target.py'],
