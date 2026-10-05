@@ -62,8 +62,8 @@ jamais une instance ou une scène personnelle.
 | L1 | Ingestion, compilation des rôles/bords/couches/crans/coutures et packages | Déterminisme, 15 textiles + boucle, lacunes localisées, aucune relation inventée | EN_COURS |
 | L2 | Mannequin préparé systématiquement et remesuré | Deux variantes 180 cm réouvrables, revue et cible principale choisie | VALIDE_SUR_DEUX_BASES |
 | L3 | Cage anatomique et contrôles corporels bornés | Résidus mesurés, régions protégées, refus des cibles impossibles | VALIDE_POITRINE_TAILLE_HANCHES |
-| L4 | Guides col, devant intérieur, capuche, empiècements et épaules | Couverture source complète, métrique et contacts contrôlés | GUIDES_15_PIECES_CONTACTS_A_VERIFIER |
-| L5 | Corrections rigides puis relaxation contrainte séparée | Réduction codée des défauts ; READY seulement aux gates finales inchangées | NOYAU_PORTABLE_VALIDE_INTEGRATION_NATIVE_EN_COURS |
+| L4 | Guides col, devant intérieur, capuche, empiècements et épaules | Couverture source complète, métrique et contacts contrôlés | GUIDES_PARTIELS_SUR_COMPOSITION_APPROUVEE |
+| L5 | Corrections rigides puis relaxation contrainte séparée | Réduction codée des défauts ; READY seulement aux gates finales inchangées | PLACEMENT_REFUSE_RECUPERATIONS_EN_COURS |
 | L6 | Exécuteur de groupes/étapes et reprise | Couches, ceinture unique, raccords et interruptions sans doublon | COUPONS_NATIFS_V12_EXECUTES_VETEMENT_A_REALISER |
 | L7 | Enfilage, fiches mesurées, banc matière et fitting | Vêtement complet admis sur cible principale ; appuis transitoires retirés | BANC_EXECUTE_ENFILAGE_PHYSIQUE_ET_FITTING_A_REALISER |
 | L8 | Clips et colliders animés | Clips complets, contacts/métrique/raccords/liberté des pans puis revue | SIX_CLIPS_CORPORELS_EXECUTES_VETEMENT_A_REALISER |
@@ -871,3 +871,33 @@ Le noyau Blender livré reste inchangé pendant cette étude ; aucun plafond
 n'est relevé. Une meilleure proposition de maillage et la qualification du
 vêtement restent à établir. Les refus du maillage auxiliaire ne constituent
 aucune preuve d'impossibilité des patrons. L4 reste partiel, L5 non admis.
+
+### Identités matérielles séparées du porteur UV
+
+Le commit `1322725` ajoute le contrat local `MATERIAL_SAMPLE_CARRIER_V1`.
+Source, porteur et échantillons gardent des identités distinctes ; les supports
+barycentriques et intersections sont rationnels. Une face du porteur peut
+traverser plusieurs faces source : la couverture est contrôlée exactement dans
+les deux sens. Des fractions voisines et les crans à 1/2 restent distincts.
+Aucun voisin spatial, weld ou arrondi ne remplace une identité source.
+
+Les 55 tests ciblés passent, dont 39 nouveaux. La revue reproduit ces tests,
+ajoute 21 sondes et vérifie 7 886 assertions exactes sur le col. Le témoin garde
+743 contrôles et huit samples de crans, sept crans, six coutures permanentes et
+une fermeture ; 586 intersections couvrent les 13 faces source et 192 faces du
+porteur. Le replay est exact hors reçu temporel, avec les mêmes compteurs.
+Les 132 fichiers examinés restent conservés. Voir le
+[reçu du porteur UV](automation-material-carrier-evidence-20261004.json).
+
+Ce format n'est consommé par aucun caller ni solveur de production. Les anciens
+schémas et validateurs restent conservés ; ce module ne peut pas les contourner.
+La phase chronométrée de 60 s commence après le précontrôle et l'empreinte JSON
+bornés. Le coût maximal en entrée n'a pas été qualifié. Les fractions d'arc sont
+déclarées ; la géométrie des partenaires externes et le champ 3D restent à
+vérifier. Une grille UV exacte ne prouve ni la représentabilité des cassures
+en volume, ni la faisabilité des contraintes interpolées, ni le fitting.
+
+La prochaine unité spécifie le champ 3D, sa référence avant injection et les
+contraintes de la courbe, avant toute récupération des six surfaces. Les
+mesures restent liées à leurs candidats ; aucune preuve de coupon, de courbe
+ou de couverture UV n'est transférée aux gates du vêtement.

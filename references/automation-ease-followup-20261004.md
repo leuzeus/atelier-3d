@@ -609,3 +609,13 @@ l'état précédent. Les contrôles bloquent ces propositions et restaurent le
 meilleur candidat. Le calcul de proposition doit utiliser la même référence
 permanente. Les patrons, les limites et le corps approuvés restent conservés.
 Cette analyse n'accorde aucun PASS de placement, de physique ou de fitting.
+
+### Correspondances UV sans petites arêtes imposées par les crans
+
+Le [nouveau contrat local](automation-material-carrier-evidence-20261004.json)
+conserve séparément les contrôles et crans matériels, avec leurs supports sur
+un porteur UV. Sa revue confirme la couverture exacte, les identités et les
+refus de budgets. Il permet de décrire deux samples proches sans imposer une
+arête de même longueur au porteur de calcul. Il ne qualifie pas encore le champ
+en volume, ses métriques, les coutures physiques ou l'aisance du manteau.
+Le corps et les deux manches approuvés restent conservés.
