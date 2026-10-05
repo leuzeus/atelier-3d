@@ -1084,3 +1084,19 @@ conservent la référence complète et les coûts cumulés. Les 129 tests ciblé
 uniquement ce stockage ; le build source67 le précède et ne l'inclut pas.
 Le col réel, l'observer, les métriques et contraintes restent à exécuter ou
 développer. Aucun résultat de stockage n'admet le placement ou le fitting.
+
+### Col sauvegardé, métriques privées et stockage natif encore incomplet
+
+Le [bilan des calculs et du stockage](automation-calculation-storage-20261005.md)
+et ses [preuves](automation-calculation-storage-evidence-20261005.json) remplacent
+le statut d'attente précédent pour le col compact. Sa référence fraîche complète
+de 743 sommets et 1098 triangles est compilée et sauvegardée sous les mêmes caps,
+en 51,625 s au checkpoint terminal. L'écart physique stdout de 1 octet sous Windows
+reste un finding à corriger ; cette compilation n'admet pas le placement.
+
+Le module privé de métriques affines passe 92 tests et neuf sondes, sans nouvelle
+mesure du col réel. Les essais natifs V2 et V3 terminent le calcul des dix pièces,
+mais refusent la sortie complète sous la limite de stockage. Les qualités par pièce
+restent absentes et non qualifiées ; aucun PASS historique n'est transféré. La suite
+porte sur ces frontières de transport et de stockage, puis les métriques, contacts,
+construction physique et revues du candidat exact.

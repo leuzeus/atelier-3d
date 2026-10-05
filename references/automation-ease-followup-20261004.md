@@ -710,3 +710,12 @@ conservent la référence complète et les coûts cumulés. Les 129 tests ciblé
 uniquement ce stockage ; le build source67 le précède et ne l'inclut pas.
 Le col réel, l'observer, les métriques et contraintes restent à exécuter ou
 développer. Aucun résultat de stockage n'admet le placement ou le fitting.
+
+### Mise à jour du 5 octobre : calculs conservés et limites de stockage
+
+Le [bilan dédié](automation-calculation-storage-20261005.md) conserve le col compact
+réel complet, son finding stdout Windows de 1 octet et les deux essais natifs
+V2/V3 incomplets au stockage. Le module privé de métriques passe 92 tests et neuf
+sondes ; ses contrôles sur le col réel restent à exécuter. Ces résultats ne
+modifient ni le mannequin accepté, ni l'intention de manteau ample, ni les patrons
+approuvés. Les contacts, la couverture, le drapé et le fitting restent ouverts.
