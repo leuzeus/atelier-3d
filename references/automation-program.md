@@ -991,3 +991,20 @@ du commit exact. La preuve de rang porte sur les contraintes HARD déclarées,
 pas sur la métrique, les douze barres, le continu physique ou le fitting.
 Les six références de surface actuelles et leurs porteurs restent à adapter
 exactement et sous une enveloppe bornée. L4 reste partiel et L5 non admis.
+
+### Chemins continus de surface : module revu et intégré
+
+Le commit `9748d3f` ajoute l’[observateur de traces](material-surface-traces.md).
+Il conserve les cassures de chaque champ fourni et mesure séparément C,
+la référence fraîche et le précédent. Les cordes et longueurs continues
+gardent leurs propres quantités ; les bornes historiques ne deviennent pas
+une marge supplémentaire. Une longueur sans bande explicite reste mesurée
+sans décision d’acceptation. Le transport continu entre partenaires reste absent.
+
+Le [reçu des traces](automation-material-surface-traces-evidence-20261005.json)
+lie les 130 tests ciblés, 7 sondes et 614 assertions de revue indépendante.
+Les caps existants, le budget commun par appel et le contrôle de délai après
+le dernier hash sont conservés. Aucun caller de production n’est modifié.
+La suite complète et un nouveau package ne sont pas encore exécutés pour ce
+commit ; source64 conserve sa portée historique. Les six surfaces réelles,
+leur récupération, les contacts et le fitting restent à qualifier.

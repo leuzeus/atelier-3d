@@ -657,3 +657,14 @@ exactes aux observations numériques IEEE. Les fixtures portables et les tests
 intégrés passent ; la compilation des six surfaces réelles et leur récupération
 restent à effectuer. Aucune compatibilité de rang ne qualifie l'aisance du
 manteau, la réserve de ceinture ou le fitting sur le mannequin accepté.
+
+### Mesurer les cassures entre les repères
+
+L’[observateur de traces revu](automation-material-surface-traces-evidence-20261005.json)
+mesure les chemins complets des champs fournis. Une cassure entre deux points
+peut allonger le trajet sans changer leur corde ; ces deux mesures sont donc
+conservées séparément. Les limites historiques ne sont pas reportées sur une
+nouvelle quantité. Les tests portables passent, mais les douze barres,
+362 subdivisions et six chemins actuels n’ont pas encore leur observation
+complète en surface. Le corps masculin et l’intention de manteau ample restent
+conservés ; cette mesure n’accorde aucune admission de placement ni de fitting.
