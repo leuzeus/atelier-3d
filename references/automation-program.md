@@ -1105,3 +1105,11 @@ La [mise à jour de transport du col](automation-current-collar-transport-eviden
 confirme désormais le stdout UTF-8/LF physique exact sur l'essai V3 complet,
 sous les caps conservés. Les métriques réelles sont la prochaine unité ; ce
 résultat de persistance n'admet toujours pas le placement ou le fitting.
+
+### Observation affine du col : défaut localisé, admission ouverte
+
+L'[observation du champ expérimental du col](automation-current-collar-metrics-20261005.md)
+est maintenant exécutée et sauvegardée : 144 faces respectent les bornes,
+48 les dépassent. La référence auxiliaire et les maillages natifs restent des
+candidats distincts. La localisation et une correction calculée précèdent
+l'admission de placement ; les patrons, le corps et les gates sont conservés.
