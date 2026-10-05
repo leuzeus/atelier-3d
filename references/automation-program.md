@@ -14,11 +14,15 @@ la composition et ses décisions exactes. Aucune nouvelle revue de coupe n'est
 déduite ou créée par l'installation.
 
 Les 14 entrées exactes du corps accepté sont vérifiées et disponibles dans ce
-projet. L'opération publique `prepare`, arguments `{}`, est préparée et attend
-son autorisation d'exécution ; aucune session Blender de ce projet n'est encore
-créée. Suivent l'introduction native du corps puis le placement admis, le premier
-drapé et le fitting mesuré. La préversion finale et l'acceptation du vêtement
-complet restent ouvertes ; les essais privés différés ne sont pas repris.
+projet. Les opérations publiques `prepare`, puis `start_clean_construction`,
+ont été exécutées après leurs autorisations distinctes. La copie témoin et la
+scène vide de construction sont conservées sur G:, avec reçu natif
+`COMPLETED` et fichier précédent inchangé. Le run
+`run.74b32ba8748a452a93e1983fa1664357` prépare maintenant
+`introduce_body_target`, arguments `{"context_path":"preparation/body-context-v1.json"}`,
+et attend sa propre autorisation. Suivent le placement admis, le premier drapé
+et le fitting mesuré. La préversion finale et l'acceptation du vêtement complet
+restent ouvertes ; les essais privés différés ne sont pas repris.
 
 ## Objectif et acceptation
 
