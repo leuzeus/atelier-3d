@@ -901,3 +901,29 @@ La prochaine unité spécifie le champ 3D, sa référence avant injection et les
 contraintes de la courbe, avant toute récupération des six surfaces. Les
 mesures restent liées à leurs candidats ; aucune preuve de coupon, de courbe
 ou de couverture UV n'est transférée aux gates du vêtement.
+
+### Lisseur cumulatif et candidat logiciel source62
+
+Le commit `6fdd487` ajoute la référence permanente optionnelle du lisseur.
+L'entrée hors budget est refusée, les propositions et le retour utilisent la
+même limite stricte. La référence est copiée immuablement ; les ancrages restent
+fixés à l'entrée. Les 38 tests ciblés et 11 sondes indépendantes passent ;
+34 témoins historiques reproduisent exactement les points, reçus et refus.
+Les callers historiques restent inchangés. L'essai natif V4 doit encore mesurer
+l'effet de cette option sur le maillage complet, après sa revue préparatoire.
+
+Le candidat logiciel source62 est figé sur 523 fichiers du commit exact :
+1 151 tests passent en 212,159 s (lancement 213,421 s), avec 14 contrats
+indépendants. Les fichiers restent conservés. Le build local de 2 914 188 octets
+est vérifié, SHA-256 `a404f525317aec0749689eb89e051dcc74c6a07796ebad8838b9f13d9eece5f3`.
+Il reste un build de développement déclaré 0.7.0-rc.2. Les ajouts documentaires
+suivants sont distincts de ce snapshot. Le [reçu source62](automation-mesh-shared-reference-evidence-20261004.json)
+lie le code, les revues, les tests et l'archive.
+
+Pour les surfaces, le contrat proposé retient un champ libre affine sur un
+porteur fourni et la référence originale avant injection. Le modèle qui garde
+les anciennes cassures et ajoute seulement un déplacement affine est refusé
+pour le porteur col étudié : ce certificat concerne ce modèle précis. Dix
+cassures de la trace proposée manquent au porteur actuel. La compilation et
+l'évaluation du nouveau champ sont la prochaine unité ; les contraintes,
+la récupération et les contrôles des six pièces restent à qualifier.

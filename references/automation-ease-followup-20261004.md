@@ -619,3 +619,12 @@ refus de budgets. Il permet de décrire deux samples proches sans imposer une
 arête de même longueur au porteur de calcul. Il ne qualifie pas encore le champ
 en volume, ses métriques, les coutures physiques ou l'aisance du manteau.
 Le corps et les deux manches approuvés restent conservés.
+
+### Correction cumulative intégrée, qualification textile encore ouverte
+
+Le [candidat logiciel source62](automation-mesh-shared-reference-evidence-20261004.json)
+intègre la référence permanente du lisseur et le contrat UV. Les 1 151 tests
+et 14 contrats passent sur le commit exact ; le build local est vérifié.
+Les mesures du prochain essai natif restent nécessaires. Le champ en volume,
+les contacts et l'aisance doivent encore être contrôlés sur un candidat admis.
+Ces preuves logicielles ne constituent pas un fitting ni une revue artistique.
