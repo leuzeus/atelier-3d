@@ -1,15 +1,18 @@
 """Bounded interior smoothing; source boundary anchors and topology never move."""
 import math
-from .core import StudioError
+from .core import StudioError, digest
 from .cloth_metrics import triangle_metrics
 
 
-def improve_interior(vertices,faces,boundary_indices,*,target_angle,min_edge,max_displacement,passes=8):
+def improve_interior(vertices,faces,boundary_indices,*,target_angle,min_edge,max_displacement,passes=8,
+                     displacement_reference=None):
     """Improve only derived interior coordinates under explicit finite budgets.
 
     Both windings are supported; every triangle retains its initial sign.
     Topological boundary vertices are fixed even if omitted by the caller.
     A returned candidate can remain below target and is never a source repair.
+    An explicit displacement reference bounds cumulative movement; anchors
+    remain fixed to the call entry, independently of that reference.
     """
     if (not vertices or not faces
             or any(len(p)!=2 or any(type(x) not in (float,int) or not math.isfinite(x) for x in p) for p in vertices)
@@ -18,6 +21,20 @@ def improve_interior(vertices,faces,boundary_indices,*,target_angle,min_edge,max
             or not 0<target_angle<=60 or min_edge<=0 or max_displacement<0):
         raise StudioError('Interior refinement needs finite 2D geometry and nonnegative bounded settings')
     source=[list(v) for v in vertices];points=[p[:] for p in source]
+    reference=None;entry_displacement=None
+    if displacement_reference is not None:
+        try:
+            if (type(displacement_reference) not in (list,tuple) or len(displacement_reference)!=len(source)
+                    or any(type(p) not in (list,tuple) or len(p)!=2
+                        or any(type(x) not in (int,float) or not math.isfinite(x) for x in p)
+                        for p in displacement_reference)):
+                raise StudioError('Interior refinement needs a finite native 2D displacement reference matching the entry')
+            reference=tuple(tuple(p) for p in displacement_reference)
+            entry_displacement=max(math.dist(a,b) for a,b in zip(reference,source))
+        except (TypeError,OverflowError) as error:
+            raise StudioError('Interior refinement needs a finite native 2D displacement reference matching the entry') from error
+        if not math.isfinite(entry_displacement) or entry_displacement>max_displacement:
+            raise StudioError('Interior refinement entry exceeds its permanent displacement budget')
     fixed=set(boundary_indices);incident=[[] for _ in points];neighbors=[set() for _ in points]
     if any(type(i) is not int or not 0<=i<len(points) for i in fixed):
         raise StudioError('Interior refinement boundary anchor index is invalid')
@@ -69,7 +86,8 @@ def improve_interior(vertices,faces,boundary_indices,*,target_angle,min_edge,max
             for target in targets:
                 for fraction in (1.,.5,.25,.125,.0625):
                     trial=[origin[k]+fraction*(target[k]-origin[k]) for k in range(2)]
-                    if math.dist(source[i],trial)>max_displacement:continue
+                    trial_displacement=math.dist(source[i] if reference is None else reference[i],trial)
+                    if trial_displacement>max_displacement or (reference is not None and not math.isfinite(trial_displacement)):continue
                     points[i]=trial
                     # No reflection, collapse or boundary crossing through an
                     # incident triangle is allowed, whichever winding was supplied.
@@ -87,7 +105,7 @@ def improve_interior(vertices,faces,boundary_indices,*,target_angle,min_edge,max
         completed=iteration+1
         if not changed:break
     after=state(range(len(faces)))
-    return points,{'algorithm':'BOUNDED_INTERIOR_LOCAL_ANGLE_IMPROVEMENT_V2',
+    report={'algorithm':'BOUNDED_INTERIOR_LOCAL_ANGLE_IMPROVEMENT_V2',
         'passes':completed,'accepted_vertex_moves':moves,'boundary_anchors_changed':False,
         'boundary_vertex_count':len(boundary),'fixed_vertex_count':len(fixed),
         'topology_changed':False,'min_angle_before_degrees':before[0],
@@ -96,3 +114,15 @@ def improve_interior(vertices,faces,boundary_indices,*,target_angle,min_edge,max
         'displacement_budget_cm':max_displacement,
         'target_reached':bool(faces) and after[0]>=target_angle-1e-7 and after[1]>=min_edge,
         'remaining_bad_faces':[f for f in range(len(faces)) if state([f])[0]<target_angle-1e-7 or state([f])[1]<min_edge]}
+    if reference is not None:
+        cumulative=max(math.dist(a,b) for a,b in zip(reference,points))
+        if not math.isfinite(cumulative) or cumulative>max_displacement:
+            raise StudioError('Interior refinement result exceeds its permanent displacement budget')
+        if any(points[i]!=source[i] for i in fixed):
+            raise StudioError('Interior refinement changed a fixed entry anchor')
+        report['displacement_reference']={'policy':'EXPLICIT_PERMANENT',
+            'reference_sha256':digest(reference),'vertex_count':len(reference),
+            'maximum_entry_displacement_cm':entry_displacement,
+            'maximum_cumulative_displacement_cm':cumulative,'budget_cm':max_displacement,
+            'fixed_anchor_policy':'UNCHANGED_FROM_CALL_ENTRY'}
+    return points,report
