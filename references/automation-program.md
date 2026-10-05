@@ -1151,3 +1151,15 @@ La [CI du commit exact](https://github.com/leuzeus/atelier-3d/actions/runs/37321
 ### 2026-10-05 — Référence du col : diagnostic à préciser
 
 L’unique essai de référence fraîche se termine en 30,078 s avec `StudioError`, sans référence complète. [Observations et limites](automation-current-collar-reference-diagnostic-20261005.md). La lecture indépendante confirme le refus et la préservation des entrées, mais le message et la phase sont absents du diagnostic. La nouvelle opération prépare leur capture bornée avant un nouvel essai ; aucune cause géométrique ou qualité n’est inventée.
+
+### 2026-10-05 — Priorité actuelle : placement, drapé et fitting du manteau
+
+Cette priorité remplace les prochaines actions expérimentales décrites ci-dessus, sans supprimer leurs travaux ni leurs preuves. Le chemin à terminer est celui du manteau approuvé sur le corps masculin accepté à 180 cm : placement admis, premier drapé, puis fitting mesuré. Chaque nouveau correctif doit répondre à un défaut observé sur ce chemin. Les 1 511 tests logiciels ne mesurent pas l’avancement physique du vêtement.
+
+Les modules privés de stockage et de champ matériel ne sont pas importés par les opérations Blender de production. Leur essai natif V6, préparé et revu, reste différé et non exécuté. La capture supplémentaire du diagnostic privé du col est une proposition non intégrée ; elle ne conditionne pas la préparation native du manteau.
+
+Le contrôle du projet composé `44f03e6c-dc68-4adb-85b9-e30f88b1aeaa` est actuellement refusé par le MCP connecté. Sa copie installée 0.7.0-rc.2 ne contient pas `a3d/reviewed_pattern_admission.py`, présent dans la source testée, et charge un autre `blender/bootstrap.py`. Il faut donc charger un build local distinct par le mécanisme natif de Codex, puis refaire `studio_check_pipeline`. Ce refus ancien ne justifie pas une nouvelle approbation des manches inchangées.
+
+Après admission, réunir les artefacts exacts et les décisions existantes du corps accepté, préparer les opérations du plugin et demander l’autorisation pour chaque exécution Blender. L’archive source69 existante est un build de développement, pas une installation ni un runtime connecté. La préversion GitHub finale attend toujours l’acceptation prévue par L11.
+
+Le texte de la PR est envoyé depuis un fichier UTF-8 sans BOM et relu depuis GitHub pour vérifier son contenu exact et ses accents. Ce contrôle documentaire ne qualifie pas le produit.
