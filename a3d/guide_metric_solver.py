@@ -15,6 +15,22 @@ from .core import StudioError,digest
 def _dot(a,b):return sum(x*y for x,y in zip(a,b))
 
 
+class _RecoveryDeadline(StudioError):
+    """A cooperative shared-deadline stop, never a metric admission."""
+    def __init__(self,phase):
+        super().__init__('Guide metric recovery shared deadline exhausted during '+phase)
+        self.reason_category='execution_budget';self.phase=phase;self.qualification='NONE'
+
+
+def _reference_coordinates(reference,count):
+    if (type(reference)not in(list,tuple)or len(reference)!=count or not count
+            or any(type(point)not in(list,tuple)or len(point)!=3
+                or any(type(value)not in(int,float)or not math.isfinite(value)for value in point)
+                for point in reference)):
+        raise StudioError('Shared guide displacement reference must contain one finite 3D coordinate per source vertex')
+    return copy.deepcopy(reference)
+
+
 def _definite_principal_violation(payload,coordinates,quality,binding):
     """Return only a certain existing principal-strain failure, never admission.
 
@@ -57,7 +73,8 @@ def _pcg(rows,diagonal,rhs,initial,maximum,tolerance,deadline,clock):
     return x,{'iterations':count,'relative_residual':math.sqrt(_dot(r,r))/norm}
 
 
-def _semantic_cohorts(payload,selected,active,fixed,initial,binding,seam_ids,gap,budget,deadline,clock):
+def _semantic_cohorts(payload,selected,active,fixed,initial,binding,seam_ids,gap,budget,deadline,clock,*,
+        displacement_reference=None,max_step_cm=None):
     """Quotient actual permanent pairs; vertex proximity never creates a link."""
     seams=payload.get('seams')
     if not isinstance(seams,dict) or any(sid not in seams for sid in seam_ids):
@@ -160,6 +177,11 @@ def _semantic_cohorts(payload,selected,active,fixed,initial,binding,seam_ids,gap
         for index in members:aligned[index]=list(point)
         displacement=max(math.dist(initial[index],point)for index in members)
         if displacement>budget:raise StudioError('Semantic seam alignment exceeds the declared displacement budget')
+        if displacement_reference is not None:
+            if max(math.dist(displacement_reference[index],point)for index in members)>budget:
+                raise StudioError('Semantic seam alignment exceeds the shared original-guide displacement budget')
+            if max_step_cm is not None and displacement>max_step_cm:
+                raise StudioError('Semantic seam alignment exceeds the measured step budget')
         records.append({'representative':representative,'indices':members,'initial_gap_cm':diameter,
                         'fixed_source_indices':pinned,'initial_alignment_displacement_cm':displacement})
     validate_linear_motion(payload,initial,aligned)
@@ -248,7 +270,8 @@ def _component_anchors(faces,groups,representatives,fixed_roots,fixed,panels,dea
 def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(),*,
         max_iterations=100,max_seconds=60.,max_displacement_cm=8.,max_step_cm=.5,
         cg_iterations=80,cg_tolerance=1e-5,stagnation_iterations=5,strain_weight=100.,protected_indices=(),
-        seam_ids=(),max_initial_seam_gap_cm=None,fixed_stop_stretch_margin=0.,anchor_scope='per_piece',clock=time.monotonic):
+        seam_ids=(),max_initial_seam_gap_cm=None,fixed_stop_stretch_margin=0.,anchor_scope='per_piece',clock=time.monotonic,
+        displacement_reference=None,deadline=None):
     """Recover only declared pieces and freeze actual source stops/pins.
 
     Each protected edge is ``{piece,edge}``; its existing first and last source
@@ -262,6 +285,11 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
     ``anchor_scope='permanent_component'`` allows a piece without its own fixed
     stop only when every effective source triangle island after the seam
     quotient has an active fixed stop. It requires nonempty ``seam_ids``.
+    Optional ``displacement_reference`` retains the original guide budget after
+    a prior numeric correction. Physical pins/stops must still equal it; explicit
+    ``protected_indices`` instead freeze the supplied candidate-entry targets.
+    ``deadline`` is an absolute cooperative monotonic deadline shared by phases.
+    Omitting both options preserves the historical policy and receipt shape.
     """
     if (type(max_iterations)is not int or max_iterations<1 or type(cg_iterations)is not int or cg_iterations<1
             or type(stagnation_iterations)is not int or stagnation_iterations<1
@@ -282,14 +310,44 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
     if (type(fixed_stop_stretch_margin)not in(int,float)or not math.isfinite(fixed_stop_stretch_margin)
             or not 0<=fixed_stop_stretch_margin<=1e-6):
         raise StudioError('Fixed source stop bounds need a finite explicit numerical margin between zero and 1e-6')
-    try:before=digest([payload,coordinates,quality,piece_ids,protected_edges,protected_indices,seam_ids,max_initial_seam_gap_cm,fixed_stop_stretch_margin,anchor_scope])
+    shared=displacement_reference is not None or deadline is not None
+    declared_deadline=deadline
+    if shared and deadline is not None and(type(deadline)not in(int,float)or not math.isfinite(deadline)):
+        raise StudioError('Shared guide recovery deadline must be a finite absolute monotonic time')
+    def immutable_inputs():
+        values=[payload,coordinates,quality,piece_ids,protected_edges,protected_indices,seam_ids,max_initial_seam_gap_cm,fixed_stop_stretch_margin,anchor_scope]
+        return values+[displacement_reference,declared_deadline]if shared else values
+    try:before=digest(immutable_inputs())
     except(TypeError,ValueError)as error:
         raise StudioError('Guide metric recovery requires finite structured source inputs')from error
-    start=clock();deadline=start+max_seconds
+    if shared:
+        original_clock=clock;last_time=None
+        def clock():
+            nonlocal last_time
+            value=original_clock()
+            if(type(value)not in(int,float)or not math.isfinite(value)
+                    or last_time is not None and value<last_time):
+                raise StudioError('Shared guide recovery clock must be finite and monotonic')
+            last_time=value;return value
+    start=clock();deadline=start+max_seconds if deadline is None else min(start+max_seconds,deadline)
+    if shared and not math.isfinite(deadline):
+        raise StudioError('Shared guide recovery effective deadline must be finite')
+    def time_guard(phase):
+        if shared and clock()>=deadline:raise _RecoveryDeadline(phase)
+    time_guard('entry')
     if not piece_ids or len(piece_ids)!=len(set(piece_ids)) or not set(piece_ids)<=payload['panels'].keys():
         raise StudioError('Guide metric recovery requires exact existing source piece IDs')
-    initial=copy.deepcopy(coordinates);metrics=evaluate_metrics(payload,initial,include_faces=True,include_bending=False)
+    initial=copy.deepcopy(coordinates)
+    reference=_reference_coordinates(initial if displacement_reference is None else displacement_reference,len(payload['rest_cm']))if shared else initial
+    if shared:
+        _reference_coordinates(initial,len(payload['rest_cm']))
+        if max(math.dist(a,b)for a,b in zip(reference,initial))>max_displacement_cm:
+            raise StudioError('Initial guide candidate exceeds the shared original-guide displacement budget')
+    time_guard('initial_metric')
+    metrics=evaluate_metrics(payload,initial,include_faces=True,include_bending=False)
+    time_guard('initial_metric')
     binding=face_sources(payload)
+    time_guard('source_binding')
     if binding['binding_issues']:raise StudioError('Guide metric recovery rejects changed source UV/topology bindings')
     if not payload['faces']:raise StudioError('Guide metric recovery requires actual source triangles')
     selected=set(piece_ids);active={i for pid in selected for i in payload['panels'][pid]['indices']}
@@ -297,7 +355,7 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
     # offset must not set the conjugate-gradient stopping tolerance or leak
     # through cancellation in the zero-sum source gradient.
     origin=[math.fsum(initial[i][k] for i in sorted(active))/len(active) for k in range(3)]
-    fixed=set()
+    fixed=set();physical_fixed=set()
     if any(type(i)is not int or not 0<=i<len(initial) for i in protected_indices):
         raise StudioError('Protected guide supports require exact actual source vertex indices')
     fixed.update(protected_indices)
@@ -306,7 +364,7 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
                 not 0<=int(index)<len(initial) or type(weight)not in (int,float) or
                 not math.isfinite(weight) or not 0<=weight<=1):
             raise StudioError('Guide metric recovery requires exact existing finite source pin weights')
-        if weight>0:fixed.add(int(index))
+        if weight>0:fixed.add(int(index));physical_fixed.add(int(index))
     for edge in protected_edges:
         if not isinstance(edge,dict):raise StudioError('Protected source stops require explicit piece and edge identities')
         if edge.get('piece')not in selected:raise StudioError('Protected source stop belongs to an undeclared repair piece')
@@ -314,20 +372,28 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         if (not isinstance(ids,list)or len(ids)<2 or len(set(ids))!=len(ids)
                 or any(type(i)is not int or i not in payload['panels'][edge['piece']]['indices'] for i in ids)):
             raise StudioError('Protected source stop requires an actual named source edge')
-        fixed.update((ids[0],ids[-1]))
+        fixed.update((ids[0],ids[-1]));physical_fixed.update((ids[0],ids[-1]))
+    if shared and any(digest(initial[index])!=digest(reference[index])for index in physical_fixed):
+        raise StudioError('A physical pin or protected source stop changed from the original guide reference')
+    time_guard('source_stops')
     if anchor_scope=='per_piece'and any(not active.intersection(payload['panels'][pid]['indices']).intersection(fixed) for pid in selected):
         raise StudioError('Each recovered source piece requires an explicit fixed source stop')
     protected=set(range(len(initial)))-active|fixed
     coupling=None;baseline=initial;groups={index:[index]for index in sorted(active)}
     if seam_ids:
         groups,baseline,coupling=_semantic_cohorts(payload,selected,active,fixed,initial,binding,
-            seam_ids,max_initial_seam_gap_cm,max_displacement_cm,deadline,clock)
+            seam_ids,max_initial_seam_gap_cm,max_displacement_cm,deadline,clock,
+            **({'displacement_reference':reference,'max_step_cm':max_step_cm}if shared else {}))
+    time_guard('semantic_alignment')
+    if shared and max(math.dist(a,b)for a,b in zip(reference,baseline))>max_displacement_cm:
+        raise StudioError('Aligned guide candidate exceeds the shared original-guide displacement budget')
     representatives={index:root for root,members in groups.items()for index in members}
     fixed_roots={root for root,members in groups.items()if set(members)&fixed}
     free=sorted(set(groups)-fixed_roots)
     lookup={index:i for i,root in enumerate(free)for index in groups[root]}
     faces=[]
     for face,uv,pid in zip(payload['faces'],binding['source_rest_triangles_cm'],binding['source_face_pieces']):
+        time_guard('source_gradient_preflight')
         if pid not in selected:continue
         x1,y1=uv[1][0]-uv[0][0],uv[1][1]-uv[0][1];x2,y2=uv[2][0]-uv[0][0],uv[2][1]-uv[0][1]
         det=x1*y2-x2*y1
@@ -341,6 +407,7 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
     def residual(points):
         total=0.
         for ids,gradients,area in faces:
+            time_guard('residual')
             fu=[sum((points[i][k]-origin[k])*g[0] for i,g in zip(ids,gradients)) for k in range(3)]
             fv=[sum((points[i][k]-origin[k])*g[1] for i,g in zip(ids,gradients)) for k in range(3)]
             a,b,d=_dot(fu,fu),_dot(fu,fv),_dot(fv,fv)
@@ -351,9 +418,13 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         return total
     best=copy.deepcopy(baseline);best_energy=residual(best);history=[];stagnant=0;stop='ITERATION_BUDGET';iterations=0
     def admitted(points):
-        return _metric_admitted(payload,points,quality,binding)
+        time_guard('metric_validation')
+        accepted=_metric_admitted(payload,points,quality,binding)
+        time_guard('metric_validation')
+        return accepted
     initial_valid=admitted(initial)
     stop_bounds=_fixed_stop_bounds(payload,initial,quality,protected_edges,binding,fixed_stop_stretch_margin,deadline,clock)
+    time_guard('fixed_stop_preflight')
     impossible_stops=stop_bounds['status']=='IMPOSSIBLE_FIXED_STOPS'
     # The final validator includes the immutable UV source angle and area.
     # Moving a guide in 3D cannot repair these values. Condition the derived
@@ -371,71 +442,91 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         'conditioning_scope':'DERIVED_REST_MESH_ONLY','pattern_feasibility':'NOT_ASSESSED','qualification':'NONE'}
     if impossible_stops:stop='FIXED_SOURCE_STOP_BOUND_EXCEEDS_METRIC'
     if immutable_source_violations:stop='IMMUTABLE_SOURCE_MESH_QUALITY'
+    expired_phase=None
     for iteration in range(1,1 if impossible_stops or immutable_source_violations else max_iterations+1):
-        if admitted(best):stop='SOURCE_METRIC_RECOVERED';break
-        if clock()>=deadline:stop='TIME_BUDGET';break
-        iterations=iteration;rhs=[[0.]*len(free) for _ in range(3)];matrix=[{} for _ in free]
-        for ids,gradients,area in faces:
-            fu=[sum((best[i][k]-origin[k])*g[0] for i,g in zip(ids,gradients)) for k in range(3)]
-            fv=[sum((best[i][k]-origin[k])*g[1] for i,g in zip(ids,gradients)) for k in range(3)]
-            a,b,d=_dot(fu,fu),_dot(fu,fv),_dot(fv,fv);det=a*d-b*b
-            if det<=1e-20:raise StudioError('Guide metric recovery rejects a collapsed current triangle')
-            delta=math.sqrt(max(0.,(a-d)**2+4*b*b))
-            lo=math.sqrt(max(0.,(a+d-delta)/2));hi=math.sqrt(max(0.,(a+d+delta)/2))
-            weighted_area=area*(1+strain_weight*((lo-1)**2+(hi-1)**2))
-            root=math.sqrt(det);scale=math.sqrt(a+d+2*root)/((a+root)*(d+root)-b*b)
-            uu=scale*(d+root);uv=-scale*b;vv=scale*(a+root)
-            u=[uu*x+uv*y for x,y in zip(fu,fv)];v=[uv*x+vv*y for x,y in zip(fu,fv)]
-            for i,g in zip(ids,gradients):
-                if i in lookup:
-                    for k in range(3):rhs[k][lookup[i]]+=weighted_area*(u[k]*g[0]+v[k]*g[1])
-                    row=matrix[lookup[i]]
-                    for j,h in zip(ids,gradients):
-                        representative=representatives[j]
-                        row[representative]=row.get(representative,0.)+weighted_area*_dot(g,h)
-        diagonal=[row[free[i]] for i,row in enumerate(matrix)]
-        rows=[[(lookup[j],weight) for j,weight in row.items() if j in lookup] for row in matrix]
-        fixed_terms=[[(j,weight) for j,weight in row.items() if j not in lookup] for row in matrix]
-        if any(d<=0 for d in diagonal):raise StudioError('Guide metric recovery source system is singular')
-        for k in range(3):
-            for index,terms in enumerate(fixed_terms):rhs[k][index]-=sum(weight*(baseline[j][k]-origin[k]) for j,weight in terms)
-        trial=copy.deepcopy(best);linear=[]
-        for k in range(3):
-            solved,report=_pcg(rows,diagonal,rhs[k],[best[i][k]-origin[k] for i in free],cg_iterations,cg_tolerance,deadline,clock)
-            linear.append(report)
-            for root,value in zip(free,solved):
-                for i in groups[root]:trial[i][k]=value+origin[k]
-        if clock()>=deadline:stop='TIME_BUDGET';break
-        raw=max((math.dist(best[i],trial[i]) for i in free),default=0.)
-        factor=min(1.,max_step_cm/raw) if raw else 0.;accepted=False
-        for fraction in (factor,factor/2,factor/4,factor/8):
-            if coupling:
-                candidate=copy.deepcopy(best)
-                for root in free:
-                    point=[best[root][k]+fraction*(trial[root][k]-best[root][k])for k in range(3)]
-                    for index in groups[root]:candidate[index]=list(point)
-            else:candidate=[[a[k]+fraction*(b[k]-a[k]) for k in range(3)] for a,b in zip(best,trial)]
-            movement=max(math.dist(a,b) for a,b in zip(initial,candidate));energy=residual(candidate)
-            if movement>max_displacement_cm or energy>=best_energy-1e-10:continue
-            try:validate_linear_motion(payload,best,candidate)
-            except StudioError:continue
-            best=candidate;best_energy=energy;accepted=True;break
-        history.append({'iteration':iteration,'energy':best_energy,'accepted':accepted,'linear_systems':linear,
-            'max_displacement_cm':max(math.dist(a,b) for a,b in zip(initial,best))})
-        stagnant=0 if accepted else stagnant+1
-        if stagnant>=stagnation_iterations:stop='STAGNATION';break
+        try:
+            if admitted(best):stop='SOURCE_METRIC_RECOVERED';break
+            if clock()>=deadline:stop='TIME_BUDGET';break
+            time_guard('optimization')
+            iterations=iteration;rhs=[[0.]*len(free) for _ in range(3)];matrix=[{} for _ in free]
+            for ids,gradients,area in faces:
+                time_guard('matrix_assembly')
+                fu=[sum((best[i][k]-origin[k])*g[0] for i,g in zip(ids,gradients)) for k in range(3)]
+                fv=[sum((best[i][k]-origin[k])*g[1] for i,g in zip(ids,gradients)) for k in range(3)]
+                a,b,d=_dot(fu,fu),_dot(fu,fv),_dot(fv,fv);det=a*d-b*b
+                if det<=1e-20:raise StudioError('Guide metric recovery rejects a collapsed current triangle')
+                delta=math.sqrt(max(0.,(a-d)**2+4*b*b))
+                lo=math.sqrt(max(0.,(a+d-delta)/2));hi=math.sqrt(max(0.,(a+d+delta)/2))
+                weighted_area=area*(1+strain_weight*((lo-1)**2+(hi-1)**2))
+                root=math.sqrt(det);scale=math.sqrt(a+d+2*root)/((a+root)*(d+root)-b*b)
+                uu=scale*(d+root);uv=-scale*b;vv=scale*(a+root)
+                u=[uu*x+uv*y for x,y in zip(fu,fv)];v=[uv*x+vv*y for x,y in zip(fu,fv)]
+                for i,g in zip(ids,gradients):
+                    if i in lookup:
+                        for k in range(3):rhs[k][lookup[i]]+=weighted_area*(u[k]*g[0]+v[k]*g[1])
+                        row=matrix[lookup[i]]
+                        for j,h in zip(ids,gradients):
+                            representative=representatives[j]
+                            row[representative]=row.get(representative,0.)+weighted_area*_dot(g,h)
+            diagonal=[row[free[i]] for i,row in enumerate(matrix)]
+            rows=[[(lookup[j],weight) for j,weight in row.items() if j in lookup] for row in matrix]
+            fixed_terms=[[(j,weight) for j,weight in row.items() if j not in lookup] for row in matrix]
+            if any(d<=0 for d in diagonal):raise StudioError('Guide metric recovery source system is singular')
+            for k in range(3):
+                for index,terms in enumerate(fixed_terms):
+                    time_guard('fixed_terms')
+                    rhs[k][index]-=sum(weight*(baseline[j][k]-origin[k]) for j,weight in terms)
+            trial=copy.deepcopy(best);linear=[]
+            for k in range(3):
+                time_guard('pcg')
+                solved,report=_pcg(rows,diagonal,rhs[k],[best[i][k]-origin[k] for i in free],cg_iterations,cg_tolerance,deadline,clock)
+                time_guard('pcg')
+                linear.append(report)
+                for root,value in zip(free,solved):
+                    for i in groups[root]:trial[i][k]=value+origin[k]
+            if clock()>=deadline:stop='TIME_BUDGET';break
+            raw=max((math.dist(best[i],trial[i]) for i in free),default=0.)
+            factor=min(1.,max_step_cm/raw) if raw else 0.;accepted=False
+            for fraction in (factor,factor/2,factor/4,factor/8):
+                if coupling:
+                    candidate=copy.deepcopy(best)
+                    for root in free:
+                        point=[best[root][k]+fraction*(trial[root][k]-best[root][k])for k in range(3)]
+                        for index in groups[root]:candidate[index]=list(point)
+                else:candidate=[[a[k]+fraction*(b[k]-a[k]) for k in range(3)] for a,b in zip(best,trial)]
+                movement=max(math.dist(a,b) for a,b in zip(reference,candidate))
+                actual_step=max(math.dist(a,b)for a,b in zip(best,candidate))if shared else None
+                if shared and(movement>max_displacement_cm or actual_step>max_step_cm):continue
+                energy=residual(candidate)
+                if movement>max_displacement_cm or energy>=best_energy-1e-10:continue
+                time_guard('trajectory_validation')
+                try:validate_linear_motion(payload,best,candidate)
+                except StudioError:continue
+                time_guard('trajectory_validation')
+                best=candidate;best_energy=energy;accepted=True;break
+            history.append({'iteration':iteration,'energy':best_energy,'accepted':accepted,'linear_systems':linear,
+                'max_displacement_cm':max(math.dist(a,b) for a,b in zip(reference,best)),
+                **({'actual_step_cm':actual_step if accepted else 0.}if shared else {})})
+            stagnant=0 if accepted else stagnant+1
+            if stagnant>=stagnation_iterations:stop='STAGNATION';break
+        except _RecoveryDeadline as error:
+            stop='TIME_BUDGET';expired_phase=error.phase;break
     # A rejection witness only saves repeated boolean checks during recovery.
     # Every returned candidate still receives the complete final validator,
     # including the immutable-source and fixed-stop early exits above.
+    if shared and clock()>=deadline:expired_phase=expired_phase or 'final_validation'
     try:
         final=validate_metrics(payload,best,quality,include_faces=False,include_bending=False)
         final_valid=True
     except StudioError as error:
         if not hasattr(error,'quality_metrics'):raise
         final=error.quality_metrics;final_valid=False
-    valid=not impossible_stops and not immutable_source_violations and final_valid
+    expired=shared and clock()>=deadline
+    if expired:expired_phase=expired_phase or 'final_validation'
+    valid=not impossible_stops and not immutable_source_violations and final_valid and not expired
+    if expired:stop='TIME_BUDGET'
     if valid:stop='SOURCE_METRIC_RECOVERED'
-    if digest([payload,coordinates,quality,piece_ids,protected_edges,protected_indices,seam_ids,max_initial_seam_gap_cm,fixed_stop_stretch_margin,anchor_scope])!=before:
+    if digest(immutable_inputs())!=before:
         raise StudioError('Guide metric recovery changed an immutable input')
     if any((digest(best[i])!=digest(initial[i])if coupling else best[i]!=initial[i])for i in protected):
         raise StudioError('Guide metric recovery changed a protected source stop or undeclared piece')
@@ -464,7 +555,7 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
             'fixed_stop_stretch_margin':fixed_stop_stretch_margin,
             'protected_edges':copy.deepcopy(protected_edges)},
         'iterations':iterations,'elapsed_seconds':clock()-start,'history':history,'energy':best_energy,
-        'max_displacement_cm':max(math.dist(a,b) for a,b in zip(initial,best)),
+        'max_displacement_cm':max(math.dist(a,b) for a,b in zip(reference,best)),
         'numerical_frame_origin_cm':origin,
         'source_mutated':False,'qualification':'NONE','contacts':'NOT_ASSESSED','simulation':'NOT_EXECUTED',
         'fitting':'NOT_EXECUTED','final_assessment':'UNCHANGED_DOWNSTREAM_GATES_REQUIRED'}
@@ -472,4 +563,19 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         result['seam_coupling']=coupling
         result['policy'].update(seam_ids=list(seam_ids),max_initial_seam_gap_cm=max_initial_seam_gap_cm)
     if anchor_components:result['anchor_components']=anchor_components
+    if shared:
+        if result['max_displacement_cm']>max_displacement_cm:
+            raise StudioError('Returned guide candidate exceeds the shared original-guide displacement budget')
+        finished=clock()
+        if finished>=deadline:result.update(status='NEEDS_CORRECTION',stop_reason='TIME_BUDGET')
+        result.update(displacement_reference_sha256=digest(reference),
+            initial_displacement_from_reference_cm=max(math.dist(a,b)for a,b in zip(reference,initial)),
+            displacement_from_entry_cm=max(math.dist(a,b)for a,b in zip(initial,best)),
+            elapsed_seconds=finished-start,
+            shared_deadline={'declared_absolute':declared_deadline,'effective_absolute':deadline,
+                'finished':finished,'expired':finished>=deadline,'expired_phase':expired_phase,
+                'cooperative':True},
+            physical_fixed_indices=sorted(physical_fixed))
+        if digest(immutable_inputs())!=before:
+            raise StudioError('Guide metric recovery changed an immutable input before return')
     return result
