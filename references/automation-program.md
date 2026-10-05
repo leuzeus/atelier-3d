@@ -769,8 +769,32 @@ au noyau livré. Les deux campagnes et l'investigation conjointe de l'encolure
 sont liées dans le [reçu des expériences](automation-numerical-probes-evidence-20261004.json).
 
 La courbe brute du col ne peut rejoindre les deux arrêts par rotation seule.
-Les sondes ancrées compriment trop certains chemins et sont refusées. Une
-résolution de courbe sous longueurs source est seulement en préparation ; aucun
-résultat de surface, de contact ou de fitting n'est déduit de ses bornes de bord.
-Les propositions de raffinement gradué sont également en préparation. Les
-nouveaux essais devront garder sources, corps, limites et preuves exactes.
+Les sondes ancrées compriment trop certains chemins et sont refusées. Le solveur
+V1 sous longueurs source stagne avec 4,191628 % d'erreur. Sa garde IEEE autorise
+un pas de 0,5000000000000031 cm ; cela n'est pas un PASS du budget strict de V2.
+La cause liée à la proximité reste une inférence, sans optimum global établi.
+
+Le solveur V2 minimum-norm retrouve les 12 segments, 362 subdivisions et six
+chemins du problème V9 historique dans leurs bornes IEEE dérivées. La revue
+indépendante vérifie les 43 candidats, les 14 états acceptés, les arrêts exacts,
+24 tests et le petit système JJᵀ. Le pas accepté maximal est
+0,4999999999999945 cm ; le déplacement maximal depuis la référence V9 est
+3,5238366456088657 cm. Les minuscules subdivisions doivent garder leurs erreurs
+absolues et leurs bornes, sans seuil relatif de matériau. Le code reste externe,
+sans intégration de bande, cage, contact ou qualification du candidat courant.
+
+Le prototype des 45 graines d'éventails indépendants régresse en Blender :
+1,193126° / 1,193124° aux manches et 1,525462° au devant. Les trois candidats
+stagnent, sans plafond atteint ; les baselines sont reproduites à l'octet près.
+Des graines de coins voisins occupent certains triangles analytiques ; aucun
+point original ne les occupe. Cette obstruction locale ne prouve pas toute la
+causalité. Le candidat est refusé et ne modifie pas le noyau livré.
+
+Le [reçu de la seconde revue numérique](automation-numerical-probes-evidence-v2-20261004.json)
+lie les preuves, leurs portées et la CI du commit documentaire ed345ddb.
+La prochaine unité prépare des subdivisions communes aux bords source, avec
+budgets initiaux comptés, références matérielles conservées et aucun succès
+global déduit du témoin local. Un replay frais du col sur le code courant et la
+composition approuvée est distinct du résultat historique V9. L4 reste partiel,
+L5 non admis ; aucun Cloth, fitting, préversion finale ou installation n'est
+qualifié par ces expériences.

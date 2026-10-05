@@ -558,8 +558,23 @@ au noyau livré. Les deux campagnes et l'investigation conjointe de l'encolure
 sont liées dans le [reçu des expériences](automation-numerical-probes-evidence-20261004.json).
 
 La courbe brute du col ne peut rejoindre les deux arrêts par rotation seule.
-Les sondes ancrées compriment trop certains chemins et sont refusées. Une
-résolution de courbe sous longueurs source est seulement en préparation ; aucun
-résultat de surface, de contact ou de fitting n'est déduit de ses bornes de bord.
-Les propositions de raffinement gradué sont également en préparation. Les
-nouveaux essais devront garder sources, corps, limites et preuves exactes.
+Les sondes ancrées compriment trop certains chemins et sont refusées. Le solveur
+V1 stagne à 4,191628 % d'erreur ; son dépassement IEEE du pas strict reste
+explicite. La revue indépendante du solveur V2 valide les 12 segments,
+362 subdivisions et six chemins du problème V9 historique dans des bornes
+numériques dérivées des données, avec arrêts exacts et budgets stricts.
+Le déplacement maximal reste 3,523837 cm depuis la référence V9 ; cela ne
+qualifie aucune bande, cage, surface, anatomie, collision ou fitting.
+
+Le prototype des 45 graines d'éventails indépendants régresse en natif et est
+refusé : 1,193126° / 1,193124° aux manches, 1,525462° au devant. Des graines
+ajoutées par des coins voisins occupent certaines faces analytiques, sans point
+original concerné ; cette obstruction locale ne démontre pas toute la cause.
+Les originaux et le noyau de production restent conservés.
+
+Le [reçu de la seconde revue numérique](automation-numerical-probes-evidence-v2-20261004.json)
+sépare les preuves historiques du replay frais à effectuer avec les guides
+courants et les manches approuvées. La prochaine proposition porte sur des
+subdivisions dérivées synchronisées des bords, sans nouvelle fan ni modification
+du patron. Les témoins locaux et les réussites 1D ne deviennent pas une admission
+L5, une acceptation du manteau, une préversion finale ou une installation.
