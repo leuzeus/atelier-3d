@@ -1265,3 +1265,31 @@ Après installation, `studio_doctor` échoue sur un fichier de l'ancien cache
 puis exécuter la requête V2. Préparer ensuite le binding public exact et demander
 son autorisation Blender distincte. Aucun binding ou placement nouveau n'est
 exécuté ; le fitting et la préversion finale restent soumis aux gates produit.
+
+### 2026-10-05 — Préparation publique V2 calculée après rechargement
+
+Le second redémarrage charge réellement `0.7.0-rc.2.dev.2026100502` :
+`studio_doctor` passe et l'admission du projet composé est positive.
+La requête publique V2 s'exécute sans erreur et produit les cinq artefacts
+de préparation. [Preuve du runtime et du calcul réel](automation-public-preparation-v2-evidence-20261005.json).
+La compilation couvre 15 textiles et une boucle ; les guides, la politique
+et le plan gardent les mêmes empreintes que la tentative précédente. Les
+templates signalent explicitement l'alignement du manteau à corriger, sans
+admission de pièce ni validation de placement.
+
+La lecture MCP de Blender retrouve la scène de construction sauvegardée,
+non modifiée, contenant uniquement `A3D.BodyTarget.MainMale180`. Ce résumé
+n'est pas une revue visuelle. Le run `run.433754fe078b4a46b1f689aec50cbf54`
+conserve les 15 références d'entrée et prépare `bind_component_preparations`,
+tentative `attempt.d49dd370520b41bcb0dea15c05430152`, en attente de son
+autorisation distincte. Le code exact est enregistré dans
+`preparation/native-source-binding-run-step-v1.py` du projet composé.
+Le binding doit produire les mappings et fichiers natifs ; il n'exécute ni
+placement ni Cloth. Son autorisation n'est pas celle des étapes suivantes.
+
+L'appel sans profil de fitting retourne séparément `FIT_METADATA_REQUIRED`.
+L'intention de manteau ample et le corps approuvé sont conservés ; les mesures
+homologues et la couverture du candidat restent à établir avant admission
+physique. Restent ensuite placement admis, construction complète, enfilage,
+drapé, fitting, mouvement et revue artistique. Aucune nouvelle modification
+de découpage n'est présentée à ce jalon.
