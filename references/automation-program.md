@@ -1513,3 +1513,29 @@ La restauration du checkpoint et tout rejeu Blender nécessitent une nouvelle
 permission exacte. La découpe approuvée reste conservée ; aucune nouvelle
 variante à approuver n'est produite à ce jalon. La revue des correspondances,
 la revue du placement et la revue artistique finales restent à effectuer.
+
+### 2026-10-05 — Stockage UV source et reprise d'un résultat retourné
+
+Le commit `4ca988e` authentifie le stockage `SOURCE_DOUBLE` et le stockage
+historique `BINARY32` par rejeu canonique des frontières. Les 2 236 ancres du
+candidat actuel correspondent exactement au writer. **45 tests ciblés PASS
+sous chacun des deux Python**, sans tolérance ajoutée. La compilation source
+V3 sous Python 3.11 produit quatre propositions non admises : hauts de bras
+45,204894/45,240336 cm et poignets 25/25 cm. Les chemins du torse épuisent leur
+budget de 15 secondes ; le col reste sans correspondance complète. Le même
+diagnostic sous Python 3.13 refuse auparavant le supplément corporel remesuré,
+problème distinct conservé. [Contrat et limites](source-uv-storage.md).
+
+Le commit `bad8b28` ajoute `restore_checkpoint(run_id, attempt_id)` pour une
+opération retournée refusée ou incomplète dont le pending a été retiré.
+Le chemin historique sans arguments reste conservé. Le checkpoint et le reçu
+historique exacts restent restaurables après correction de code ; aucun pending
+n'est fabriqué et aucun refus n'est transformé en qualification. **47 tests
+portables PASS sous Python 3.11 et 3.13**, avec admission historique en lecture
+seule du reçu réel `dev.2026100503` et base SQLite inchangée. La restauration
+Blender réelle reste non exécutée et exige une nouvelle permission.
+[Contrat de reprise](run-recovery.md).
+
+Ces corrections sont des commits source validés dans leurs périmètres. La
+validation du code intégré, son build local et son chargement dans le runtime
+doivent être enregistrés séparément. Aucune préversion finale n'est publiée.
