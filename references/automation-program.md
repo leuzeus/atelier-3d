@@ -1008,3 +1008,28 @@ le dernier hash sont conservés. Aucun caller de production n’est modifié.
 La suite complète et un nouveau package ne sont pas encore exécutés pour ce
 commit ; source64 conserve sa portée historique. Les six surfaces réelles,
 leur récupération, les contacts et le fitting restent à qualifier.
+
+### Référence UV construite par code et candidat logiciel source65
+
+Le commit `97d247f` ajoute la [partition de référence matérielle](material-reference-partition.md).
+Les seeds sont rationnels depuis leurs poids source ; les cellules, bords,
+parents et vues par face restent explicites. Le vérificateur reconstruit le
+certificat de construction. Les samples et crans demeurent des observations,
+sans créer implicitement des inconnues de géométrie. Les callers et anciennes
+références fraîches restent conservés.
+
+Sur le source réel du col, la construction UV seule produit 477 nœuds,
+832 triangles actifs, 13 vues source et 120 intervalles de bord qui couvrent
+exactement les 15 bords source. Les 751 samples incluent huit crans. Cet essai
+utilise les sections extrêmes ; les sections intérieures sont couvertes par
+fixtures séparées. Les 367 087 opérations de fractions demandent le plafond
+explicite du nouveau format ; l'essai par défaut s'arrête à 300 000. Le plafond
+du champ 3D existant reste inchangé. Aucune substitution de S_fresh n'est faite.
+
+Le [reçu source65](automation-material-reference-partition-evidence-20261005.json)
+lie les revues, les 1 272 tests intégrés, les 14 contrats et le build local aux
+541 fichiers exacts. Il couvre aussi le module de traces ajouté après source64.
+Le package reste déclaré 0.7.0-rc.2 ; les ajouts documentaires suivants sont
+distincts du snapshot testé. La partition UV ne crée ni champ 3D qualifié ni
+budget agrégé entre appels. Les six surfaces réelles, contraintes, métrique,
+contacts et récupération restent à intégrer. L4 reste partiel et L5 non admis.

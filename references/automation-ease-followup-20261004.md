@@ -668,3 +668,14 @@ nouvelle quantité. Les tests portables passent, mais les douze barres,
 362 subdivisions et six chemins actuels n’ont pas encore leur observation
 complète en surface. Le corps masculin et l’intention de manteau ample restent
 conservés ; cette mesure n’accorde aucune admission de placement ni de fitting.
+
+### Référence matérielle UV : construction exacte et build local source65
+
+La [partition de référence](automation-material-reference-partition-evidence-20261005.json)
+conserve les supports source et offre un certificat reconstructible. L'essai
+sur le col couvre ses bords matériels en UV ; aucune surface 3D fraîche ne lui
+est substituée. Le nouveau plafond de fractions appartient à ce format seul.
+Les 1 272 tests logiciels et 14 contrats passent sur le candidat exact ; le
+build local inclut les traces et la partition. Ces résultats ne qualifient ni
+l'aisance, ni les contacts, ni le fitting du manteau. La livraison finale et
+l'installation restent soumises aux critères du programme.
