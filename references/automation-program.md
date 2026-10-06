@@ -10,15 +10,19 @@ ses 635 fichiers correspondent au stage préparé. Le code intégré exporté au
 commit `b378b60510a50a3b55943551238db1a659fa99ac` a passé 1 642 tests en
 216,364 s, aucun SKIP, et 14 contrats sous Python 3.11. Les 78 tests ciblés
 passent sous Python 3.11 et 3.13 ; le descripteur historique réel est encore
-authentifié en lecture seule, SQLite inchangée. Le redémarrage a effectivement
-chargé `dev.2026100505`, diagnostic PASS et pipeline admis. La restauration
-autorisée a ensuite échoué avant ouverture du checkpoint sur une archive dont
-le chemin fait 290 caractères. Le nouveau correctif adapte uniquement les
-accès Windows aux archives et à leurs lecteurs, sans changer les identités
-enregistrées. Après installation de 0506, `studio_doctor` pointe encore vers
-le cache remplacé `dev.2026100505` : rechargement requis avant sa vérification
-et une nouvelle restauration explicitement autorisée. La restauration native
-reste non terminée. La compilation publique V4 conserve son fitting incomplet.
+authentifié en lecture seule, SQLite inchangée. Le nouveau redémarrage a
+effectivement chargé `dev.2026100506`, diagnostic PASS et pipeline admis.
+La restauration explicitement autorisée a réussi dans Blender et son événement
+canonique est authentifié. Les trois archives historiques exactes sont
+conservées. La nouvelle copie de travail est sauvegardée, propre et contient
+le mannequin accepté seul à 180 cm, échelle 1 et collision 0,3 cm. L'inspection
+autorisée confirme 0/15 pièces textiles dans cette scène, boucle absente ; le
+candidat historique refusé reste séparé sur G:. Aucun fitting n'est déduit
+de la restauration. L'ancien run conserve son refus et son code périmé ;
+la correction utilisera un nouveau run avec des données actuelles. La
+compilation publique V4 conserve son fitting incomplet. Le prochain travail
+isole la qualité REST dérivée et les ancres protégées inadmissibles avant
+tout nouvel essai de placement.
 Les correctifs source `8e7a73d`, `af78094` et `6545a41` ajoutés ensuite passent
 79 tests ciblés sous chacun des deux Python ; ils sont maintenant intégrés au
 candidat validé et installé ci-dessus. Les 1 592 tests historiques gardent leur
@@ -1780,3 +1784,45 @@ son événement natif terminé. Le vêtement reste RECONSTRUCTING. Aucun nouveau
 patron à revoir n'a été produit ; les correspondances de mesure et les
 prochains candidats visuels restent à examiner. Placement, inventaire complet,
 enfilage, matière, drapé, fitting, mouvements et revue artistique restent ouverts.
+
+### 5 octobre — restauration native 0506 terminée, reprise du placement
+
+Le redémarrage charge réellement 0506. L'utilisateur autorise séparément
+`restore_checkpoint` puis `inspect`. La restauration réussit dans Blender
+5.2.2 LTS, archive les identités historiques exactes et rouvre le checkpoint
+`pre-028b75a4767b4e28b491a65da4bc85c0.blend`. La nouvelle copie
+`working-recovered-be1ae9977e664a809cec23a65a404e76.blend` est sauvegardée et
+sans modification en attente. Le descripteur historique relu en mode lecture
+seule authentifie l'événement `blender_recovered` et le SHA de cette copie.
+Il ne modifie pas SQLite. La portée reste `restoration_only`, qualification
+`NOT_GRANTED` ; le vêtement n'est pas accepté.
+
+L'inspection confirme **0/15 textiles dans la scène actuelle**, sans boucle.
+Manquent les dix pièces du manteau, la ceinture, les deux panneaux de capuche
+et les deux empiècements. Le mannequin accepté est seul, à 180 cm, échelle 1,
+collision extérieure et intérieure 0,3 cm. L'ancien candidat de dix pièces
+et ses vues restent conservés séparément ; leurs résultats ne sont pas
+transférés à cette scène restaurée. Le screenshot courant montre le mannequin
+seul à distance ; il ne constitue aucune nouvelle revue anatomique ou artistique.
+[Preuve native de restauration et d'inspection](automation-native-recovery-0506-evidence-20261005.json).
+
+Le run historique reste `NEEDS_CORRECTION`, avec une empreinte de code périmée.
+Le diagnostic de son candidat révèle deux préconditions à traiter avant un
+nouvel essai : le REST dérivé présente un angle de triangle de 4,057463°
+sous le seuil conservé de 15°, et les huit extrémités d'épaules protégées
+présentent des déficits de réserve de 0,3511 à 0,8964 cm. La récupération
+métrique s'arrête sans itération sur la qualité du mesh source dérivé, puis
+les contraintes empêcheraient de corriger ces ancres figées. Ce sont des
+défauts de dérivation et de guides, pas une preuve de manque d'aisance ou
+d'erreur du découpage accepté. Aucun support physique authored n'est déclaré.
+
+La prochaine unité autonome prépare un préflight générique depuis les sources
+et observations exactes : qualité REST, ancres protégées et cohortes de
+coutures permanentes, sans coordonnées ni identités de vêtement codées dans
+l'algorithme. Elle localise les corrections avant de créer le nouveau run.
+Le profil de maillage synchronisé existant et une réserve d'ancres sourcée
+devront être propagés dans le parcours public lorsqu'ils sont qualifiés ;
+leurs raccords actuels sont incomplets. Le seuil 15°, les patrons et le corps
+restent conservés. Mesures homologues, placement admis, construction complète,
+drapé, fitting, mouvements et revue artistique restent ouverts. Aucun nouveau
+patron à approuver n'est produit à ce jalon.
