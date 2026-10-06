@@ -81,6 +81,16 @@ class Runs(unittest.TestCase):
         with patch('a3d.runs._runtime', return_value='f'*64), self.assertRaises(StudioError):
             create_run(self.project, 'garment', 'run.json')
 
+    def test_shared_archive_and_native_evidence_changes_invalidate_run(self):
+        from a3d.runs import COMMON_CODE_PATHS,_runtime
+        run=self.create();original=_runtime()
+        for name in ('a3d/run_projection_archive.py','a3d/native_evidence.py'):
+            self.assertIn(name,COMMON_CODE_PATHS)
+            def changed(path):return '0'*64 if Path(path)==ROOT/name else sha(path)
+            with self.subTest(name=name),patch('a3d.runs.sha',side_effect=changed):
+                self.assertNotEqual(_runtime(),original)
+                with self.assertRaises(StudioError):next_run_step(self.project,run['run_id'])
+
     def test_blender_next_prepares_exact_guarded_code_only_and_is_idempotent(self):
         run = self.create(); before_state = self.project.state()
         prepared = next_run_step(self.project, run['run_id']); before = self.events()

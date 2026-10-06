@@ -53,6 +53,7 @@ OPERATION_MODULES = {
     'run_dressing_program': ['blender/dressing_executor.py'],
 }
 COMMON_CODE_PATHS = ['a3d/runs.py', 'a3d/run_diagnostics.py', 'a3d/core.py', 'a3d/store.py',
+    'a3d/run_projection_archive.py', 'a3d/native_evidence.py',
     'a3d/guard.py', 'a3d/planning.py', 'a3d/lifecycle.py', 'blender/bootstrap.py',
     'blender/operations.py', 'schemas/run.schema.json']
 
@@ -144,7 +145,11 @@ def _reference(project, value):
         except ValueError as error:
             raise StudioError('Run references must stay inside this project') from error
     try:
-        path = inside(project.root, value_path)
+        if value_path.startswith('.a3d/runs/native/projections/'):
+            from .run_projection_archive import _archive_io_path
+            path = _archive_io_path(inside(project.root, value_path, False))
+        else:
+            path = inside(project.root, value_path)
     except FileNotFoundError as error:
         raise StudioError('Run reference is missing: '+value_path) from error
     if not path.is_file() or sha(path) != identity:

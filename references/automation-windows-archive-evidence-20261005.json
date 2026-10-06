@@ -1,0 +1,52 @@
+{
+  "scope": "GENERIC_WINDOWS_PROJECTION_ARCHIVE_IO",
+  "date": "2026-10-05",
+  "native_observation": {
+    "version": "0.7.0-rc.2.dev.2026100505",
+    "restart": "DOCTOR_PASS_PIPELINE_ADMITTED",
+    "operation": "restore_checkpoint",
+    "run_id": "run.04d8b017e9d340e4834eb1e26d4eafd0",
+    "attempt_id": "attempt.c5b8a1c8f91949edb10e65c54bca7477",
+    "result": "FAILED_BEFORE_CHECKPOINT_OPEN_AT_ARCHIVE_WRITE",
+    "archive_path_characters": 290,
+    "archive_parent_characters": 168,
+    "archive_filename_characters": 121,
+    "receipt": "G:/projets/atelier-3d/work/garment-automation-v1/program-restart505-verification-v1/restore-execution-error.json",
+    "partial_archives": "EXACT_SESSION_AND_PIECE_CANDIDATES_PRESERVED",
+    "restoration_completed": false
+  },
+  "correction": {
+    "filesystem_only_extended_windows_paths": true,
+    "relative_archive_identities_unchanged": true,
+    "historical_receipts_and_session_strings_unchanged": true,
+    "extended_path_reparse_checks": true,
+    "native_receipt_readers_covered": true,
+    "archive_and_native_evidence_in_common_code_fingerprint": true,
+    "domain": "LONG_FILES_INSIDE_AN_ACCESSIBLE_PROJECT_ROOT",
+    "qualified_native_retry": false
+  },
+  "source_sha256": {
+    "a3d/run_projection_archive.py": "a520cb9b10328ec7d9161592ee413167156e846eddefbbc45a7338f24490f175",
+    "a3d/native_evidence.py": "b5d9954a803f846c465573626a9e259d467715369afff965477b7541375b6b9f",
+    "a3d/runs.py": "be961fab50b2dc6971785bdf2443b1e3316c715e8c2c0cc6fe85e81795560bb3",
+    "tests/test_recovery_projection_archive.py": "868b932e17f3746a3f9dafe1f6f63f87db527bbee051f88e11312ffe6c4fa5d8",
+    "tests/test_runs.py": "8f8f6f5f172995b8b7cc12932333b0cc2dd5d0a5414393a61ebe903a6498c6b2"
+  },
+  "targeted_tests": [
+    {"python": "3.11", "tests": 78, "seconds": 10.758, "status": "PASS", "log": "G:/projets/atelier-3d/work/garment-automation-v1/program-windows-archive-fix-v1/python311-targeted-v3.log"},
+    {"python": "3.13", "tests": 78, "seconds": 14.066, "status": "PASS", "log": "G:/projets/atelier-3d/work/garment-automation-v1/program-windows-archive-fix-v1/python313-targeted-v3.log"}
+  ],
+  "readonly_real_descriptor": {
+    "status": "PASS_HISTORICAL_RECOVERY_DESCRIPTOR",
+    "db_unchanged": true,
+    "native_execution": false,
+    "receipt": "G:/projets/atelier-3d/work/garment-automation-v1/program-windows-archive-fix-v1/real-readonly-python311/receipt.json",
+    "sha256": "d49095f4fd1c0ee2b51cea4b1e6a986005c5501fed5dca6d7223fb8dee8ccef7"
+  },
+  "independent_review": "NO_REMAINING_CONFIRMED_CODE_BLOCKER_AFTER_LONG_SOURCE_FIXTURE_STRENGTHENING",
+  "historical_test_attempts": "76_TEST_V1_AND_78_TEST_V2_PASSES_RETAINED_BUT_SUPERSEDED_BY_FINAL_V3; INITIAL_SANDBOX_RUN_FAILED_PATH_RESOLVE_ACCESS_WITHOUT_SOURCE_DIAGNOSIS",
+  "qualification": "NONE",
+  "garment_fitting": "NOT_EXECUTED",
+  "cutting_review": "NO_NEW_PATTERN_PRODUCED",
+  "next": "VALIDATE_IMMUTABLE_CODE_EXPORT_AND_PREPARE_FRESH_LOCAL_BUILD_BEFORE_NEW_EXACT_AUTHORIZED_NATIVE_RETRY"
+}

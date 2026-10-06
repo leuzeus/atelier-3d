@@ -15,7 +15,11 @@ from .core import StudioError, inside, read_json, sha
 def checked_reference(project, ref):
     if not isinstance(ref, dict) or set(ref) != {'path', 'sha256'}:
         raise StudioError('Native evidence requires exact portable path and SHA-256 references')
-    path = inside(project.root, ref['path'])
+    if isinstance(ref['path'],str) and ref['path'].startswith('.a3d/runs/native/projections/'):
+        from .run_projection_archive import _archive_io_path
+        path = _archive_io_path(inside(project.root, ref['path'], False))
+    else:
+        path = inside(project.root, ref['path'])
     if not path.is_file() or sha(path) != ref['sha256']:
         raise StudioError('Native evidence reference changed: '+ref['path'])
     return copy.deepcopy(ref)

@@ -60,3 +60,13 @@ Chaque restauration exige sa propre autorisation explicite d'exécution
 Blender. Les tests de `tests/test_returned_run_recovery.py` utilisent des faux
 fichiers Blender et contrôlent les contrats portables ; ils ne prouvent pas
 une réouverture native d'un vêtement.
+
+Sur Windows, les accès aux archives utilisent les chemins étendus après
+validation du confinement et des liens/jonctions. Cette conversion reste une
+adaptation d'accès fichier : les chemins relatifs des reçus et les chaînes des
+sessions ne changent pas. Elle couvre les lecteurs du journal et des preuves
+natives, ainsi que les sources longues ; les empreintes communes incluent les
+modules d'archivage et de preuve native. Le projet racine doit rester accessible
+par le runtime existant. Les tests simulent aussi un hôte sans prise en charge
+des chemins ordinaires longs ; ils ne remplacent pas le prochain essai Blender.
+Voir [la correction Windows](automation-windows-archive-evidence-20261005.json).

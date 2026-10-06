@@ -5,6 +5,7 @@ import json
 import os
 import re
 import shutil
+import stat
 from pathlib import Path
 
 from .core import StudioError,ident,inside,sha
@@ -12,6 +13,28 @@ from .core import StudioError,ident,inside,sha
 
 ROLE='MUTABLE_PROJECT_PROJECTION_NOT_ARTIFACT'
 RECOVERY_ROLE='RESTORATION_ONLY'
+
+
+def _archive_io_path(path):
+    """Extend only validated Windows filesystem paths, never receipt identities.
+
+    Blender's host manifest need not opt into long paths. ``inside`` must have
+    already checked containment and links before this I/O-only conversion.
+    """
+    path=Path(path)
+    if os.name!='nt':return path
+    value=str(path)
+    if not path.is_absolute():raise StudioError('Archive I/O requires a validated absolute path')
+    if not value.startswith('\\\\?\\'):
+        path=Path('\\\\?\\UNC\\'+value[2:] if value.startswith('\\\\') else '\\\\?\\'+value)
+    # Repeat the link check through the extended path: ordinary Win32 probes
+    # can report a long reparse-point path as missing in a restricted host.
+    for cursor in (path,*path.parents):
+        try:attributes=cursor.lstat()
+        except FileNotFoundError:continue
+        if stat.S_ISLNK(attributes.st_mode) or getattr(attributes,'st_file_attributes',0)&stat.FILE_ATTRIBUTE_REPARSE_POINT:
+            raise StudioError('Symlink/junction archive paths are not allowed')
+    return path
 
 
 def _is_working_projection(path):
@@ -38,11 +61,11 @@ def archive_projection_references(project,attempt_id,references):
     for reference in references:
         if not is_project_projection(reference['path']):
             files.append(copy.deepcopy(reference));continue
-        source=inside(project.root,reference['path'])
+        source=_archive_io_path(inside(project.root,reference['path'],False))
         if sha(source)!=reference['sha256']:
             raise StudioError('Project projection changed before native archival')
         target_path=_archive_path(attempt_id,reference)
-        target=inside(project.root,target_path,False)
+        target=_archive_io_path(inside(project.root,target_path,False))
         target.parent.mkdir(parents=True,exist_ok=True)
         if not target.exists():
             with source.open('rb') as reader,target.open('xb') as writer:
@@ -71,10 +94,10 @@ def verify_projection_archives(project,receipt):
                 archived['sha256']!=observed['sha256'] or archived not in receipt['files'] or
                 observed in receipt['files']):
             raise StudioError('Native projection archive is not bound to its exact attempt and source')
-        path=inside(project.root,archived['path'])
+        path=_archive_io_path(inside(project.root,archived['path'],False))
         if not path.is_file() or sha(path)!=archived['sha256']:
             raise StudioError('Immutable native projection archive changed')
-        paths.add(observed['path']);live=inside(project.root,observed['path'],False)
+        paths.add(observed['path']);live=_archive_io_path(inside(project.root,observed['path'],False))
         current={'path':observed['path'],'sha256':sha(live)} if live.is_file() else None
         observations.append({**copy.deepcopy(row),'current_ref':current,
             'current_projection_status':'UNCHANGED' if current==observed else 'CHANGED' if current else 'ABSENT',
@@ -100,7 +123,7 @@ def archived_result_view(project,receipt,result):
 
 
 def _exact_bytes(project,reference):
-    path=inside(project.root,reference['path'],False)
+    path=_archive_io_path(inside(project.root,reference['path'],False))
     if not path.is_file():return None
     data=path.read_bytes()
     return data if hashlib.sha256(data).hexdigest()==reference['sha256'] else None
@@ -109,7 +132,7 @@ def _exact_bytes(project,reference):
 def _session_reconstruction(project,reference,working_refs):
     if len(working_refs)!=1:
         raise StudioError('Historical session reconstruction requires one exact working reference')
-    source=inside(project.root,reference['path'],False)
+    source=_archive_io_path(inside(project.root,reference['path'],False))
     if not source.is_file():raise StudioError('Current managed session is missing')
     def unique_object(pairs):
         result={}
@@ -127,8 +150,10 @@ def _session_reconstruction(project,reference,working_refs):
         root=Path(project.root).resolve(strict=True)
         if not current.is_absolute():raise StudioError('Managed session working must be absolute')
         relative=current.relative_to(root).as_posix()
-        if not _is_working_projection(relative) or inside(root,relative)!=current:
+        if not _is_working_projection(relative) or inside(root,relative,False)!=current:
             raise StudioError('Current session working is not an exact managed working path')
+        if not _archive_io_path(current).is_file():
+            raise StudioError('Current session working is missing')
         session['working']=str(inside(root,working_refs[0]['path'],False))
         data=json.dumps(session,ensure_ascii=False,indent=2,allow_nan=False).encode('utf-8')+b'\n'
     except (ValueError,UnicodeError,OSError,TypeError) as error:
@@ -150,7 +175,7 @@ def _recovery_projection_bytes(project,receipt):
                 not isinstance(reference['path'],str) or reference['path'] in paths or
                 not isinstance(reference['sha256'],str) or re.fullmatch(r'[0-9a-f]{64}',reference['sha256']) is None):
             raise StudioError('Recovery requires unique exact file references')
-        inside(project.root,reference['path'],False)
+        _archive_io_path(inside(project.root,reference['path'],False))
         paths.add(reference['path']);validated.append(reference)
     working_refs=[ref for ref in validated if _is_working_projection(ref['path'])]
     results=[];deferred=[]
@@ -160,7 +185,7 @@ def _recovery_projection_bytes(project,receipt):
                 raise StudioError('Immutable recovery artifact is absent or changed: '+reference['path'])
             continue
         target_path=_archive_path(receipt['attempt_id'],reference)
-        target=inside(project.root,target_path,False)
+        target=_archive_io_path(inside(project.root,target_path,False))
         archive_ref={'path':target_path,'sha256':reference['sha256']}
         row={'observed_ref':copy.deepcopy(reference),'archive_ref':archive_ref,'role':RECOVERY_ROLE}
         if target.exists():
@@ -194,7 +219,7 @@ def archive_recovery_projections(project,receipt):
     """
     rows=_recovery_projection_bytes(project,receipt)
     for row,data in rows:
-        reference=row['archive_ref'];target=inside(project.root,reference['path'],False)
+        reference=row['archive_ref'];target=_archive_io_path(inside(project.root,reference['path'],False))
         target.parent.mkdir(parents=True,exist_ok=True)
         try:
             with target.open('xb') as writer:

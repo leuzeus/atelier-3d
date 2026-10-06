@@ -1,15 +1,19 @@
 """Portable historical identity tests; fake scenes are not native Blender proof."""
 import copy
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from a3d.core import ROOT,StudioError,atomic_json,sha
 from a3d.run_projection_archive import (RECOVERY_ROLE,archive_projection_references,
     archive_recovery_projections,is_project_projection,verify_projection_archives,
-    verify_recovery_projections)
+    verify_recovery_projections,_archive_io_path)
+from a3d.runs import _reference
+from a3d.native_evidence import checked_reference
 
 
 class RecoveryProjectionArchives(unittest.TestCase):
@@ -187,6 +191,120 @@ class RecoveryProjectionArchives(unittest.TestCase):
         self.assertEqual(verify_recovery_projections(self.project,receipt),[])
         (self.root/rows[0]['archive_ref']['path']).write_bytes(b'tampered')
         with self.assertRaises(StudioError):verify_recovery_projections(self.project,receipt)
+
+
+@unittest.skipUnless(os.name=='nt','Windows archive I/O contract')
+class WindowsLongProjectionArchives(unittest.TestCase):
+    """Simulate a Windows host without longPathAware; native Blender is separate."""
+
+    def setUp(self):
+        self.fixture=RecoveryProjectionArchives();self.fixture.setUp()
+        self.root=self.fixture.root
+        self.long_root=self.root/('nested-'+'x'*90)
+        self.long_root.mkdir()
+        self.long_project=SimpleNamespace(root=self.long_root)
+        self.long_working=self.long_root/'.a3d/blender/working-recovered-0123456789abcdef0123456789abcdef.blend'
+        self.long_working.parent.mkdir(parents=True)
+        self.long_working.write_bytes(b'exact historical working')
+        self.long_session=self.long_root/'.a3d/blender/session.json'
+        atomic_json(self.long_session,{'working':str(self.long_working),'label':'épaules'})
+        self.long_receipt={'attempt_id':'attempt.0123456789abcdef0123456789abcdef','files':[
+            {'path':file.relative_to(self.long_root).as_posix(),'sha256':sha(file)}
+            for file in (self.long_working,self.long_session)]}
+
+    def tearDown(self):self.fixture.tearDown()
+
+    def restricted_open(self,path,*args,**kwargs):
+        if len(str(path))>=260 and not str(path).startswith('\\\\?\\'):
+            raise FileNotFoundError('Simulated host MAX_PATH boundary: '+str(path))
+        return self.real_open(path,*args,**kwargs)
+
+    def test_native_archival_and_historical_readback_under_host_path_limit(self):
+        receipt=copy.deepcopy(self.long_receipt)
+        self.real_open=Path.open
+        with patch.object(Path,'open',self.restricted_open_adapter()):
+            files,rows=archive_projection_references(self.long_project,receipt['attempt_id'],receipt['files'])
+            self.assertTrue(any(len(str(self.long_root/ref['path']))>=260 for ref in files))
+            bound={**receipt,'files':files,'project_projections':rows}
+            self.assertEqual([_reference(self.long_project,ref) for ref in files],files)
+            self.assertEqual([checked_reference(self.long_project,ref) for ref in files],files)
+            _archive_io_path(self.long_working).write_bytes(b'changed live working')
+            self.assertEqual(len(verify_projection_archives(self.long_project,bound)),2)
+            self.assertEqual(verify_recovery_projections(self.long_project,bound),[])
+        self.assertEqual(self.long_receipt,receipt)
+        self.assertTrue(all('\\' not in ref['path'] for ref in files))
+
+    def restricted_open_adapter(self):
+        owner=self
+        def guarded(path,*args,**kwargs):return owner.restricted_open(path,*args,**kwargs)
+        return guarded
+
+    def test_legacy_freeze_is_idempotent_and_preserves_exact_relative_identity(self):
+        receipt=copy.deepcopy(self.long_receipt)
+        self.real_open=Path.open
+        with patch.object(Path,'open',self.restricted_open_adapter()):
+            expected=verify_recovery_projections(self.long_project,receipt)
+            target=self.long_root/next(row['archive_ref']['path'] for row in expected
+                                      if row['observed_ref']['path'].endswith('.blend'))
+            self.assertGreaterEqual(len(str(target)),260)
+            with self.assertRaises(FileNotFoundError):target.open('xb')
+            rows=archive_recovery_projections(self.long_project,receipt)
+            _archive_io_path(self.long_working).write_bytes(b'changed live working')
+            self.assertEqual(archive_recovery_projections(self.long_project,receipt),rows)
+        self.assertEqual(self.long_receipt,receipt)
+        self.assertEqual([row['archive_ref'] for row in rows],[row['archive_ref'] for row in expected])
+
+    def test_extended_drive_unc_and_prefixed_paths_do_not_change_identity(self):
+        with patch.object(Path,'lstat',side_effect=FileNotFoundError):
+            for source,expected in [('G:/project/archive.bin','\\\\?\\G:\\project\\archive.bin'),
+                                    ('\\\\server\\share\\archive.bin','\\\\?\\UNC\\server\\share\\archive.bin'),
+                                    ('\\\\?\\G:\\project\\archive.bin','\\\\?\\G:\\project\\archive.bin')]:
+                self.assertEqual(str(_archive_io_path(Path(source))),expected)
+            with self.assertRaises(StudioError):_archive_io_path(Path('relative.bin'))
+
+    def test_long_archive_reparse_point_is_refused_before_io(self):
+        target=self.long_root/('.a3d/runs/native/projections/'+'x'*100+'/archive.bin')
+        real_lstat=Path.lstat
+        def probe(path,*args,**kwargs):
+            if str(path).startswith('\\\\?\\') and path.name=='x'*100:
+                return SimpleNamespace(st_mode=0,st_file_attributes=0x400)
+            return real_lstat(path,*args,**kwargs)
+        with patch.object(Path,'lstat',probe),self.assertRaisesRegex(StudioError,'Symlink/junction'):
+            _archive_io_path(target)
+
+    def test_long_differing_archive_is_refused_and_preserved(self):
+        self.real_open=Path.open
+        with patch.object(Path,'open',self.restricted_open_adapter()):
+            rows=archive_recovery_projections(self.long_project,self.long_receipt)
+            ref=next(row['archive_ref'] for row in rows if row['archive_ref']['path'].endswith('.blend'))
+            target=_archive_io_path(self.long_root/ref['path']);target.write_bytes(b'differing orphan')
+            with self.assertRaises(StudioError):archive_recovery_projections(self.long_project,self.long_receipt)
+            self.assertEqual(target.read_bytes(),b'differing orphan')
+
+    def test_long_source_session_reconstruction_under_strict_resolution_limit(self):
+        self.assertGreaterEqual(len(str(self.long_working)),260)
+        original=self.long_session.read_bytes()
+        recovered=self.long_working.with_name('working-recovered-fedcba9876543210fedcba9876543210.blend')
+        _archive_io_path(recovered).write_bytes(b'new live working')
+        changed=json.loads(original);changed['working']=str(recovered)
+        atomic_json(self.long_session,changed)
+        live_before=self.long_session.read_bytes()
+        real_resolve=Path.resolve;self.real_open=Path.open
+        def guarded_resolve(path,*args,**kwargs):
+            strict=kwargs.get('strict',args[0] if args else False)
+            if strict and len(str(path))>=260 and not str(path).startswith('\\\\?\\'):
+                raise FileNotFoundError('Simulated strict host resolution limit')
+            return real_resolve(path,*args,**kwargs)
+        with patch.object(Path,'open',self.restricted_open_adapter()),patch.object(Path,'resolve',guarded_resolve):
+            rows=verify_recovery_projections(self.long_project,self.long_receipt)
+            self.assertIn('EXACT_SESSION_RECONSTRUCTION',[row['evidence_source'] for row in rows])
+            frozen=archive_recovery_projections(self.long_project,self.long_receipt)
+            for row in frozen:
+                self.assertEqual(_reference(self.long_project,row['archive_ref']),row['archive_ref'])
+                self.assertEqual(checked_reference(self.long_project,row['archive_ref']),row['archive_ref'])
+        self.assertEqual(self.long_session.read_bytes(),live_before)
+        session_row=next(row for row in frozen if row['observed_ref']['path'].endswith('session.json'))
+        self.assertEqual(_archive_io_path(self.long_root/session_row['archive_ref']['path']).read_bytes(),original)
 
 
 if __name__=='__main__':unittest.main()
