@@ -2,7 +2,7 @@ import copy
 import unittest
 from unittest.mock import patch
 from a3d.core import StudioError,contract
-from a3d.meshing_profile import create_envelope,verify_inventory,verify_envelope,profile_binding,prepare_profile
+from a3d.meshing_profile import create_envelope,verify_inventory,verify_envelope,profile_binding,prepare_profile,prepare_recovery_profile
 from a3d.pattern_preparation import prepare_regular_boundaries
 from tests.test_boundary_gradation import fixture,binary32
 
@@ -27,6 +27,47 @@ class MeshingProfileTests(unittest.TestCase):
         self.assertEqual(before,(data,recipe,regular,p))
         a['budgets']['max_seconds']=1.
         self.assertEqual(p['budgets']['max_seconds'],90.)
+
+    def recovery_inputs(self):
+        data,recipe,regular,p=self.inputs()
+        spec={'version':1,'component_id':data['component_id'],'source_ref':'fixture:source',
+              'regular_mesh':regular,'assembly_plan':{'path':'plan.json','sha256':'a'*64}}
+        options={'max_vertices':900,'quality_refinement':copy.deepcopy(recipe['mesh']['quality_refinement']),
+                 'budgets':copy.deepcopy(p['budgets'])}
+        return data,recipe,spec,options
+
+    def test_recovery_proposal_retains_patterns_placements_gates_and_requires_native_rebind(self):
+        data,recipe,spec,options=self.recovery_inputs();before=copy.deepcopy((data,recipe,spec,options))
+        proposed,prep,report=prepare_recovery_profile(data,recipe,spec,options)
+        self.assertEqual((data,recipe,spec,options),before)
+        self.assertEqual(proposed['placements'],recipe['placements'])
+        self.assertEqual(proposed['seams'],recipe['seams'])
+        self.assertEqual(proposed['mesh']['min_angle_degrees'],recipe['mesh']['min_angle_degrees'])
+        self.assertEqual(prep['assembly_plan'],spec['assembly_plan'])
+        self.assertEqual(prep['regular_mesh']['target_min_angle_degrees'],spec['regular_mesh']['target_min_angle_degrees'])
+        self.assertEqual(prep['meshing_profile']['piece_ids'],sorted(data['pieces']))
+        self.assertEqual(report['native_mapping'],'REQUIRED_REBIND_BEFORE_EXECUTION')
+        self.assertEqual(report['qualification'],'NONE')
+
+    def test_recovery_refuses_weaker_angle_more_vertices_and_undeclared_overrides(self):
+        data,recipe,spec,options=self.recovery_inputs()
+        for change in ('angle','vertices','override','passes','partial'):
+            bad=copy.deepcopy(options)
+            if change=='angle':bad['quality_refinement']['target_min_angle_degrees']=3.
+            elif change=='vertices':bad['max_vertices']=1001
+            elif change=='override':bad['placements']={}
+            elif change=='passes':bad['quality_refinement']['max_passes']=9
+            else:bad['quality_refinement'].pop('max_added_vertices')
+            with self.subTest(change=change),self.assertRaises(StudioError):
+                prepare_recovery_profile(data,recipe,spec,bad)
+
+    def test_recovery_inventory_is_deterministic_and_cannot_mix_component_identities(self):
+        data,recipe,spec,options=self.recovery_inputs()
+        reversed_data={**data,'pieces':dict(reversed(list(data['pieces'].items())))}
+        a=prepare_recovery_profile(data,recipe,spec,options)
+        self.assertEqual(a,prepare_recovery_profile(reversed_data,recipe,spec,options))
+        other={**spec,'component_id':'another'}
+        with self.assertRaises(StudioError):prepare_recovery_profile(data,recipe,other,options)
 
     def test_explicit_global_and_per_piece_limits_share_one_origin(self):
         data,recipe,regular,p=self.inputs()

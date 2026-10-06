@@ -15,6 +15,50 @@ def prepare_profile(data, recipe, regular_mesh, budgets):
     return profile
 
 
+def prepare_recovery_profile(data, recipe, preparation, parameters):
+    """Propose fresh derived-mesh inputs; never change patterns or admit a mesh.
+
+    Parameters are explicit resource/refinement limits. The native caller must
+    derive and rebind its actual map; no old mesh or mapping proof is reusable.
+    """
+    import copy
+    before=digest([data,recipe,preparation,parameters])
+    contract_schema=read_json(ROOT/'schemas/pattern-preparation.schema.json')
+    validate(preparation,contract_schema)
+    if (not isinstance(parameters,dict) or set(parameters)!=
+            {'max_vertices','quality_refinement','budgets'}):
+        raise StudioError('Recovery meshing needs exact vertex, refinement and work budgets')
+    if data['component_id']!=recipe['component_id'] or preparation['component_id']!=data['component_id']:
+        raise StudioError('Recovery meshing component identities differ')
+    cap=parameters['max_vertices']
+    if type(cap)is not int or not 20<=cap<=min(30000,recipe['mesh']['max_vertices'],preparation['regular_mesh']['max_vertices']):
+        raise StudioError('Recovery meshing cannot enlarge the existing vertex budgets')
+    refinement=parameters['quality_refinement']
+    if (not isinstance(refinement,dict) or set(refinement)!=
+            {'target_min_angle_degrees','max_passes','max_added_vertices'}):
+        raise StudioError('Recovery meshing requires complete explicit quality refinement')
+    validate(refinement,read_json(ROOT/'schemas/sewing-recipe.schema.json')['properties']['mesh']['properties']['quality_refinement'])
+    gate=max(recipe['mesh']['min_angle_degrees'],preparation['regular_mesh'].get('target_min_angle_degrees',15.))
+    if refinement['target_min_angle_degrees']<gate:
+        raise StudioError('Recovery meshing cannot lower the unchanged source angle gate')
+    proposed_recipe=copy.deepcopy(recipe);proposed=copy.deepcopy(preparation)
+    proposed_recipe['mesh']['max_vertices']=cap
+    proposed_recipe['mesh']['quality_refinement']=copy.deepcopy(refinement)
+    proposed['regular_mesh']['max_vertices']=cap
+    proposed['meshing_profile']=prepare_profile(data,proposed_recipe,proposed['regular_mesh'],parameters['budgets'])
+    validate(proposed,contract_schema)
+    if digest([data,recipe,preparation,parameters])!=before:
+        raise StudioError('Recovery meshing changed its immutable source inputs')
+    return proposed_recipe,proposed,{
+        'status':'MESHING_PROFILE_PROPOSAL','source_garment_sha256':digest(data),
+        'source_recipe_sha256':digest(recipe),'source_preparation_sha256':digest(preparation),
+        'recipe_sha256':digest(proposed_recipe),'preparation_sha256':digest(proposed),
+        'profile':profile_binding(proposed['meshing_profile']),
+        'native_angle_gate_degrees':gate,'patterns_changed':False,'source_mutated':False,
+        'native_mapping':'REQUIRED_REBIND_BEFORE_EXECUTION',
+        'qualification':'NONE','simulation':'NOT_EXECUTED','fitting':'NOT_EXECUTED'}
+
+
 def validate_profile(profile, component_id, recipe, regular_mesh):
     schema=read_json(ROOT/'schemas/pattern-preparation.schema.json')['properties']['meshing_profile']
     validate(profile,schema)
