@@ -98,6 +98,24 @@ des étapes distinctes avec leurs preuves actuelles.
 
 ## État de qualification
 
+La mesure de réserve réutilise les identités source et candidat établies dans
+le noyau. Les copies jetables restent hachées séparément après chaque callback
+et les entrées externes sont revérifiées à la sortie. La capture du corps
+effectivement évalué est faite une fois avant et une fois après chaque mesure :
+coordonnées, faces source, face sets, triangulation, mapping des polygones et
+SHA de surface viennent du même maillage natif. Les fichiers, la pose, le cache
+et le domaine fermé/orienté restent contrôlés aux deux frontières. Aucun cache
+persistant de fichiers n'est ajouté. `evaluated_mesh` garde son tuple de deux
+éléments par défaut ; sa capture de contact est explicitement optionnelle.
+
+L'essai réel 0601 a produit les dix pièces du manteau dans les 90 s de maillage,
+avec un angle REST minimal de 15,014°. La réserve des épaules a ensuite épuisé
+ses 60 s et conserve une proposition partielle non appliquée. Le placement
+reste refusé ; récupération métrique et recherche de contacts n'ont pas démarré.
+Les optimisations suivantes sont qualifiées comme code dans 0602. Leur gain
+natif et l'admission du vêtement restent à mesurer, avec les budgets inchangés.
+Voir [les preuves exactes](automation-anchor-performance-evidence-20261006.json).
+
 Les tests portables couvrent les noyaux, le raccordement natif simulé, les
 refus et la compatibilité sans option. Ils ne qualifient pas la recherche sur
 le vêtement réel. Le [programme](automation-program.md) conserve les reçus

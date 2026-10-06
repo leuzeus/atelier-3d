@@ -1,0 +1,183 @@
+{
+  "date": "2026-10-06",
+  "status": "CODE_QUALIFIED_LOCAL_0602_INSTALLED_RELOAD_REQUIRED",
+  "scope": "CODE_AND_NATIVE_0601_REFUSAL_NOT_GARMENT_ACCEPTANCE",
+  "native_0601": {
+    "date": "2026-10-06",
+    "scope": "NATIVE_PREPARATION_REFUSAL_AND_RESTORATION_NOT_FITTING",
+    "runtime": "0.7.0-rc.2.dev.2026100601",
+    "run_id": "run.1b551b8b47fe431eae3f40601bbb2399",
+    "attempt_id": "attempt.b376a0f5c7a54dd0babfdf23b0a8a0f6",
+    "execution_authorized": true,
+    "transport": "TIMEOUT_300_SECONDS_NO_RESUBMISSION",
+    "native_elapsed_seconds": 325.5262810999993,
+    "qualification": "NOT_GRANTED",
+    "readiness": "NEEDS_CORRECTION",
+    "receipt": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-reviewed-design-main-v1/execution-project/.a3d/blender/pattern-preparation/attempt-a3c425b9731441fd88dd0d769a4d54ba/receipt.json",
+      "sha256": "fe7e3f9d6f49ac0aa5bde7e926e6cdaa2b01451e917b3885e09fca57798b83b9"
+    },
+    "mesh": {
+      "vertices": 15825,
+      "faces": 29306,
+      "local_pieces": 10,
+      "expected_local": 10,
+      "global_pieces": 10,
+      "expected_global": 15,
+      "min_rest_angle_degrees": 15.014253877651914,
+      "build_elapsed_seconds": 86.7943011,
+      "budget_seconds": 90,
+      "cloth_placement_metric": "REFUSED",
+      "qualification": "NOT_GRANTED"
+    },
+    "anchors": {
+      "status": "NEEDS_MEASUREMENT",
+      "reason": "TIME_BUDGET",
+      "elapsed_seconds": 60.69252089998918,
+      "measurement_calls": 35,
+      "retained_proposals": 33,
+      "best_translation_cm": 1.65,
+      "initial_max_deficit_cm": 0.8963769516161064,
+      "best_max_deficit_cm": 0.6290599305807028,
+      "best_applied": false,
+      "source_clearance_cm": 0.3,
+      "metric_recovery": "NOT_EXECUTED",
+      "contacts_search": "NOT_EXECUTED"
+    },
+    "recovery": {
+      "execution_authorized": true,
+      "checkpoint": {
+        "path": ".a3d/checkpoints/pre-f416df9b96a4429cac2d95e4661ae62f.blend",
+        "sha256": "89e06e090425e789ab27d345657a43e51ea1b55e535062932a3af8850f8c8f4b"
+      },
+      "working": {
+        "path": ".a3d/blender/working-recovered-7483ebcd0fe044cb91f4d06931ea7237.blend",
+        "sha256": "1a403d3f24407c652ec0513e38de1963904f7b92dc551c707ae0b1d516286362"
+      },
+      "status": "SUCCEEDED_RESTORATION_ONLY",
+      "qualification": "NOT_GRANTED",
+      "result": {
+        "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-restart0601-verification-v1/recovery-execution-result.json",
+        "sha256": "e531e09a86bfda4e7b83fe5b8012b2d59d14938f7839e5ff69afd9a8bc597ac1"
+      }
+    },
+    "missing_textiles": [
+      "belt",
+      "hood-left",
+      "hood-right",
+      "yoke-lower",
+      "yoke-upper"
+    ],
+    "buckle": "ABSENT",
+    "live_completeness": "STALE_REQUIRES_NEW_AUTHORIZED_INSPECT",
+    "cloth": "NOT_EXECUTED",
+    "drape": "NOT_EXECUTED",
+    "fitting": "NOT_QUALIFIED",
+    "artistic_acceptance": "NOT_GRANTED",
+    "new_cut_variant": "NONE"
+  },
+  "code": {
+    "commit": "24b3e541271a87c565f1e840955b1c7e4c92fb79",
+    "behavior": "Reuse internally established source/candidate identities; rehash both disposable arguments after callbacks. Capture actual native body once before and once after every signed measurement.",
+    "unchanged": [
+      "pattern source",
+      "accepted body",
+      "pose",
+      "0.05 cm step",
+      "0.3 cm collision clearance",
+      "time/iteration/displacement budgets",
+      "downstream READY criteria"
+    ],
+    "independent_review": "NO_CONFIRMED_BLOCKER_READ_ONLY",
+    "source_sha256": {
+      "a3d/anchor_reserve.py": "197de7d860c216cd5627f8d8ce3618734f3971b8e5f10717134af2f13728d8ab",
+      "blender/anchor_reserve.py": "d1b538476b4abc4a1db274d26b3f42ad90d5eba299ef13ad8cb20f7fb1be1818",
+      "blender/body_target.py": "f0aa97a3bea23cf4c9fa5533155dd2c4a59ad8fa29830c0c5fc33f4ef94d93a9"
+    },
+    "targeted": {
+      "pure": {
+        "tests": 28,
+        "python311_seconds": 0.059,
+        "python313_seconds": 0.072
+      },
+      "native_adapter_simulated": {
+        "tests": 26,
+        "python311_seconds": 0.265,
+        "python313_seconds": 0.513
+      },
+      "qualification": "PORTABLE_FIXTURES_ONLY"
+    },
+    "integrated": {
+      "tests": 1756,
+      "skipped": 0,
+      "seconds": 218.46,
+      "contracts": 14,
+      "immutable_export": true,
+      "source_unchanged": true,
+      "validation": {
+        "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-anchor-performance-full-validation-v1/validation.json",
+        "sha256": "c5b866bba75e5e30761bd8723fc216ff2b0c34cfb9e9f3e707820e60a5f743fa"
+      },
+      "tests_receipt_sha256": "f1774d1585baa5d1b8e27fdb07e2f843b5ecb95f7c2671375a83a7cd31402437",
+      "contracts_receipt_sha256": "51c4aed234db311d77f326677e4e2e0f6f72250d5453a4aeb19f800de3678225"
+    }
+  },
+  "benchmark": {
+    "scope": "PORTABLE_SYNTHETIC_KERNEL_HASH_COST_ONLY",
+    "source_pad_bytes": 9437184,
+    "fixture_vertices": 12,
+    "calls": 4,
+    "repetitions": 3,
+    "provider_cost_measured": false,
+    "body_collision_cost_measured": false,
+    "native_execution": false,
+    "receipts_exact": true,
+    "inputs_unchanged": true,
+    "python311": {
+      "baseline_seconds": 0.5282164000091143,
+      "optimized_seconds": 0.24614920001477003,
+      "receipt_sha256": "5488cf3538786e0142dc22cd7fca717112d5da542dcca4f62aa17d31f3998303"
+    },
+    "python313": {
+      "baseline_seconds": 1.5739471999695525,
+      "optimized_seconds": 0.7210394000285305,
+      "receipt_sha256": "b9ef988b0a5159b52d34e375bc91999d6c1b705b44dffa95ae273509e1171aea"
+    }
+  },
+  "installation": {
+    "version": "0.7.0-rc.2.dev.2026100602",
+    "method": "NATIVE_CODEX_PLUGIN_ADD",
+    "distributed_source_files": 650,
+    "installed_files": 651,
+    "exact_copy": true,
+    "previous_g_stages_preserved": true,
+    "hook_trust": "NATIVE_NOT_SCRIPTED",
+    "prepared_receipt_sha256": "c1c601110a2e40dec3240daaa9be16aa31f304a0915118586b8a53ae72aa0e78",
+    "native_result_sha256": "1f1fa3a019ba9778b222900916cb5a5e957f866da124d15da95d692e85d319d3",
+    "verification_receipt_sha256": "8665b3cc87d9f4c48ea4ffc25092b215f27cd7e0246f19d8a36d166be842d380",
+    "connected_runtime": "OLD_0601_MISSING_SCHEMA_RESTART_REQUIRED",
+    "doctor_after_install_sha256": "1efc3cbb530f3ce8a0b70b6f05d971a09fa796f1fb44ad4d9480af51d6ac9a12"
+  },
+  "next_run_proposal": {
+    "path": "preparation/coat-recovery-v3/run-anchor-performance-v1.json",
+    "id": "placement-recovery-1ef17775cce9f6e2e4f7fa51",
+    "sha256": "ed39f80cab03f3acd8ec0ee3e502e52402147991d580797cc86c71b89cc3da7f",
+    "registered": false,
+    "executed": false,
+    "qualification": "NONE"
+  },
+  "remaining": [
+    "current loaded runtime verification after restart",
+    "native anchor reserve and admitted placement",
+    "homologous ease measurements and review",
+    "complete 15 textiles and rigid buckle",
+    "dressing",
+    "Cloth",
+    "drape",
+    "fitting",
+    "full motion clips",
+    "artistic review",
+    "final delivery and prerelease"
+  ],
+  "new_cutting_review_required": false
+}

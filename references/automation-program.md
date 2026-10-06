@@ -4,19 +4,28 @@ Plan approuvé par l'utilisateur le 3 octobre 2026. Base : branche
 `codex/garment-automation-v1`, commit `8dfeac77c3b1bc3b11a4dbe6401eb2b1bb0a54ea`,
 version 0.7.0-rc.2. Le programme est suivi ici pendant l'implémentation.
 
-**État courant du 6 octobre :** le build local distinct
-`0.7.0-rc.2.dev.2026100601` est installé par le gestionnaire natif de Codex ;
-ses 650 fichiers correspondent au stage préparé depuis le commit de code
-`1f34790c2a4cd582dcc2f6c85bbe4dbcd9aa308d`. Cet export immuable passe
-1 744 tests en 229,525 s, aucun SKIP, et 14 contrats. Les 109 tests ciblés
-passent sous Python 3.11 et 3.13. Le serveur du chat utilise encore le cache
-0507 remplacé et retourne son schéma introuvable ; un redémarrage est requis
-pour vérifier 0601 avant tout nouvel appel Blender. Le dernier essai autorisé
-sous 0507 a été refusé sur l'enveloppe de maillage avant placement. Sa
-restauration distincte autorisée a réussi et conserve le refus et le corps
-seul. Le correctif de grille installé n'est pas qualifié nativement ; sa
-nouvelle spécification est préparée mais pas enregistrée. Le suivi détaillé
-du 6 octobre figure en fin de document.
+**État courant du 6 octobre :** 0601 a réellement été chargé puis la
+préparation exacte autorisée a été exécutée une seule fois. Le maillage des
+dix pièces du manteau termine dans son budget de 90 s, angle REST minimal
+15,014°. La recherche de réserve des épaules progresse puis épuise ses 60 s ;
+le placement reste refusé et la proposition partielle n'est pas appliquée.
+Le timeout transport à 300 s a été réconcilié avec le reçu natif de 325,526 s,
+sans resoumission. La restauration distincte autorisée réussit et conserve
+les refus, vues et mesures dans une nouvelle copie contenant le corps seul.
+La preuve de complétude de l'ancien candidat est périmée pour cette scène.
+
+Les optimisations de hachage et de capture corporelle du commit
+`24b3e541271a87c565f1e840955b1c7e4c92fb79` passent 1 756 tests en
+218,460 s, aucun SKIP, et 14 contrats sur export immuable. Les 54 tests ciblés
+passent sous Python 3.11 et 3.13 et la revue indépendante ne confirme aucun
+blocker. Le build local distinct `0.7.0-rc.2.dev.2026100602` est installé par
+le gestionnaire natif : 650 fichiers source distribués et 651 fichiers
+installés vérifiés exactement. Le serveur du chat pointe encore vers le
+cache 0601 remplacé : redémarrage requis avant tout nouvel appel Blender.
+La nouvelle spécification de run est préparée, sans écriture SQLite ni
+exécution. Le gain natif des optimisations, les épaules, le placement admis
+et l'acceptation complète restent ouverts. Le suivi détaillé figure en fin
+de document et dans [les preuves](automation-anchor-performance-evidence-20261006.json).
 
 La restauration et l'inspection réussies sous 0506 restent des preuves natives
 de la scène contenant le corps seul ; elles n'admettent pas la correction 0507.
@@ -1980,3 +1989,63 @@ d'épaule et du placement n'a pas encore démarré. Aucun changement de coupe
 n'attend d'approbation ; les mesures homologues et le futur candidat visuel
 devront être revus. Les 15 textiles et la boucle, la physique, le drapé,
 le fitting, les mouvements, la finition et la préversion finale restent ouverts.
+
+### 6 octobre — maillage 0601 complet, réserve refusée, restauration et build 0602
+
+Après redémarrage, le diagnostic confirme 0601, 52 schémas et pipeline admis.
+Le run `run.1b551b8b47fe431eae3f40601bbb2399` est enregistré publiquement.
+La préparation exacte autorisée crée un candidat distinct de 15 825 sommets
+et 29 306 faces, avec 10/10 pièces du manteau et 10/15 textiles au total.
+La ceinture, les deux pièces de capuche, les deux empiècements et la boucle
+restent absents. La phase de maillage termine en 86,794 s sous son budget
+de 90 s ; son angle REST minimal vaut 15,014°, sans abaisser les 15° requis.
+
+La réserve des huit stops d'épaule exécute 35 mesures et conserve 33 propositions
+améliorantes, puis épuise 60 s. Sa meilleure translation exploratoire de
+1,65 cm réduit le déficit maximal de 0,896 à 0,629 cm ; elle reste non admise
+et n'est pas appliquée. La récupération métrique et la recherche de contacts
+ne démarrent pas. Les vues face, profil et dos ont été examinées : le haut du
+torse et les bras restent mal placés. Les empiècements absents limitent aussi
+la lecture de couverture. Ces observations ne démontrent pas un défaut des
+patrons approuvés ni une validation de fitting.
+
+Le timeout transport de 300 s ne déclenche aucun second envoi. Le reçu natif
+conserve l'opération complète de 325,526 s et le run est réconcilié en
+NEEDS_CORRECTION. La restauration distincte autorisée rouvre le checkpoint
+`pre-f416df9b96a4429cac2d95e4661ae62f.blend` dans une nouvelle copie de travail.
+Le refus, ses vues et ses fichiers restent conservés. La complétude live
+requiert une nouvelle inspection autorisée ; le reçu du candidat 10/15
+ne décrit plus la scène restaurée. Aucun Cloth, drapé ou fitting n'est lancé.
+
+La correction générique évite les hachages redondants et regroupe la capture
+complète du corps à chaque frontière de mesure. Les copies des arguments sont
+encore hachées après chaque callback ; le contrôle final des entrées reste
+actif. Les fichiers, la source, la pose, les coordonnées, les faces, face sets,
+triangles, polygones, SHA de surface et cache sont contrôlés avant et après.
+Le tuple historique de `evaluated_mesh` reste inchangé par défaut. Aucun pas,
+budget, seuil, patron ou corps n'est modifié.
+
+Les 28 tests du noyau et les 26 tests de capture simulée passent sous les deux
+Python. La revue indépendante ne confirme aucun blocker. Le benchmark portable
+avec 9 MiB de texte synthétique, 12 sommets et quatre mesures conserve les reçus
+exacts : médianes 0,528→0,246 s sous Python 3.11 et 1,574→0,721 s sous Python
+3.13. Il exclut les coûts du fournisseur et des collisions corporelles ; aucun
+gain natif n'est annoncé. Le commit de code `24b3e54` passe l'export complet :
+1 756 tests, aucun SKIP, 218,460 s et 14 contrats.
+
+Le gestionnaire natif installe le build distinct 0602. Les 650 fichiers source
+distribués et les 651 fichiers installés correspondent aux témoins exacts.
+Les stages G: antérieurs sont conservés et la confiance des hooks n'est pas
+scriptée. Le serveur du chat pointe encore vers le cache 0601 remplacé :
+le redémarrage et la vérification de 0602 précèdent toute nouvelle opération.
+La spécification `preparation/coat-recovery-v3/run-anchor-performance-v1.json`,
+identité `placement-recovery-1ef17775cce9f6e2e4f7fa51`, SHA
+`ed39f80cab03f3acd8ec0ee3e502e52402147991d580797cc86c71b89cc3da7f`,
+est seulement préparée. Ses entrées et budgets restent conservés.
+
+Aucun nouveau patron à approuver n'est produit. Les mesures homologues
+d'aisance et les futurs pixels restent à revoir. Placement admis, 15 textiles
+et boucle, enfilage, matière, physique, drapé, fitting, clips complets, finition,
+revue artistique et préversion finale restent ouverts. Les preuves historiques
+et portables gardent leur portée et ne sont pas transférées à ces gates.
+[Preuves du candidat, de la restauration, du code et de l'installation](automation-anchor-performance-evidence-20261006.json).
