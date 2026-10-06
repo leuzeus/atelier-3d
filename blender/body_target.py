@@ -10,7 +10,16 @@ import uuid
 from a3d.core import StudioError, atomic_json, digest, sha
 
 
-def evaluated_mesh(obj, depsgraph, unit_scale_m):
+def evaluated_mesh(obj, depsgraph, unit_scale_m, *, include_contact_surface=False):
+    """Capture canonical geometry and optionally its exact contact identity.
+
+    The default two-tuple remains unchanged. With explicit opt-in, the result
+    additionally contains loop-triangle polygon indices and the same surface
+    digest used by cloth_contacts._surface, from this single native evaluation.
+    Native contact contexts use the managed scene's meter scale (1.).
+    """
+    if type(include_contact_surface) is not bool:
+        raise StudioError('Contact surface capture requires an explicit boolean')
     evaluated = obj.evaluated_get(depsgraph)
     mesh = evaluated.to_mesh()
     try:
@@ -23,8 +32,14 @@ def evaluated_mesh(obj, depsgraph, unit_scale_m):
         if not points or not faces or any(not math.isfinite(x) for point in points for x in point):
             raise StudioError('Body target source has empty or invalid evaluated geometry')
         mesh.calc_loop_triangles()
-        return {'vertices_cm': points, 'faces': faces,
-                'face_sets': [value.value for value in labels.data]}, [list(t.vertices) for t in mesh.loop_triangles]
+        actual={'vertices_cm': points, 'faces': faces,
+                'face_sets': [value.value for value in labels.data]}
+        triangles=[list(t.vertices) for t in mesh.loop_triangles]
+        if include_contact_surface:
+            polygons=[triangle.polygon_index for triangle in mesh.loop_triangles]
+            surface_sha256=digest({'coords_cm':points,'triangles':triangles,'polygons':polygons})
+            return actual,triangles,polygons,surface_sha256
+        return actual,triangles
     finally:
         evaluated.to_mesh_clear()
 

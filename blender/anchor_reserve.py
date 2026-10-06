@@ -43,16 +43,35 @@ def _target_artifacts(receipt):
     return None,None
 
 
-def _current_body_geometry(body,binding):
+def _current_body_geometry(body,binding,*,include_contact_surface=False):
     import bpy
     from blender.body_target import evaluated_mesh
     if (body is None or body.type!='MESH' or body.name not in binding['collider_names'] or
             body.get('a3d_profile_cache_key')!=binding['profile_cache_key']):
         raise StudioError('Anchor reserve actual collider belongs to another measured body profile')
-    actual,triangles=evaluated_mesh(body,bpy.context.evaluated_depsgraph_get(),1.)
+    captured=evaluated_mesh(body,bpy.context.evaluated_depsgraph_get(),1.,
+                            include_contact_surface=include_contact_surface)
+    actual=captured[0]
     if actual!=binding['canonical_geometry']:
         raise StudioError('Anchor reserve actual evaluated body differs from its exact native geometry')
-    return actual,triangles
+    return captured
+
+
+def _current_contact_body(context,binding):
+    """One evaluated mesh verifies canonical body and the fixed contact capture."""
+    bodies=context['bodies']
+    if (len(bodies)!=len(binding['collider_names']) or
+            {body['name'] for body in bodies}!=set(binding['collider_names']) or
+            any(not body['closed'] or body['orientation_issues'] for body in bodies)):
+        raise StudioError('Anchor reserve requires the exact closed oriented body context')
+    for body in bodies:
+        actual,faces,polygons,surface_sha256=_current_body_geometry(
+            body['object'],binding,include_contact_surface=True)
+        if (surface_sha256!=body['sha256'] or body['coords']!=actual['vertices_cm'] or
+                body['faces']!=faces or body['polygons']!=polygons or
+                body['triangles']!=[[actual['vertices_cm'][i] for i in face] for face in faces]):
+            raise StudioError('Captured contact surface differs from the exact evaluated accepted body')
+    return bodies
 
 
 def _bound_body_files(binding):
@@ -125,25 +144,12 @@ def verified_anchor_body(project,recipe,plan,preparation):
     return binding
 
 
-def measure_anchor_reserve(payload,coordinates,context,plan,binding,stops,moving,identity):
+def measure_anchor_reserve(payload,coordinates,context,plan,binding,stops,moving,identity,*,expected_source_sha256=None):
     """Measure stops against full evaluated target triangles; no plane witnesses."""
-    from blender.cloth_contacts import _body_binding
     from blender.pattern_assembly import collision_check
     try:
         _bound_body_files(binding)
-        # The native helper returns None on successful fixed-surface binding.
-        if _body_binding(context) is not None:
-            return {'status':'UNAVAILABLE','reason':'EVALUATED_BODY_CHANGED_OR_ORIENTATION_INVALID'}
-        bodies=context['bodies']
-        if (len(bodies)!=len(binding['collider_names']) or
-                {body['name'] for body in bodies}!=set(binding['collider_names']) or
-                any(not body['closed'] or body['orientation_issues'] for body in bodies)):
-            return {'status':'UNAVAILABLE','reason':'CLOSED_ORIENTED_BODY_DOMAIN_REQUIRED'}
-        for body in bodies:
-            actual,faces=_current_body_geometry(body['object'],binding)
-            if (body['coords']!=actual['vertices_cm'] or body['faces']!=faces or
-                    body['triangles']!=[[actual['vertices_cm'][i] for i in face] for face in faces]):
-                return {'status':'UNAVAILABLE','reason':'CAPTURED_COLLIDER_DIFFERS_FROM_ACCEPTED_BODY'}
+        bodies=_current_contact_body(context,binding)
         clearance=plan['collision']['clearance_cm'];contacts=[]
         if type(clearance) not in (int,float) or not math.isfinite(clearance) or clearance<0:
             return {'status':'UNAVAILABLE','reason':'INVALID_DECLARED_COLLISION_RESERVE'}
@@ -168,13 +174,12 @@ def measure_anchor_reserve(payload,coordinates,context,plan,binding,stops,moving
                 return {'status':'UNAVAILABLE','reason':'UNKNOWN_OR_INCOMPLETE_SIGNED_BODY_CLASSIFIER'}
             contacts.append({'vertex':index,'signed_offset_cm':offset,'clearance_cm':clearance})
         _bound_body_files(binding)
-        if _body_binding(context) is not None:
-            return {'status':'UNAVAILABLE','reason':'EVALUATED_BODY_CHANGED_DURING_MEASUREMENT'}
-        for body in bodies:_current_body_geometry(body['object'],binding)
+        _current_contact_body(context,binding)
     except Exception as error:
         return {'status':'UNAVAILABLE','reason':'EXACT_NATIVE_BODY_MEASUREMENT_UNAVAILABLE','error':str(error)}
     return {'status':'MEASURED','context_identity':copy.deepcopy(identity),
-            'source_sha256':digest(payload),'candidate_sha256':digest(coordinates),
+            'source_sha256':digest(payload) if expected_source_sha256 is None else expected_source_sha256,
+            'candidate_sha256':digest(coordinates),
             'method':'FULL_BODY_COLLISION','sign_status':'UNAMBIGUOUS',
             'moving_indices':sorted(moving),'protected_contacts':contacts}
 
@@ -207,13 +212,14 @@ def propose_anchor_reserve(payload,coordinates,context,recipe,plan,preparation,b
         if plan.get('supports',{}).get(stage):
             raise StudioError('Anchor reserve V1 cannot move authored physical supports')
     if recipe.get('pins'):raise StudioError('Anchor reserve V1 cannot move a recipe with physical pins')
+    source_identity=digest(payload);moving=moving_indices(payload,stops);ordered_stops=sorted(stops)
     result=solve_anchor_reserve(payload,coordinates,
-        lambda source,points:measure_anchor_reserve(source,points,context,plan,binding,sorted(stops),
-            moving_indices(source,stops),identity),specification,
+        lambda source,points:measure_anchor_reserve(source,points,context,plan,binding,ordered_stops,
+            moving,identity,expected_source_sha256=source_identity),specification,
         body_frame_up=binding['frame']['up'],context_identity=identity,
         displacement_reference=original_guide,
-        rest_precondition={'status':'PASSED','source_sha256':digest(payload),'candidate_sha256':digest(coordinates)},
-        protected_indices=sorted(stops),support_indices=sorted(supports))
+        rest_precondition={'status':'PASSED','source_sha256':source_identity,'candidate_sha256':digest(coordinates)},
+        protected_indices=ordered_stops,support_indices=sorted(supports))
     result.update(rest_metric=rest_metric,body_ref=copy.deepcopy(binding['profile_ref']),
                   reserve_source='PLAN_COLLISION_CLEARANCE',final_readiness='UNCHANGED_DOWNSTREAM_GATES_REQUIRED')
     return result

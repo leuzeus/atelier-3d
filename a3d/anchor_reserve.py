@@ -125,22 +125,33 @@ class _Unmeasured(ValueError):
     pass
 
 
-def _measurement(evaluate, payload, points, context, stops, moving, clearances=None):
+def _measurement(evaluate, payload, points, context, stops, moving, clearances=None, *,
+                 expected_source_sha256=None, expected_candidate_sha256=None):
+    # These are internal immutable entry/candidate witnesses, never supplier
+    # claims or native authentication. Reuse their exact hashes; both disposable
+    # callback arguments are still hashed independently AFTER the callback.
+    source_sha256 = digest(payload) if expected_source_sha256 is None else expected_source_sha256
+    candidate_sha256 = digest(points) if expected_candidate_sha256 is None else expected_candidate_sha256
+    for identity in (source_sha256, candidate_sha256):
+        if (type(identity) is not str or len(identity) != 64
+                or any(character not in '0123456789abcdef' for character in identity)):
+            raise _Unmeasured('INVALID_EXPECTED_MEASUREMENT_IDENTITY')
     source = copy.deepcopy(payload); trial = copy.deepcopy(points)
-    identity = digest([source, trial])
     try:
         report = evaluate(source, trial)
     except Exception as error:
         raise _Unmeasured('CALLBACK_UNAVAILABLE:' + type(error).__name__) from error
-    if digest([source, trial]) != identity:
+    source_after_sha256 = digest(source)
+    candidate_after_sha256 = digest(trial)
+    if source_after_sha256 != source_sha256 or candidate_after_sha256 != candidate_sha256:
         raise _Unmeasured('CALLBACK_MUTATED_INPUT')
     if not isinstance(report, dict):
         raise _Unmeasured('MALFORMED_MEASUREMENT')
     if report.get('status') != 'MEASURED':
         raise _Unmeasured('MEASUREMENT_' + str(report.get('status', 'UNAVAILABLE')))
     if (report.get('context_identity') != context
-            or report.get('source_sha256') != digest(payload)
-            or report.get('candidate_sha256') != digest(points)):
+            or report.get('source_sha256') != source_sha256
+            or report.get('candidate_sha256') != candidate_sha256):
         raise _Unmeasured('STALE_MEASUREMENT_IDENTITY')
     if (report.get('method') != 'FULL_BODY_COLLISION'
             or report.get('sign_status') != 'UNAMBIGUOUS'
@@ -235,7 +246,8 @@ def solve_anchor_reserve(payload, coordinates, evaluate, specification, *,
     input_identity = digest([payload, coordinates, specification, body_frame_up,
                              context_identity, displacement_reference, rest_precondition,
                              protected_indices, support_indices])
-    source_identity = digest(payload); context = copy.deepcopy(context_identity)
+    source_identity = digest(payload); initial_identity = digest(initial)
+    context = copy.deepcopy(context_identity)
     start = clock(); last_time = start
     if not _number(start):
         raise StudioError('Anchor reserve clock must be finite and monotone')
@@ -267,7 +279,7 @@ def solve_anchor_reserve(payload, coordinates, evaluate, specification, *,
                 'protected_indices': sorted(stops), 'moving_indices': sorted(moving),
                 'support_indices': sorted(supports), 'body_frame_up': axis,
                 'translation_scalar_cm': best_scalar, 'source_sha256': source_identity,
-                'initial_candidate_sha256': digest(initial), 'candidate_sha256': digest(best),
+                'initial_candidate_sha256': initial_identity, 'candidate_sha256': digest(best),
                 'displacement_reference_sha256': digest(reference),
                 'measurement_context_sha256': digest(context),
                 'specification_sha256': digest(specification),
@@ -284,25 +296,26 @@ def solve_anchor_reserve(payload, coordinates, evaluate, specification, *,
 
     if (not isinstance(rest_precondition, dict) or rest_precondition.get('status') != 'PASSED'
             or rest_precondition.get('source_sha256') != source_identity
-            or rest_precondition.get('candidate_sha256') != digest(initial)):
+            or rest_precondition.get('candidate_sha256') != initial_identity):
         status = 'REFUSED'; reason = 'REST_PRECONDITION_REQUIRED'; return result()
     if moving & supports:
         status = 'REFUSED'; reason = 'FIXED_SUPPORT_IN_SELECTED_COMPONENT'; return result()
     if initial_displacement > budgets['max_displacement_cm']:
         status = 'REFUSED'; reason = 'INITIAL_CUMULATIVE_DISPLACEMENT_BUDGET'; return result()
 
-    def measure(points):
+    def measure(points, candidate_sha256):
         nonlocal calls
         if elapsed() >= budgets['max_seconds']:
             raise _Unmeasured('TIME_BUDGET')
         calls += 1
-        measured = _measurement(evaluate, payload, points, context, stops, moving, clearances)
+        measured = _measurement(evaluate, payload, points, context, stops, moving, clearances,
+            expected_source_sha256=source_identity, expected_candidate_sha256=candidate_sha256)
         if elapsed() >= budgets['max_seconds']:
             raise _Unmeasured('TIME_BUDGET')
         return measured
 
     try:
-        before, best_score, best_admissible = measure(initial)
+        before, best_score, best_admissible = measure(initial, initial_identity)
         after = copy.deepcopy(before)
         clearances = {row['vertex']: row['clearance_cm'] for row in before['protected_contacts']}
     except _Unmeasured as error:
@@ -329,7 +342,7 @@ def solve_anchor_reserve(payload, coordinates, evaluate, specification, *,
             record['reason'] = 'CUMULATIVE_DISPLACEMENT_BUDGET'
             history.append(record); reason = record['reason']; break
         try:
-            report, score, admissible = measure(trial)
+            report, score, admissible = measure(trial, record['candidate_sha256'])
         except _Unmeasured as error:
             record['reason'] = str(error); history.append(record)
             reason = str(error); status = 'NEEDS_MEASUREMENT'; break

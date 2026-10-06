@@ -2,7 +2,9 @@
 import copy
 import math
 import unittest
+from unittest.mock import patch
 
+from a3d import anchor_reserve as kernel
 from a3d.anchor_reserve import DOMAIN, solve_anchor_reserve
 from a3d.core import StudioError, digest
 
@@ -83,6 +85,64 @@ class AnchorReserve(unittest.TestCase):
         self.assertEqual(result['fitting'], 'NOT_EXECUTED')
         self.assertEqual(result['final_assessment'], 'FULL_NATIVE_GATES_REQUIRED')
         self.assertEqual(result['native_origin'], 'NOT_ESTABLISHED')
+
+    def test_cached_and_default_measurement_identities_have_identical_complete_receipts(self):
+        measurement = kernel._measurement
+        def uncached(*args, **kwargs):
+            kwargs.pop('expected_source_sha256', None)
+            kwargs.pop('expected_candidate_sha256', None)
+            return measurement(*args, **kwargs)
+        for mode in ('success', 'impossible', 'unknown-later', 'original-budget'):
+            payload, points, spec, context = fixture(); options = {}
+            evaluate = evaluator(context, target=10. if mode == 'impossible' else 1.5)
+            if mode == 'unknown-later':
+                def evaluate(source, candidate):
+                    report = evaluator(context)(source, candidate)
+                    if candidate[0][2] >= 1.: report['status'] = 'UNAVAILABLE'
+                    return report
+            if mode == 'original-budget':
+                options['displacement_reference'] = [[p[0], p[1], p[2]-.9] for p in points]
+                spec['budgets']['max_displacement_cm'] = 1.
+                spec['budgets']['max_step_cm'] = .05
+            inputs = digest([payload, points, spec, context, options])
+            cached = self.run_kernel(payload, points, spec, context, evaluate=evaluate, **options)
+            with patch.object(kernel, '_measurement', side_effect=uncached):
+                default = self.run_kernel(payload, points, spec, context, evaluate=evaluate, **options)
+            with self.subTest(mode=mode):
+                self.assertEqual(cached, default)
+                self.assertEqual(digest(cached), digest(default))
+                self.assertEqual(inputs, digest([payload, points, spec, context, options]))
+
+    def test_callback_that_mutates_external_source_is_refused_by_final_guard(self):
+        payload, points, spec, context = fixture()
+        def mutate(source, candidate):
+            payload['external_changed'] = True
+            return evaluator(context, target=0.)(source, candidate)
+        with self.assertRaisesRegex(StudioError, 'input changed'):
+            self.run_kernel(payload, points, spec, context, evaluate=mutate)
+
+    def test_late_clock_cannot_mutate_context_after_admissible_measurement(self):
+        payload, points, spec, context = fixture(); calls = 0
+        def clock():
+            nonlocal calls
+            calls += 1
+            if calls == 4: context['body_sha256'] = 'changed'
+            return 0.
+        with self.assertRaisesRegex(StudioError, 'input changed'):
+            self.run_kernel(payload, points, spec, context,
+                            evaluate=evaluator(context, target=0.), clock=clock)
+
+    def test_expected_identity_options_fail_closed_and_do_not_infer_native_origin(self):
+        payload, points, _, context = fixture()
+        for key in ('expected_source_sha256', 'expected_candidate_sha256'):
+            for invalid in (False, 'old', 'A'*64):
+                with self.subTest(key=key, invalid=invalid), self.assertRaises(kernel._Unmeasured):
+                    kernel._measurement(evaluator(context), payload, points, context, {0}, set(range(9)),
+                                        **{key: invalid})
+        with self.assertRaisesRegex(kernel._Unmeasured, 'CALLBACK_MUTATED_INPUT'):
+            kernel._measurement(evaluator(context), payload, points, context, {0}, set(range(9)),
+                                expected_source_sha256='0'*64,
+                                expected_candidate_sha256=digest(points))
 
     def test_renamed_and_reordered_panel_and_seam_maps_are_geometry_equivalent(self):
         first = self.run_kernel()

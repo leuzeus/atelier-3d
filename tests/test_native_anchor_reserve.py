@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock,patch
 
 from a3d.core import ROOT,StudioError,contract,digest
 from blender.anchor_reserve import moving_indices,measure_anchor_reserve,propose_anchor_reserve,verified_anchor_body
@@ -36,12 +36,21 @@ class NativeAnchorReserveAdapter(unittest.TestCase):
         self.bpy=SimpleNamespace(data=SimpleNamespace(objects=SimpleNamespace(get=lambda name:self.body if name=='target' else None)),
                                  context=SimpleNamespace(evaluated_depsgraph_get=lambda:object()))
         self.bpy_patch=patch.dict('sys.modules',{'bpy':self.bpy});self.bpy_patch.start();self.addCleanup(self.bpy_patch.stop)
-        self.evaluate_patch=patch('blender.body_target.evaluated_mesh',side_effect=lambda *args:(copy.deepcopy(self.actual),[[0,1,2]]))
-        self.evaluate_patch.start();self.addCleanup(self.evaluate_patch.stop)
+        def capture(*args,include_contact_surface=False):
+            actual=copy.deepcopy(self.actual);triangles=[[0,1,2]];polygons=[0]
+            if include_contact_surface:
+                return actual,triangles,polygons,digest({'coords_cm':actual['vertices_cm'],
+                                                       'triangles':triangles,'polygons':polygons})
+            return actual,triangles
+        self.capture=capture
+        self.evaluate_patch=patch('blender.body_target.evaluated_mesh',side_effect=capture)
+        self.evaluate=self.evaluate_patch.start();self.addCleanup(self.evaluate_patch.stop)
         self.payload,self.points,_,_=fixture()
         self.payload['placed_cm']=copy.deepcopy(self.points)
-        self.context={'bodies':[{'name':'target','closed':True,'orientation_issues':[],'sha256':'surface',
+        self.context={'bodies':[{'name':'target','closed':True,'orientation_issues':[],
+                                 'sha256':digest({'coords_cm':self.actual['vertices_cm'],'triangles':[[0,1,2]],'polygons':[0]}),
                                  'object':self.body,'coords':copy.deepcopy(self.actual['vertices_cm']),'faces':[[0,1,2]],
+                                 'polygons':[0],
                                  'tree':object(),'snapshot':{},'triangles':[[[0,0,0],[0,1,0],[0,0,1]]]}]}
         self.plan={'collision':{'clearance_cm':.3},'supports':{},
                    'layers':{'nodes':[{'kind':'body','source_ref':self.ref,'colliders':['target']}]}}
@@ -100,8 +109,11 @@ class NativeAnchorReserveAdapter(unittest.TestCase):
             result=measure_anchor_reserve(self.payload,self.points,self.context,self.plan,self.binding,[0],[0],{})
             self.assertEqual(result['status'],'UNAVAILABLE');body.assert_not_called()
         self.file.write_bytes(self.raw)
-        with patch('blender.cloth_contacts._body_binding',return_value={'ok':False}):
+        self.context['bodies'][0]['orientation_issues']=[{'reason':'INCONSISTENT_CLOSED_WINDING'}]
+        with patch('blender.pattern_assembly.collision_check') as query:
             self.assertEqual(measure_anchor_reserve(self.payload,self.points,self.context,self.plan,self.binding,[0],[0],{})['status'],'UNAVAILABLE')
+            query.assert_not_called()
+        self.context['bodies'][0]['orientation_issues']=[]
         with patch('blender.cloth_contacts._body_binding',return_value=None),\
                 patch('blender.pattern_assembly.collision_check',return_value={'ambiguous_sign_count':1}):
             self.assertEqual(measure_anchor_reserve(self.payload,self.points,self.context,self.plan,self.binding,[0],[0],{})['status'],'AMBIGUOUS')
@@ -116,8 +128,8 @@ class NativeAnchorReserveAdapter(unittest.TestCase):
 
     def test_rotated_sourced_axis_rigid_proposal_keeps_original_budget_and_no_admission(self):
         before=digest([self.payload,self.points,self.plan,self.spec])
-        def query(source,points,context,plan,binding,stops,moving,identity):
-            return {'status':'MEASURED','context_identity':identity,'source_sha256':digest(source),
+        def query(source,points,context,plan,binding,stops,moving,identity,*,expected_source_sha256=None):
+            return {'status':'MEASURED','context_identity':identity,'source_sha256':expected_source_sha256 or digest(source),
                     'candidate_sha256':digest(points),'method':'FULL_BODY_COLLISION','sign_status':'UNAMBIGUOUS',
                     'moving_indices':moving,'protected_contacts':[{'vertex':i,'signed_offset_cm':points[i][0],
                                                                   'clearance_cm':.3} for i in stops]}
@@ -225,8 +237,10 @@ class NativeAnchorReserveAdapter(unittest.TestCase):
             result=measure_anchor_reserve(self.payload,self.points,self.context,self.plan,self.binding,[0],[0],{})
         self.assertEqual(result['status'],'UNAVAILABLE')
         self.geometry_file.write_bytes(self.geometry_raw)
-        with patch('blender.cloth_contacts._body_binding',side_effect=[None,{'reason':'COLLIDER_GEOMETRY_CHANGED'}]),\
-                patch('blender.pattern_assembly.collision_check',return_value=self.signed()):
+        def changed_surface(*args,**kwargs):
+            self.actual['vertices_cm'][0][0]=1.
+            return self.signed()
+        with patch('blender.pattern_assembly.collision_check',side_effect=changed_surface):
             result=measure_anchor_reserve(self.payload,self.points,self.context,self.plan,self.binding,[0],[0],{})
         self.assertEqual(result['status'],'UNAVAILABLE')
 
@@ -247,6 +261,102 @@ class NativeAnchorReserveAdapter(unittest.TestCase):
                 patch('blender.pattern_assembly.collision_check') as query:
             result=measure_anchor_reserve(self.payload,self.points,self.context,self.plan,self.binding,[0],[0],{})
         self.assertEqual(result['status'],'UNAVAILABLE');body.assert_not_called();query.assert_not_called()
+
+    def test_single_native_capture_per_boundary_and_no_duplicate_surface_evaluation(self):
+        from blender.anchor_reserve import _bound_body_files
+        with patch('blender.cloth_contacts._body_binding',side_effect=AssertionError('duplicate evaluation')) as old,\
+                patch('blender.anchor_reserve._bound_body_files',wraps=_bound_body_files) as files,\
+                patch('blender.pattern_assembly.collision_check',return_value=self.signed()):
+            result=measure_anchor_reserve(self.payload,self.points,self.context,self.plan,self.binding,[0],[0],{})
+        self.assertEqual(result['status'],'MEASURED');old.assert_not_called()
+        self.assertEqual(self.evaluate.call_count,2);self.assertEqual(files.call_count,2)
+        self.assertTrue(all(call.kwargs=={'include_contact_surface':True} for call in self.evaluate.call_args_list))
+
+    def test_stale_contact_digest_or_polygon_mapping_is_refused(self):
+        for key,value in (('sha256','0'*64),('polygons',[1])):
+            with self.subTest(key=key):
+                context=copy.deepcopy(self.context);context['bodies'][0][key]=value
+                with patch('blender.pattern_assembly.collision_check') as query:
+                    result=measure_anchor_reserve(self.payload,self.points,context,self.plan,self.binding,[0],[0],{})
+                self.assertEqual(result['status'],'UNAVAILABLE');query.assert_not_called()
+
+    def test_changed_evaluated_triangulation_is_not_accepted_by_same_canonical_polygons(self):
+        def capture(*args,**kwargs):
+            actual=copy.deepcopy(self.actual);triangles=[[0,2,1]];polygons=[0]
+            return actual,triangles,polygons,digest({'coords_cm':actual['vertices_cm'],'triangles':triangles,'polygons':polygons})
+        self.evaluate.side_effect=capture
+        with patch('blender.pattern_assembly.collision_check') as query:
+            result=measure_anchor_reserve(self.payload,self.points,self.context,self.plan,self.binding,[0],[0],{})
+        self.assertEqual(result['status'],'UNAVAILABLE');query.assert_not_called()
+
+    def test_open_or_wrong_named_context_cannot_query_signed_body(self):
+        for key,value in (('closed',False),('name','proxy')):
+            with self.subTest(key=key):
+                context=copy.deepcopy(self.context);context['bodies'][0][key]=value
+                with patch('blender.pattern_assembly.collision_check') as query:
+                    result=measure_anchor_reserve(self.payload,self.points,context,self.plan,self.binding,[0],[0],{})
+                self.assertEqual(result['status'],'UNAVAILABLE');query.assert_not_called()
+
+    def test_profile_pose_file_is_checked_again_after_signed_measurement(self):
+        def changed(*args,**kwargs):
+            value=copy.deepcopy(self.profile);value['pose_sha256']='other-pose'
+            self.file.write_bytes(json.dumps(value).encode())
+            return self.signed()
+        with patch('blender.pattern_assembly.collision_check',side_effect=changed):
+            result=measure_anchor_reserve(self.payload,self.points,self.context,self.plan,self.binding,[0],[0],{})
+        self.assertEqual(result['status'],'UNAVAILABLE')
+
+    def test_source_digest_can_be_reused_only_under_pure_kernel_postconditions(self):
+        source_id=digest(self.payload)
+        with patch('blender.anchor_reserve.digest',wraps=digest) as hashes,\
+                patch('blender.pattern_assembly.collision_check',return_value=self.signed()):
+            result=measure_anchor_reserve(self.payload,self.points,self.context,self.plan,self.binding,[0],[0],{},
+                                         expected_source_sha256=source_id)
+        self.assertEqual(result['status'],'MEASURED');self.assertEqual(result['source_sha256'],source_id)
+        self.assertFalse(any(call.args[0] is self.payload for call in hashes.call_args_list))
+
+
+class SingleEvaluatedBodyCapture(unittest.TestCase):
+    """Fake evaluated meshes prove capture identity, never native qualification."""
+    def fixture(self):
+        class Matrix:
+            def __matmul__(self,point):return point
+        mesh=SimpleNamespace(vertices=[SimpleNamespace(co=[0.,0.,0.]),SimpleNamespace(co=[1.,0.,0.]),
+                                       SimpleNamespace(co=[1.,1.,0.]),SimpleNamespace(co=[0.,1.,0.])],
+            polygons=[SimpleNamespace(vertices=[0,1,2,3])],
+            loop_triangles=[SimpleNamespace(vertices=[0,1,2],polygon_index=0),
+                            SimpleNamespace(vertices=[0,2,3],polygon_index=0)],
+            attributes={' .unused':None,'.sculpt_face_set':SimpleNamespace(domain='FACE',data_type='INT',data=[SimpleNamespace(value=7)])},
+            calc_loop_triangles=Mock())
+        evaluated=SimpleNamespace(matrix_world=Matrix(),to_mesh=Mock(return_value=mesh),to_mesh_clear=Mock())
+        obj=SimpleNamespace(name='fixture',evaluated_get=Mock(return_value=evaluated))
+        return obj,evaluated,mesh
+
+    def test_default_two_tuple_and_opt_in_contact_identity_equal_legacy_surface(self):
+        from blender.body_target import evaluated_mesh
+        from blender.cloth_contacts import _surface
+        obj,evaluated,mesh=self.fixture()
+        actual,triangles=evaluated_mesh(obj,object(),1.)
+        self.assertEqual(len(evaluated_mesh(obj,object(),1.)),2)
+        self.assertEqual(actual['faces'],[[0,1,2,3]]);self.assertEqual(actual['face_sets'],[7])
+        evaluated.to_mesh.reset_mock();evaluated.to_mesh_clear.reset_mock();obj.evaluated_get.reset_mock()
+        capture=evaluated_mesh(obj,object(),1.,include_contact_surface=True)
+        self.assertEqual(capture[:2],(actual,triangles));self.assertEqual(capture[2],[0,0])
+        self.assertEqual(capture[3],digest({'coords_cm':actual['vertices_cm'],'triangles':triangles,'polygons':[0,0]}))
+        evaluated.to_mesh.assert_called_once();evaluated.to_mesh_clear.assert_called_once();obj.evaluated_get.assert_called_once()
+        bpy=SimpleNamespace(context=SimpleNamespace(evaluated_depsgraph_get=lambda:object()))
+        with patch.dict('sys.modules',{'bpy':bpy}):
+            points,faces,polygons,identity=_surface(obj)
+        self.assertEqual((points,faces,polygons,identity),(actual['vertices_cm'],triangles,capture[2],capture[3]))
+
+    def test_opt_in_is_strict_and_mesh_is_released_on_capture_failure(self):
+        from blender.body_target import evaluated_mesh
+        obj,evaluated,mesh=self.fixture()
+        with self.assertRaises(StudioError):evaluated_mesh(obj,object(),1.,include_contact_surface='true')
+        obj.evaluated_get.assert_not_called()
+        del mesh.attributes['.sculpt_face_set']
+        with self.assertRaises(StudioError):evaluated_mesh(obj,object(),1.,include_contact_surface=True)
+        evaluated.to_mesh_clear.assert_called_once()
 
 
 if __name__=='__main__':unittest.main()
