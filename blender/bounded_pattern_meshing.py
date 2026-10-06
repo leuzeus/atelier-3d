@@ -192,6 +192,7 @@ def _triangulate(boundary, recipe, regular_mesh, *, envelope, _state):
     if type(boundary) is not dict or type(recipe) is not dict:
         raise ConditionedPointRefusal('INVALID_BOUNDARY_OR_RECIPE')
     owner=boundary.get('piece_id')
+    _state['active_piece']=owner
     if type(owner) is not str or not owner:
         raise ConditionedPointRefusal('EXPLICIT_PIECE_OWNER_REQUIRED')
     controls=envelope.material_controls
@@ -245,7 +246,8 @@ def _triangulate(boundary, recipe, regular_mesh, *, envelope, _state):
     if regular_mesh:
         from a3d.pattern_preparation import regular_interior_points
         check("bounded_meshing:before_interior_grid")
-        interior,_=regular_interior_points(boundary,regular_mesh)
+        interior,grid_report=regular_interior_points(boundary,regular_mesh,meshing_envelope=envelope)
+        _state['interior_grid']=grid_report
         check("bounded_meshing:after_interior_grid")
         points.extend(Vector(p) for p in interior)
     else:
@@ -459,6 +461,7 @@ def _triangulate(boundary, recipe, regular_mesh, *, envelope, _state):
         source_input_sha256=input_identity,recipe_sha256=recipe_identity,
         regular_mesh_sha256=regular_identity,frozen_kernel_sha256=FROZEN_KERNEL_SHA256,
         initial_material_controls_already_reserved=initial_charge,
+        interior_grid=_state.get('interior_grid'),
         envelope=envelope.snapshot(),trace_history=trace_history,
         component_live_vertices_checked_by='CALLER_BUILD_MESH',costs_refunded=False)
     check('bounded_meshing:final_return')
@@ -479,6 +482,8 @@ def triangulate(boundary, recipe, regular_mesh, *, envelope):
     except Exception as error:
         try:
             error.bounded_meshing_partial={'qualification':'NONE','admission':'NONE',
+                'active_piece':state.get('active_piece'),
+                'interior_grid':state.get('interior_grid'),
                 'best_safe_candidate':state.get('best_safe_candidate'),
                 'last_completed_work_snapshot':state.get('last_completed_work_snapshot'),
                 'snapshot_scope':'LAST_COMPLETED_CHECKPOINT_NOT_FINAL_WORK_LEDGER',

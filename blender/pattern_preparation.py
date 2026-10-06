@@ -12,6 +12,18 @@ RETIRED_PREPARATIONS=('experimental_prefit','interface_preparation','panel_mount
     'fitting_placement','contact_recovery','fitting_pose','fitting_tacks')
 
 
+def meshing_partial_diagnostic(error):
+    """Failure observations only; never serialize a native Vector candidate."""
+    partial=getattr(error,'bounded_meshing_partial',None)
+    if not isinstance(partial,dict):return None
+    result={key:copy.deepcopy(partial.get(key)) for key in
+            ('qualification','admission','active_piece','interior_grid',
+             'last_completed_work_snapshot','snapshot_scope','costs_refunded')}
+    result['best_safe_candidate_recorded_in_exception']=partial.get('best_safe_candidate') is not None
+    result['candidate_admitted']=False
+    return result
+
+
 def preform_supports(payload,plan,coordinates):
     """Resolve the same source supports even when an initial guide is refused."""
     from a3d.pattern_assembly import support_weights
@@ -232,6 +244,10 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
                 'reason':getattr(exc,'reason',None),'execution_status':getattr(exc,'status',None),
                 'message':str(exc),'last_phase':meshing_envelope.phase,
                 'attempted_work':dict(meshing_envelope._counts),'costs_refunded':False,
+                'owner_attempted_work':copy.deepcopy(meshing_envelope._owner_counts),
+                'last_observed_elapsed_seconds':meshing_envelope._last_clock-meshing_envelope.start,
+                'elapsed_scope':'LAST_COOPERATIVE_CLOCK_CHECK_NOT_COMPLETE_OPERATION_DURATION',
+                'bounded_partial':meshing_partial_diagnostic(exc),
                 'terminal_snapshot':'NOT_AVAILABLE_NO_SUCCESS_CLOCK_CHECK',
                 'native_diagnostic':getattr(exc,'diagnostic',None)}
             problem('NEEDS_CORRECTION','synchronized_meshing_incomplete',

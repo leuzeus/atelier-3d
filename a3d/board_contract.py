@@ -150,7 +150,8 @@ def inside_polygon(point, polygon):
     return result
 
 
-def simple_polygon(polygon):
+def simple_polygon(polygon, *, work=None):
+    if work is not None:work(len(polygon))
     if len(set(map(tuple, polygon))) != len(polygon):
         return False
     area = sum(a[0]*b[1]-b[0]*a[1] for a, b in zip(polygon, polygon[1:]+polygon[:1]))
@@ -159,6 +160,9 @@ def simple_polygon(polygon):
     edges = list(zip(polygon, polygon[1:]+polygon[:1]))
     def cross(a, b, c): return (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])
     for i, (a,b) in enumerate(edges):
+        # Reserve the complete row before its original predicates. Early
+        # rejection never refunds work; default callers keep the same policy.
+        if work is not None:work(len(edges)-i-1)
         for j, (c,d) in enumerate(edges[i+1:], i+1):
             if j == i+1 or (i == 0 and j == len(edges)-1):
                 continue

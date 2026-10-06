@@ -4,16 +4,18 @@ Plan approuvé par l'utilisateur le 3 octobre 2026. Base : branche
 `codex/garment-automation-v1`, commit `8dfeac77c3b1bc3b11a4dbe6401eb2b1bb0a54ea`,
 version 0.7.0-rc.2. Le programme est suivi ici pendant l'implémentation.
 
-**État courant du 5 octobre :** le build local distinct
+**État courant du 6 octobre :** le build local distinct
 `0.7.0-rc.2.dev.2026100507` est installé par le gestionnaire natif de Codex ;
 ses 645 fichiers correspondent au stage préparé depuis le commit de code
 `b889fc6a3ece3f5c67d64775ef3c195096763f46`. Cet export immuable passe
 1 719 tests en 230,947 s, aucun SKIP, et 14 contrats. Les 155 tests ciblés
-passent sous Python 3.11 et 3.13. Le serveur du chat pointe encore vers le
-cache 0506 remplacé et retourne son schéma introuvable : un redémarrage de
-Codex est requis pour vérifier 0507 avant tout nouvel appel Blender. Aucun
-run de la nouvelle correction n'est enregistré ou exécuté. Sa spécification
-distincte est préparée dans `preparation/coat-recovery-v3/run.json`.
+passent sous Python 3.11 et 3.13. Le serveur charge maintenant 0507, diagnostic
+PASS et pipeline admis. Le nouveau run a été créé et sa préparation native
+autorisée exécutée ; le maillage est refusé sur l'enveloppe temporelle avant
+placement. La restauration distincte autorisée a réussi et conserve le refus
+et le corps seul. Le correctif générique de grille et ses contrôles coopératifs
+passent 109 tests ciblés sous les deux Python ; il n'est pas encore installé
+ni qualifié nativement. Le suivi détaillé du 6 octobre figure en fin de document.
 
 La restauration et l'inspection réussies sous 0506 restent des preuves natives
 de la scène contenant le corps seul ; elles n'admettent pas la correction 0507.
@@ -1905,3 +1907,44 @@ finaux. Aucun changement de coupe à approuver n'est produit. La revue des
 mesures homologues et des futurs pixels reste ouverte ; l'assemblage complet,
 la boucle, l'enfilage, Cloth, le drapé, le fitting, les clips, la finition et
 la préversion finale du programme ne sont pas achevés.
+
+### 6 octobre — 0507 chargé, maillage refusé et reprise conservée
+
+Le redémarrage charge effectivement 0507, diagnostic PASS, 52 schémas et
+pipeline admis. Le nouveau run est créé par l'interface publique et ses 101
+fichiers de handler correspondent aux sources attendues. L'opération exacte
+de préparation a été explicitement autorisée et exécutée une seule fois.
+Elle retourne NEEDS_CORRECTION : l'enveloppe commune de maillage de 90 s est
+épuisée à bounded_meshing:after_interior_grid. Le reçu mesure 171,257 s pour
+l'opération entière ; cette durée n'est pas attribuable à cette seule grille.
+Aucun mesh complet, réserve d'ancres, placement ni vue de vêtement n'est produit.
+
+Le refus et ses copies sont conservés. La restauration distincte a été
+explicitement autorisée et a réussi sous 0507. Le checkpoint d'entrée contenant
+le corps accepté seul est rouvert dans une nouvelle copie de travail. Le run
+garde son résultat NEEDS_CORRECTION ; la restauration ne qualifie rien.
+
+La correction générique conserve les prédicats source, les segments et les
+distances historiques. Elle indexe les requêtes de la grille, contrôle le chrono
+et débite le travail dans la même enveloppe ; le contrôle de simplicité devient
+également coopératif dans ce parcours optionnel. Les CDT natifs restent des
+appels externes non préemptibles, contrôlés avant et après avec des caps.
+Les diagnostics d'échec localisent la pièce et les compteurs sans sérialiser
+un candidat Vector natif ni fabriquer un snapshot terminal après expiration.
+
+La revue indépendante ferme un débordement de norme entière : les coordonnées
+finies dont la norme carrée dépasse binary64 utilisent le scan oracle sans
+modifier leur type. Aucun blocker restant confirmé. Les 109 tests ciblés
+passent en 3,471 s et 3,516 s sous Python 3.11 et 3.13.
+Le benchmark final sur dix contours source de fixtures conserve exactement
+13 369 seeds et leurs rapports : 18,584 s pour la grille historique contre
+3,340 s pour l'indexée. Cette observation portable n'est pas un gain natif
+qualifié et ne correspond pas au mapping gradé complet du dernier essai.
+[Preuve du refus, de la restauration et du code](automation-regular-grid-evidence-20261006.json).
+
+Ces modifications de code restent à qualifier intégralement et à installer
+dans un nouveau build local. Les patrons, le corps et le seuil de 15° restent
+inchangés. L'essai des épaules, le placement admis, les mesures homologues,
+les 15 textiles et la boucle, Cloth, le drapé, le fitting, les mouvements et
+la revue artistique sont toujours ouverts. Aucun nouveau patron à approuver
+n'est produit.

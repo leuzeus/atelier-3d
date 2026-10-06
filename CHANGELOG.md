@@ -2,6 +2,12 @@
 
 ## En développement — programme d'automatisation, 2026-10-04
 
+- Requêtes de grille intérieure indexées sur les segments source exacts ;
+  contrôle coopératif de la grille et de la simplicité sous l'enveloppe commune.
+  Diagnostics d'échec par pièce, sans snapshot terminal fictif ni candidat
+  natif sérialisé. Tests et benchmark source portables ; essai natif corrigé
+  encore non exécuté.
+
 - Diagnostic exact des refus de placement et proposition de maillage dérivé
   synchronisé sans modification des patrons ou diminution des seuils.
 - Réserve optionnelle des stops mesurée contre le corps natif exact avant

@@ -520,19 +520,34 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None, *,
     return boundaries,seams,result
 
 
-def regular_interior_points(boundary, mesh_config):
+def regular_interior_points(boundary, mesh_config, *, meshing_envelope=None):
     """Nested triangular lattices with a graded source-boundary refinement band.
 
     Returned points are interior seeds only: constrained Delaunay in Blender
     retains all common seam/boundary samples and supplies the triangulation.
     """
     spacing, fine, band, maximum = _mesh_config(mesh_config)
+    identity = digest([boundary, mesh_config]) if meshing_envelope is not None else None
+    def check(phase):
+        if meshing_envelope is not None:
+            meshing_envelope.check('regular_grid:'+phase)
+    check('before_source_validation')
+    owner = None
+    if meshing_envelope is not None:
+        owner = boundary.get('piece_id')
+        if type(owner) is not str or owner not in meshing_envelope.material_controls:
+            raise StudioError('Bounded interior grid requires its reserved source owner')
+    def source_work(count):
+        check('source_validation')
+        meshing_envelope.reserve('work_steps',count,owner=owner)
     polygon = boundary['polygon']
     if len(polygon) < 3:
         raise StudioError('Regular mesh requires a nondegenerate source polygon')
     from .board_contract import simple_polygon
-    if not simple_polygon(polygon):
+    if not (simple_polygon(polygon) if meshing_envelope is None else
+            simple_polygon(polygon,work=source_work)):
         raise StudioError('Regular mesh cannot repair a non-simple source boundary')
+    check('after_source_validation')
     xmin, xmax = min(p[0] for p in polygon), max(p[0] for p in polygon)
     ymin, ymax = min(p[1] for p in polygon), max(p[1] for p in polygon)
     dy = fine*math.sqrt(3)/2
@@ -540,10 +555,17 @@ def regular_interior_points(boundary, mesh_config):
     if nx*ny > maximum*64:
         raise StudioError('Adaptive lattice candidate count exceeds the bounded preparation budget')
     segments = list(zip(polygon, polygon[1:]+polygon[:1]))
+    queries = None
+    if meshing_envelope is not None:
+        from .interior_grid_queries import InteriorGridQueries
+        queries = InteriorGridQueries(polygon,
+            check=lambda:check('source_query'),
+            reserve=lambda count:meshing_envelope.reserve('work_steps',count,owner=owner))
     max_level = max(0, int(math.floor(math.log2(spacing/fine)+1e-10)))
     points, levels, considered = [], {}, 0
     # Bound each row by x rather than following the skew lattice outside the bbox.
     for row in range(ny):
+        check('row')
         y = ymin+row*dy
         if y > ymax:
             continue
@@ -553,10 +575,12 @@ def regular_interior_points(boundary, mesh_config):
             if x > xmax:
                 continue
             considered += 1
+            check('candidate')
             p = [x, y]
-            if not point_inside(p, polygon):
+            if not (queries.contains(p) if queries is not None else point_inside(p, polygon)):
                 continue
-            distance = min(segment_distance(p, a, b) for a, b in segments)
+            distance = (queries.distance(p) if queries is not None else
+                        min(segment_distance(p, a, b) for a, b in segments))
             level = min(max_level, max(0, int(math.floor(math.log2(max(1., 1+(distance-band)/fine))))))
             step = 2**level
             if row % step or col % step or distance < .38*fine*step:
@@ -565,13 +589,23 @@ def regular_interior_points(boundary, mesh_config):
             levels[level] = levels.get(level, 0)+1
             if len(points)+len(polygon) > maximum:
                 raise StudioError('Regular interior seeds exceed the preparation vertex budget')
-    return points, {'version': 1, 'algorithm': 'nested_triangular_lattice_boundary_grading',
+    check('before_return')
+    if identity is not None and digest([boundary,mesh_config])!=identity:
+        raise StudioError('Bounded interior grid changed its immutable source or policy')
+    report = {'version': 1, 'algorithm': 'nested_triangular_lattice_boundary_grading',
         'boundary_sha256': digest(polygon), 'requested_spacing_cm': spacing,
         'fine_spacing_cm': fine, 'coarse_spacing_cm': fine*2**max_level,
         'refinement_distance_cm': band, 'interior_vertices': len(points),
         'boundary_vertices': len(polygon), 'candidate_count': considered,
         'levels': {str(level): {'spacing_cm': fine*2**level, 'count': count} for level, count in levels.items()},
         'triangulation': 'requires_native_constrained_delaunay', 'qualification': 'NONE'}
+    if queries is not None:
+        report['query_work'] = queries.report()
+        report['query_policy'] = 'EXACT_SOURCE_SEGMENTS_INDEXED_NO_GEOMETRY_CHANGE'
+    check('final_return')
+    if identity is not None and digest([boundary,mesh_config])!=identity:
+        raise StudioError('Bounded interior grid changed its immutable source or policy')
+    return points, report
 
 
 def preparation_statistics(payload, coords=None, mass=None):

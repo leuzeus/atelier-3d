@@ -61,6 +61,25 @@ Le résultat `ANCHORS_ADMISSIBLE_ONLY` permet de continuer la récupération
 métrique puis la correction de contacts. Il ne produit pas `READY`. Si la
 réserve n'est pas obtenue, ces recherches suivantes ne démarrent pas.
 
+## Grille intérieure sous enveloppe commune
+
+L'option de maillage synchronisé indexe les requêtes répétées de grille sans
+simplifier le contour. Le winding garde son expression et sa comparaison
+strictes ; la distance finale utilise le même `segment_distance`. Des boîtes
+conservatrices limitent les segments évalués. Une borne arithmétique non sûre
+déclenche le scan original, y compris pour une norme entière débordant binary64.
+
+Le contrôle de simplicité et les requêtes débitent leur travail dans la même
+enveloppe et contrôlent son chrono pendant les boucles. Les appels CDT externes
+restent non préemptibles et sont vérifiés avant et après avec leurs caps.
+Les observations d'échec conservent la pièce, les compteurs par pièce et le
+dernier temps local observé. Elles ne fabriquent pas un snapshot terminal
+après expiration et ne sérialisent pas les objets d'un candidat natif.
+
+Les tests et benchmarks portables comparent les seeds et les rapports exacts
+avec le parcours historique. Leur gain sur des fixtures de contours source
+ne qualifie pas le maillage natif gradé ni un placement de vêtement.
+
 ## Budget commun et admission
 
 Les deux solveurs acceptent une `protected_stop_reference` explicite pour
