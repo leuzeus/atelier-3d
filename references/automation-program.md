@@ -5,17 +5,18 @@ Plan approuvé par l'utilisateur le 3 octobre 2026. Base : branche
 version 0.7.0-rc.2. Le programme est suivi ici pendant l'implémentation.
 
 **État courant du 6 octobre :** le build local distinct
-`0.7.0-rc.2.dev.2026100507` est installé par le gestionnaire natif de Codex ;
-ses 645 fichiers correspondent au stage préparé depuis le commit de code
-`b889fc6a3ece3f5c67d64775ef3c195096763f46`. Cet export immuable passe
-1 719 tests en 230,947 s, aucun SKIP, et 14 contrats. Les 155 tests ciblés
-passent sous Python 3.11 et 3.13. Le serveur charge maintenant 0507, diagnostic
-PASS et pipeline admis. Le nouveau run a été créé et sa préparation native
-autorisée exécutée ; le maillage est refusé sur l'enveloppe temporelle avant
-placement. La restauration distincte autorisée a réussi et conserve le refus
-et le corps seul. Le correctif générique de grille et ses contrôles coopératifs
-passent 109 tests ciblés sous les deux Python ; il n'est pas encore installé
-ni qualifié nativement. Le suivi détaillé du 6 octobre figure en fin de document.
+`0.7.0-rc.2.dev.2026100601` est installé par le gestionnaire natif de Codex ;
+ses 650 fichiers correspondent au stage préparé depuis le commit de code
+`1f34790c2a4cd582dcc2f6c85bbe4dbcd9aa308d`. Cet export immuable passe
+1 744 tests en 229,525 s, aucun SKIP, et 14 contrats. Les 109 tests ciblés
+passent sous Python 3.11 et 3.13. Le serveur du chat utilise encore le cache
+0507 remplacé et retourne son schéma introuvable ; un redémarrage est requis
+pour vérifier 0601 avant tout nouvel appel Blender. Le dernier essai autorisé
+sous 0507 a été refusé sur l'enveloppe de maillage avant placement. Sa
+restauration distincte autorisée a réussi et conserve le refus et le corps
+seul. Le correctif de grille installé n'est pas qualifié nativement ; sa
+nouvelle spécification est préparée mais pas enregistrée. Le suivi détaillé
+du 6 octobre figure en fin de document.
 
 La restauration et l'inspection réussies sous 0506 restent des preuves natives
 de la scène contenant le corps seul ; elles n'admettent pas la correction 0507.
@@ -1948,3 +1949,34 @@ inchangés. L'essai des épaules, le placement admis, les mesures homologues,
 les 15 textiles et la boucle, Cloth, le drapé, le fitting, les mouvements et
 la revue artistique sont toujours ouverts. Aucun nouveau patron à approuver
 n'est produit.
+
+### 6 octobre — candidat intégré qualifié et build local 0601 installé
+
+Le commit de code `1f34790c2a4cd582dcc2f6c85bbe4dbcd9aa308d` passe la
+suite complète sur export Git immuable : 1 744 tests, aucun SKIP, en 229,525 s
+et 14 contrats. L'export reste inchangé. Les preuves historiques gardent leur
+candidat propre et ne sont pas additionnées à cette suite.
+
+Le build local distinct `0.7.0-rc.2.dev.2026100601` est installé par le
+gestionnaire natif de Codex. Les 649 fichiers source distribués et les 650
+fichiers installés correspondent aux témoins exacts. Les anciens stages G:
+sont préservés et aucune confiance des hooks n'est scriptée.
+[Preuve de qualification et d'installation](automation-regular-grid-installation-evidence-20261006.json).
+
+Le serveur de ce chat pointe encore vers le cache 0507 remplacé et retourne
+son schéma introuvable. Aucun appel Blender ni nouveau run ne sont tentés
+avec lui. La reprise requiert un redémarrage de Codex, un diagnostic de 0601,
+la sélection du projet et le contrôle du pipeline. Ensuite créer le nouveau
+run par l'interface publique à partir de
+`preparation/coat-recovery-v3/run-indexed-grid-v1.json` : identité
+`placement-recovery-015ead3e16b10edb0ff398d1`, SHA
+`7f0e933697b877bc12deb5b27fd1c76edb81ede551fefef6a7a0bd4140d2be17`.
+Cette spécification distincte est seulement préparée. Les fichiers recette
+et préparation restent ceux de coat-recovery-v3 avec leurs budgets inchangés.
+
+La nouvelle copie de travail restaurée sous 0507 contient le mannequin accepté
+seul ; l'ancien refus de maillage reste NEEDS_CORRECTION. L'essai des ancres
+d'épaule et du placement n'a pas encore démarré. Aucun changement de coupe
+n'attend d'approbation ; les mesures homologues et le futur candidat visuel
+devront être revus. Les 15 textiles et la boucle, la physique, le drapé,
+le fitting, les mouvements, la finition et la préversion finale restent ouverts.

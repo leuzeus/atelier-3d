@@ -1,0 +1,84 @@
+{
+  "date": "2026-10-06",
+  "status": "PASS_QUALIFIED_CODE_AND_NATIVE_INSTALL_RESTART_REQUIRED",
+  "version": "0.7.0-rc.2.dev.2026100601",
+  "code_commit": "1f34790c2a4cd582dcc2f6c85bbe4dbcd9aa308d",
+  "validation": {
+    "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-regular-grid-full-validation-v1/validation.json",
+    "sha256": "f2e8ae25f34e82a33b0c672f3db9ad987926c6f607fe3b87ec5a0311ae998a8b",
+    "tests": 1744,
+    "skipped": 0,
+    "test_seconds": 229.525,
+    "contracts": 14,
+    "source_unchanged": true,
+    "git_archive_sha256": "cd5f82797a9d450637201b2159c1172f3dca82aec706374e04f855fb5d5b0633",
+    "tests_receipt_sha256": "b9a409cc7d2c6cb20d50e9d4e9f4694b3f3bdbaece8239ee5cf6c50c05a4339a",
+    "contracts_receipt_sha256": "b417a557e7431cfb7e6be55cd578e9f7da146f6772b6e8713644e019ebaa5ff4",
+    "native_execution": false
+  },
+  "preparation": {
+    "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-regular-grid-local-build-v1/installation-preparation.json",
+    "sha256": "a07d73d5326c52fe71c44f1b6ede8d069561d02c4a1a37f517eabc4e109be2e8",
+    "source_archive_sha256": "c2ccc2f68267972071700a0e2ec59c7ac2da26ef3abc9d37f6da372cfea1b348",
+    "distributed_source_files": 649,
+    "stage_files": 650,
+    "previous_stages_preserved": true
+  },
+  "native_installation": {
+    "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-regular-grid-local-build-v1/native-install-result.json",
+    "sha256": "81ab8278b739e26146ab992fca65a03ae4b2ed5aa8a0bd1c52152d8e47eb444d",
+    "exit_code": 0,
+    "method": "NATIVE_CODEX_PLUGIN_ADD",
+    "auth_policy": "ON_INSTALL",
+    "hook_trust_scripted": false
+  },
+  "verification": {
+    "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-regular-grid-installed-verification-v1/installation-verification.json",
+    "sha256": "fb9b0eaf662b99be622200a25ee5d1e68bd4c8602f9acf1b94fc006c73abf878",
+    "status": "PASS_EXACT_NATIVE_INSTALLED_COPY",
+    "files": 650
+  },
+  "connected_runtime": {
+    "status": "RESTART_REQUIRED",
+    "new_runtime": "NOT_VERIFIED",
+    "old_cache": "0.7.0-rc.2.dev.2026100507",
+    "observation": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-regular-grid-installed-verification-v1/doctor-after-install.json",
+      "sha256": "f15833505936022e24df389dcb0c2c2aad7ba27372fe7ac138f4626a1fa067a9"
+    },
+    "reason": "CONFIG_SCHEMA_MISSING_IN_REPLACED_OLD_CACHE",
+    "native_call_after_install": false
+  },
+  "next_run_proposal": {
+    "status": "PREPARED_NOT_REGISTERED",
+    "id": "placement-recovery-015ead3e16b10edb0ff398d1",
+    "path": "preparation/coat-recovery-v3/run-indexed-grid-v1.json",
+    "sha256": "7f0e933697b877bc12deb5b27fd1c76edb81ede551fefef6a7a0bd4140d2be17",
+    "native_execution": false,
+    "canonical_database_changed": false,
+    "next": "VERIFY_CURRENT_RUNTIME_THEN_PUBLIC_CREATE_RUN_AND_EXACT_NATIVE_PERMISSION"
+  },
+  "current_scene": {
+    "last_native_action": "AUTHORIZED_RESTORE_CHECKPOINT_SUCCEEDED_UNDER_0507",
+    "working_ref": {
+      "path": ".a3d/blender/working-recovered-1d3848fe68f44927919be66e43870d77.blend",
+      "sha256": "e293b388e42c2676e21b72431eb74dbf7c379fe754c6b38e6757fc61782751d2"
+    },
+    "body": "ACCEPTED_MALE180_ONLY",
+    "textile_pieces": 0,
+    "expected_textile_pieces": 15,
+    "buckle": "ABSENT",
+    "new_inspection_after_restoration": "NOT_EXECUTED"
+  },
+  "source_patterns_changed": false,
+  "body_changed": false,
+  "cutting_review": "NO_NEW_PATTERN_VARIANT",
+  "visual_review": "COMPLETE_NEW_CANDIDATE_STILL_REQUIRED",
+  "native_grid_gain": "NOT_MEASURED",
+  "native_anchor_correction": "NOT_EXECUTED",
+  "cloth": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "motion": "NOT_EXECUTED",
+  "final_prerelease": "NOT_PUBLISHED",
+  "qualification": "NONE"
+}
