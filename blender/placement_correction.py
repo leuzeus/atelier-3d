@@ -82,7 +82,7 @@ def native_measurement(payload,coordinates,context,limits,plan):
             'proposal_scope':'MEASURED_NORMAL_SEARCH_ONLY_FINAL_STATIC_CONTACT_GATES_UNCHANGED'}
 
 
-def correct_preparation(payload,recipe,plan,preparation,colliders):
+def correct_preparation(payload,recipe,plan,preparation,colliders,*,anchor_body=None):
     """Return a disposable candidate and exact observations; do not mutate inputs."""
     from blender.cloth_contacts import build_contact_context
     declared=preparation.get('placement_correction')
@@ -98,15 +98,26 @@ def correct_preparation(payload,recipe,plan,preparation,colliders):
         seam_tolerance_cm=plan['consolidation']['weld_gap_cm'],check_self=True)
     source_guide=copy.deepcopy(payload['placed_cm']);candidate=copy.deepcopy(payload);metric_recovery=None
     recovery=preparation.get('metric_recovery')
-    if recovery:
+    anchor_reserve=None;anchor_blocked=False;anchor_applied=False
+    if preparation.get('anchor_reserve_correction'):
+        from blender.anchor_reserve import propose_anchor_reserve
+        if not recovery:raise StudioError('Anchor reserve requires explicit metric recovery before stop protection')
+        anchor_reserve=propose_anchor_reserve(payload,candidate['placed_cm'],context,recipe,plan,preparation,
+            anchor_body,specification['quality'],source_guide,specification)
+        anchor_applied=anchor_reserve['status']=='ANCHORS_ADMISSIBLE_ONLY'
+        anchor_blocked=not anchor_applied and anchor_reserve['status']!='NOT_EXECUTED_INVALID_SOURCE_REST'
+        if anchor_applied:candidate['placed_cm']=copy.deepcopy(anchor_reserve['coordinates_cm'])
+    if recovery and not anchor_blocked:
         contract('pattern-preparation',preparation)
         budgets=copy.deepcopy(recovery['budgets'])
         budgets['max_displacement_cm']=min(budgets['max_displacement_cm'],specification['budgets']['max_displacement_cm'])
         # Both numerical recovery and contact correction spend the same eight
         # centimetres (or stricter declared limit) from the original guide.
-        metric_recovery=recover_guide_metric(candidate,source_guide,specification['quality'],
+        metric_recovery=recover_guide_metric(candidate,candidate['placed_cm'],specification['quality'],
             recovery['piece_ids'],recovery['protected_edges'],strain_weight=recovery['strain_weight'],
             protected_indices=specification.get('protected_indices',[]),
+            **({'displacement_reference':source_guide,
+                'protected_stop_reference':candidate['placed_cm']} if anchor_applied else {}),
             **({key:copy.deepcopy(recovery[key])for key in ('seam_ids','max_initial_seam_gap_cm','anchor_scope')
                 if key in recovery}),**budgets)
         candidate['placed_cm']=copy.deepcopy(metric_recovery['coordinates_cm'])
@@ -126,7 +137,14 @@ def correct_preparation(payload,recipe,plan,preparation,colliders):
         metric_recovery['contact_search_metric']={'valid':metric_recovery['status']=='SOURCE_METRIC_RECOVERED',
             'quality':copy.deepcopy(specification['quality'])}
         metric_recovery['shared_displacement_reference_sha256']=digest(source_guide)
-    if metric_recovery and metric_recovery['status']!='SOURCE_METRIC_RECOVERED':
+    if anchor_blocked:
+        result={'version':1,'status':'NEEDS_CORRECTION','stop_reason':'ANCHOR_RESERVE_'+anchor_reserve['stop_reason'],
+            'coordinates_cm':copy.deepcopy(candidate['placed_cm']),'history':[],'iterations':0,
+            'contact_search':'NOT_STARTED_INADMISSIBLE_ANCHORS','metric_recovery':'NOT_EXECUTED',
+            'candidate_sha256':digest(candidate['placed_cm']),'source_sha256':digest(payload),
+            'max_displacement_cm':0.,'source_mutated':False,'qualification':'NONE',
+            'simulation':'NOT_EXECUTED','fitting':'NOT_EXECUTED'}
+    elif metric_recovery and metric_recovery['status']!='SOURCE_METRIC_RECOVERED':
         measured=native_measurement(candidate,candidate['placed_cm'],context,specification['quality'],plan)
         result={'version':1,'status':'NEEDS_CORRECTION','stop_reason':'METRIC_RECOVERY_'+metric_recovery['stop_reason'],
             'coordinates_cm':copy.deepcopy(candidate['placed_cm']),'measurement':measured,'history':[],
@@ -137,8 +155,10 @@ def correct_preparation(payload,recipe,plan,preparation,colliders):
     else:
         result=solve_placement(candidate,candidate['placed_cm'],
             lambda source,coords:native_measurement(source,coords,context,specification['quality'],plan),specification,
-            displacement_reference=source_guide)
+            displacement_reference=source_guide,
+            **({'protected_stop_reference':candidate['placed_cm']} if anchor_applied else {}))
         if metric_recovery:result['metric_recovery']=metric_recovery
+    if anchor_reserve:result['anchor_reserve']=anchor_reserve
     if digest([payload,recipe,plan,preparation])!=before:
         raise StudioError('Native placement correction mutated an immutable source or policy')
     result.update(origin='NATIVE_MEASURED_CONTACT_CORRECTION',source_package_sha256=payload['package_sha256'],

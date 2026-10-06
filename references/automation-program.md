@@ -22,7 +22,11 @@ de la restauration. L'ancien run conserve son refus et son code périmé ;
 la correction utilisera un nouveau run avec des données actuelles. La
 compilation publique V4 conserve son fitting incomplet. Le prochain travail
 isole la qualité REST dérivée et les ancres protégées inadmissibles avant
-tout nouvel essai de placement.
+tout nouvel essai de placement. Le diagnostic exact et le nouveau parcours
+optionnel sont maintenant codés : 155 tests ciblés passent sous Python 3.11
+et 3.13 ; la revue indépendante ne confirme aucun défaut P2 ou supérieur.
+Ces ajouts ne sont pas encore installés ni exécutés sur le vêtement réel.
+La qualification intégrée du prochain build local reste à terminer.
 Les correctifs source `8e7a73d`, `af78094` et `6545a41` ajoutés ensuite passent
 79 tests ciblés sous chacun des deux Python ; ils sont maintenant intégrés au
 candidat validé et installé ci-dessus. Les 1 592 tests historiques gardent leur
@@ -1826,3 +1830,38 @@ leurs raccords actuels sont incomplets. Le seuil 15°, les patrons et le corps
 restent conservés. Mesures homologues, placement admis, construction complète,
 drapé, fitting, mouvements et revue artistique restent ouverts. Aucun nouveau
 patron à approuver n'est produit à ce jalon.
+
+### 5 octobre — reprise générique codée, qualification native encore ouverte
+
+Le [diagnostic et la réserve des stops](placement-recovery.md) sont intégrés
+au code avec une option explicite de préparation. Le préflight historique
+exact retrouve 30 faces REST sous 15°, minimum 4,057463°, et huit stops avec
+des déficits de recherche. Ces derniers combinent des mesures et des témoins
+exploratoires ; ils ne sont pas des profondeurs de pénétration indépendantes.
+Les deux causes restent distinctes de l'aisance source.
+
+Le profil de maillage synchronisé conserve les contours et les seuils, avec
+un raccordement natif du nouveau mapping obligatoire. La réserve V1 déplace
+rigidement l'union des composants permanents portant les stops, suivant l'axe
+haut du corps exact. Elle refuse les pins et supports physiques, les sources
+ambiguës ou fusionnées et les mesures indisponibles. Son domaine borné ne
+prétend pas couvrir toute correction de placement.
+
+Les références explicites des stops permettent ensuite de les figer à leur
+entrée d'étape, tout en gardant le guide original comme référence du budget
+cumulé. Les contrôles métriques et de contacts finaux restent inchangés.
+Les 155 tests ciblés passent en 0,483 s sous Python 3.11 et 0,599 s sous
+Python 3.13. La revue indépendante en lecture seule ne confirme aucun défaut
+P2 ou supérieur et ferme les deux problèmes de raccordement du corps détectés
+pendant le développement. [Preuve de code](automation-placement-recovery-code-evidence-20261005.json).
+
+Les entrées dérivées distinctes sont préparées dans
+`execution-project/preparation/coat-recovery-v3/`. Elles ne constituent ni une
+exécution native ni un nouveau run enregistré. Le runtime connecté 0506 reste
+celui qui a réussi la restauration et l'inspection ; les nouvelles options
+requièrent le prochain build local qualifié. La propagation des options aux
+templates publics génériques reste à compléter après leurs essais natifs.
+La scène contient toujours le corps seul, 0/15 pièces textiles. Placement,
+enfilage, Cloth, drapé, fitting, mouvements et revue artistique ne sont pas
+qualifiés. Aucun changement de coupe ni nouvelle revue de patrons n'est
+requis par cette seule correction dérivée.

@@ -133,7 +133,8 @@ def constrained_relaxation_candidate(payload, coordinates, report, max_step_cm, 
     return trial
 
 
-def solve_placement(payload, coordinates, evaluate, specification, clock=time.monotonic, *, displacement_reference=None):
+def solve_placement(payload, coordinates, evaluate, specification, clock=time.monotonic, *,
+                    displacement_reference=None, protected_stop_reference=None):
     """Automatically propose bounded repairs; preserve all final gate decisions.
 
     Evaluator returns ``score`` (finite >= 0), ``hard_valid`` (unchanged final
@@ -141,13 +142,23 @@ def solve_placement(payload, coordinates, evaluate, specification, clock=time.mo
     candidate_sha256 must match points. Candidate readiness requires both the
     declared target_score and the existing final hard gates. No Cloth/fitting
     execution or acceptance follows from this pure geometric result.
+
+    Optional ``protected_stop_reference`` freezes numerical protected_indices
+    at an already measured phase entry. It requires explicit ORIGINAL
+    displacement_reference, full finite mapping and exact current-entry stop
+    coordinates. Physical pins always remain at the ORIGINAL guide coordinates.
+    The original displacement budget still includes every earlier correction.
+    The caller authenticates any preceding body/anchor measurement; this option
+    establishes no native origin or contact acceptance. None preserves the
+    historical policy and receipt shape, including shifted-support refusal.
     """
     contract('placement-correction', specification)
     count = len(payload['rest_cm'])
     if count != len(coordinates) or not count or any(not _vector(p) for p in coordinates):
         raise StudioError('Solver requires finite coordinates with exact immutable source mapping')
     _ownership(payload, count)
-    protected = set(specification.get('protected_indices', []))
+    numerical_fixed = set(specification.get('protected_indices', []))
+    protected = set(numerical_fixed); physical_fixed = set()
     for index, weight in payload.get('pins', {}).items():
         if type(weight) not in (int, float) or not math.isfinite(weight) or not 0 <= weight <= 1:
             raise StudioError('Solver pin weights must remain finite and bounded')
@@ -155,7 +166,7 @@ def solve_placement(payload, coordinates, evaluate, specification, clock=time.mo
                 str(index) != str(int(index)) or not 0 <= int(index) < count):
             raise StudioError('Solver pins reference a missing actual coordinate')
         if weight > 0:
-            protected.add(int(index))
+            protected.add(int(index)); physical_fixed.add(int(index))
     if any(type(i) is not int or not 0 <= i < count for i in protected):
         raise StudioError('Protected supports reference a missing actual coordinate')
     reference=copy.deepcopy(coordinates if displacement_reference is None else displacement_reference)
@@ -163,9 +174,26 @@ def solve_placement(payload, coordinates, evaluate, specification, clock=time.mo
         raise StudioError('Displacement reference must cover the exact original source-guide coordinates')
     if max(math.dist(a,b) for a,b in zip(reference,coordinates))>specification['budgets']['max_displacement_cm']:
         raise StudioError('Initial candidate already exceeds the shared displacement budget from its original source guide')
-    if any(coordinates[i]!=reference[i] for i in protected):
+    relocated_stop_policy = protected_stop_reference is not None
+    stop_reference = None
+    if relocated_stop_policy:
+        if displacement_reference is None:
+            raise StudioError('A protected stop reference requires an explicit original-guide displacement reference')
+        if not numerical_fixed:
+            raise StudioError('A protected stop reference requires explicit numerical protected indices')
+        if (not isinstance(protected_stop_reference,(list,tuple)) or len(protected_stop_reference)!=count
+                or any(not _vector(point) for point in protected_stop_reference)):
+            raise StudioError('Protected stop reference must contain one finite 3D coordinate per source vertex')
+        stop_reference=copy.deepcopy(protected_stop_reference)
+        if any(digest(coordinates[i])!=digest(stop_reference[i]) for i in numerical_fixed):
+            raise StudioError('A protected numerical stop does not match its measured stage-entry reference')
+    original_fixed = physical_fixed if relocated_stop_policy else protected
+    if any(coordinates[i]!=reference[i] for i in original_fixed):
         raise StudioError('An earlier correction changed a protected original source-guide support')
-    original = digest([payload, coordinates, specification,displacement_reference])
+    def immutable_inputs():
+        values=[payload, coordinates, specification, displacement_reference]
+        return values+[protected_stop_reference] if relocated_stop_policy else values
+    original = digest(immutable_inputs())
     source_identity = digest(payload); initial = copy.deepcopy(coordinates)
     limits = specification['quality']; budgets = specification['budgets']
     start = clock(); history = []; seen = {digest(initial)}
@@ -252,9 +280,9 @@ def solve_placement(payload, coordinates, evaluate, specification, clock=time.mo
         stagnant = 0 if improved else stagnant+1
         if not proposed or stagnant >= budgets['stagnation_iterations']:
             stop = 'STAGNATION'; break
-    if digest([payload, coordinates, specification,displacement_reference]) != original:
+    if digest(immutable_inputs()) != original:
         raise StudioError('Solver source changed during execution')
-    return {'version': 1, 'status': 'GEOMETRIC_GATES_PASSED' if stop == 'FINAL_GATES_PASSED' else 'NEEDS_CORRECTION',
+    result = {'version': 1, 'status': 'GEOMETRIC_GATES_PASSED' if stop == 'FINAL_GATES_PASSED' else 'NEEDS_CORRECTION',
             'stop_reason': stop, 'coordinates_cm': best, 'measurement': best_report, 'history': history,
             'iterations': iterations, 'elapsed_seconds': clock()-start,'terminal_kernel_phase':kernel_phase,
             'source_sha256': source_identity, 'candidate_sha256': digest(best),
@@ -264,3 +292,12 @@ def solve_placement(payload, coordinates, evaluate, specification, clock=time.mo
             'source_mutated': False, 'source_uv_scaled': False, 'qualification': 'NONE',
             'simulation': 'NOT_EXECUTED', 'fitting': 'NOT_EXECUTED',
             'final_assessment': 'REQUIRED_BEFORE_NATIVE_ADMISSION'}
+    if relocated_stop_policy:
+        result.update(protected_stop_reference_sha256=digest(stop_reference),
+            protected_stop_reference_policy='FREEZE_MEASURED_STAGE_ENTRY_NUMERICAL_STOPS',
+            numerical_fixed_indices=sorted(numerical_fixed), physical_fixed_indices=sorted(physical_fixed),
+            relocated_numerical_stop_indices=sorted(i for i in numerical_fixed
+                if digest(coordinates[i])!=digest(reference[i])))
+        if digest(immutable_inputs()) != original:
+            raise StudioError('Solver source changed before returning measured stop references')
+    return result

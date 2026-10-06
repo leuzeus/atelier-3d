@@ -307,7 +307,11 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
                 from blender.placement_correction import correct_preparation
                 before_correction=copy.deepcopy(payload['placed_cm'])
                 try:
-                    placement_correction=correct_preparation(payload,recipe,plan,spec,[item[0] for item in inward])
+                    anchor_options={}
+                    if spec.get('anchor_reserve_correction'):
+                        from blender.anchor_reserve import verified_anchor_body
+                        anchor_options['anchor_body']=verified_anchor_body(project,recipe,plan,spec)
+                    placement_correction=correct_preparation(payload,recipe,plan,spec,[item[0] for item in inward],**anchor_options)
                     payload['placed_cm']=copy.deepcopy(placement_correction['coordinates_cm'])
                     if placement_correction['status']!='GEOMETRIC_GATES_PASSED':
                         problem('NEEDS_CORRECTION','placement_correction',placement_correction['stop_reason'])

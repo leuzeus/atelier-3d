@@ -1,0 +1,62 @@
+{
+  "status": "PASS_TARGETED_PORTABLE_AND_REVIEW",
+  "date": "2026-10-05",
+  "scope": "GENERIC_PLACEMENT_RECOVERY_CODE_NOT_NATIVE_GARMENT_QUALIFICATION",
+  "code_sha256": {
+    "a3d/anchor_reserve.py": "b00d84d4a7bbbd03b56aaa71ec6e014a89eb5985a26671584190121d4033155e",
+    "a3d/placement_recovery.py": "858718611c8e503af52bbe231e3a47cfe7b11cb28190ebd97d34b67f6ee968df",
+    "blender/anchor_reserve.py": "47371c29cdda52343e1c65bb10bc11b689d1eeedcce60305889691f35e88da7f",
+    "a3d/guide_metric_solver.py": "dd9f43c9282ef8c41d1a9b72da3fde25b99eee682ab8204208014e08303c7c0a",
+    "a3d/placement_solver.py": "244131af72a18c6b261d889f2ce14bcc1a865cba345deb9aada9c5f14d35d39d",
+    "blender/placement_correction.py": "e90044206bca964f0e3a3cb3fc84fb092576a541bc00e526143827039bedfae5",
+    "blender/pattern_preparation.py": "4127f788cc8937e05c511177696759fc57ae5abb91a4164aca7b7882581559dd",
+    "a3d/meshing_profile.py": "bdf32b6e107b71a375e9a781020de637a80ab82d54dd6870c0141ab89178ede9",
+    "schemas/pattern-preparation.schema.json": "176ee8719dcf50bd6f4c7775278c6eb9fccb772ba35b5d5baa107a97a1fc3a15"
+  },
+  "targeted_tests": [
+    {
+      "python": "3.11",
+      "tests": 155,
+      "seconds": 0.483,
+      "exit_code": 0,
+      "log": {
+        "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-anchor-integrated-validation-v1/python311.log",
+        "sha256": "4329d2b348fcf2de12efccb1221eaefc2fb6bca157ce25b7254269af6fef2156"
+      }
+    },
+    {
+      "python": "3.13",
+      "tests": 155,
+      "seconds": 0.599,
+      "exit_code": 0,
+      "log": {
+        "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-anchor-integrated-validation-v1/python313.log",
+        "sha256": "2694486fa5dc2877ac3e56477e891b76cc0c73089d36905cb3e2a85f88750d65"
+      }
+    }
+  ],
+  "independent_review": {
+    "reviewer": "/root/next_coat_recovery_step",
+    "mode": "READ_ONLY_SOURCE_AND_TESTS",
+    "confirmed_p2_or_higher": 0,
+    "previous_findings_closed": [
+      "_body_binding success None respected",
+      "same completed native receipt PROFILE/GEOMETRY plus exact actual evaluated body"
+    ],
+    "native_executed": false
+  },
+  "historical_diagnostic": {
+    "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-placement-recovery-preflight-v2/diagnostic.json",
+    "sha256": "b5dddb33fa00457ef9d3aea477e91acf30f9ef8db41fe08864fa438e9854abc2",
+    "bad_rest_faces": 30,
+    "worst_rest_angle_degrees": 4.0574631479835315,
+    "protected_search_deficit_vertices": 8,
+    "search_deficits_are_not_independent_penetration_depths": true
+  },
+  "native_new_features": "NOT_EXECUTED",
+  "qualification": "NONE",
+  "source_patterns_changed": false,
+  "accepted_body_changed": false,
+  "installed_version_at_test": "0.7.0-rc.2.dev.2026100506",
+  "installed_version_includes_new_features": false
+}

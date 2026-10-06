@@ -38,6 +38,111 @@ def seamed_fixture(three=False):
 
 
 class GuideMetricRecovery(unittest.TestCase):
+    def test_measured_numerical_stop_reference_freezes_relocated_stops_without_admission(self):
+        import math
+        source,original,quality=fixture();entry=[[x,y,z+1.]for x,y,z in original]
+        stops=copy.deepcopy(entry);edges=[{'piece':'panel','edge':'anchor'}]
+        before=digest([source,original,quality,entry,stops,edges])
+        result=recover_guide_metric(source,entry,quality,['panel'],edges,
+            displacement_reference=original,protected_stop_reference=stops,clock=lambda:0.,max_iterations=20)
+        self.assertEqual(result['status'],'SOURCE_METRIC_RECOVERED')
+        for index in (0,3):self.assertEqual(result['coordinates_cm'][index],entry[index])
+        self.assertEqual(result['protected_stop_reference_sha256'],digest(stops))
+        self.assertEqual(result['displacement_reference_sha256'],digest(original))
+        self.assertEqual(result['named_fixed_stop_indices'],[0,3])
+        self.assertEqual(result['relocated_named_stop_indices'],[0,3])
+        self.assertEqual(result['physical_fixed_indices'],[])
+        self.assertEqual(result['initial_displacement_from_reference_cm'],1.)
+        self.assertGreater(result['max_displacement_cm'],1.)
+        self.assertEqual(result['max_displacement_cm'],max(math.dist(a,b)for a,b in zip(original,result['coordinates_cm'])))
+        self.assertEqual(result['fixed_stop_bounds']['records'][0]['fixed_stop_coordinates_cm'],[entry[0],entry[3]])
+        self.assertEqual(result['policy']['quality'],quality)
+        self.assertEqual(result['qualification'],'NONE');self.assertEqual(result['contacts'],'NOT_ASSESSED')
+        self.assertEqual(result['simulation'],'NOT_EXECUTED');self.assertEqual(result['fitting'],'NOT_EXECUTED')
+        self.assertEqual(digest([source,original,quality,entry,stops,edges]),before)
+
+    def test_relocated_numerical_stops_spend_the_original_cumulative_budget(self):
+        import math
+        source,original,quality=fixture();entry=[[x,y,z+.9]for x,y,z in original]
+        result=recover_guide_metric(source,entry,quality,['panel'],[{'piece':'panel','edge':'anchor'}],
+            displacement_reference=original,protected_stop_reference=entry,max_displacement_cm=1.,
+            clock=lambda:0.,max_iterations=20,stagnation_iterations=2)
+        self.assertEqual(result['status'],'NEEDS_CORRECTION')
+        self.assertAlmostEqual(result['initial_displacement_from_reference_cm'],.9)
+        self.assertLessEqual(result['max_displacement_cm'],1.)
+        self.assertLessEqual(max(math.dist(a,b)for a,b in zip(original,result['coordinates_cm'])),1.)
+        self.assertEqual(result['coordinates_cm'][0],entry[0]);self.assertEqual(result['coordinates_cm'][3],entry[3])
+        self.assertTrue(all(row['max_displacement_cm']<=1. for row in result['history']))
+
+    def test_default_named_stop_policy_still_refuses_the_shifted_original_guide(self):
+        source,original,quality=fixture();entry=[[x,y,z+.1]for x,y,z in original]
+        for options in ({},{'protected_stop_reference':None}):
+            with self.subTest(options=options),self.assertRaisesRegex(StudioError,'physical pin or protected source stop'):
+                recover_guide_metric(source,entry,quality,['panel'],[{'piece':'panel','edge':'anchor'}],
+                    displacement_reference=original,clock=lambda:0.,**options)
+
+    def test_measured_stop_policy_never_relocates_physical_pins(self):
+        for pin in (0,1):
+            source,original,quality=fixture();source['pins']={str(pin):.25}
+            entry=[[x,y,z+.1]for x,y,z in original];stops=copy.deepcopy(entry)
+            before=digest([source,original,entry,stops])
+            with self.subTest(pin=pin),self.assertRaisesRegex(StudioError,'physical pin or protected source stop'):
+                recover_guide_metric(source,entry,quality,['panel'],[{'piece':'panel','edge':'anchor'}],
+                    displacement_reference=original,protected_stop_reference=stops,clock=lambda:0.)
+            self.assertEqual(before,digest([source,original,entry,stops]))
+
+    def test_stale_malformed_or_unbound_measured_stop_reference_refuses(self):
+        source,original,quality=fixture();entry=[[x,y,z+.1]for x,y,z in original]
+        for kind in ('stale-stop','missing-row','bad-dimension','nonfinite','boolean-coordinate','no-original','no-edge'):
+            reference=copy.deepcopy(entry);kwargs={'displacement_reference':original,'protected_stop_reference':reference}
+            edges=[{'piece':'panel','edge':'anchor'}]
+            if kind=='stale-stop':reference[0][2]+=.01
+            if kind=='missing-row':reference.pop()
+            if kind=='bad-dimension':reference[0].pop()
+            if kind=='nonfinite':reference[1][2]=float('nan')
+            if kind=='boolean-coordinate':reference[1][2]=True
+            if kind=='no-original':kwargs.pop('displacement_reference')
+            if kind=='no-edge':edges=[]
+            with self.subTest(kind=kind),self.assertRaises(StudioError):
+                recover_guide_metric(source,entry,quality,['panel'],edges,clock=lambda:0.,**kwargs)
+
+    def test_measured_named_stops_do_not_bypass_chord_source_uv_impossibility(self):
+        source,original,quality=fixture();entry=[[x,y*1.2,z+.4]for x,y,z in source['rest_cm']]
+        result=recover_guide_metric(source,entry,quality,['panel'],[{'piece':'panel','edge':'anchor'}],
+            displacement_reference=original,protected_stop_reference=entry,clock=lambda:0.)
+        self.assertEqual(result['status'],'NEEDS_CORRECTION')
+        self.assertEqual(result['stop_reason'],'FIXED_SOURCE_STOP_BOUND_EXCEEDS_METRIC')
+        self.assertEqual(result['fixed_stop_bounds']['status'],'IMPOSSIBLE_FIXED_STOPS')
+        self.assertAlmostEqual(result['fixed_stop_bounds']['records'][0]['minimum_required_stretch'],1.2)
+        self.assertEqual(result['iterations'],0);self.assertEqual(result['coordinates_cm'],entry)
+
+    def test_relocated_numerical_stops_retain_semantic_permanent_cohort_constraints(self):
+        source,original,quality,edges=seamed_fixture();entry=[[x,y,z+.4]for x,y,z in original]
+        before=digest([source,original,entry,quality,edges])
+        result=recover_guide_metric(source,entry,quality,['a','b'],edges[:1],
+            displacement_reference=original,protected_stop_reference=entry,clock=lambda:0.,
+            anchor_scope='permanent_component',seam_ids=['ab'],max_initial_seam_gap_cm=0.,max_iterations=50)
+        self.assertEqual(result['status'],'SOURCE_METRIC_RECOVERED')
+        for first,last in source['seams']['ab']['pairs']:
+            self.assertEqual(result['coordinates_cm'][first],result['coordinates_cm'][last])
+        self.assertEqual(result['coordinates_cm'][0],entry[0]);self.assertEqual(result['coordinates_cm'][3],entry[3])
+        self.assertEqual(result['named_fixed_stop_indices'],[0,3]);self.assertEqual(result['relocated_named_stop_indices'],[0,3])
+        self.assertEqual(result['seam_coupling']['final_max_cohort_gap_cm'],0.)
+        self.assertFalse(result['seam_coupling']['weld_performed']);self.assertFalse(result['seam_coupling']['source_uv_modified'])
+        self.assertEqual(before,digest([source,original,entry,quality,edges]))
+
+    def test_mutation_of_measured_stop_reference_is_detected_before_return(self):
+        from unittest.mock import patch
+        from a3d import guide_metric_solver as solver
+        source,original,quality=fixture();entry=[[x,y,z+.1]for x,y,z in original]
+        reference=copy.deepcopy(entry);pcg=solver._pcg
+        def mutate(*args,**kwargs):
+            reference[1][0]+=.001
+            return pcg(*args,**kwargs)
+        with patch.object(solver,'_pcg',side_effect=mutate),self.assertRaisesRegex(StudioError,'immutable input'):
+            recover_guide_metric(source,entry,quality,['panel'],[{'piece':'panel','edge':'anchor'}],
+                displacement_reference=original,protected_stop_reference=reference,clock=lambda:0.,max_iterations=2)
+
     def test_immutable_source_angle_refuses_before_optimization(self):
         from unittest.mock import patch
         source={'rest_cm':[[0.,0.,0.],[4.,0.,0.],[0.,1.,0.]],'faces':[[0,1,2]],

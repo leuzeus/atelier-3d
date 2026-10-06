@@ -79,6 +79,25 @@
       "additionalProperties": false,
       "description": "Explicit sourced boundary gradation and permanent-birth native meshing, under one caller-local envelope. Does not grant readiness, simulation or human acceptance."
     },
+    "anchor_reserve_correction": {
+      "type": "object",
+      "properties": {
+        "version": {"const": 1},
+        "mode": {"const": "PERMANENT_COMPONENT_BODY_AXIS_TRANSLATION_V1"},
+        "body_ref": {"type": "object", "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}, "required": ["path", "sha256"], "additionalProperties": false},
+        "direction": {"const": "BODY_FRAME_UP"},
+        "reserve_source": {"const": "PLAN_COLLISION_CLEARANCE"},
+        "budgets": {"type": "object", "properties": {
+          "max_displacement_cm": {"type": "number", "minimum": 0.001, "maximum": 8},
+          "max_step_cm": {"type": "number", "minimum": 0.001, "maximum": 0.5},
+          "max_iterations": {"type": "integer", "minimum": 1, "maximum": 1000},
+          "max_seconds": {"type": "number", "minimum": 0.001, "maximum": 60}
+        }, "required": ["max_displacement_cm", "max_step_cm", "max_iterations", "max_seconds"], "additionalProperties": false}
+      },
+      "required": ["version", "mode", "body_ref", "direction", "reserve_source", "budgets"],
+      "additionalProperties": false,
+      "description": "Opt-in rigid proposal for full permanent components before fixing stops; native closed body identity and unchanged rest quality are required. No fitting or source-pattern acceptance."
+    },
     "assembly_plan": {
       "type": "object",
       "properties": {

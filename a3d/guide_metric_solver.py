@@ -271,7 +271,7 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         max_iterations=100,max_seconds=60.,max_displacement_cm=8.,max_step_cm=.5,
         cg_iterations=80,cg_tolerance=1e-5,stagnation_iterations=5,strain_weight=100.,protected_indices=(),
         seam_ids=(),max_initial_seam_gap_cm=None,fixed_stop_stretch_margin=0.,anchor_scope='per_piece',clock=time.monotonic,
-        displacement_reference=None,deadline=None):
+        displacement_reference=None,deadline=None,protected_stop_reference=None):
     """Recover only declared pieces and freeze actual source stops/pins.
 
     Each protected edge is ``{piece,edge}``; its existing first and last source
@@ -288,8 +288,16 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
     Optional ``displacement_reference`` retains the original guide budget after
     a prior numeric correction. Physical pins/stops must still equal it; explicit
     ``protected_indices`` instead freeze the supplied candidate-entry targets.
+    Opt-in ``protected_stop_reference`` freezes named NUMERICAL edge endpoints
+    at a separately measured prior stage entry. It must cover the same source
+    vertex mapping and equal the current entry exactly at every named endpoint.
+    This requires an explicit ORIGINAL ``displacement_reference``; the shared
+    displacement budget is never reset to the relocated stops. Physical pins
+    always stay at their original guide reference, including pins on named
+    edges. The caller authenticates the preceding anchor/body measurement;
+    this pure option grants no contact, body or garment admission.
     ``deadline`` is an absolute cooperative monotonic deadline shared by phases.
-    Omitting both options preserves the historical policy and receipt shape.
+    Omitting these options preserves the historical policy and receipt shape.
     """
     if (type(max_iterations)is not int or max_iterations<1 or type(cg_iterations)is not int or cg_iterations<1
             or type(stagnation_iterations)is not int or stagnation_iterations<1
@@ -310,13 +318,19 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
     if (type(fixed_stop_stretch_margin)not in(int,float)or not math.isfinite(fixed_stop_stretch_margin)
             or not 0<=fixed_stop_stretch_margin<=1e-6):
         raise StudioError('Fixed source stop bounds need a finite explicit numerical margin between zero and 1e-6')
+    relocated_stop_policy=protected_stop_reference is not None
+    if relocated_stop_policy and displacement_reference is None:
+        raise StudioError('A protected stop reference requires an explicit original-guide displacement reference')
+    if relocated_stop_policy and not protected_edges:
+        raise StudioError('A protected stop reference requires explicit named source edges')
     shared=displacement_reference is not None or deadline is not None
     declared_deadline=deadline
     if shared and deadline is not None and(type(deadline)not in(int,float)or not math.isfinite(deadline)):
         raise StudioError('Shared guide recovery deadline must be a finite absolute monotonic time')
     def immutable_inputs():
         values=[payload,coordinates,quality,piece_ids,protected_edges,protected_indices,seam_ids,max_initial_seam_gap_cm,fixed_stop_stretch_margin,anchor_scope]
-        return values+[displacement_reference,declared_deadline]if shared else values
+        result=values+[displacement_reference,declared_deadline]if shared else values
+        return result+[protected_stop_reference]if relocated_stop_policy else result
     try:before=digest(immutable_inputs())
     except(TypeError,ValueError)as error:
         raise StudioError('Guide metric recovery requires finite structured source inputs')from error
@@ -339,6 +353,7 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         raise StudioError('Guide metric recovery requires exact existing source piece IDs')
     initial=copy.deepcopy(coordinates)
     reference=_reference_coordinates(initial if displacement_reference is None else displacement_reference,len(payload['rest_cm']))if shared else initial
+    stop_reference=_reference_coordinates(protected_stop_reference,len(payload['rest_cm']))if relocated_stop_policy else None
     if shared:
         _reference_coordinates(initial,len(payload['rest_cm']))
         if max(math.dist(a,b)for a,b in zip(reference,initial))>max_displacement_cm:
@@ -355,7 +370,7 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
     # offset must not set the conjugate-gradient stopping tolerance or leak
     # through cancellation in the zero-sum source gradient.
     origin=[math.fsum(initial[i][k] for i in sorted(active))/len(active) for k in range(3)]
-    fixed=set();physical_fixed=set()
+    fixed=set();physical_fixed=set();named_stops=set()
     if any(type(i)is not int or not 0<=i<len(initial) for i in protected_indices):
         raise StudioError('Protected guide supports require exact actual source vertex indices')
     fixed.update(protected_indices)
@@ -372,7 +387,10 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         if (not isinstance(ids,list)or len(ids)<2 or len(set(ids))!=len(ids)
                 or any(type(i)is not int or i not in payload['panels'][edge['piece']]['indices'] for i in ids)):
             raise StudioError('Protected source stop requires an actual named source edge')
-        fixed.update((ids[0],ids[-1]));physical_fixed.update((ids[0],ids[-1]))
+        fixed.update((ids[0],ids[-1]));named_stops.update((ids[0],ids[-1]))
+        if not relocated_stop_policy:physical_fixed.update((ids[0],ids[-1]))
+    if relocated_stop_policy and any(digest(initial[index])!=digest(stop_reference[index])for index in named_stops):
+        raise StudioError('A protected numerical source stop does not match its measured stage-entry reference')
     if shared and any(digest(initial[index])!=digest(reference[index])for index in physical_fixed):
         raise StudioError('A physical pin or protected source stop changed from the original guide reference')
     time_guard('source_stops')
@@ -563,6 +581,12 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         result['seam_coupling']=coupling
         result['policy'].update(seam_ids=list(seam_ids),max_initial_seam_gap_cm=max_initial_seam_gap_cm)
     if anchor_components:result['anchor_components']=anchor_components
+    if relocated_stop_policy:
+        result.update(protected_stop_reference_sha256=digest(stop_reference),
+            named_fixed_stop_indices=sorted(named_stops),
+            relocated_named_stop_indices=sorted(index for index in named_stops
+                if digest(initial[index])!=digest(reference[index])))
+        result['policy']['protected_stop_reference']='FREEZE_MEASURED_STAGE_ENTRY_NUMERICAL_STOPS'
     if shared:
         if result['max_displacement_cm']>max_displacement_cm:
             raise StudioError('Returned guide candidate exceeds the shared original-guide displacement budget')

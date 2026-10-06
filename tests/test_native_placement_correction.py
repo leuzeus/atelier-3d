@@ -11,6 +11,63 @@ from tests.test_placement_solver import fixture
 
 
 class NativeCorrectionAdapter(unittest.TestCase):
+    def anchor_inputs(self):
+        from tests.test_guide_metric_solver import fixture as metric_fixture
+        payload,points,quality=metric_fixture();payload.update(placed_cm=points,component_id='coupon',package_sha256='a'*64)
+        _,_,spec,_=fixture();spec['quality']=copy.deepcopy(quality)
+        plan={'quality':quality,'assembly':{'max_displacement_cm':2.,'max_step_cm':.2,'iterations':10},
+              'collision':{'clearance_cm':.1},'consolidation':{'weld_gap_cm':.05}}
+        preparation={'version':1,'component_id':'coupon','source_ref':'fixture:source',
+            'regular_mesh':{'spacing_cm':1.,'min_spacing_cm':.2,'refinement_distance_cm':1.,'max_vertices':20,'target_min_angle_degrees':15.},
+            'placement_correction':spec,'metric_recovery':{'version':1,'piece_ids':['panel'],
+                'protected_edges':[{'piece':'panel','edge':'anchor'}],'strain_weight':100.,
+                'budgets':{'max_iterations':20,'max_seconds':10.,'max_displacement_cm':2.,'max_step_cm':.5,
+                    'cg_iterations':80,'cg_tolerance':1e-5,'stagnation_iterations':3}},
+            'anchor_reserve_correction':{'version':1,'mode':'PERMANENT_COMPONENT_BODY_AXIS_TRANSLATION_V1',
+                'body_ref':{'path':'body.json','sha256':'a'*64},'direction':'BODY_FRAME_UP',
+                'reserve_source':'PLAN_COLLISION_CLEARANCE',
+                'budgets':{'max_iterations':10,'max_seconds':10.,'max_displacement_cm':2.,'max_step_cm':.2}}}
+        return payload,points,quality,plan,preparation,{'mesh':quality}
+
+    def test_inadmissible_anchors_prevent_metric_freeze_and_contact_solver(self):
+        payload,points,quality,plan,prep,recipe=self.anchor_inputs()
+        before=digest([payload,recipe,plan,prep])
+        with patch('blender.cloth_contacts.build_contact_context',return_value={'bodies':[]}),\
+                patch('blender.anchor_reserve.propose_anchor_reserve',return_value={
+                    'status':'NEEDS_MEASUREMENT','stop_reason':'AMBIGUOUS_SIGN','coordinates_cm':points}),\
+                patch('blender.placement_correction.recover_guide_metric') as metric,\
+                patch('blender.placement_correction.solve_placement') as contact:
+            result=correct_preparation(payload,recipe,plan,prep,[],anchor_body={'source':'fixture'})
+        metric.assert_not_called();contact.assert_not_called()
+        self.assertEqual(result['status'],'NEEDS_CORRECTION');self.assertEqual(result['qualification'],'NONE')
+        self.assertEqual(result['contact_search'],'NOT_STARTED_INADMISSIBLE_ANCHORS')
+        self.assertEqual(digest([payload,recipe,plan,prep]),before)
+
+    def test_anchor_entry_is_frozen_after_shift_with_original_displacement_reference(self):
+        payload,points,quality,plan,prep,recipe=self.anchor_inputs()
+        shifted=[[p[0],p[1],p[2]+.25] for p in points]
+        original_recovery=__import__('a3d.guide_metric_solver',fromlist=['recover_guide_metric']).recover_guide_metric
+        calls=[]
+        def recover(source,entry,*args,**kwargs):
+            calls.append((copy.deepcopy(entry),copy.deepcopy(kwargs)))
+            return original_recovery(source,entry,*args,**kwargs)
+        def measure(source,coords,context,limits,assembly):
+            validate_metrics(source,coords,limits,include_faces=False,include_bending=False)
+            return {'candidate_sha256':digest(coords),'hard_valid':True,'score':0.,'contacts':[]}
+        with patch('blender.cloth_contacts.build_contact_context',return_value={'bodies':[]}),\
+                patch('blender.anchor_reserve.propose_anchor_reserve',return_value={
+                    'status':'ANCHORS_ADMISSIBLE_ONLY','coordinates_cm':shifted}),\
+                patch('blender.placement_correction.recover_guide_metric',side_effect=recover),\
+                patch('blender.placement_correction.native_measurement',side_effect=measure):
+            result=correct_preparation(payload,recipe,plan,prep,[],anchor_body={'source':'fixture'})
+        self.assertEqual(calls[0][0],shifted);self.assertEqual(calls[0][1]['displacement_reference'],points)
+        self.assertEqual(calls[0][1]['protected_stop_reference'],shifted)
+        self.assertEqual(result['displacement_reference_sha256'],digest(points))
+        self.assertEqual(result['metric_recovery']['displacement_reference_sha256'],digest(points))
+        self.assertEqual(result['coordinates_cm'][0],shifted[0])
+        self.assertEqual(result['coordinates_cm'][3],shifted[3])
+        self.assertLessEqual(result['metric_recovery']['max_displacement_cm'],2.)
+
     def test_opt_in_metric_recovery_preserves_sources_and_runs_contact_search_only_after_strict_success(self):
         from tests.test_guide_metric_solver import fixture as metric_fixture
         payload,points,quality=metric_fixture();payload.update(placed_cm=points,component_id='coupon',package_sha256='a'*64)
