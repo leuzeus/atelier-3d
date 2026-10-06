@@ -5,8 +5,19 @@ Plan approuvé par l'utilisateur le 3 octobre 2026. Base : branche
 version 0.7.0-rc.2. Le programme est suivi ici pendant l'implémentation.
 
 **État courant du 5 octobre :** le build local distinct
-`0.7.0-rc.2.dev.2026100506` est installé par le gestionnaire natif de Codex ;
-ses 635 fichiers correspondent au stage préparé. Le code intégré exporté au
+`0.7.0-rc.2.dev.2026100507` est installé par le gestionnaire natif de Codex ;
+ses 645 fichiers correspondent au stage préparé depuis le commit de code
+`b889fc6a3ece3f5c67d64775ef3c195096763f46`. Cet export immuable passe
+1 719 tests en 230,947 s, aucun SKIP, et 14 contrats. Les 155 tests ciblés
+passent sous Python 3.11 et 3.13. Le serveur du chat pointe encore vers le
+cache 0506 remplacé et retourne son schéma introuvable : un redémarrage de
+Codex est requis pour vérifier 0507 avant tout nouvel appel Blender. Aucun
+run de la nouvelle correction n'est enregistré ou exécuté. Sa spécification
+distincte est préparée dans `preparation/coat-recovery-v3/run.json`.
+
+La restauration et l'inspection réussies sous 0506 restent des preuves natives
+de la scène contenant le corps seul ; elles n'admettent pas la correction 0507.
+Le code intégré historique exporté au
 commit `b378b60510a50a3b55943551238db1a659fa99ac` a passé 1 642 tests en
 216,364 s, aucun SKIP, et 14 contrats sous Python 3.11. Les 78 tests ciblés
 passent sous Python 3.11 et 3.13 ; le descripteur historique réel est encore
@@ -25,8 +36,8 @@ isole la qualité REST dérivée et les ancres protégées inadmissibles avant
 tout nouvel essai de placement. Le diagnostic exact et le nouveau parcours
 optionnel sont maintenant codés : 155 tests ciblés passent sous Python 3.11
 et 3.13 ; la revue indépendante ne confirme aucun défaut P2 ou supérieur.
-Ces ajouts ne sont pas encore installés ni exécutés sur le vêtement réel.
-La qualification intégrée du prochain build local reste à terminer.
+Ces ajouts sont maintenant installés et qualifiés comme code ; leur exécution
+sur le vêtement réel reste à autoriser après chargement de 0507.
 Les correctifs source `8e7a73d`, `af78094` et `6545a41` ajoutés ensuite passent
 79 tests ciblés sous chacun des deux Python ; ils sont maintenant intégrés au
 candidat validé et installé ci-dessus. Les 1 592 tests historiques gardent leur
@@ -1865,3 +1876,32 @@ La scène contient toujours le corps seul, 0/15 pièces textiles. Placement,
 enfilage, Cloth, drapé, fitting, mouvements et revue artistique ne sont pas
 qualifiés. Aucun changement de coupe ni nouvelle revue de patrons n'est
 requis par cette seule correction dérivée.
+
+### 5 octobre — qualification intégrée et installation locale 0507
+
+Le candidat de code `b889fc6a3ece3f5c67d64775ef3c195096763f46` est
+qualifié sur un export Git immuable : 1 719 tests, aucun SKIP, en 230,947 s,
+et 14 contrats. Cette preuve remplace le candidat précédent pour le nouveau
+code ; elle n'additionne pas les tests historiques ni ne qualifie Blender.
+
+Le gestionnaire natif Codex a installé le build distinct
+`0.7.0-rc.2.dev.2026100507`. Les 644 fichiers source distribués et les 645
+fichiers installés correspondent à leurs témoins exacts. Les anciens stages
+sur G: sont conservés et la confiance native des hooks n'est pas scriptée.
+[Preuve de qualification et d'installation](automation-placement-recovery-installation-evidence-20261005.json).
+
+Le diagnostic connecté utilise encore le cache 0506 remplacé et retourne un
+schéma introuvable. Aucun appel Blender ni création de run n'est tenté avec
+ce serveur. Le prochain point de reprise est le redémarrage de Codex,
+vérification du runtime 0507, lecture du statut et admission, puis création
+publique du nouveau run à partir de `preparation/coat-recovery-v3/run.json`.
+Cette proposition, d'identité distincte, est préparée et vérifiée ; elle n'est
+pas enregistrée dans SQLite. L'ancienne tentative reste refusée et conservée.
+
+La prochaine préparation native utilisera les deux nouveaux fichiers exacts
+de ce dossier, un nouveau checkpoint du corps seul et une autorisation
+explicite de l'opération. Elle pourra encore être refusée par les critères
+finaux. Aucun changement de coupe à approuver n'est produit. La revue des
+mesures homologues et des futurs pixels reste ouverte ; l'assemblage complet,
+la boucle, l'enfilage, Cloth, le drapé, le fitting, les clips, la finition et
+la préversion finale du programme ne sont pas achevés.

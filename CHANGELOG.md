@@ -2,6 +2,15 @@
 
 ## En développement — programme d'automatisation, 2026-10-04
 
+- Diagnostic exact des refus de placement et proposition de maillage dérivé
+  synchronisé sans modification des patrons ou diminution des seuils.
+- Réserve optionnelle des stops mesurée contre le corps natif exact avant
+  protection, par translation commune des composants permanents. Budget
+  original partagé entre réserve, récupération métrique et contacts ; pins
+  physiques conservés. Domaine borné et refus documentés dans
+  [la reprise de placement](references/placement-recovery.md). Essai du vêtement
+  réel encore non exécuté ; aucun fitting déduit des tests portables.
+
 - Périmètres corporels, normalisations de courbes et projections de guides
   calculés avec une sommation explicite
   commune au Python de préparation et à celui de Blender. Les empreintes
