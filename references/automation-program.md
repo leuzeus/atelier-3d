@@ -27,6 +27,21 @@ exécution. Le gain natif des optimisations, les épaules, le placement admis
 et l'acceptation complète restent ouverts. Le suivi détaillé figure en fin
 de document et dans [les preuves](automation-anchor-performance-evidence-20261006.json).
 
+**Retour visuel humain du 6 octobre :** après les quatre vues du candidat 0601,
+l'utilisateur signale les épaules cachées dans le corps et un manteau
+visiblement trop petit pour le mannequin. Ce volume est rejeté. La priorité
+avant une nouvelle tentative de placement est d'établir la capacité mesurée
+du torse, la couverture du devant ouvert et l'enveloppe d'épaule par rapport
+au corps accepté et à l'aisance approuvée. Le mannequin a été préparé à 180 cm
+et les manches ont une variante élargie ; cela ne dimensionne ni ne qualifie
+automatiquement tout le manteau. La cible de poitrine 110,15 + 20 cm d'aisance
+est une référence spatiale, pas un tour fermé à additionner pour ce devant
+ouvert. Conserver l'anatomie ; préparer une variante de patrons séparée si
+leur capacité manque, ou corriger les guides si leur capacité est suffisante.
+Le feedback exact est conservé dans le projet, à
+`preparation/coat-visual-volume-feedback-v1.json`. Ce retour ne valide aucun
+fitting ou changement de coupe. L'optimisation 0602 ne remplace pas ce contrôle.
+
 La restauration et l'inspection réussies sous 0506 restent des preuves natives
 de la scène contenant le corps seul ; elles n'admettent pas la correction 0507.
 Le code intégré historique exporté au
