@@ -5,19 +5,20 @@ Plan approuvé par l'utilisateur le 3 octobre 2026. Base : branche
 version 0.7.0-rc.2. Le programme est suivi ici pendant l'implémentation.
 
 **État courant du 5 octobre :** le build local distinct
-`0.7.0-rc.2.dev.2026100505` est installé par le gestionnaire natif de Codex ;
-ses 633 fichiers correspondent au stage préparé. Le code intégré exporté au
-commit `074850e2a5bcf5176f4ea935fade3fd1399b2e86` a passé 1 635 tests,
-aucun SKIP, et 14 contrats sous Python 3.11. Les 71 tests ciblés sous chacun
-des deux Python et les deux descripteurs historiques réels authentifiés
-conservent leur portée. Le redémarrage utilisateur a réellement chargé
-`dev.2026100504` et rétabli l'admission du pipeline ; la compilation publique
-V4 est exécutée, mais son fitting reste incomplet. La restauration autorisée
-a sauvegardé une copie, puis échoué sur la session historique : elle n'est pas
-considérée terminée. Le nouveau build contient le correctif de ce mécanisme.
-Après cette installation, `studio_doctor` appelle encore le cache remplacé
-`dev.2026100504` et retourne son schema introuvable. La reprise native attend
-un nouveau redémarrage, puis la vérification de `dev.2026100505` et du pipeline.
+`0.7.0-rc.2.dev.2026100506` est installé par le gestionnaire natif de Codex ;
+ses 635 fichiers correspondent au stage préparé. Le code intégré exporté au
+commit `b378b60510a50a3b55943551238db1a659fa99ac` a passé 1 642 tests en
+216,364 s, aucun SKIP, et 14 contrats sous Python 3.11. Les 78 tests ciblés
+passent sous Python 3.11 et 3.13 ; le descripteur historique réel est encore
+authentifié en lecture seule, SQLite inchangée. Le redémarrage a effectivement
+chargé `dev.2026100505`, diagnostic PASS et pipeline admis. La restauration
+autorisée a ensuite échoué avant ouverture du checkpoint sur une archive dont
+le chemin fait 290 caractères. Le nouveau correctif adapte uniquement les
+accès Windows aux archives et à leurs lecteurs, sans changer les identités
+enregistrées. Après installation de 0506, `studio_doctor` pointe encore vers
+le cache remplacé `dev.2026100505` : rechargement requis avant sa vérification
+et une nouvelle restauration explicitement autorisée. La restauration native
+reste non terminée. La compilation publique V4 conserve son fitting incomplet.
 Les correctifs source `8e7a73d`, `af78094` et `6545a41` ajoutés ensuite passent
 79 tests ciblés sous chacun des deux Python ; ils sont maintenant intégrés au
 candidat validé et installé ci-dessus. Les 1 592 tests historiques gardent leur
@@ -1734,3 +1735,48 @@ porter les identités actuelles du code et des entrées. Le vêtement reste
 RECONSTRUCTING ; aucun nouveau patron à approuver n'est produit. Les
 correspondances de mesure, le placement et la revue artistique restent à
 examiner ; construction complète, drapé, fitting et mouvement restent ouverts.
+
+### 5 octobre — chemins Windows des archives historiques
+
+Le redémarrage confirme cette fois `dev.2026100505` et son pipeline admis.
+L'utilisateur autorise la restauration corrigée préparée. Son exécution native
+échoue à la création d'une archive de scène de travail : chemin de 290
+caractères, parent de 168 et nom de fichier de 121. Ce refus se produit avant
+ouverture du checkpoint ; les archives exactes de session et d'inventaire
+déjà présentes sont conservées. La restauration n'est pas déclarée terminée.
+
+L'adaptateur Windows est appliqué après les validations de confinement, aux
+accès fichiers seulement. Il répète les contrôles de liens et jonctions avec
+les chemins étendus. Les lecteurs des runs et des preuves natives utilisent
+la même adaptation pour les archives ; leurs modules sont maintenant inclus
+dans l'empreinte commune du code. Les chemins relatifs des reçus et les chaînes
+des sessions restent identiques. Une modification de code invalide le rejeu
+sans retirer l'accès au checkpoint historique authentifié.
+
+**78 tests ciblés PASS sous Python 3.11 et 3.13**, en 10,758 et 14,066 s. Les
+six nouveaux scénarios Windows couvrent des sources réellement au-delà de
+260 caractères, archivage et lecteurs, reconstruction exacte de session,
+idempotence, UNC, préfixe existant, archives divergentes et refus de jonctions.
+Le changement du code commun a sa régression d'invalidation. La revue
+indépendante ne relève plus de blocage confirmé après renforcement de la
+fixture longue. Le descripteur réel est vérifié en lecture seule, sans toucher
+SQLite ni appeler Blender. Les premiers essais de tests restent conservés,
+dont un lancement sandbox bloqué sur `Path.resolve` ; leurs comptes ne sont
+pas additionnés à la suite finale.
+[Preuve ciblée et échec natif](automation-windows-archive-evidence-20261005.json).
+
+Le commit de code immuable `b378b60510a50a3b55943551238db1a659fa99ac` passe
+**1 642 tests, aucun SKIP, et 14 contrats**, sources inchangées après les
+contrôles. Le build local vérifie 634 fichiers source distribués ; le stage
+et la copie installée `dev.2026100506` contiennent 635 fichiers exacts. Les
+stages antérieurs G: restent préservés. Installation par le gestionnaire
+natif, sans confiance de hooks scriptée ni publication finale.
+[Preuves intégrées et installation](automation-windows-archive-installation-evidence-20261005.json).
+
+Le contrôle connecté utilise encore le chemin remplacé de `dev.2026100505`.
+La prochaine reprise vérifie 0506 et le pipeline après rechargement, prépare
+une nouvelle restauration exacte et attend son autorisation, puis vérifie
+son événement natif terminé. Le vêtement reste RECONSTRUCTING. Aucun nouveau
+patron à revoir n'a été produit ; les correspondances de mesure et les
+prochains candidats visuels restent à examiner. Placement, inventaire complet,
+enfilage, matière, drapé, fitting, mouvements et revue artistique restent ouverts.

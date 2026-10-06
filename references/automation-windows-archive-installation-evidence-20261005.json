@@ -1,0 +1,44 @@
+{
+  "scope": "EXACT_VALIDATED_CODE_AND_LOCAL_NATIVE_INSTALLATION",
+  "code_commit": "b378b60510a50a3b55943551238db1a659fa99ac",
+  "validation": {
+    "status": "PASS", "tests": 1642, "skipped": 0, "test_seconds": 216.364,
+    "contracts": 14, "python": "3.11", "source_unchanged": true,
+    "receipt": "G:/projets/atelier-3d/work/garment-automation-v1/program-windows-archive-integrated-validation-v1/validation.json",
+    "sha256": "6a72ae6aa7f1b70fb461c3d07a889c6495f7a92a2dff18a02e76e819b4b37f2e",
+    "git_export_sha256": "9c405c3db7c9404abaaff1463a6a882459cc5b87b96682a7aac73778c90c25a7",
+    "tests_receipt_sha256": "8bfe9cde2bb22769104b6fd723c99f14f66e32b6ac0e5cd1199be3d77c6d80d0",
+    "contracts_receipt_sha256": "b9ad1a07367215602773c8f02e4dc438f2ec7e952b9cc01b33c517aa83360a60"
+  },
+  "build": {
+    "version": "0.7.0-rc.2.dev.2026100506", "source_files": 634, "stage_files": 635,
+    "source_archive_sha256": "c0e2542ea21af227789027f045f025837c222e466caf16f91039e99bc4125e57",
+    "preparation_receipt": "G:/projets/atelier-3d/work/garment-automation-v1/program-windows-archive-local-build-v1/installation-preparation.json",
+    "sha256": "bc7d26da0f5f6889f5b6e36d8b5f24c10914517784d042ae5ce3ba065987b352"
+  },
+  "installation": {
+    "method": "NATIVE_CODEX_PLUGIN_ADD", "status": "PASS_EXACT_NATIVE_INSTALLED_COPY", "files": 635,
+    "installed_path": "C:/Users/leuz9/.codex/plugins/cache/atelier-3d-local/atelier-3d/0.7.0-rc.2.dev.2026100506",
+    "native_result_sha256": "335314026859710423532eca8f83927b10b3e27b9062277f1290cbb71f23b752",
+    "verification_receipt": "G:/projets/atelier-3d/work/garment-automation-v1/program-windows-archive-installed-verification-v1/installation-verification.json",
+    "sha256": "dfc7ff80cee12d49ccc1b666224447ba0ed88f43cf0432a3ac72d93c6fbed4d0",
+    "previous_stages_on_g_preserved": true, "hook_trust_scripted": false
+  },
+  "connected_runtime": {
+    "status": "RELOAD_REQUIRED_OLD_0505_SCHEMA_PATH_MISSING",
+    "doctor_receipt": "G:/projets/atelier-3d/work/garment-automation-v1/program-windows-archive-installed-verification-v1/connected-doctor-after-install.json",
+    "sha256": "b17dc0d582f292cabd54de119beb6818b0ce71d5edf73c696d27c7791851383f",
+    "loaded_0506_verified": false
+  },
+  "preceding_native_observations": {
+    "restart_0505": "PASS_DOCTOR_AND_PIPELINE",
+    "restore_0505": "FAILED_BEFORE_CHECKPOINT_OPEN_AT_LONG_ARCHIVE_PATH",
+    "restart_receipt_sha256": "e3e82009d30795d558f120e7f451b9745f295b12ea63151127bc62c8d8c1180d",
+    "restore_error_receipt_sha256": "663e67c36aecffa5933966b081084685dad2c695562b4f3bdcabe0676091c415"
+  },
+  "restoration_0506": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED", "artistic_review": "NOT_EXECUTED", "qualification": "NONE",
+  "cutting_review": "NO_NEW_PATTERN_PRODUCED",
+  "final_release": "NOT_PUBLISHED",
+  "next": "VERIFY_LOADED_0506_AFTER_RELOAD_THEN_PREPARE_NEW_EXACT_AUTHORIZED_RESTORE"
+}
