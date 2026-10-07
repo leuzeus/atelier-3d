@@ -10,12 +10,16 @@ propositions sur huit depuis les vrais fichiers du projet. Les trajets de
 poitrine, taille et hanches terminent désormais sous les budgets inchangés.
 Le col conserve sa donnée manquante. L'outil public de revue corporelle mesure
 les frontières déclarées dans l'adapter du corps natif accepté et produit
-leurs vues sans modifier le mannequin. Ces calculs de développement ne sont
-pas encore ceux du MCP connecté ; le build 0603 ci-dessous reste son identité
-vérifiée. Compilation, propositions, homologie, taille et fitting gardent
+leurs vues sans modifier le mannequin. Le candidat intégré `7d8a04f` passe
+1 823 tests, aucun SKIP, en 225,347 s et les 14 contrats sur export immuable.
+Le build local distinct 0701 est installé : 667 fichiers source et 668 fichiers
+installés vérifiés. Le processus connecté pointe encore vers le cache 0603
+remplacé ; redémarrage et diagnostic de 0701 requis avant reprise du MCP.
+Compilation, propositions, homologie, taille et fitting gardent
 des états distincts. [Preuves actuelles](automation-patronage-source-progress-20261007.json).
+[Qualification et installation 0701](automation-patronage-source-installation-evidence-20261007.json).
 
-**Dernière installation vérifiée — patronage 0603 :** le commit de code `e0655965`
+**Installation précédente vérifiée — patronage 0603 :** le commit de code `e0655965`
 passe 1 775 tests, aucun SKIP, en 236,815 s et 14 contrats sur export immuable.
 Le build local distinct `0.7.0-rc.2.dev.2026100603` est installé par le
 gestionnaire natif : 657 fichiers source et 658 fichiers installés vérifiés.
@@ -2186,8 +2190,14 @@ retrait du seul marqueur frais après refus terminal. Les rapports diagnostics
 et fichiers remplacés par un autre acteur sont préservés. Les 21 tests du
 corps et du filtre passent indépendamment ; les 62 tests ciblés intégrés
 passent sous Python 3.13. La qualification complète et la prochaine
-installation doivent être liées au candidat intégré, sans reprendre les
-1 775 tests historiques de 0603 comme preuve du code nouveau.
+installation sont maintenant liées au candidat intégré `7d8a04f` : 1 823 tests,
+aucun SKIP, 225,347 s et 14 contrats sur export immuable. Le build distinct
+`0.7.0-rc.2.dev.2026100701` est installé par le gestionnaire natif Codex ;
+667 fichiers source distribués et 668 fichiers installés sont vérifiés.
+Les anciens stages G: sont préservés. Le diagnostic connecté lit encore
+0603 et échoue sur son schéma supprimé ; redémarrage requis pour vérifier
+0701 et son nouvel outil. Aucun appel Blender n'est tenté avec ce processus.
+[Preuve exacte](automation-patronage-source-installation-evidence-20261007.json).
 
 Le mannequin, les patrons et l'aisance d'origine ne changent pas. L'homologie
 col/épaules, la couverture du devant, les variantes éventuellement nécessaires,

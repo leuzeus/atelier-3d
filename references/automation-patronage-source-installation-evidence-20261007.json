@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-07",
+  "scope": "SOFTWARE_AND_LOCAL_INSTALLATION_ONLY",
+  "code_commit": "7d8a04f7675410e9953f604142ba8cecf24e0073",
+  "qualification": {
+    "status": "PASS",
+    "tests": 1823,
+    "skipped": 0,
+    "test_seconds": 225.347,
+    "contracts": 14,
+    "source_unchanged": true,
+    "native_execution": false,
+    "validation": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-patronage-source-full-validation-v1\\validation.json",
+      "sha256": "43f82847f2aac578110d8b4b83a6f756798028dddb5d1913f7eb6eef1b459bfa"
+    },
+    "git_archive_sha256": "f0449ce9fab8dfb1bbfdbd6c6f8d6166fe4d8e85137cb5da7303b84c8ab2fb50",
+    "tests_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-patronage-source-full-validation-v1\\tests-receipt.json",
+      "sha256": "0206614cf7709a42f857e3f22c63109380b98d445656c9b24700ce9e03e9eba7"
+    },
+    "contracts_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-patronage-source-full-validation-v1\\contracts-receipt.json",
+      "sha256": "1c6209e9322b281bbd9f52fd66a26a487980514a0bb926bb1db473059d401859"
+    }
+  },
+  "installation": {
+    "status": "PASS_EXACT_NATIVE_INSTALLED_COPY",
+    "version": "0.7.0-rc.2.dev.2026100701",
+    "method": "NATIVE_CODEX_PLUGIN_ADD",
+    "cli_version": "0.160.1",
+    "source_files": 667,
+    "installed_files": 668,
+    "preparation": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-patronage-source-local-build-v1\\installation-preparation.json",
+      "sha256": "944d4bcbd932eaad01aa64e2f0cb709bc210a85e5849280c2e0b2ffc8dbcfdf1"
+    },
+    "native_result": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-patronage-source-local-build-v1\\native-install-result.json",
+      "sha256": "bb09ab6fea3694dd435da3e96cb497361287d39d863659c69750326741faa2b0"
+    },
+    "verification": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-patronage-source-installed-verification-v1\\installation-verification.json",
+      "sha256": "c710e8a78b0139e0641c6615bf9ae1e765a5824cb7090101349c70ed3484374c"
+    },
+    "source_archive_sha256": "dc9274e55eb00be5712211b9a05edcd2286585a34393481a8a5f839a3ebf07a0",
+    "previous_stages_on_g_preserved": true,
+    "hook_trust_scripted": false
+  },
+  "connected_runtime": {
+    "status": "RESTART_REQUIRED",
+    "observed_before_install": "0.7.0-rc.2.dev.2026100603",
+    "after_install": "OLD_0603_PROCESS_REFERENCES_REPLACED_CACHE_AND_RETURNS_MISSING_SCHEMA",
+    "doctor": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-patronage-source-local-build-v1\\connected-runtime-after-install.json",
+      "sha256": "1c8e6bac742a4af7385bb34eda7a3626ea3988600d6d12bc759fcd821b68b36a"
+    },
+    "new_body_path_tool": "NOT_RELOADED"
+  },
+  "real_project": {
+    "status": "RECONSTRUCTING",
+    "source_path_proposals": 7,
+    "source_path_target": 8,
+    "proposal_adoption": "REVIEW_REQUIRED",
+    "open_front_coverage": "NOT_MEASURED",
+    "body_or_patterns_changed": false,
+    "native_execution": false,
+    "fitting": "NOT_EXECUTED",
+    "new_cutting_variant": false,
+    "artistic_acceptance": "NOT_GRANTED",
+    "final_prerelease": "NOT_PUBLISHED"
+  },
+  "next_actions": [
+    "Restart Codex and verify 0701, its new tool and exact project",
+    "Review anatomical collar and shoulder paths; reconcile open-front coverage and original ease scope",
+    "Prepare and review separate pattern variants if measured capacity is insufficient",
+    "Obtain separate exact permission before native Blender execution"
+  ]
+}
