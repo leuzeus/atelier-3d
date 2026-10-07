@@ -202,6 +202,93 @@ def _collar_guide_row(frame,pid,ends):
         raise StudioError('Collar measurement guide representation is malformed or unsupported: '+pid)from error
 
 
+def _assembled_row_topology(compiled,segment):
+    """Prove named source endpoints equivalent through permanent bridges only.
+
+    A UV-open material row can form a sewn source cycle through other pieces.
+    This diagnostic does not change its fitting path_kind or engage a closure.
+    Component geometry and links come from the caller's exact compilation;
+    this pure helper authenticates neither packages nor native consolidation.
+    """
+    before=digest([compiled,segment])
+    proof={'status':'NOT_PROVEN','domain':'PERMANENT_SOURCE_ENDPOINT_EQUIVALENCE_ONLY',
+        'qualification':'SOURCE_ENDPOINT_TOPOLOGY_ONLY','admissible_for_fit':False,
+        'path_kind_changed':False,'closure_engagement_inferred':False,
+        'permanent_endpoint_witness_path':[]}
+    try:
+        row=compiled['textiles'][segment['piece']];cid=row['component_id']
+        own={pid:r for pid,r in compiled['textiles'].items()if r['component_id']==cid}
+        missing=[pid for pid,r in sorted(own.items())if not isinstance(r['source_geometry'].get('faces'),list)
+                 or not r['source_geometry']['faces']]
+        if missing:
+            proof.update(reason='SOURCE_FACES_REQUIRED',pieces_missing_source_faces=missing)
+        else:
+            endpoints=[]
+            for side in ('from','to'):
+                selector=segment[side];fraction=selector.get('fraction')
+                if type(fraction)not in(int,float)or fraction not in(0,1):
+                    raise StudioError('Assembled row endpoint needs exact named-edge fraction 0 or 1')
+                ids,_,_=edge_chain(row['source_geometry'],selector['edge']);index=ids[0 if fraction==0 else -1]
+                endpoints.append({'piece':segment['piece'],'edge':selector['edge'],'fraction':fraction,
+                    'source_vertex_id':index,'source_uv_cm':copy.deepcopy(row['source_geometry']['vertices'][index])})
+            links=[link for link in compiled['links']if link.get('component_id')in(None,cid)
+                   and link['piece_a']in own and link['piece_b']in own]
+            if any(link.get('kind')=='permanent'and (link['piece_a']in own or link['piece_b']in own)
+                   and link not in links for link in compiled['links']):
+                raise StudioError('Assembled row topology needs complete same-component permanent source ownership')
+            by_source={link.get('source_link_id',link['id']):link for link in links}
+            if len(by_source)!=len(links):raise StudioError('Assembled row component has ambiguous source link IDs')
+            # These are exact compiled source fields, not a reconstructed asset
+            # or a claim to the original package's whole-file source digest.
+            data={'component_id':cid,'units':'cm','pieces':{pid:r['source_geometry']for pid,r in own.items()},
+                'seams':[{**{key:link[key]for key in ('piece_a','piece_b','edge_a','edge_b','orientation','kind')},
+                          'id':sid}for sid,link in sorted(by_source.items())]}
+            from .dressing_derivation import source_boundary_graph_from_validated
+            graph=source_boundary_graph_from_validated(data)
+            proof.update(endpoints=endpoints,component_id=cid,
+                graph_input_domain='EXACT_COMPILED_PIECE_GEOMETRY_AND_COMPONENT_LINKS',
+                graph_input_sha256=graph['source_sha256'],source_boundary_graph_sha256=digest(graph),
+                graph_status=graph['status'])
+            if graph['status']!='SOURCE_BOUNDARY_DERIVED':
+                proof['reason']=graph.get('reason','SOURCE_BOUNDARY_GRAPH_INCOMPLETE')
+            else:
+                adjacency={}
+                for bridge in graph['permanent_bridges']:
+                    link=by_source[bridge['source_link_id']]
+                    for pair in bridge['source_vertex_pairs']:
+                        a,b=map(tuple,pair)
+                        witness={'source_link_id':bridge['source_link_id'],'compiled_link_id':link['id'],
+                            'kind':'permanent','orientation':link['orientation'],
+                            'source_vertex_pair':copy.deepcopy(pair)}
+                        adjacency.setdefault(a,[]).append((b,witness));adjacency.setdefault(b,[]).append((a,witness))
+                start,end=[(item['piece'],item['source_vertex_id'])for item in endpoints]
+                todo=[start];parents={start:None};cursor=0
+                while cursor<len(todo):
+                    current=todo[cursor];cursor+=1
+                    for neighbor,witness in sorted(adjacency.get(current,[]),key=lambda item:(item[0],item[1]['source_link_id'])):
+                        if neighbor not in parents:
+                            parents[neighbor]=(current,witness);todo.append(neighbor)
+                proof['endpoint_equivalent_by_permanent_sources']=end in parents
+                if end not in parents:
+                    proof['status']='ENDPOINTS_DISTINCT'
+                elif start==end:
+                    proof.update(status='CLOSED_IDENTICAL_SOURCE_VERTEX',equivalence_node=list(start))
+                else:
+                    path=[];current=end
+                    while current!=start:
+                        previous,witness=parents[current]
+                        path.append({**copy.deepcopy(witness),'from_source_vertex':list(previous),
+                                     'to_source_vertex':list(current)})
+                        current=previous
+                    proof.update(status='CLOSED_PERMANENT_ENDPOINT_CYCLE',equivalence_node=list(min(parents)),
+                                 permanent_endpoint_witness_path=list(reversed(path)))
+    except (StudioError,KeyError,TypeError,ValueError,IndexError)as error:
+        proof.update(status='NOT_PROVEN',reason='SOURCE_ENDPOINT_TOPOLOGY_NOT_PROVEN',message=str(error))
+        proof.pop('endpoint_equivalent_by_permanent_sources',None)
+    if digest([compiled,segment])!=before:raise StudioError('Assembled row topology changed immutable source inputs')
+    return proof
+
+
 def collar_open_path_options(compiled,profile,guides,request):
     """Source closure endpoint rows, without choosing/engaging the closure."""
     owners=[(pid,row)for pid,row in compiled['textiles'].items()
@@ -238,6 +325,8 @@ def collar_open_path_options(compiled,profile,guides,request):
             'guide_body_frame_height_cm':heights,'body_girth_cm':neck['girth_cm']if corresponds else None,
             'body_plane_correspondence':'MEASURED_NECK_PLANE_PROPOSAL'if corresponds else 'ACTUAL_BODY_SECTION_AT_THIS_HEIGHT_REQUIRED',
             'source_row_basis':'ACTUAL_COMMON_CLOSURE_EDGE_ENDPOINT_V_DOMAIN',
+            'assembled_row_topology':_assembled_row_topology(compiled,segment),
+            'neckline_physical_opening':'NOT_QUALIFIED',
             'configuration_choice':'HUMAN_REVIEW_REQUIRED','homology':'HUMAN_REVIEW_REQUIRED',
             'admissible_for_fit':False,'qualification':'NONE','ease_cm':None}
         try:option['source_neckline_attachment']=_collar_neckline_row(compiled,pid,v,span['source_uv_cm'])
@@ -674,14 +763,17 @@ def propose_measurement_paths(compiled,profile,guides,required,body_regions=None
                     candidates=[option for option in options if option['body_plane_correspondence']=='MEASURED_NECK_PLANE_PROPOSAL'
                         and option['source_neckline_attachment']['status']=='SOURCE_NECKLINE_ROW_ATTACHED']
                     if len(candidates)!=1:
-                        raise StudioError('Open collar needs one actual measured neck-plane source row with complete declared neckline attachments')
+                        raise StudioError('Collar needs one actual measured neck-plane source row with complete declared neckline attachments')
                     selected=candidates[0];segments.extend(selected['segments']);evidence.extend(selected['source_spans'])
                     body_girth=selected['body_girth_cm'];homology.append({'piece':selected['segments'][0]['piece'],
-                        'correspondence':'SOURCE_ATTACHED_NECKLINE_AT_MEASURED_NECK_PLANE_OPEN_PROPOSAL',
+                        'correspondence':'SOURCE_ATTACHED_NECKLINE_AT_MEASURED_NECK_PLANE_PROPOSAL',
                         'source_neckline_attachment':selected['source_neckline_attachment'],
+                        'assembled_row_topology':selected['assembled_row_topology'],
                         'guide_body_frame_height_cm':selected['guide_body_frame_height_cm'],
                         'configuration_source':copy.deepcopy(configuration)})
                     extra={'source_open_collar_options':options,'source_closure':selected['source_closure'],
+                        'assembled_row_topology':copy.deepcopy(selected['assembled_row_topology']),
+                        'neckline_physical_opening':'NOT_QUALIFIED',
                         'source_closure_state':'NOT_ENGAGED_PROPOSAL','configuration_choice':'DECLARED_OPEN_FRONT_SOURCE_ROW_PROPOSAL'}
                 elif landmark not in ('chest','waist','hip'):
                     raise StudioError('Neck needs explicit collar configuration and source-path homology; closure engagement is not inferred')

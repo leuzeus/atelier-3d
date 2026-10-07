@@ -6,7 +6,8 @@ from unittest.mock import patch
 
 from a3d.core import StudioError,atomic_json,digest,sha
 from a3d.garment_measurements import (source_edge_at_v,propose_measurement_paths,
-    propose_project_measurement_paths,propose_compiled_measurement_paths,intersect_guide_material_plane,reconcile_source_boundary_uv)
+    propose_project_measurement_paths,propose_compiled_measurement_paths,intersect_guide_material_plane,reconcile_source_boundary_uv,
+    collar_open_path_options,_assembled_row_topology)
 from tests.test_core import Case
 
 
@@ -67,6 +68,43 @@ def limb_fixture():
         requests.append({'id':'coat.'+landmark,'component_id':'garment.coat','layer':'outer','body_landmark':landmark})
         mapping.append({'body_landmark':landmark,'section_id':sid})
     return compiled,body,guides,requests,descriptor,mapping
+
+
+def collar_cycle_fixture():
+    """A named band whose two lower ends share a different piece's vertex.
+
+    Source IDs and coordinates differ from the product; only the approved
+    attachment topology is represented, with complete source faces.
+    """
+    original,body,_,_,world=fixture();cid='textile.unusual';pid='band.named'
+    geometries={pid:{'vertices':[[0.,0.],[2.,0.],[6.,0.],[10.,0.],[12.,0.],[11.,7.],[1.,7.]],
+        'faces':[[0,1,6],[1,2,6],[2,3,6],[3,5,6],[3,4,5]],
+        'edges':{'stop.a':[6,0],'first':[0,1],'middle':[1,2,3],'last':[3,4],'stop.b':[4,5],'top':[5,6]}},
+        'insert.named':{'vertices':[[-2.,0.],[0.,2.],[2.,0.]],'faces':[[0,1,2]],
+                        'edges':{'anchor.a':[1,2],'anchor.b':[0,1],'free':[2,0]}},
+        'neck.named':{'vertices':[[0.,0.],[8.,0.],[8.,2.],[0.,2.]],'faces':[[0,1,2],[0,2,3]],
+                      'edges':{'real-neck':[0,1],'side.a':[1,2],'free':[2,3],'side.b':[3,0]}}}
+    semantics={pid:{'role':'collar','side':'center','layer':'outer','longitudinal_uv_axis':'u'},
+        'insert.named':{'role':'inner_front','side':'center','layer':'inner',
+                        'guide_edges':{'anchor':'anchor.a','anchor_end':'anchor.b'}},
+        'neck.named':{'role':'front','side':'center','layer':'outer','guide_edges':{'neck':'real-neck'}}}
+    textiles={p:{'component_id':cid,'source_geometry':geometry,'semantics':semantics[p],
+                 'package_source_ref':original['source_ref']}for p,geometry in geometries.items()}
+    links=[{'id':sid,'source_link_id':sid,'component_id':cid,'piece_a':pid,'edge_a':a,
+            'piece_b':other,'edge_b':b,'kind':kind,'orientation':'forward'if kind=='permanent'else'reverse'}
+           for sid,a,other,b,kind in [('join.first','first','insert.named','anchor.a','permanent'),
+                                     ('join.middle','middle','neck.named','real-neck','permanent'),
+                                     ('join.last','last','insert.named','anchor.b','permanent'),
+                                     ('band.fastener','stop.a',pid,'stop.b','closure')]]
+    compiled={**original,'textiles':textiles,'links':links,
+              'components':[{'id':cid,'pipeline':'PATTERN_SEWN','package_source_ref':original['source_ref']}]}
+    panels={p:{'arc_sections':[{'v_cm':v,'arc_offset_cm':0.,'curve_cm':
+                               [world([0.,0.,9.+v]),world([12.,0.,9.+v])]}for v in(0.,7.)]}
+            for p in textiles}
+    guides={cid:{'panels':panels,'profile_sha256':digest(body),'profile_cache_key':body['cache_key'],
+                 'semantics_sha256':digest(semantics)}}
+    request={'id':'measure.neck','component_id':cid,'layer':'outer','body_landmark':'neck'}
+    return compiled,body,guides,request
 
 
 class GarmentMeasurements(Case):
@@ -301,6 +339,9 @@ class GarmentMeasurements(Case):
             self.assertEqual(option['path_kind'],'open_material_span');self.assertEqual(option['engaged_links'],[])
             self.assertEqual(option['configuration_choice'],'HUMAN_REVIEW_REQUIRED');self.assertFalse(option['admissible_for_fit'])
             self.assertEqual(option['source_closure_state'],'NOT_ENGAGED_PROPOSAL');self.assertIsNone(option['ease_cm'])
+            self.assertEqual(option['assembled_row_topology']['status'],'NOT_PROVEN')
+            self.assertEqual(option['assembled_row_topology']['reason'],'SOURCE_FACES_REQUIRED')
+            self.assertEqual(option['neckline_physical_opening'],'NOT_QUALIFIED')
         self.assertEqual(digest([compiled,body,guides,request]),before)
         compiled['links'][-1]['kind']='permanent'
         missing=propose_measurement_paths(compiled,body,guides,[request])['diagnostics'][0]
@@ -331,6 +372,8 @@ class GarmentMeasurements(Case):
         self.assertEqual(row['source_material_length_cm'],12.);self.assertEqual(row['body_girth_cm'],14.)
         self.assertEqual(row['path_kind'],'open_material_span');self.assertEqual(row['joins'],[]);self.assertEqual(row['engaged_links'],[])
         self.assertEqual(row['source_closure_state'],'NOT_ENGAGED_PROPOSAL');self.assertFalse(row['admissible_for_fit'])
+        self.assertEqual(row['assembled_row_topology']['status'],'NOT_PROVEN')
+        self.assertNotIn('OPEN_PROPOSAL',row['homology'][0]['correspondence'])
         proof=row['homology'][0]['source_neckline_attachment'];self.assertEqual(proof['coverage'],'FULL_SOURCE_ROW_ONCE')
         self.assertEqual(proof['permanent_source_attachments'][0]['id'],'real-neck-attachment')
         self.assertEqual(row['source_open_collar_options'][1]['body_girth_cm'],None)
@@ -347,6 +390,75 @@ class GarmentMeasurements(Case):
             with self.subTest(change=change):
                 refused=propose_measurement_paths(c,p,g,[request],configuration=config)
                 self.assertEqual(refused['proposals'],[]);self.assertEqual(len(refused['diagnostics']),1)
+
+    def test_collar_v0_source_cycle_through_other_piece_v7_distinct_and_uv_path_contract_preserved(self):
+        compiled,body,guides,request=collar_cycle_fixture();before=digest([compiled,body,guides,request])
+        options=collar_open_path_options(compiled,body,guides,request)
+        low,high=options
+        self.assertEqual([o['source_spans'][0]['source_v_cm']for o in options],[0.,7.])
+        self.assertEqual(low['assembled_row_topology']['status'],'CLOSED_PERMANENT_ENDPOINT_CYCLE')
+        self.assertEqual(high['assembled_row_topology']['status'],'ENDPOINTS_DISTINCT')
+        proof=low['assembled_row_topology'];path=proof['permanent_endpoint_witness_path']
+        self.assertEqual([p['source_link_id']for p in path],['join.first','join.last'])
+        self.assertEqual(path[0]['from_source_vertex'],['band.named',0])
+        self.assertEqual(path[0]['to_source_vertex'],['insert.named',1])
+        self.assertEqual(path[1]['to_source_vertex'],['band.named',4])
+        self.assertNotEqual(proof['endpoints'][0]['source_uv_cm'],proof['endpoints'][1]['source_uv_cm'])
+        self.assertEqual(proof['source_boundary_graph_sha256'],high['assembled_row_topology']['source_boundary_graph_sha256'])
+        for option in options:
+            self.assertEqual(option['path_kind'],'open_material_span');self.assertFalse(option['engaged_links'])
+            self.assertEqual(option['source_closure_state'],'NOT_ENGAGED_PROPOSAL')
+            self.assertEqual(option['neckline_physical_opening'],'NOT_QUALIFIED');self.assertFalse(option['admissible_for_fit'])
+            self.assertIsNone(option['ease_cm']);self.assertFalse(option['assembled_row_topology']['path_kind_changed'])
+        result=propose_measurement_paths(compiled,body,guides,[request],configuration={'wearing_configuration':'open_front'})
+        self.assertEqual(result['diagnostics'],[]);proposal=result['proposals'][0]
+        self.assertEqual(proposal['assembled_row_topology'],proof)
+        self.assertEqual(proposal['path_kind'],'open_material_span');self.assertIsNone(proposal['ease_cm'])
+        self.assertFalse(proposal['admissible_for_fit'])
+        self.assertEqual(digest([compiled,body,guides,request]),before)
+
+    def test_collar_equivalence_ignores_unengaged_unary_closure_and_detachable_links(self):
+        compiled,body,guides,request=collar_cycle_fixture()
+        high=collar_open_path_options(compiled,body,guides,request)[1]['segments'][0]
+        for kind in ('closure','detachable','permanent'):
+            c=copy.deepcopy(compiled);c['links'][-1]['kind']=kind
+            proof=_assembled_row_topology(c,high)
+            with self.subTest(kind=kind):
+                self.assertEqual(proof['status'],'CLOSED_PERMANENT_ENDPOINT_CYCLE'if kind=='permanent'else'ENDPOINTS_DISTINCT')
+                if kind=='permanent':self.assertEqual(proof['permanent_endpoint_witness_path'][0]['source_link_id'],'band.fastener')
+        c=copy.deepcopy(compiled);c['links']=[c['links'][-1]]
+        low=collar_open_path_options(compiled,body,guides,request)[0]['segments'][0]
+        self.assertEqual(_assembled_row_topology(c,low)['status'],'ENDPOINTS_DISTINCT')
+
+    def test_equal_uv_coordinates_of_different_original_vertices_do_not_prove_a_cycle(self):
+        compiled,body,guides,request=collar_cycle_fixture()
+        high=collar_open_path_options(compiled,body,guides,request)[1]['segments'][0]
+        geometry=compiled['textiles']['band.named']['source_geometry']
+        geometry['vertices'][5]=copy.deepcopy(geometry['vertices'][6])
+        before=digest([compiled,high]);proof=_assembled_row_topology(compiled,high)
+        self.assertEqual(proof['status'],'ENDPOINTS_DISTINCT')
+        self.assertEqual(proof['endpoints'][0]['source_uv_cm'],proof['endpoints'][1]['source_uv_cm'])
+        self.assertNotEqual(proof['endpoints'][0]['source_vertex_id'],proof['endpoints'][1]['source_vertex_id'])
+        self.assertEqual(digest([compiled,high]),before)
+
+    def test_collar_cycle_needs_exact_endpoint_selectors_and_complete_source_faces(self):
+        compiled,body,guides,request=collar_cycle_fixture()
+        low=collar_open_path_options(compiled,body,guides,request)[0]['segments'][0]
+        for change in ('interior','near-endpoint','bool-endpoint','missing-faces','cross-component','graph-budget'):
+            c=copy.deepcopy(compiled);s=copy.deepcopy(low)
+            if change=='interior':s['from']['fraction']=.5
+            elif change=='near-endpoint':s['from']['fraction']=math.nextafter(1.,0.)
+            elif change=='bool-endpoint':s['from']['fraction']=True
+            elif change=='missing-faces':del c['textiles']['insert.named']['source_geometry']['faces']
+            elif change=='cross-component':c['links'][0]['component_id']='another.owner'
+            with self.subTest(change=change):
+                if change=='graph-budget':
+                    with patch('a3d.dressing_derivation.source_boundary_graph_from_validated',return_value={
+                        'status':'INCOMPLETE','reason':'SOURCE_BOUNDARY_EDGE_BUDGET','source_sha256':'a'*64}):
+                        proof=_assembled_row_topology(c,s)
+                else:proof=_assembled_row_topology(c,s)
+                self.assertEqual(proof['status'],'NOT_PROVEN');self.assertFalse(proof['admissible_for_fit'])
+                self.assertFalse(proof['permanent_endpoint_witness_path'])
 
     def test_missing_seam_disconnected_path_branch_or_extrapolated_plane_never_invents_a_join(self):
         for change in ('missing','closure','branch','extrapolate','nonplanar'):
