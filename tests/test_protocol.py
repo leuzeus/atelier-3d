@@ -104,7 +104,7 @@ class ProtocolTests(unittest.TestCase):
     def test_schemas_and_skill_links_exist(self):
         from a3d.core import read_json
         import re
-        self.assertEqual(len(list((ROOT/"skills").glob("*/SKILL.md"))),11)
+        self.assertEqual(len(list((ROOT/"skills").glob("*/SKILL.md"))),12)
         for path in (ROOT/"skills").glob("*/SKILL.md"):
             text=path.read_text(encoding="utf-8")
             self.assertIn("name: "+path.parent.name,text)
@@ -118,6 +118,8 @@ class ProtocolTests(unittest.TestCase):
         self.assertIn("servers/studio/main.py",files)
         self.assertIn("mcp.json",files)
         self.assertIn("hooks/handler.py",files)
+        self.assertIn("skills/patronage/SKILL.md",files)
+        self.assertIn("templates/agents/atelier3d-patronage.toml",files)
         self.assertNotIn("config.local.json",files)
         self.assertFalse(any(name.startswith("work/") or ".sqlite3" in name for name in files))
 

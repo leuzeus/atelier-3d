@@ -132,6 +132,17 @@ def prepare_pattern_ease_variant(project_root, compiled_dossier_path, design_dec
         design_decision_path, policy_path, output_dir)
 
 
+@tool('studio_prepare_patronage_review', 'Compute source-bound tailoring comparisons and write a fresh review sheet from exact measured body sections, seam-line material paths and optionally canonically reviewed numeric ease. Reuses existing authenticated services. Open spans never become closed girths; missing measurements stay incomplete. No pattern/body mutation, native execution, fitting acceptance or new gate.',
+      {**P, 'dossier_path': S, 'specification_path': S, 'fit_profile_path': S, 'output_dir': S, 'design_decision_path': S,
+       'refresh_body_regions': {'type': 'boolean'}},
+      ('project_root', 'dossier_path', 'specification_path', 'fit_profile_path', 'output_dir'), False)
+def prepare_patronage_review(project_root, dossier_path, specification_path, fit_profile_path, output_dir,
+                             design_decision_path=None, refresh_body_regions=False):
+    from .patronage import prepare_project_patronage_review
+    return prepare_project_patronage_review(Project(project_root), dossier_path,
+        specification_path, fit_profile_path, output_dir, design_decision_path, refresh_body_regions)
+
+
 @tool('studio_compile_material_bench', 'Compile fixed comparative coupon cases and their bounded run. Actual simulation, measured convergence and garment fitting remain separate.',
       {**P, 'specification_path': S, 'output_dir': S}, ('project_root', 'specification_path', 'output_dir'), False)
 def compile_material_bench(project_root, specification_path, output_dir):

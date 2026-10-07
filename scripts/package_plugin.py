@@ -10,6 +10,7 @@ ROOT=Path(__file__).resolve().parents[1]
 ROOT_FILES=("plugin.json","mcp.json","README.md","VALIDATION.md","CHANGELOG.md","LICENSE","SECURITY.md","CONTRIBUTING.md","pyproject.toml",".gitignore",".gitattributes","BUG-2026-10-03-completude-pieces-blender.md")
 DIRS=(".codex-plugin","a3d","assets","blender","hooks","references","schemas","scripts","servers","skills","templates","tests","workflows")
 EXTENSIONS={".py",".json",".md",".svg",".png",".ps1"}
+AGENT_PROFILES=("templates/agents/atelier3d-patronage.toml",)
 
 def inventory(root=ROOT):
     files=[]
@@ -28,6 +29,20 @@ def inventory(root=ROOT):
                     raise ValueError("File escaped package root")
                 if path.name in ("config.local.json","runtime.local.json",".env"): raise ValueError("Local configuration cannot be distributed")
                 files.append(path)
+    # Only these declared agent templates are shipped; arbitrary local TOML
+    # configuration remains excluded from the source bundle.
+    import tomllib
+    for name in AGENT_PROFILES:
+        path=root/name
+        if not path.is_file() or path.is_symlink() or (hasattr(path,"is_junction") and path.is_junction()):
+            raise ValueError(f"Missing or linked agent profile: {name}")
+        if not path.resolve().is_relative_to(root.resolve()):
+            raise ValueError("Agent profile escaped package root")
+        agent=tomllib.loads(path.read_text(encoding="utf-8"))
+        if set(agent)!={"name","description","developer_instructions"} or any(
+                not isinstance(value,str) or not value.strip() for value in agent.values()):
+            raise ValueError("Agent template must declare its role and inherit host model and permissions")
+        files.append(path)
     # Blend files stay excluded everywhere except the two selected catalog
     # assets, whose names, bytes, source provenance and notice are verified.
     catalog_path = root/'assets/mannequins/catalog.json'

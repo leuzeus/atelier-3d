@@ -2,6 +2,13 @@
 
 ## En développement — programme d'automatisation, 2026-10-04
 
+- Rôle Patronage distribué avec le plugin et profil de sous-agent Codex fourni.
+  `studio_prepare_patronage_review` recompile les sources, authentifie le corps
+  et la décision numérique disponible, remesure sections et chemins matière,
+  puis génère la fiche et ses preuves. Les trajets ouverts ne produisent aucun
+  déficit de tour fermé. Les ajustements du torse restent à développer ;
+  aucune adoption de patron, simulation ou acceptation de fitting n'est créée.
+
 - Requêtes de grille intérieure indexées sur les segments source exacts ;
   contrôle coopératif de la grille et de la simplicité sous l'enveloppe commune.
   Diagnostics d'échec par pièce, sans snapshot terminal fictif ni candidat

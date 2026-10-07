@@ -42,6 +42,28 @@ Le feedback exact est conservé dans le projet, à
 `preparation/coat-visual-volume-feedback-v1.json`. Ce retour ne valide aucun
 fitting ou changement de coupe. L'optimisation 0602 ne remplace pas ce contrôle.
 
+**Patronage dans le plugin :** le rôle permanent est maintenant préparé dans
+le skill `patronage`, routé par l'orchestrateur et le constructeur textile.
+L'outil `studio_prepare_patronage_review` réutilise les services de compilation,
+mesures source et provenance corporelle, puis produit la fiche et son JSON par
+code. Son option de rafraîchissement reconstitue les sections dérivées dans
+des fichiers nouveaux sans transférer de revue. Le profil de sous-agent Codex
+est livré comme template, sans configuration du modèle ou des permissions ni
+enregistrement automatique dans le client. Voir [le rôle et ses outils](patronage-agent.md).
+
+Les 75 tests ciblés passent sous Python 3.11 et 3.13. Le handler public est
+exécuté sur les vrais fichiers du projet, sans Blender : huit comparaisons
+corporelles sont calculées et le rapport reste `PATRONAGE_DATA_INCOMPLETE`,
+les huit trajets correspondants des patrons étant absents. Les sections
+régionales périmées sont remesurées, deux justificatifs manquants de la décision
+numérique sont restitués depuis leurs copies originales exactes. L'intention
+humaine existante reste à réconcilier dans le registre du projet d'exécution,
+sans demander de nouveau les mêmes chiffres. Le rapport se trouve dans
+`execution-project/preparation/patronage-runtime-review-v4/`. Cette preuve
+qualifie le diagnostic réel, pas la taille, les épaules ou le fitting.
+La qualification intégrée et le prochain build local de ce rôle restent
+à préparer. Aucun nouveau patron n'est adopté et aucune simulation n'est lancée.
+
 La restauration et l'inspection réussies sous 0506 restent des preuves natives
 de la scène contenant le corps seul ; elles n'admettent pas la correction 0507.
 Le code intégré historique exporté au

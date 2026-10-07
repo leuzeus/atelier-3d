@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-06",
+  "scope": "PLUGIN_PATRONAGE_ROLE_AND_REAL_SOURCE_DIAGNOSTIC_NOT_FITTING",
+  "status": "TARGETED_PASS_REAL_DIAGNOSTIC_INCOMPLETE",
+  "capabilities": [
+    "Permanent patronage skill routed before garment placement",
+    "Reusable Codex agent template with inherited host configuration",
+    "Public studio_prepare_patronage_review computes exact source/body comparisons",
+    "Versioned body-region remeasurement with preserved original files and reviews",
+    "Source checks before and after, per-owner target disambiguation",
+    "Existing bounded pattern variant solver remains separate and review-gated"
+  ],
+  "targeted": {
+    "tests": 75,
+    "python311": {
+      "seconds": 5.798,
+      "log": "G:/projets/atelier-3d/work/garment-automation-v1/program-patronage-code-validation-v1/python311-final-v4.log",
+      "sha256": "4284075e17c7cac1b0d40a432252cbaaabd8cbb4e15633e59528b3e004be5926"
+    },
+    "python313": {
+      "seconds": 6.735,
+      "log": "G:/projets/atelier-3d/work/garment-automation-v1/program-patronage-code-validation-v1/python313-final-v2.log",
+      "sha256": "4a6ba20eec7397958ea40ec89277ae665a7c99e09619c977a37d9a418dc8d0cd"
+    }
+  },
+  "real_project": {
+    "method": "EXACT_PUBLIC_HANDLER_IN_DEVELOPMENT_PROCESS",
+    "status": "PATRONAGE_DATA_INCOMPLETE",
+    "rows": 8,
+    "body_sections_measured": 8,
+    "source_measurement_paths_present": 0,
+    "source_measurement_paths_required": 8,
+    "input_refs": 20,
+    "native_execution": false,
+    "canonical_database_changed": false,
+    "body_or_patterns_changed": false,
+    "numeric_review": "REQUIRES_CANONICAL_HUMAN_DECISION_IN_EXECUTION_PROJECT",
+    "existing_human_intent": "PRESERVED_DO_NOT_ASK_UNCHANGED_VALUES_AGAIN",
+    "regional_refresh": "DERIVED_INPUTS_REMEASURED_FOR_REVIEW",
+    "code_sha256": "2c89fefb1f29b1a5d8d3c6cc3816aafd177baaa3531bd44d0e4f05de4f13b302",
+    "report": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-reviewed-design-main-v1/execution-project/preparation/patronage-runtime-review-v4/report.json",
+      "sha256": "439b21c6f1d56e9d235ac32c3b4b6fa74fe619bc47fc1bc92f024071d84558f7"
+    },
+    "result": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-patronage-code-validation-v1/real-project-result-v4.json",
+      "sha256": "f789c9bfc07d8be9f080749ffb27ba0c9c7fc78e5e84728a185aa0230edfdf15"
+    },
+    "support_copy": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-patronage-code-validation-v1/design-support-copy-receipt.json",
+      "sha256": "3138ff4b9996acb8dc483c823851fec00452ceba503ba7b972afa639fc54f091"
+    }
+  },
+  "limits": [
+    "Full open-torso grading and anatomical shoulder tailoring lengths remain unimplemented/unqualified",
+    "Template presence does not automatically register a native Codex subagent",
+    "No new pattern adoption, Blender execution, Cloth, fitting or artistic acceptance"
+  ],
+  "integrated_validation": "PENDING",
+  "installation": "CURRENT_0602_HAS_NO_NEW_PATRONAGE_CAPABILITY"
+}

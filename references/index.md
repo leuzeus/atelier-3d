@@ -49,6 +49,7 @@ le précise le [contrat de production](production.md).
 
 ## Fitting et diagnostics
 
+- [Rôle Patronage, calculs de dimensionnement et profil d'agent fourni](patronage-agent.md)
 - [Classification du vêtement et aisance explicite](garment-fit-intent.md)
 - [Variantes de patrons calculées et contraintes conservées](pattern-ease-variants.md)
 - [Composer exactement les pièces d'une variante revue](pattern-variant-composition.md)

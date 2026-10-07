@@ -5,6 +5,12 @@ description: Orchestrer un projet de production 3D local reprenable à partir de
 
 # 3d-project
 
+Pour tout vêtement à produire ou mettre à taille, prendre d'abord le rôle
+[Patronage](../patronage/SKILL.md) du plugin. Utiliser son outil de comparaison
+calculée avant le placement ; vérifier mensurations, aisance et capacité source.
+Si le volume est rejeté en revue, reprendre ce diagnostic avant un nouvel
+déplacement du candidat. Le rôle ne déclenche pas un sous-agent de développement.
+
 Dès l'ajout de tout mannequin destiné à un vêtement, suivre
 [la préparation du corps cible](../../references/garment-body-target.md),
 qu'il provienne du catalogue, d'un import ou de la scène. Reprendre les

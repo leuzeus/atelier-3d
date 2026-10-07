@@ -5,6 +5,11 @@ description: Créer et vérifier un package de vêtement .garmentpkg avec patron
 
 # build-garment-package
 
+Pour dimensionner ou ajuster un vêtement, suivre d'abord le rôle
+[Patronage](../patronage/SKILL.md). Ses comparaisons sont calculées par le
+runtime ; conserver les patrons source et présenter toute variante avant
+adoption. Une triangulation réussie ne valide pas la taille du vêtement.
+
 Suivre [la reprise après un refus](../../references/preparation-recovery.md).
 Distinguer une limite du logiciel d'une erreur de préparation : pour une limite,
 informer l'utilisateur et lui faire choisir entre conserver la technique
