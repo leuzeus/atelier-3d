@@ -2312,3 +2312,15 @@ requête exacte est sauvegardée sous `preparation/source-adoption-request-v1/`.
 [Preuves du lot et de l'installation](automation-source-adoption-installation-evidence-20261007.json).
 La confiance des hooks reste gérée dans l'interface native ; aucun script ne
 l'accorde. Aucun tag GitHub de préversion finale n'est publié par ce lot.
+
+### 2026-10-07 — Runtime connecté 0702 vérifié au tour suivant
+
+Le diagnostic live du nouveau tour répond PASS en 0702, avec l'empreinte de la
+façade MCP exactement identique au stage qualifié. Le nouvel outil d'adoption
+est disponible et les prérequis courants du projet restent admis. La demande de
+redémarrage systématique était trop catégorique : elle décrivait le serveur 0701
+resté attaché au tour d'installation. Le mécanisme exact du changement de runtime
+entre les tours n'est pas établi ; aucun redémarrage supplémentaire n'est requis
+maintenant. Vérifier à l'avenir le runtime et les outils après installation avant
+de demander une action utilisateur. Ce constat ne qualifie pas un hot reload
+universel ni le vêtement. L'adoption réelle reste à exécuter par le nouvel outil.

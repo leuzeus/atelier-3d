@@ -55,7 +55,7 @@
     "hook_trust_scripted": false
   },
   "connected_runtime": {
-    "status": "RESTART_REQUIRED",
+    "status": "PASS_CONNECTED_RUNTIME_CURRENT_TURN",
     "observed_before_install": "0.7.0-rc.2.dev.2026100701",
     "after_install": "OLD_0701_PROCESS_REFERENCES_REPLACED_CACHE",
     "doctor_ref": {
@@ -63,7 +63,17 @@
       "sha256": "0fb3b716f92b8c04e8e63e437ae319f0fffea31e96e9a49cac411ba54b9746b8"
     },
     "doctor_is_error": true,
-    "new_source_adoption_tool": "NOT_RELOADED"
+    "new_source_adoption_tool": "AVAILABLE_VERIFIED",
+    "previous_observation_status": "RESTART_REQUIRED",
+    "current_version": "0.7.0-rc.2.dev.2026100702",
+    "current_root": "C:\\Users\\leuz9\\.codex\\plugins\\cache\\atelier-3d-local\\atelier-3d\\0.7.0-rc.2.dev.2026100702",
+    "current_tools_sha256": "4f50bd2b920b9e1fc57a461242eab46c898e95ef16801396616667ef1f495870",
+    "current_doctor_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-source-adoption-installed-verification-v1\\connected-runtime-current-turn.json",
+      "sha256": "6b6ee22f5d5b0ddffab9130ff3e599238082ee93fa8921752bda4ec55f307259"
+    },
+    "application_restart_between_turns": "NOT_ESTABLISHED",
+    "restart_required_now": false
   },
   "next_native_mcp_request_ref": {
     "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\source-adoption-request-v1\\request.json",
