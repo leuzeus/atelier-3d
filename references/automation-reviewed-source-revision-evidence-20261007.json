@@ -21,24 +21,24 @@
     "import_lineage": []
   },
   "manifest_ref": {
-    "path": "preparation/reviewed-source-revision-v4/revision.json",
-    "sha256": "fdf4345579d054f677767a181d0a5cbba8dc806dcaecfa9601e63e7ddb3d50d1"
+    "path": "preparation/reviewed-source-revision-v5/revision.json",
+    "sha256": "a4fc10dfae40e0181739fce03449d029164d6396b392685bdd81091e59d13c94"
   },
   "outputs": {
     "effective-dossier.json": {
-      "path": "preparation/reviewed-source-revision-v4/effective-dossier.json",
+      "path": "preparation/reviewed-source-revision-v5/effective-dossier.json",
       "sha256": "fd1a0c7fe7c48c3f7fa56457a2a08d41819c2bcf60b59fe99cbfe91472a2c610"
     },
     "effective-packages.json": {
-      "path": "preparation/reviewed-source-revision-v4/effective-packages.json",
+      "path": "preparation/reviewed-source-revision-v5/effective-packages.json",
       "sha256": "f092f61bbb631f30ce61b893db933660cba2d978c2b876712265921c15945527"
     }
   },
   "probe_receipt_ref": {
-    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-source-revision-probe-v4\\receipt.json",
-    "sha256": "bf8cc5731f53ac3f7e2efb332d3aefb78a90bcb490895367a4caf1a09a113cf7"
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-source-revision-probe-v5\\receipt.json",
+    "sha256": "7c9f454d011b567f1fd01b5345b74b920c241aaf14ee78a73de6a80db2cd8779"
   },
-  "elapsed_seconds": 28.45400000002701,
+  "elapsed_seconds": 28.391000000061467,
   "canonical_database_unchanged": true,
   "code_producers": {
     "a3d/reviewed_pattern_revisions.py": "0216e46a44340498a0f88ae3dcfe5ebd725a32ee7c684e285bd5e4d399b716cb",
@@ -54,7 +54,7 @@
     "a3d/garment_guides.py": "17d3b7b91360ecc3f077c3202a4ce2c876093549c5de5ee8cef068ae89cc49f8",
     "a3d/garment_fit.py": "652b1d5cb7ab6d6f76512ec300bd125f992bf5c0ef944477c7a7cd5340471d38",
     "a3d/source_path_intent.py": "689aa7bc8c5c290f44cf4c6b6ec2d6ad0f0a16968ef93f588efad28c7b3122d1",
-    "schemas/pattern-ease-variant.schema.json": "1c3902ed2d10045cebef3387290555d0f8697bb4ad717bc837095bcfa7245872",
+    "schemas/pattern-ease-variant.schema.json": "fb5d5a02f2569439881ec4427a03fad93b49c377bcec021aec73ee483fdd3406",
     "schemas/production-dossier.schema.json": "7328e5d86f3839d139e865229054fea535e26dee82bd6b090d15599b50bc5aba",
     "schemas/construction.schema.json": "84a981a9623364dd0393391301a082ea90a1b333ac44569c987e2a9ab0b9d629",
     "schemas/garment.schema.json": "91ee660de0ea51ab67e38cc0947313ae47c6071a60dd7cb30f19a87dfb2f0ad9",
@@ -815,6 +815,26 @@
     {
       "attempt": 3,
       "status": "REFUSED_UNUSED_ANCESTRAL_OUTPUT_REQUIRED_BY_PREFLIGHT"
+    },
+    {
+      "attempt": 4,
+      "status": "PASS_CHECKOUT_WITH_DIFFERENT_SCHEMA_LINE_ENDINGS"
     }
-  ]
+  ],
+  "software_validation": {
+    "scope": "EXPORTED_SOURCE_SOFTWARE_ONLY",
+    "source_commit": "8e40c2a2578603b53235247a66ad2fa0ed5ad6f4",
+    "tests": 1915,
+    "skipped": 0,
+    "receipt_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-source-revision-full-validation-v1\\validation.json",
+      "sha256": "e9ba2761ccc4edc55c70609b26f817f25133757528fd53d7a333ee500c91a21c"
+    },
+    "git_archive_sha256": "7c108da602c33ce1e28636bceead79a341ab71f1f31738fb6b236e58375298fd",
+    "probe_code_matches_export": true,
+    "contracts_receipt_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-source-revision-full-validation-v1\\contracts-receipt.json",
+      "sha256": "11c3c22c215840de359fc336577d6fb27a2b1e0da0a140f1d65487661c0c46f2"
+    }
+  }
 }

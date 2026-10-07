@@ -2263,6 +2263,10 @@ Cette réussite qualifie les données préparées, sans adoption de production.
 
 La qualification complète du candidat logiciel
 `8e40c2a2578603b53235247a66ad2fa0ed5ad6f4` passe sur export Git immuable :
-1 915 tests, aucun SKIP, 290,835 s et 14 contrats. Les empreintes des producteurs
-du probe réel correspondent exactement à celles de cet export. Les modifications
-suivantes sont documentaires. Ces preuves ne qualifient ni Blender ni le fitting.
+1 915 tests, aucun SKIP, 290,835 s et 14 contrats. La comparaison des empreintes
+a relevé une différence de fins de ligne du schéma de gradation dans le checkout
+Windows. Le replay V5 depuis les fichiers exacts de cet export passe en 28,391 s ;
+les empreintes des producteurs sont désormais toutes identiques à celles du
+candidat qualifié. Il retrouve le même source_epoch et le même périmètre de
+cinq pièces, en conservant SQLite. Les versions précédentes restent historiques.
+Ces preuves ne qualifient ni Blender ni le fitting.
