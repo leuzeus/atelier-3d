@@ -51,6 +51,21 @@ d'homologie avant de l'employer comme mesure de tailleur. Sa longueur 3D ne
 devient pas un tour horizontal ; une décision d'aisance visant un autre trajet
 n'est pas transférée. Le service refuse les interfaces ouvertes, branchées ou
 multiples et conserve le corps natif accepté.
+Lorsque l'extension de développement `opening_exploration` est disponible,
+préparer sa planche d'arcs omis/restants pour choisir la couverture d'un col
+ouvert. Les paires sont calculées sur le vrai cycle source ; leur sélection
+reste une décision séparée de l'acceptation du repère du cou. Ne pas appliquer
+l'ancienne aisance à un trajet nouveau. Vérifier d'abord la fermeture matérielle
+assemblée : des extrémités UV distinctes peuvent être reliées transitivement
+par les mêmes sommets et coutures permanentes d'une autre pièce. Le statut
+`CLOSED_PERMANENT_ENDPOINT_CYCLE` décrit cette topologie source ; il ne change
+ni `path_kind`, ni l'engagement d'une fermeture, ni l'admission de fitting.
+Ne pas demander de choisir une ouverture pour une ligne déjà fermée ainsi.
+Pour un devant ouvert comportant une
+pièce centrale déclarée, le noyau `open_front_reference` peut préparer une
+référence sourcée de visibilité ; le caller authentifie ses entrées et le
+rapport garde marges, recouvrement et fitting non admis. Vérifier la version
+chargée : ces extensions de branche ne sont pas encore distribuées dans 0701.
 
 Si un manque de capacité source est mesuré, préparer une variante séparée avec
 `studio_prepare_pattern_ease_variant` dans son domaine déclaré. Présenter les

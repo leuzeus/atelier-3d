@@ -8,6 +8,46 @@ La façade `prepare_project_pattern_ease_variant(project, compiled_dossier_path,
 |---|---|---|
 | `AFFINE_SOURCE_UV` | Facteurs U et V bornés, autour d’un sommet source explicitement choisi pour chaque pièce. | Des facteurs de largeur différents sur manche et manchette peuvent rendre leur raccord permanent incompatible. Le meilleur candidat et ses résidus sont conservés, avec refus de packaging. |
 | `WIDTH_BY_V_STATIONS` | Facteur U interpolé entre stations V déclarées, autour du centre des bornes U source ; V et le fil longitudinal sont conservés. | Sans option de densification, chaque station doit correspondre à une hauteur présente dans les sommets source. Une loi théorique sans sommet exporté ne crée aucune largeur locale. |
+| `WEIGHTED_SOURCE_UV` (branche de développement) | Déplacement affine pondéré par sommet source, avec bords protégés explicitement déclarés à poids nul. | Les poids, ancres et bornes sont des données de recette. Les faces triangulaires source définissent le transport des annotations ; aucun sommet proche ne remplace une correspondance exacte. Une famille locale peut rester incapable d'atteindre la cible. |
+
+Le domaine de développement `ASSEMBLED_SOURCE_PATH_TARGET_ONLY` accepte une
+cible absolue d'un cycle source fermé par des ponts permanents, avec une
+référence corporelle authentifiée et une aisance totale explicitement revue.
+Il n'invente ni décomposition mouvement/style/sous-couches ni tour corporel
+horizontal. Le trajet UV conserve `open_material_span` ; la preuve de cycle
+assemblé est recalculée séparément, avant et après gradation. Le consommateur
+historique de fitting fermé et ses critères ne changent pas.
+
+`a3d.boundary_grading_policy` prépare les familles locales depuis une ligne
+source entièrement attachée et ses vrais partenaires. Les protections sont
+explicites pour chaque pièce ; les points hors de la zone d'encolure gardent
+leur poids nul. La bande accumule l'expansion sur les intervalles dont les
+partenaires peuvent bouger. Cette première méthode couvre une ligne constante
+en V, avec un cycle permanent et une couverture complète des attaches. Une
+ligne ouverte, une attache détachable, une rangée incomplète ou une autre
+paramétrisation demande une méthode dédiée. Ce domaine est commun aux patrons
+qui présentent cette construction ; aucun identifiant de vêtement ou placement
+3D propre au projet n'est codé dans le noyau.
+
+Le profil `SOURCE_ARC_QUADRATIC_TAPER` peut diminuer progressivement les poids
+le long du vrai trajet d'encolure d'un partenaire (`4t(1-t)`), avec les bords
+protégés toujours à zéro. Les trajets ouverts uniques sont reconstruits depuis
+leurs indices source ; les branches, boucles ou parties déconnectées sont
+refusées. Une pièce entièrement protégée reçoit des paramètres fixes ; ses
+intervalles peuvent être transportés rigidement dans la bande sans allonger
+leurs coutures. La barrière géométrique du solveur conserve un meilleur
+candidat aux contours simples et aux faces non inversées ; un essai refusé
+ne le remplace pas. Les différences finies et la recherche de pas restent
+bornées. Le contrôle terminal de temps inclut le diff et les hashes avant
+de déclarer une proposition admissible pour revue.
+
+Les décisions numériques de ce domaine passent par
+`a3d.source_path_intent.review_source_path_intent`, qui authentifie le choix
+humain canonique, les fichiers exacts, le corps et le cycle matériel. Les
+archives proposées restent séparées et exigent une revue des patrons avant
+adoption. La visibilité du devant central et son retrait entre couches restent
+des contrôles distincts du dimensionnement de l'encolure. Ces extensions ne
+sont pas encore chargées dans l'installation 0701.
 
 L’option `densification` utilise `SOURCE_BOUNDARY_V_STATIONS` et la politique de faces `SOURCE_TRIANGLE_BOUNDARY_SUBDIVISION`. Elle insère des points aux niveaux V explicitement déclarés sur les deux bords existants d’une même couture permanente de manche. Le nombre de points par pièce et la longueur minimale des nouveaux segments sont bornés. Les points sont interpolés sur les segments source immuables ; leur bord, fraction d’arc, paire de sommets source, fraction de segment et nouvel indice sont enregistrés. Les anciens sommets gardent une correspondance exacte. Cette première option exige un contour de coupe égal au contour cousu et une marge nulle ; d’autres marges demandent une politique de coupe explicite.
 

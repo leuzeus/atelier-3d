@@ -4,20 +4,30 @@ Plan approuvé par l'utilisateur le 3 octobre 2026. Base : branche
 `codex/garment-automation-v1`, commit `8dfeac77c3b1bc3b11a4dbe6401eb2b1bb0a54ea`,
 version 0.7.0-rc.2. Le programme est suivi ici pendant l'implémentation.
 
-**État courant du 7 octobre — mesures source par code :** les correctifs
-génériques du replay synchronisé et des évaluations de guides produisent sept
-propositions sur huit depuis les vrais fichiers du projet. Les trajets de
-poitrine, taille et hanches terminent désormais sous les budgets inchangés.
-Le col conserve sa donnée manquante. L'outil public de revue corporelle mesure
-les frontières déclarées dans l'adapter du corps natif accepté et produit
-leurs vues sans modifier le mannequin. Le candidat intégré `7d8a04f` passe
-1 823 tests, aucun SKIP, en 225,347 s et les 14 contrats sur export immuable.
-Le build local distinct 0701 est installé : 667 fichiers source et 668 fichiers
-installés vérifiés. Le processus connecté pointe encore vers le cache 0603
-remplacé ; redémarrage et diagnostic de 0701 requis avant reprise du MCP.
-Compilation, propositions, homologie, taille et fitting gardent
-des états distincts. [Preuves actuelles](automation-patronage-source-progress-20261007.json).
+**État courant du 7 octobre — intentions de patronage enregistrées :** le
+redémarrage est effectué et le diagnostic connecté confirme 0701, ses
+52 schémas et le pipeline admis. Le repère source de base du cou, mesuré
+à 51,2154 cm, est accepté. L'utilisateur retient 4 cm d'aisance sur ce trajet,
+soit une cible de préparation à 55,2154 cm, et toute la largeur du devant
+intérieur visible. Ces décisions sont enregistrées par le MCP avec les
+fichiers examinés ; elles n'adoptent pas de nouveaux patrons.
+
+La ligne basse du col source mesure 48,8344 cm et ses extrémités rejoignent
+le même sommet du devant intérieur par deux coutures permanentes. Elle est
+fermée dans la topologie assemblée : aucune ouverture supplémentaire n'est
+à choisir pour cette ligne. L'augmentation proposée est de 6,3810 cm, à
+traiter avec ses six partenaires de couture. Les extensions de branche
+mesurent aussi la référence centrale aux trois sections, avec vues vérifiées.
+Elles restent distinctes de l'installation 0701. Les tests ciblés passent ;
+la qualification complète historique de `7d8a04f` (1 823 tests et 14 contrats)
+ne qualifie pas ces nouveaux commits. Une variante séparée de l'encolure est
+maintenant produite par code : col mesuré exactement à 55,2154 cm, cinq pièces
+modifiées, coutures/crans compatibles, faces et bords protégés conservés.
+Sa revue humaine reste à faire. Aucun placement, Cloth, fitting ou acceptation
+artistique n'est exécuté par ce lot.
+[Mesures, décisions et preuves actuelles](automation-patronage-sizing-progress-20261007.json).
 [Qualification et installation 0701](automation-patronage-source-installation-evidence-20261007.json).
+[Variante d'encolure prête pour revue](automation-collar-pattern-variant-evidence-20261007.json).
 
 **Installation précédente vérifiée — patronage 0603 :** le commit de code `e0655965`
 passe 1 775 tests, aucun SKIP, en 236,815 s et 14 contrats sur export immuable.

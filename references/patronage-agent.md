@@ -84,6 +84,42 @@ le statut `SOURCE_REGION_BOUNDARY_LENGTH` et `tailoring_homology: REVIEW_REQUIRE
 elle ne remplace pas automatiquement un tour horizontal ou un trajet de col.
 Les projections montrent les bords réels mais ne qualifient pas leur occlusion.
 
+Dans la branche de développement, `opening_exploration` peut compléter cette
+spécification avec `path_id`, `reference_plane: BODY_SAGITTAL`,
+`front_anchor: UNIQUE_FRONTMOST_INTERSECTION`, `max_pairs`, `max_seconds` et
+`max_output_bytes`. Le code intersecte la vraie boucle avec le plan sagittal
+du cadre corporel, puis propose des paires de sommets dans son ordre
+topologique. Il mesure séparément l'arc frontal omis et l'arc restant et
+génère `opening-options.svg`. Une ambiguïté est refusée ; aucun point proche
+n'est substitué. Le calcul et le SVG partagent un budget cumulatif et leurs
+octets combinés restent bornés. L'acceptation du repère corporel n'adopte pas
+ces ouvertures : aucune paire, aisance ou correspondance au patron n'est choisie.
+Cette extension n'est pas encore chargée par l'installation 0701.
+
+Avant de proposer une ouverture, vérifier la topologie assemblée de la ligne
+source. Le diagnostic `CLOSED_PERMANENT_ENDPOINT_CYCLE` exige des indices de
+sommets exacts et des ponts de coutures permanentes ; il ne soude pas par
+proximité. Des extrémités séparées dans un patron à plat peuvent rejoindre
+le même sommet d'une autre pièce. Dans ce cas, l'état d'une fermeture
+fonctionnelle ne prouve pas que la ligne d'encolure est ouverte. La longueur
+UV reste un trajet matière ouvert ; la preuve topologique seule ne crée
+aucune homologie anatomique, capacité d'enfilage ou admission de fitting.
+
+Le noyau de développement `a3d.open_front_reference` prépare une autre revue
+depuis la pièce centrale explicitement déclarée `inner_front`, côté `center`.
+Il mesure ses courbes matière et ses extrémités aux trois sections corporelles
+déclarées, ses attaches et son retrait dans le cadre du corps. Il distingue
+la matière source, sa projection dans le guide et le retrait physique entre
+couches, encore non mesuré. La visibilité et les marges sont des intentions
+humaines distinctes, à enregistrer sur les fichiers examinés. Le choix
+« toute la largeur visible » conserve cette règle pour une future variante ;
+il ne fige pas sa largeur aux valeurs du patron initial.
+Le caller doit authentifier les packages, le corps, les guides et le replay
+du maillage natif ; le noyau pur ne crée pas cette provenance. Cette méthode
+concerne les vêtements ouverts avec une référence centrale déclarée. Une
+référence absente ou ambiguë demande des données explicites ; elle ne peut
+servir de règle universelle de dimensionnement pour un vêtement fermé.
+
 La relecture des UV source d'un maillage natif synchronisé réutilise maintenant
 son sampler de bord et sa gradation, avec le profil complet, son binding et
 son journal de travail authentifiés. Le transport binary32 est reproduit pour
