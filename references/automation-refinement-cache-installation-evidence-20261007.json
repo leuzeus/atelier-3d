@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-07",
+  "scope": "REFINEMENT_CACHE_SOFTWARE_QUALIFICATION_AND_DEVELOPMENT_INSTALLATION",
+  "code_commit": "0adde7c80c0ad2f92830cfe5293e97268d241700",
+  "software": {
+    "status": "PASS",
+    "tests": 1934,
+    "skipped": 0,
+    "test_seconds": 412.849,
+    "contracts": 14,
+    "source_unchanged": true,
+    "native_execution": false,
+    "validation_ref": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-refinement-cache-full-validation-v2/validation.json",
+      "sha256": "1f6e9711fb3346e2f75dc2c9158a4b13027ede16ebc713a809aaf213fe6bd383"
+    },
+    "sandbox_attempt": {
+      "status": "FAIL",
+      "source_changed": false,
+      "retained": "G:/projets/atelier-3d/work/garment-automation-v1/program-refinement-cache-full-validation-v1",
+      "retry_on_identical_commit": true
+    }
+  },
+  "installation": {
+    "status": "PASS_EXACT_NATIVE_INSTALLED_COPY",
+    "version": "0.7.0-rc.2.dev.2026100703",
+    "files": 694,
+    "method": "NATIVE_CODEX_PLUGIN_ADD",
+    "preparation_ref": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-refinement-cache-local-build-v1/installation-preparation.json",
+      "sha256": "73ca58b40eb1c63baafa4ef6fc949aaaaf5f5af5d8341a81b23ae53ae6ea0695"
+    },
+    "verification_ref": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-refinement-cache-local-build-v1/installation-verification.json",
+      "sha256": "2e524d3f03918897580e2207d3153c5a64330860c2e01c1010c4e25318904198"
+    },
+    "previous_stages_on_g_preserved": true,
+    "hook_trust_scripted": false
+  },
+  "connected_runtime": {
+    "status": "STALE_0702_SCHEMA_PATH_MISSING",
+    "doctor_response": {
+      "content": [
+        {
+          "type": "text",
+          "text": "[Errno 2] No such file or directory: 'C:\\\\Users\\\\leuz9\\\\.codex\\\\plugins\\\\cache\\\\atelier-3d-local\\\\atelier-3d\\\\0.7.0-rc.2.dev.2026100702\\\\schemas\\\\config.schema.json'"
+        }
+      ],
+      "isError": true
+    },
+    "verification_after_restart": "REQUIRED"
+  },
+  "native_restore": {
+    "status": "PASS",
+    "checkpoint": {
+      "path": ".a3d/checkpoints/pre-3bc73b266545440888909d041611bf16.blend",
+      "sha256": "3e5f17eac18534ea5a8245d0b5848ca0fa093ff2523d61b00792bd4e41730240"
+    },
+    "working_ref": {
+      "path": ".a3d/blender/working-recovered-b249a97f40244928946658a48dbaf457.blend",
+      "sha256": "cad6a2f2b9297b0f48c6123b9f669f99efb97652c58e8035abdbcd93df104bc1"
+    },
+    "qualification": "NOT_GRANTED"
+  },
+  "next_run": {
+    "specification_path": "preparation/coat-recovery-cached-metrics-v1/run.json",
+    "sha256": "1cc7f95d14c712df0a04ad6cf2bd3aecdc6c4cb7444b6832acf24fcdb32874b9",
+    "contract": "PASS",
+    "registered": false,
+    "executed": false,
+    "required": "Verify 0703 connected, create fresh run, prepare exact operation, obtain its native execution authorization"
+  },
+  "garment": {
+    "stage": "RECONSTRUCTING",
+    "current_scene": "ACCEPTED_BODY_ONLY",
+    "textiles_present": 0,
+    "textiles_expected": 15,
+    "rigid_buckle": "ABSENT",
+    "new_cutting_review": "NOT_REQUIRED_UNCHANGED_SOURCES",
+    "visual_review": "PENDING_NO_CURRENT_GARMENT_CANDIDATE",
+    "simulation": "NOT_EXECUTED",
+    "fitting": "NOT_QUALIFIED",
+    "performance_success_in_native_budget": "NOT_ESTABLISHED",
+    "final_release": "NOT_PUBLISHED"
+  }
+}

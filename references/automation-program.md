@@ -2465,3 +2465,34 @@ pas de nouvelle décision de coupe ; les vues du futur candidat resteront à
 présenter à l'utilisateur.
 
 [Résultat natif et portée de l'optimisation](automation-coat-budget-performance-evidence-20261007.json).
+
+### 2026-10-07 — Cache qualifié, build 0703 installé, rechargement requis
+
+La restauration du dernier essai est explicitement autorisée puis exécutée
+sous 0702. Le checkpoint `pre-3bc73b266545440888909d041611bf16` réouvre le
+mannequin accepté seul dans `working-recovered-b249a97f40244928946658a48dbaf457`.
+Les sources, le corps et le refus restent conservés ; aucune qualification
+textile n'est accordée. La spécification de run
+`preparation/coat-recovery-cached-metrics-v1/run.json` passe son contrat et reste
+non enregistrée : son identité native devra venir du runtime corrigé chargé.
+
+Le commit `0adde7c80c0ad2f92830cfe5293e97268d241700` est exporté immuablement.
+La première qualification dans le bac à sable échoue sur les accès Windows
+aux dossiers temporaires ; ses logs sont conservés. Le rejeu natif du même
+commit, sans changement de code, passe 1 934 tests en 412,849 s, zéro SKIP et
+14 contrats. Le stage local 0703 est construit depuis cet export exact et
+installé par `codex plugin add` ; les 694 fichiers installés correspondent
+au stage authentifié. Les stages antérieurs sur G: sont conservés, sans
+automatiser la confiance des hooks et sans publier de préversion finale.
+
+Le MCP déjà connecté conserve le chemin 0702 et son appel doctor signale
+l'absence de `schemas/config.schema.json` après remplacement du cache par
+l'installateur natif. L'installation sur disque ne vaut donc pas runtime
+rechargé. La prochaine frontière est le redémarrage de l'application via la
+tâche Windows validée, après autorisation, puis la vérification MCP 0703 et
+la préparation d'un nouveau run. Son opération Blender gardera une autorisation
+exacte distincte. Le succès du maillage dans 90 s, le placement des épaules,
+la construction complète, Cloth, fitting, mouvement et revue artistique
+restent non qualifiés.
+
+[Qualification exacte et installation locale](automation-refinement-cache-installation-evidence-20261007.json).
