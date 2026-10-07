@@ -2353,3 +2353,33 @@ La revue visuelle du futur candidat, la couverture du torse et les contrôles
 des épaules restent à effectuer.
 
 [Preuves actuelles](automation-source-adoption-live-evidence-20261007.json).
+
+### 2026-10-07 — Raccordement natif V3 terminé et reçu vérifié après timeout
+
+L'utilisateur autorise explicitement le code 0702 préparé de
+`bind_component_preparations`. L'appel MCP perd sa réponse au délai de transport,
+mais Blender termine l'opération en 84,364 s selon les événements SQLite 108 et
+109. Aucune nouvelle exécution n'est lancée. Un vérificateur générique en lecture
+seule authentifie l'unique démarrage, sa fin, le checkpoint exact et 27 fichiers
+référencés ; aucun état canonique n'est modifié pour lever l'incertitude.
+
+`preparation/native-source-bindings-v3/binding.json` contient les recettes,
+plans, mappings et runs de la ceinture, du manteau et de l'ensemble capuche /
+empiècements. Le contrôle natif du corps porte sur la géométrie exacte acceptée.
+Les sondes de maillage de la ceinture et du manteau n'ont pas de rejet ; celle
+de capuche / empiècements conserve un défaut de triangles fins, angle minimal
+1,794312°. Ce défaut est à localiser et corriger sur le dérivé sans abaisser
+les seuils ni modifier les patrons approuvés. Les fichiers de préparation
+complets ne qualifient pas la géométrie de production.
+
+Le nouveau run manteau `run.cece5c47060e4336b10132c0e921732c` est créé sur
+l'epoch actuelle. `studio_next_run_step` prépare la tentative
+`attempt.a574c5e5ea1d4f71af5f9980d82f0f08` de `prepare_pattern_assembly`
+avec les recettes V3, les sources de col et de manches approuvées, les corrections
+bornées de métrique et de placement et le seuil de maillage de 15° conservé.
+Code et arguments sont sauvegardés dans `preparation/coat-candidate-request-v1/`.
+La demande d'autorisation distincte est présentée ; cette étape n'est pas
+exécutée. Aucun candidat textile n'est encore créé dans la scène ; placement,
+Cloth, drapé, fitting, mouvement et revue visuelle restent non qualifiés.
+
+[Preuves du raccordement actuel](automation-native-binding-v3-evidence-20261007.json).
