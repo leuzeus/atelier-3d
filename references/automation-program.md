@@ -23,7 +23,9 @@ la qualification complète historique de `7d8a04f` (1 823 tests et 14 contrats)
 ne qualifie pas ces nouveaux commits. Une variante séparée de l'encolure est
 maintenant produite par code : col mesuré exactement à 55,2154 cm, cinq pièces
 modifiées, coutures/crans compatibles, faces et bords protégés conservés.
-Sa revue humaine reste à faire. Aucun placement, Cloth, fitting ou acceptation
+L'utilisateur accepte ces cinq patrons le 7 octobre (« Je valide »), décision
+canonique `1d9f7648-a6cc-420b-a498-25d8f9a1ec51`, liée à la proposition,
+planche, dossier et archive exacts. Aucun placement, Cloth, fitting ou acceptation
 artistique n'est exécuté par ce lot.
 [Mesures, décisions et preuves actuelles](automation-patronage-sizing-progress-20261007.json).
 [Qualification et installation 0701](automation-patronage-source-installation-evidence-20261007.json).
@@ -2224,3 +2226,37 @@ le placement admis, les 15 textiles et la boucle, l'enfilage, la matière,
 la physique, le drapé, le fitting, les clips, la revue artistique et la
 préversion finale restent ouverts. Aucun nouveau patron à approuver n'est
 produit par ce lot diagnostique.
+
+### 2026-10-07 — Revue des cinq patrons du col enregistrée
+
+La réponse directe « Je valide » accepte les cinq pièces de la variante
+`source-row-grading-v3` montrées sur la planche de détail : col, deux devants
+et deux dos. La décision canonique `1d9f7648-a6cc-420b-a498-25d8f9a1ec51`
+lie la proposition, la planche PNG, le package manteau et le dossier candidat
+exacts. Elle ne concerne ni le fitting ni une autorisation Blender.
+La variante de manches précédemment approuvée et le devant intérieur restent
+conservés. Cette revue des cinq patrons n'est plus en attente.
+
+Le contrôle de reprise a révélé une limite du parcours V1 : une composition
+calculée ne peut pas servir directement de nouveau parent d'adoption, et le
+binding des packages ne permet pas de remplacement en `RECONSTRUCTING`.
+Les gardes historiques sont conservées. Une nouvelle interface générique
+prépare les données depuis le parent authentifié et la nouvelle revue directe,
+avec replay des paramètres, diff exact et contrôles de sources. Voir
+[la préparation des révisions approuvées](reviewed-pattern-revisions.md).
+
+Les sorties restent des données de préparation : l'adoption de production,
+l'invalidation des guides dépendants puis la couverture du torse et le volume
+des épaules restent à terminer. Aucun placement, Cloth, drapé, fitting ou
+nouvelle installation ne découle de cette décision. Le runtime connecté 0701
+reste distinct de ces extensions de branche. La qualification du vêtement
+complet et la préversion finale restent ouvertes.
+
+Le probe réel final passe en 28,454 s sur le code figé : seules les cinq pièces
+de la revue changent, les manches sont conservées et les octets SQLite restent
+identiques. Le préflight traite les archives avant les validateurs historiques
+et distingue une ancienne proposition opaque de ses sorties effectivement
+consommées. Les refus précédents restent conservés. La revue indépendante ne
+signale plus de P0/P1/P2 sur ce snapshot. La preuve et les sorties exactes sont
+dans [le reçu de préparation](automation-reviewed-source-revision-evidence-20261007.json).
+Cette réussite qualifie les données préparées, sans adoption de production.

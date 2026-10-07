@@ -70,6 +70,27 @@ class ProtocolTests(unittest.TestCase):
         with self.assertRaises(StudioError):
             call('studio_prepare_body_path_review',dict(arguments, implicit_anatomy=True))
 
+    def test_reviewed_pattern_revision_public_arguments_and_scope(self):
+        from unittest.mock import patch
+        descriptor = TOOLS['studio_prepare_reviewed_pattern_revision']['descriptor']
+        self.assertFalse(descriptor['annotations']['readOnlyHint'])
+        self.assertFalse(descriptor['annotations']['destructiveHint'])
+        roles = dict(proposal='proposal-key', review='review-key',
+                     candidate_dossier='dossier-key', variant_package='package-key')
+        arguments = dict(project_root='selected-project', gate_name='reviewed-variant',
+                         roles=roles, output_dir='preparation/fresh')
+        with patch('a3d.tools.Project', return_value='project') as project, \
+                patch('a3d.reviewed_pattern_revisions.prepare_project_reviewed_pattern_revision',
+                      return_value={'status': 'DESIGN_SOURCE_REVISION_PREPARED'}) as prepare:
+            self.assertEqual(call('studio_prepare_reviewed_pattern_revision', arguments),
+                             {'status': 'DESIGN_SOURCE_REVISION_PREPARED'})
+            project.assert_called_once_with('selected-project')
+            prepare.assert_called_once_with('project', 'reviewed-variant', roles, 'preparation/fresh')
+        with self.assertRaises(StudioError):
+            call('studio_prepare_reviewed_pattern_revision', dict(arguments, adopt=True))
+        with self.assertRaises(StudioError):
+            call('studio_prepare_reviewed_pattern_revision', dict(arguments, roles=dict(roles, implicit=True)))
+
     def test_preinitialize_tools_refused(self):
         s=Server(); r=s.handle({"jsonrpc":"2.0","id":1,"method":"tools/list"})
         self.assertIn("error",r)

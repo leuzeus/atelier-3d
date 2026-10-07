@@ -140,6 +140,17 @@ def prepare_pattern_ease_variant(project_root, compiled_dossier_path, design_dec
         design_decision_path, policy_path, output_dir)
 
 
+@tool('studio_prepare_reviewed_pattern_revision', 'Prepare a source revision from the exact parent and an actual scoped human pattern review. Replay declared geometry and preserve previously approved pieces. Write fresh modeling inputs and a deterministic source epoch only; do not adopt production bindings, alter the scene, transfer physical qualification or authorize Blender.',
+      {**P, 'gate_name': S, 'roles': {'type': 'object', 'properties': {
+          'proposal': S, 'review': S, 'candidate_dossier': S, 'variant_package': S},
+          'required': ['proposal', 'review', 'candidate_dossier', 'variant_package'],
+          'additionalProperties': False}, 'output_dir': S},
+      ('project_root', 'gate_name', 'roles', 'output_dir'), False)
+def prepare_reviewed_pattern_revision(project_root, gate_name, roles, output_dir):
+    from .reviewed_pattern_revisions import prepare_project_reviewed_pattern_revision
+    return prepare_project_reviewed_pattern_revision(Project(project_root), gate_name, roles, output_dir)
+
+
 @tool('studio_prepare_patronage_review', 'Compute source-bound tailoring comparisons and write a fresh review sheet from exact measured body sections, seam-line material paths and optionally canonically reviewed numeric ease. Reuses existing authenticated services. Open spans never become closed girths; missing measurements stay incomplete. No pattern/body mutation, native execution, fitting acceptance or new gate.',
       {**P, 'dossier_path': S, 'specification_path': S, 'fit_profile_path': S, 'output_dir': S, 'design_decision_path': S,
        'refresh_body_regions': {'type': 'boolean'}},

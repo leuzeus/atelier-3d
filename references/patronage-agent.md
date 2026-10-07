@@ -133,7 +133,8 @@ fitting et propositions ; une compilation complète ne qualifie pas la taille.
 
 Voir [le corps cible](garment-body-target.md), [l'aisance](garment-fit-intent.md),
 [les mesures source](limb-source-measurements.md) et
-[les variantes calculées](pattern-ease-variants.md).
+[les variantes calculées](pattern-ease-variants.md) et
+[la préparation des révisions approuvées](reviewed-pattern-revisions.md).
 
 ## Profil de sous-agent Codex fourni
 
