@@ -2294,3 +2294,21 @@ la construction et la qualification du vêtement restent ouverts. La revue des
 cinq patrons du col est conservée et ne doit pas être redemandée. Aucune nouvelle
 revue de découpe n'est actuellement en attente pour eux ; l'examen du futur
 volume et la revue artistique restent des décisions humaines à préparer.
+
+Le candidat `c1f1386e4533459f6f6a090a37c98384595136ee` passe la qualification
+complète sur export immuable : 1 932 tests, aucun SKIP, 374,956 s et 14 contrats.
+La préparation réelle V6 depuis cet export passe en 28,390 s, conserve SQLite
+et retrouve l'epoch de la variante approuvée. Ses producteurs correspondent à
+l'export qualifié et au stage installé.
+
+Le gestionnaire natif Codex 0.162.0-alpha.2 installe le build local distinct
+`0.7.0-rc.2.dev.2026100702` ; les 688 fichiers de la copie installée sont vérifiés
+contre le stage, et les anciens stages G: sont conservés. Le serveur de cette
+conversation utilise encore le cache 0701 remplacé et refuse le diagnostic sur
+son schéma absent. Un redémarrage de Codex est requis pour vérifier le runtime
+0702, son nouvel outil et exécuter l'adoption préparée par le MCP. L'adoption
+réelle n'est pas exécutée et la scène Blender reste conservée. La prochaine
+requête exacte est sauvegardée sous `preparation/source-adoption-request-v1/`.
+[Preuves du lot et de l'installation](automation-source-adoption-installation-evidence-20261007.json).
+La confiance des hooks reste gérée dans l'interface native ; aucun script ne
+l'accorde. Aucun tag GitHub de préversion finale n'est publié par ce lot.
