@@ -4,17 +4,39 @@ Plan approuvé par l'utilisateur le 3 octobre 2026. Base : branche
 `codex/garment-automation-v1`, commit `8dfeac77c3b1bc3b11a4dbe6401eb2b1bb0a54ea`,
 version 0.7.0-rc.2. Le programme est suivi ici pendant l'implémentation.
 
-**État courant du 6 octobre — patronage :** le commit de code `e0655965`
+**État courant du 7 octobre — mesures source par code :** les correctifs
+génériques du replay synchronisé et des évaluations de guides produisent sept
+propositions sur huit depuis les vrais fichiers du projet. Les trajets de
+poitrine, taille et hanches terminent désormais sous les budgets inchangés.
+Le col conserve sa donnée manquante. L'outil public de revue corporelle mesure
+les frontières déclarées dans l'adapter du corps natif accepté et produit
+leurs vues sans modifier le mannequin. Ces calculs de développement ne sont
+pas encore ceux du MCP connecté ; le build 0603 ci-dessous reste son identité
+vérifiée. Compilation, propositions, homologie, taille et fitting gardent
+des états distincts. [Preuves actuelles](automation-patronage-source-progress-20261007.json).
+
+**Dernière installation vérifiée — patronage 0603 :** le commit de code `e0655965`
 passe 1 775 tests, aucun SKIP, en 236,815 s et 14 contrats sur export immuable.
 Le build local distinct `0.7.0-rc.2.dev.2026100603` est installé par le
 gestionnaire natif : 657 fichiers source et 658 fichiers installés vérifiés.
 Le skill Patronage et son outil de comparaison sont distribués ; le profil
 Codex fourni reste un template, sans enregistrement automatique dans l'hôte.
-Le serveur du chat utilise encore le processus 0602 et ne peut plus lire son
-cache remplacé : redémarrage et vérification de 0603 requis. Le diagnostic
-réel V5 contient huit mesures corporelles et zéro des huit trajets source
-requis ; aucune nouvelle coupe ni exécution native n'est produite.
+Après redémarrage, le diagnostic du serveur connecté confirme 0603 et ses
+52 schémas ; le pipeline est admis. Le rapport de patronage V8 est exécuté
+par le MCP connecté et contient huit mesures corporelles, sans trajets
+source adoptés. L'accord numérique d'origine est réconcilié avec ses cinq
+fichiers exacts, sans changer les chiffres ni l'appliquer implicitement au
+dossier composé actuel. Son périmètre reste à réconcilier. Aucune nouvelle
+coupe ni exécution native n'est produite.
 [Qualification et installation du patronage](automation-patronage-installation-evidence-20261006.json).
+
+Le compilateur connecté 0603 reconstruit les guides et authentifie le dernier
+maillage archivé du candidat refusé. Il propose deux trajets de manchette
+à 25 cm, en attente de revue. Les limitations du replay synchronisé décrivent
+cette installation ; les correctifs du code source et leurs résultats sont
+suivis dans la section du 7 octobre ci-dessous. Aucune admission de placement
+n'est reprise du maillage archivé.
+[Preuve de reprise 0603](automation-patronage-runtime-evidence-20261006.json).
 
 **Observation native conservée du 6 octobre :** 0601 a réellement été chargé puis la
 préparation exacte autorisée a été exécutée une seule fois. Le maillage des
@@ -2119,3 +2141,57 @@ et boucle, enfilage, matière, physique, drapé, fitting, clips complets, finiti
 revue artistique et préversion finale restent ouverts. Les preuves historiques
 et portables gardent leur portée et ne sont pas transférées à ces gates.
 [Preuves du candidat, de la restauration, du code et de l'installation](automation-anchor-performance-evidence-20261006.json).
+
+### 7 octobre — replay, mesures matière et frontière corporelle
+
+Le code réutilise le sampler et le profil complet du writer synchronisé,
+authentifie son binding et son journal, reproduit la gradation binary32 puis
+retrouve les doubles source exacts des 2 324 ancres de bord des dix pièces.
+Le replay local conserve ses budgets propres et n'admet pas le placement
+historique refusé. Les 51 tests ciblés passent sous Python 3.11 et 3.13.
+[Preuve du replay](automation-source-uv-replay-evidence-20261006.json).
+
+La cage linéaire prépare ses constantes une fois, ignore seulement les poids
+déjà refusés selon les seuils historiques et prépare le contour immuable des
+patrons. Aucun cache inverse, index ou dépendance n'est ajouté. Les oracles
+vérifient l'ordre et l'arithmétique conservés. Le probe back-left/poitrine
+retourne 26,050388776205 cm en 14,509 s sous son budget inchangé de 15 s.
+Le compilateur public complet de développement termine en 188,893 s :
+
+| Trajet matière proposé | Longueur source |
+| --- | ---: |
+| Poitrine | 88,20 cm |
+| Taille | 83,12 cm |
+| Hanches | 103,59 cm |
+| Haut de bras gauche / droit | 45,20 / 45,24 cm |
+| Poignet gauche / droit | 25,00 / 25,00 cm |
+
+Les trois trajets du torse sont des couvertures du devant ouvert, pas des
+tours fermés. Leur homologie reste à revoir avant adoption et aucune somme
+ne fournit une aisance ou un déficit accepté. Le col exige encore un trajet
+corporel mesuré et ses raccords complets. Le résultat reste
+FIT_PREFLIGHT_INCOMPLETE, sans exécution Blender.
+
+`studio_prepare_body_path_review` mesure une interface source unique fermée,
+sélectionnée par un joint déclaré. Il authentifie le corps depuis l'opération
+canonique avant de lire les reçus étrangers, avec vérification native complète
+inchangée. Sur le corps accepté, la frontière cou/torse comporte 54 arêtes,
+mesure 51,215414631164414 cm et varie en hauteur de 7,088 cm. Elle conserve
+SOURCE_REGION_BOUNDARY_LENGTH et REVIEW_REQUIRED ; elle ne remplace pas
+le tour horizontal de 42,90 cm ni le trajet du col. La planche recalculée est
+identique aux pixels examinés. SQLite, profil et corps restent conservés.
+
+La revue indépendante ferme deux P2 : lecture bornée sur les octets réels et
+retrait du seul marqueur frais après refus terminal. Les rapports diagnostics
+et fichiers remplacés par un autre acteur sont préservés. Les 21 tests du
+corps et du filtre passent indépendamment ; les 62 tests ciblés intégrés
+passent sous Python 3.13. La qualification complète et la prochaine
+installation doivent être liées au candidat intégré, sans reprendre les
+1 775 tests historiques de 0603 comme preuve du code nouveau.
+
+Le mannequin, les patrons et l'aisance d'origine ne changent pas. L'homologie
+col/épaules, la couverture du devant, les variantes éventuellement nécessaires,
+le placement admis, les 15 textiles et la boucle, l'enfilage, la matière,
+la physique, le drapé, le fitting, les clips, la revue artistique et la
+préversion finale restent ouverts. Aucun nouveau patron à approuver n'est
+produit par ce lot diagnostique.
