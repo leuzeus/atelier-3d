@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-07",
+  "scope": "NATIVE_0703_BUDGET_LIMIT_AND_EXPLICIT_RESOURCE_CONTRACT_EXTENSION",
+  "project_id": "44f03e6c-dc68-4adb-85b9-e30f88b1aeaa",
+  "run_id": "run.61b42759ac684e8c8f5e812e73cbe0b1",
+  "attempt_id": "attempt.46f7ee99c0ca4b609738b23f4439f8f1",
+  "native_elapsed_seconds": 197.21520059998147,
+  "native_receipt": {
+    "path": ".a3d/runs/native/attempt.46f7ee99c0ca4b609738b23f4439f8f1.json",
+    "sha256": "c26249ce4b6dad48cb6c2df3f168ba116d106832d1339e47deb3994e6d1b4328"
+  },
+  "entry_checkpoint": {
+    "path": ".a3d/checkpoints/pre-3b6a47e14a844a5cbe0871c0b092c4e2.blend",
+    "sha256": "de8bd5f85b3a66d3c4d8e55d81f0d8fde2edbf2ed9645d7d8b11d135ae8a5c39"
+  },
+  "native": {
+    "status": "NEEDS_CORRECTION",
+    "reason": "DEADLINE_EXHAUSTED",
+    "last_phase": "interior_refinement:metric_face",
+    "active_piece": "cuff-right",
+    "seconds": 90.00000240001827,
+    "native_cdt_calls": 12,
+    "previous_cdt_calls": 8,
+    "previous_active_piece": "back-right",
+    "geometry_created": false,
+    "local_textiles": "0/10",
+    "global_textiles": "0/15",
+    "rigid_buckle": "ABSENT",
+    "cpu_attribution": "NOT_ESTABLISHED_LAST_PHASE_IS_NOT_A_CPU_PROFILE"
+  },
+  "restoration": {
+    "status": "PASS",
+    "human_authorization": "Autoriser la restauration après l’essai 0703",
+    "working_ref": {
+      "path": ".a3d/blender/working-recovered-dad90f3411ba48928ac8b356b432500b.blend",
+      "sha256": "c3022d051bd18abf91e5214ed533b2a0dc94dd18e1a6683c6cdd688e9c1fa5bc"
+    },
+    "qualification": "NOT_GRANTED"
+  },
+  "software_change": {
+    "schema": "schemas/pattern-preparation.schema.json",
+    "field": "meshing_profile.budgets.max_seconds",
+    "old_maximum": 90,
+    "new_maximum": 600,
+    "default_seconds": 90,
+    "existing_inputs_changed": false,
+    "geometry_algorithm_changed": false,
+    "other_budgets_changed": false,
+    "quality_gates_changed": false
+  },
+  "validation": {
+    "targeted_tests": 91,
+    "status": "PASS",
+    "independent_review": "NO_P1_OR_P2_READ_ONLY_REVIEW",
+    "native_longer_budget": "NOT_EXECUTED"
+  },
+  "proposed_inputs": {
+    "directory": "preparation/coat-meshing-budget-300-v1",
+    "seconds": 300,
+    "preparation_sha256": "b200b7da63c4c96c71e9393b28fe555ccc918f6bdfc3b32a27ca49ba8f89f8ee",
+    "run_sha256": "5cebbded0fcbb1cbc5a252ad8ac1b3cadff40604ea993ef778ca8fc4e6868a58",
+    "receipt_sha256": "a61b2d2450c1ca4d8a1046d66a37d1852d61f948eada74fdd4cb70c9db0f3ab9",
+    "recipe_bytes_unchanged": true,
+    "source_patterns_changed": false,
+    "body_changed": false,
+    "only_preparation_field_changed": "meshing_profile.budgets.max_seconds",
+    "qualification": "NONE",
+    "registered": false,
+    "executed": false
+  },
+  "transport": {
+    "timeout_seconds": 300,
+    "extended": false,
+    "uncertain_reply": "RECONCILE_NATIVE_RECEIPT_WITHOUT_AUTOMATIC_REPLAY"
+  },
+  "remaining": {
+    "installation_of_supporting_build": "NOT_EXECUTED",
+    "native_mesh_and_placement": "NOT_QUALIFIED",
+    "new_cutting_review": "NOT_REQUIRED_UNCHANGED_SOURCES",
+    "artist_review": "PENDING_NO_CURRENT_GARMENT_CANDIDATE"
+  },
+  "qualification": "NONE"
+}

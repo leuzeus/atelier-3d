@@ -2496,3 +2496,45 @@ la construction complète, Cloth, fitting, mouvement et revue artistique
 restent non qualifiés.
 
 [Qualification exacte et installation locale](automation-refinement-cache-installation-evidence-20261007.json).
+
+### 2026-10-07 — Runtime 0703 vérifié, progression native et budget explicite
+
+Le redémarrage est exécuté après autorisation. Le MCP 0703 répond PASS, le
+raffinement installé correspond à l'export qualifié et Blender conserve le
+mannequin accepté seul. Un nouveau run source-bound est enregistré depuis
+`preparation/coat-recovery-cached-metrics-v1/run.json` puis son opération exacte
+est explicitement autorisée : `run.61b42759ac684e8c8f5e812e73cbe0b1`, tentative
+`attempt.46f7ee99c0ca4b609738b23f4439f8f1`.
+
+Blender termine en 197,215 s avec `NEEDS_CORRECTION`. L'enveloppe de maillage
+atteint 90 s dans `interior_refinement:metric_face`, sur `cuff-right`. Le
+travail progresse de 8 à 12 CDT natifs par rapport à l'essai 0702 ; l'arrêt
+sur le second panneau de dos laisse place à la manchette droite. Ces travaux
+partiels ne sont pas des pièces admises : aucun candidat créé, manteau 0/10,
+textile global 0/15 et boucle absente. Le reçu est réconcilié sans nouvel envoi.
+La restauration du checkpoint `pre-3b6a47e14a844a5cbe0871c0b092c4e2` est
+explicitement autorisée puis exécutée. Aucun fitting ni succès du budget
+n'est déduit de l'amélioration de progression.
+
+Le contrat fixe jusque-là 90 s au maximum pour tout le composant. Une extension
+générique accepte un budget déclaré jusqu'à 600 s, sans changer les entrées
+existantes ni le défaut 90 s. Les 91 tests ciblés passent et la revue indépendante
+ne relève aucun P1/P2. Les deadlines à 90, 300 et 600 s restent strictes ; les
+limites globales et locales de travail sont conservées.
+
+Une proposition séparée `preparation/coat-meshing-budget-300-v1/` reprend les
+sources et la recette exactes et change uniquement
+`meshing_profile.budgets.max_seconds` à 300 s. Le run proposé reste dans son
+budget global de 3 600 s. La qualité à 15°, les sommets, passes, insertions,
+sources, corps et corrections de placement restent inchangés. Il faut qualifier
+et charger le build supportant cette plage avant de créer le nouveau run et
+d'autoriser son opération exacte. Aucun calcul à 300 s n'est exécuté.
+
+Le timeout MCP reste 300 s pour l'opération entière, indépendamment du budget
+de maillage. Une réponse incertaine sera réconciliée depuis son reçu natif,
+sans soumission automatique répétée. La construction complète, les épaules,
+la couverture, Cloth, drapé, fitting, mouvement et revue visuelle restent
+non qualifiés ; aucune nouvelle revue de coupe ne porte sur ce seul budget.
+
+[Budgets de maillage](meshing-time-budgets.md) et
+[preuves natives et proposition séparée](automation-meshing-budget-expansion-evidence-20261007.json).

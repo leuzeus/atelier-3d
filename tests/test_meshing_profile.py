@@ -86,10 +86,33 @@ class MeshingProfileTests(unittest.TestCase):
         contract('pattern-preparation',spec)
         for mutate in (lambda q:q.update(mode='boundary_only'),lambda q:q.update(extra=True),
                        lambda q:q['piece_ids'].append(q['piece_ids'][0]),
-                       lambda q:q['budgets'].update(max_seconds=90.000001),
+                       lambda q:q['budgets'].update(max_seconds=600.000001),
                        lambda q:q['budgets'].pop('max_work_steps')):
             bad=copy.deepcopy(p);mutate(bad)
             with self.assertRaises(StudioError):create_envelope(bad,data['component_id'],recipe,regular,clock=lambda:0.)
+
+    def test_explicit_longer_deadline_preserves_work_limits_and_still_refuses_expiration(self):
+        data,recipe,regular,p=self.inputs()
+        initial=create_envelope(p,data['component_id'],recipe,regular,clock=lambda:5.)
+        for seconds in (90.,300.,600.):
+            with self.subTest(seconds=seconds):
+                proposed=copy.deepcopy(p);proposed['budgets']['max_seconds']=seconds
+                before=copy.deepcopy((data,recipe,regular,proposed))
+                clock=[5.]
+                envelope=create_envelope(proposed,data['component_id'],recipe,regular,
+                    clock=lambda:clock[0],started_at=5.)
+                self.assertEqual(envelope.limits,initial.limits)
+                self.assertEqual(envelope.owner_limits,initial.owner_limits)
+                self.assertEqual(envelope.deadline,5.+seconds)
+                clock[0]=envelope.deadline-.001
+                envelope.check('before_declared_deadline')
+                self.assertEqual(envelope.snapshot()['qualification'],'NONE')
+                clock[0]=envelope.deadline
+                with self.assertRaises(StudioError) as caught:
+                    envelope.check('at_declared_deadline')
+                self.assertEqual(caught.exception.reason,'DEADLINE_EXHAUSTED')
+                self.assertEqual((data,recipe,regular,proposed),before)
+        self.assertEqual(p['budgets']['max_seconds'],90.)
 
     def test_domain_refusals_do_not_change_legacy_recipe_or_configuration(self):
         data,recipe,regular,p=self.inputs();before=copy.deepcopy((recipe,regular))

@@ -61,7 +61,7 @@
         "budgets": {
           "type": "object",
           "properties": {
-            "max_seconds": {"type": "number", "minimum": 0.001, "maximum": 90},
+            "max_seconds": {"type": "number", "minimum": 0.001, "maximum": 600},
             "max_capture_nodes": {"type": "integer", "minimum": 1, "maximum": 500000},
             "max_capture_bytes": {"type": "integer", "minimum": 1, "maximum": 8388608},
             "max_output_nodes": {"type": "integer", "minimum": 1, "maximum": 500000},
