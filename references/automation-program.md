@@ -2260,3 +2260,9 @@ consommées. Les refus précédents restent conservés. La revue indépendante n
 signale plus de P0/P1/P2 sur ce snapshot. La preuve et les sorties exactes sont
 dans [le reçu de préparation](automation-reviewed-source-revision-evidence-20261007.json).
 Cette réussite qualifie les données préparées, sans adoption de production.
+
+La qualification complète du candidat logiciel
+`8e40c2a2578603b53235247a66ad2fa0ed5ad6f4` passe sur export Git immuable :
+1 915 tests, aucun SKIP, 290,835 s et 14 contrats. Les empreintes des producteurs
+du probe réel correspondent exactement à celles de cet export. Les modifications
+suivantes sont documentaires. Ces preuves ne qualifient ni Blender ni le fitting.
