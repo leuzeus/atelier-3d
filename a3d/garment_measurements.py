@@ -439,6 +439,10 @@ def intersect_guide_material_plane(piece,frame,triangles,section,seam_edges,*,ma
     def check_time():
         if clock()-started>max_seconds:raise StudioError('Guide-plane material computation time budget exhausted')
     source=digest([piece,frame,triangles,section,seam_edges,boundary])
+    from .fitting import prepare_path_contour
+    contour=prepare_path_contour(boundary,max_edges=3*max_faces,check_time=check_time)
+    def native_domain_inside(a,b):
+        check_time();inside=contour.path_inside(a,b);check_time();return inside
     if 'arc_sections' in frame:
         evaluation_backend='ARC_SECTIONS'
         compiled=_compile_arc_sections(frame,'measurement')
@@ -470,7 +474,7 @@ def intersect_guide_material_plane(piece,frame,triangles,section,seam_edges,*,ma
         determinant=(uvs[1][0]-uvs[0][0])*(uvs[2][1]-uvs[0][1])-(uvs[1][1]-uvs[0][1])*(uvs[2][0]-uvs[0][0])
         if abs(determinant)<1e-12:raise StudioError('Guide-plane source triangle is collapsed')
         area+=abs(determinant)/2
-        if any(not path_inside(a,b,boundary)for a,b in zip(uvs,uvs[1:]+uvs[:1])):
+        if any(not native_domain_inside(a,b)for a,b in zip(uvs,uvs[1:]+uvs[:1])):
             raise StudioError('Guide-plane triangulation crosses empty declared source-UV mesh domain')
         keys=[tuple(uv)for uv in uvs]
         face=tuple(sorted(keys))
