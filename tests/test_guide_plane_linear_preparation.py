@@ -71,6 +71,20 @@ class LinearCagePreparation(unittest.TestCase):
             self.compare(frame,[[.25,.25],[0.,0.],[1.,0.]])
         frame=frame_grid(2);frame['triangles'].reverse();self.compare(frame,[[1.,1.],[.5,.5]])
 
+    def test_necessary_weight_short_circuit_keeps_exact_tolerance_and_numeric_errors(self):
+        frame={'uv_cm':[[0.,0.],[1.,0.],[0.,1.]],'target_cm':[[0.,0.,0.],[1.,0.,0.],[0.,1.,0.]],
+               'triangles':[[0,1,2]]}
+        points=[[value,0.]for value in (-1e-8,math.nextafter(-1e-8,-math.inf),math.nextafter(-1e-8,math.inf),
+            1+1e-8,math.nextafter(1+1e-8,math.inf),math.nextafter(1+1e-8,-math.inf))]
+        points.extend(([2.,1e308],[1e308,2.],[-1e308,1e308]))
+        self.compare(frame,points)
+        # Beta is already outside, but the historical mixed-number gamma
+        # calculation still raises OverflowError. It must not be masked.
+        mixed={'uv_cm':[[0,0],[2,0],[0,.5]],'target_cm':frame['target_cm'],'triangles':[[0,1,2]]}
+        uv=[4,10**308];compiled=_compile_cage(mixed,'measurement')
+        self.assertEqual(outcome(lambda p:_cage_point(mixed,compiled,p,'measurement'),uv)[1],'OverflowError')
+        self.compare(mixed,[uv,[4,1],[0,0]])
+
     def test_prepared_evaluator_is_per_call_and_cannot_mix_equal_uvs_across_frames(self):
         a=frame_grid(2);b=copy.deepcopy(a)
         for point in b['target_cm']:point[2]+=7.

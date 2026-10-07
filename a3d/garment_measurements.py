@@ -376,18 +376,23 @@ def _prepare_linear_cage_evaluator(frame,compiled,check_time):
     rows=[]
     for triangle_id,triangle,a,b,c,denominator in compiled:
         check_time()
-        rows.append((triangle_id,triangle,a[0],a[1],b[0]-a[0],b[1]-a[1],
-                     c[0]-a[0],c[1]-a[1],denominator,
-                     tuple(tuple(frame['target_cm'][j])for j in triangle)))
+        coefficients=(a[0],a[1],b[0]-a[0],b[1]-a[1],c[0]-a[0],c[1]-a[1],denominator)
+        # All-float arithmetic cannot hide integer-to-float overflow in a
+        # skipped weight. Mixed/integer rows retain the complete oracle path.
+        float_math=all(type(value)is float for value in coefficients)
+        rows.append((triangle_id,triangle,*coefficients,
+                     tuple(tuple(frame['target_cm'][j])for j in triangle),float_math))
     def evaluate(uv):
         if len(uv)!=2 or any(type(value)not in(int,float)or not math.isfinite(value)for value in uv):
             _refuse('Cage evaluation needs finite source material UV: measurement','placement')
         candidates=[]
-        for triangle_id,triangle,ax,ay,bx,by,cx,cy,denominator,targets in rows:
+        for triangle_id,triangle,ax,ay,bx,by,cx,cy,denominator,targets,float_math in rows:
             check_time()
             dx=uv[0]-ax;dy=uv[1]-ay
             beta=(dx*cy-dy*cx)/denominator
+            if float_math and not -1e-8<=beta<=1+1e-8:continue
             gamma=(bx*dy-by*dx)/denominator
+            if float_math and not -1e-8<=gamma<=1+1e-8:continue
             alpha=1-beta-gamma
             # alpha is NaN whenever beta/gamma is NaN. The original min/max
             # predicate then rejects it, just as these ordered comparisons do.
