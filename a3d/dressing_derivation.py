@@ -32,7 +32,19 @@ def source_boundary_graph(data, max_edges=10000):
 Aliases of a free border are kept on one physical segment. Closure/detachable
 partners remain separate. No union by proximity or coincident coordinates.
 """
-    contract('garment', data); original = digest(data)
+    contract('garment', data)
+    return source_boundary_graph_from_validated(data, max_edges)
+
+
+def source_boundary_graph_from_validated(data, max_edges=10000):
+    """Pure boundary derivation from input whose contract the caller checked.
+
+    The public source_boundary_graph keeps schema validation. This kernel
+    preserves the same source/alias/seam checks, without reading a schema
+    again inside a caller's already bounded geometric computation. It does
+    not establish project provenance or admit a garment by itself.
+    """
+    original = digest(data)
     if type(max_edges) is not int or max_edges < 1:
         raise StudioError('Dressing boundary budget must be a positive integer')
     parent = {}; consumed = set(); aliases = defaultdict(set); all_boundary = {}

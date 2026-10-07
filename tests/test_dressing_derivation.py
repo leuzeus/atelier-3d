@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from a3d.core import StudioError, contract, digest
 from a3d.dressing_derivation import (_triangles, derive_dressing_contract, mount_orders,
-                                    source_boundary_graph, world_point)
+                                    source_boundary_graph, source_boundary_graph_from_validated, world_point)
 from a3d.shoulder_surface import measured_surface_shoulders
 from tests.test_shoulder_surface import fixture as body_fixture
 
@@ -115,6 +115,17 @@ def hood_yoke_fixture(configure=False,head_height=97.):
 
 
 class DressingDerivation(unittest.TestCase):
+    def test_contract_wrapper_and_pure_derivation_return_the_same_source_graph(self):
+        for source in fixture()[1].values():
+            data=source['data']; contract('garment',data)
+            expected=source_boundary_graph(data)
+            with patch('a3d.dressing_derivation.contract',side_effect=AssertionError('No schema I/O in pure kernel')), \
+                    patch('builtins.open',side_effect=AssertionError('No file reads in pure kernel')):
+                self.assertEqual(source_boundary_graph_from_validated(data),expected)
+        with patch('a3d.dressing_derivation.contract',side_effect=StudioError('Schema rejection')):
+            with self.assertRaisesRegex(StudioError,'Schema rejection'):
+                source_boundary_graph(fixture()[1]['source.belt']['data'])
+
     def test_free_aliases_closure_links_and_cut_are_preserved_without_proximity_union(self):
         values=fixture();data=values[1]['source.belt']['data'];data['pieces']['belt']['edges']['free-alias']=[0,1]
         before=digest(data);result=source_boundary_graph(data)
