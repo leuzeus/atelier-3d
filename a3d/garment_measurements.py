@@ -799,7 +799,8 @@ def propose_compiled_measurement_paths(project,compiled,guides_path,fit_path,bod
     from .native_evidence import native_origin
     native,origin=native_origin(project,lambda doc:
         (doc.get('operation')=='prepare_body_target' and doc.get('result',{}).get('artifacts',{}).get('profile')==fit['body_ref']) or
-        (doc.get('operation')=='introduce_body_target' and doc.get('result',{}).get('profile_ref')==fit['body_ref']))
+        (doc.get('operation')=='introduce_body_target' and doc.get('result',{}).get('profile_ref')==fit['body_ref']),
+        operation_filter=('prepare_body_target','introduce_body_target'))
     if fit['body_ref']not in native['files'] or native['result'].get('profile_cache_key')!=profile['cache_key']:
         raise StudioError('Measurement proposals need their exact canonical measured native body profile')
     geometry_ref=(native['result']['artifacts']['geometry'] if native['operation']=='prepare_body_target'

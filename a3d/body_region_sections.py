@@ -339,7 +339,8 @@ def measure_project_body_regions(project,specification_path):
     from .native_evidence import native_origin as _native_origin
     native,origin=_native_origin(project,lambda doc:
         (doc.get('operation')=='prepare_body_target' and doc.get('result',{}).get('artifacts',{}).get('profile')==refs['profile_ref']) or
-        (doc.get('operation')=='introduce_body_target' and doc.get('result',{}).get('profile_ref')==refs['profile_ref']))
+        (doc.get('operation')=='introduce_body_target' and doc.get('result',{}).get('profile_ref')==refs['profile_ref']),
+        operation_filter=('prepare_body_target','introduce_body_target'))
     if native['operation']=='introduce_body_target':
         from .body_context import body_context_descriptor
         descriptor=body_context_descriptor(project,native['arguments']['context_path']);receipt=descriptor['receipt']

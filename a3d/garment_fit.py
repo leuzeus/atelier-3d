@@ -450,7 +450,8 @@ def assess_compiled_fit(project, compiled, specification_path):
         (doc.get('operation') == 'prepare_body_target' and
          doc.get('result', {}).get('artifacts', {}).get('profile') == specification['body_ref']) or
         (doc.get('operation') == 'introduce_body_target' and
-         doc.get('result', {}).get('profile_ref') == specification['body_ref']))
+         doc.get('result', {}).get('profile_ref') == specification['body_ref']),
+        operation_filter=('prepare_body_target', 'introduce_body_target'))
     if (specification['body_ref'] not in native['files'] or
             native['result'].get('profile_cache_key') != body.get('cache_key')):
         raise StudioError('Fit body profile lacks its exact canonical measured body origin')

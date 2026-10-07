@@ -25,9 +25,26 @@ def checked_reference(project, ref):
     return copy.deepcopy(ref)
 
 
-def native_origin(project, predicate):
+def canonical_receipt_operation(database, event):
+    """Read an operation from its canonical attempt, without reading artifacts.
+
+    This is selection metadata only. The exact receipt, binding, status and
+    all artifact references must still pass the ordinary origin verifier.
+    """
+    run_row = database.execute('SELECT doc FROM runs WHERE id=?', (event['run_id'],)).fetchone()
+    if not run_row:
+        raise StudioError('Native input run is absent from this project')
+    run = json.loads(run_row[0])
+    unit = next((row for row in run['units'] if row['id'] == event['unit_id']), None)
+    attempt = next((row for row in unit['attempts'] if row['id'] == event['attempt_id']), None) if unit else None
+    if attempt is None or not isinstance(attempt.get('operation'), str) or not attempt['operation']:
+        raise StudioError('Native input operation lacks its canonical attempt context')
+    return attempt['operation']
+
+
+def native_origin(project, predicate, *, operation_filter=None):
     """Read a genuine dispatch receipt registered to its exact run attempt."""
-    return _native_origin(project, predicate, completed_only=True)
+    return _native_origin(project, predicate, completed_only=True, operation_filter=operation_filter)
 
 
 def native_observation_origin(project, predicate, observed_artifact_ref=None):
@@ -39,13 +56,21 @@ def native_observation_origin(project, predicate, observed_artifact_ref=None):
     return _native_origin(project, predicate, completed_only=False, observed_artifact_ref=observed_artifact_ref)
 
 
-def _native_origin(project, predicate, completed_only, observed_artifact_ref=None):
+def _native_origin(project, predicate, completed_only, observed_artifact_ref=None, operation_filter=None):
+    if operation_filter is not None:
+        if (type(operation_filter) not in (tuple, list, set, frozenset) or not 1 <= len(operation_filter) <= 32 or
+                any(type(name) is not str or not name or len(name) > 200 for name in operation_filter)):
+            raise StudioError('Native operation selection requires a nonempty bounded collection of exact names')
+        operation_filter = frozenset(operation_filter)
     outcomes = {'COMPLETED'} if completed_only else {'COMPLETED', 'NEEDS_CORRECTION', 'INCOMPLETE'}
     with closing(sqlite3.connect(project.db.as_uri()+'?mode=ro', uri=True)) as db:
         if not db.execute("SELECT 1 FROM sqlite_master WHERE name='runs'").fetchone():
             raise StudioError('Input has no canonical native run origin')
         for event_id, document in db.execute("SELECT id,doc FROM events WHERE kind='run_native_receipt' ORDER BY id DESC"):
             event = json.loads(document)
+            if (operation_filter is not None and
+                    canonical_receipt_operation(db, event) not in operation_filter):
+                continue
             try:
                 checked_reference(project, event['receipt'])
                 receipt = read_json(inside(project.root, event['receipt']['path']))
