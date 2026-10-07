@@ -91,6 +91,21 @@ class ProtocolTests(unittest.TestCase):
         with self.assertRaises(StudioError):
             call('studio_prepare_reviewed_pattern_revision', dict(arguments, roles=dict(roles, implicit=True)))
 
+    def test_reviewed_source_adoption_public_arguments_and_annotation(self):
+        from unittest.mock import patch
+        descriptor = TOOLS['studio_adopt_reviewed_source_revision']['descriptor']
+        self.assertFalse(descriptor['annotations']['readOnlyHint'])
+        arguments = dict(project_root='selected-project', revision_path='preparation/revision/revision.json',
+                         expected_parent_epoch='a'*64, request_key='revision.test')
+        with patch('a3d.tools.Project', return_value='project'), \
+             patch('a3d.reviewed_source_adoption.adopt_reviewed_source_revision',
+                   return_value={'status': 'REVIEWED_SOURCE_REVISION_ADOPTED'}) as adopt:
+            self.assertEqual(call('studio_adopt_reviewed_source_revision', arguments)['status'],
+                             'REVIEWED_SOURCE_REVISION_ADOPTED')
+            adopt.assert_called_once_with('project', 'preparation/revision/revision.json', 'a'*64, 'revision.test')
+        with self.assertRaises(StudioError):
+            call('studio_adopt_reviewed_source_revision', dict(arguments, approve_fitting=True))
+
     def test_preinitialize_tools_refused(self):
         s=Server(); r=s.handle({"jsonrpc":"2.0","id":1,"method":"tools/list"})
         self.assertIn("error",r)

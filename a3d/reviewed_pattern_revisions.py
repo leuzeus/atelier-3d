@@ -189,8 +189,8 @@ def _preflight_dependencies(project, state, gate_name, roles, check):
             'max_parent_projects': MAX_PARENT_PROJECTS, 'files': sorted(files.values(), key=lambda row: row['path'])}
 
 
-def prepare_project_reviewed_pattern_revision(project, gate_name, roles, output_dir):
-    """Authenticate a current parent and write fresh, non-admitted design data.
+def calculate_reviewed_pattern_revision(project, gate_name, roles, baseline=None):
+    """Authenticate and replay design data without writing outputs.
 
     Role values are evidence keys in the actual direct human decision. This
     bounded V1 preparation supports unchanged topology and an existing grading
@@ -214,24 +214,22 @@ def prepare_project_reviewed_pattern_revision(project, gate_name, roles, output_
             len(set(roles.values())) != len(ROLES)):
         raise StudioError('Reviewed source revision requires four distinct exact evidence roles')
     for value in roles.values(): ident(value)
-    relative(output_dir)
-    if not output_dir.startswith('preparation/') or output_dir == 'preparation/':
-        raise StudioError('Reviewed source revision output must be fresh under preparation/')
-    output = inside(project.root, output_dir, False)
-    if output.exists():
-        raise StudioError('Reviewed source revision output already exists; preserve it')
-    # Case aliases are rejected even on case-sensitive hosts used for tests.
-    parent = output.parent
-    if parent.exists() and any(child.name.casefold() == output.name.casefold() for child in parent.iterdir()):
-        raise StudioError('Reviewed source revision output has a Windows case alias')
     before_codes = _codes()
     state = _state(project)
     try:
         preflight = _preflight_dependencies(project, state, gate_name, roles, check)
     except OSError as error:
         raise StudioError('Reviewed source revision preflight dependency is missing or unreadable') from error
-    board = require_board(project, state)
-    packages = package_records(project, state)
+    if baseline is None:
+        board = require_board(project, state)
+        packages = package_records(project, state)
+    else:
+        # Internal replay context supplied by the admission verifier after
+        # authenticating an archived parent. It grants no admission itself.
+        if not isinstance(baseline, dict) or set(baseline) != {'board', 'packages'}:
+            raise StudioError('Reviewed source revision baseline must be an exact verified parent context')
+        board = copy.deepcopy(baseline['board'])
+        packages = copy.deepcopy(baseline['packages'])
     origin, gate = _human(project, state, gate_name)
     refs = {}; raw_cache = {}; total_bytes = 0
 
@@ -408,7 +406,7 @@ def prepare_project_reviewed_pattern_revision(project, gate_name, roles, output_
     def recheck():
         check(); latest = _state(project)
         if (canonical(latest) != canonical(state) or _codes() != before_codes or
-                canonical(require_board(project, latest)) != canonical(board) or
+                baseline is None and canonical(require_board(project, latest)) != canonical(board) or
                 canonical(_human(project, latest, gate_name)[1]) != canonical(gate) or
                 _review(project, decision, policy['design_decision_ref']) != design_reviews):
             raise StudioError('Reviewed source revision canonical parent/review/code changed during preparation')
@@ -417,7 +415,24 @@ def prepare_project_reviewed_pattern_revision(project, gate_name, roles, output_
             if sha(inside(project.root, name)) != identity:
                 raise StudioError('Reviewed source revision input changed during preparation: '+name)
     recheck()
-    files = {'effective-dossier.json': composition['dossier'], 'effective-packages.json': effective_packages}
+    return {'result': result, 'dossier': composition['dossier'], 'packages': effective_packages,
+            'recheck': recheck, 'check_budget': check}
+
+
+def prepare_project_reviewed_pattern_revision(project, gate_name, roles, output_dir):
+    """Write fresh non-admitted design data from an authenticated calculation."""
+    relative(output_dir)
+    if not output_dir.startswith('preparation/') or output_dir == 'preparation/':
+        raise StudioError('Reviewed source revision output must be fresh under preparation/')
+    output = inside(project.root, output_dir, False)
+    if output.exists():
+        raise StudioError('Reviewed source revision output already exists; preserve it')
+    parent = output.parent
+    if parent.exists() and any(child.name.casefold() == output.name.casefold() for child in parent.iterdir()):
+        raise StudioError('Reviewed source revision output has a Windows case alias')
+    calculated = calculate_reviewed_pattern_revision(project, gate_name, roles)
+    result = calculated['result']; recheck = calculated['recheck']; check = calculated['check_budget']
+    files = {'effective-dossier.json': calculated['dossier'], 'effective-packages.json': calculated['packages']}
     result['outputs'] = {name: {'path': output_dir+'/'+name, 'sha256': hashlib.sha256(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False).encode('utf-8')+b'\n').hexdigest()} for name, value in files.items()}
     files['revision.json'] = result
     if sum(len(canonical(value)) for value in files.values()) > MAX_OUTPUT_BYTES:

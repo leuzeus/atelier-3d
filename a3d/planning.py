@@ -238,6 +238,9 @@ def require_board(project, state):
         raise StudioError("Legacy board lacks manufacturing/Codex Image/proportion checks; rebuild and obtain a new human review")
     packages = package_records(project, state)
     expected = {cid: {"sha256": p["sha256"], "pipeline": p["manifest"]["pipeline"]} for cid, p in packages.items()}
+    if "reviewed-source-adoption" in state["evidence"]:
+        from .reviewed_source_adoption import require_reviewed_source_adoption
+        return require_reviewed_source_adoption(project, state, manifest, packages)
     if "reviewed-pattern-composition" in state["evidence"]:
         from .reviewed_pattern_admission import require_reviewed_pattern_composition
         return require_reviewed_pattern_composition(project, state, manifest, packages)

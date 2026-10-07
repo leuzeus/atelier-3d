@@ -2270,3 +2270,27 @@ les empreintes des producteurs sont désormais toutes identiques à celles du
 candidat qualifié. Il retrouve le même source_epoch et le même périmètre de
 cinq pièces, en conservant SQLite. Les versions précédentes restent historiques.
 Ces preuves ne qualifient ni Blender ni le fitting.
+
+### 2026-10-07 — Adoption V2 et reprise liée aux sources
+
+Le lot suivant ajoute une opération canonique distincte d'adoption. Elle
+conserve le parent V1, le rejoue dans son vrai ancêtre et vérifie la nouvelle
+revue des quatre artefacts avant d'activer le package et le dossier calculés
+dans une transaction `Project`. Le parcours V1 et ses deux producteurs restent
+inchangés. La reprise d'un run textile est liée à l'epoch active, avant toute
+réconciliation de reçu. Les références JSON transitives des autres preuves et
+runs sont suivies avec budgets, tandis que les reçus historiques restent lisibles.
+
+La première capacité reste bornée : parent V1 calculé, projet quiescent en
+`RECONSTRUCTING`, un composant textile affecté, topologie et corps conservés.
+Les tests synthétiques de mutation, idempotence, révocation, interruption et
+rollback ne constituent pas une adoption du projet réel. Voir
+[le contrat d'adoption](reviewed-source-adoption.md). La qualification intégrée
+et le build local distinct sont réalisés avant toute nouvelle installation.
+La version connectée 0701 ne possède pas encore cette opération.
+
+L'adoption réelle, la recompilation du torse et des guides d'épaule, le placement,
+la construction et la qualification du vêtement restent ouverts. La revue des
+cinq patrons du col est conservée et ne doit pas être redemandée. Aucune nouvelle
+revue de découpe n'est actuellement en attente pour eux ; l'examen du futur
+volume et la revue artistique restent des décisions humaines à préparer.

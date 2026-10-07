@@ -238,7 +238,31 @@ def _dag(units):
     return order
 
 
+def _run_source_epoch(state, kind):
+    return state.get('source_epoch') if kind in {'garment', 'motion', 'export'} else None
+
+
+def _verify_source_epoch(project, run, state=None):
+    if run.get('source_invalidation'):
+        raise StudioError('Run depends on an adopted source revision; preserve its history and create a new run')
+    state = project.state() if state is None else state
+    if run.get('source_epoch') != _run_source_epoch(state, run['kind']):
+        raise StudioError('Run source epoch changed; create a new run for the current reviewed sources')
+
+
+def invalidate_source_runs(project, db, run_ids, parent_epoch, source_epoch, request_key):
+    """Archive dependency invalidation in the adopter's existing transaction."""
+    for run_id in run_ids:
+        run = _load(db, run_id)
+        detail = {'parent_epoch': parent_epoch, 'source_epoch': source_epoch, 'request_key': request_key}
+        if run.get('source_invalidation') == detail:
+            continue
+        run['source_invalidation'] = detail
+        _save(db, run, 'run_source_invalidated', detail)
+
+
 def _verify_run(project, run):
+    _verify_source_epoch(project, run)
     if _runtime() != run['runtime_sha256']:
         raise StudioError('Run code fingerprint changed; create a reviewed new run specification identity')
     _reference(project, run['specification'])
@@ -278,12 +302,17 @@ def create_run(project, kind, specification_path):
         unit['runtime_sha256'] = digest(unit['code_sources'])
         unit.update(status='PENDING', attempts=[], qualification='NOT_GRANTED')
         units.append(unit)
-    binding = digest({'specification': source_ref, 'definition': spec, 'runtime_sha256': runtime,
+    source_epoch = _run_source_epoch(state, kind)
+    epoch_binding = {} if source_epoch is None else {'source_epoch': source_epoch}
+    binding = digest({**epoch_binding, 'specification': source_ref, 'definition': spec, 'runtime_sha256': runtime,
                       'inputs': inputs, 'units_inputs': {unit['id']: unit['inputs'] for unit in units},
                       'units_code': {unit['id']: unit['code_sources'] for unit in units}})
     request_key = kind+'.'+spec['id']
     with project.transaction() as db:
-        if project.state(db).get('pending_blender_operation'):
+        current_state = project.state(db)
+        if _run_source_epoch(current_state, kind) != source_epoch:
+            raise StudioError('Source epoch changed during run preparation')
+        if current_state.get('pending_blender_operation'):
             raise StudioError('A pending Blender operation prevents run mutation')
         _migrate(db)
         existing = db.execute('SELECT doc FROM runs WHERE request_key=?', (request_key,)).fetchone()
@@ -298,6 +327,7 @@ def create_run(project, kind, specification_path):
                'inputs': inputs, 'budgets': copy.deepcopy(spec['budgets']), 'units': units,
                'status': 'CREATED', 'revision': 0, 'created_at': now(), 'updated_at': now(),
                'stop_requested': False, 'accepted': False, 'qualification': 'NOT_GRANTED'}
+        run.update(epoch_binding)
         db.execute('INSERT INTO runs VALUES (?,?,?)', (run['run_id'], request_key, canonical(run).decode()))
         _save(db, run, 'run_created', {'fingerprint': binding})
     return copy.deepcopy(run)
@@ -559,6 +589,7 @@ def next_run_step(project, run_id):
     # Reconcile its canonical event before examining pending; execute no code.
     with closing(sqlite3.connect(project.db.as_uri()+'?mode=ro', uri=True)) as reader:
         existing = _load(reader, run_id)
+        _verify_source_epoch(project, existing, project.state(reader))
         pending_ready = project.state(reader).get('pending_blender_operation', {}).get('status') == 'RESULT_READY'
         if any(unit['executor'] == 'blender' and unit['attempts'] and
                (unit['status'] == 'WAITING_RESULT' or pending_ready and unit['attempts'][-1].get('receipt')) and

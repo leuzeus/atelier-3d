@@ -19,8 +19,8 @@ ne devient donc pas une approbation des nouvelles pièces du col.
 
 La préparation V1 exige une topologie inchangée, les crans matière conservés
 et un seul composant textile affecté. Les autres cas sont refusés explicitement.
-Elle ne fournit pas encore l'adoption de cette révision dans les bindings
-de production d'un projet en `RECONSTRUCTING`.
+Elle ne change pas les bindings de production. L'opération distincte
+[d'adoption canonique](reviewed-source-adoption.md) possède ses propres contrôles.
 
 Les sorties sont écrites dans un répertoire neuf sous `preparation/` :
 

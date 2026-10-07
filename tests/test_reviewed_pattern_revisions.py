@@ -165,6 +165,22 @@ class ReviewedPatternRevisions(Case):
         second = self.prepare(fixture, 'preparation/revision-two')
         self.assertEqual(result['source_epoch'], second['source_epoch'])
 
+    def test_calculation_of_authenticated_archived_baseline_writes_no_outputs(self):
+        from a3d.reviewed_pattern_revisions import calculate_reviewed_pattern_revision
+        from a3d.planning import package_records
+        fixture = self.fixture(); project, gate, roles, _ = fixture
+        state = project.state()
+        baseline = {'board': require_board(project, state), 'packages': package_records(project, state)}
+        database = sha(project.db)
+        files = {file.relative_to(project.root).as_posix(): sha(file)
+                 for file in project.root.rglob('*') if file.is_file()}
+        calculated = calculate_reviewed_pattern_revision(project, gate, roles, baseline=baseline)
+        self.assertEqual(calculated['result']['status'], 'DESIGN_SOURCE_REVISION_PREPARED')
+        self.assertNotIn('outputs', calculated['result'])
+        self.assertEqual(sha(project.db), database)
+        self.assertEqual({file.relative_to(project.root).as_posix(): sha(file)
+                          for file in project.root.rglob('*') if file.is_file()}, files)
+
     def test_scope_is_parent_relative_not_cumulative(self):
         fixture = self.fixture(); result = self.prepare(fixture)
         self.assertEqual(len(result['reviewed_piece_ids']), 5)

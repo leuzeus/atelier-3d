@@ -151,6 +151,14 @@ def prepare_reviewed_pattern_revision(project_root, gate_name, roles, output_dir
     return prepare_project_reviewed_pattern_revision(Project(project_root), gate_name, roles, output_dir)
 
 
+@tool('studio_adopt_reviewed_source_revision', 'Atomically adopt an exactly reviewed design revision in a quiescent reconstructing project. Authenticate its parent lineage and actual human gate; retain old source files and decisions, invalidate dependent production evidence and journal the new source epoch. Does not alter Blender, grant execution permission or qualify fitting.',
+      {**P, 'revision_path': S, 'expected_parent_epoch': S, 'request_key': S},
+      ('project_root', 'revision_path', 'expected_parent_epoch', 'request_key'), False)
+def adopt_reviewed_source_revision(project_root, revision_path, expected_parent_epoch, request_key):
+    from .reviewed_source_adoption import adopt_reviewed_source_revision as adopt
+    return adopt(Project(project_root), revision_path, expected_parent_epoch, request_key)
+
+
 @tool('studio_prepare_patronage_review', 'Compute source-bound tailoring comparisons and write a fresh review sheet from exact measured body sections, seam-line material paths and optionally canonically reviewed numeric ease. Reuses existing authenticated services. Open spans never become closed girths; missing measurements stay incomplete. No pattern/body mutation, native execution, fitting acceptance or new gate.',
       {**P, 'dossier_path': S, 'specification_path': S, 'fit_profile_path': S, 'output_dir': S, 'design_decision_path': S,
        'refresh_body_regions': {'type': 'boolean'}},
