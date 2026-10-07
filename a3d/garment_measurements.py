@@ -364,6 +364,48 @@ def reconcile_source_boundary_uv(piece,panel,rest_cm,*,seam_witnesses=None,
         'qualification':'NONE','admissible_for_fit':False}
 
 
+def _prepare_linear_cage_evaluator(frame,compiled,check_time):
+    """Hoist only invariant arithmetic from the validated linear cage oracle.
+
+    Every cell remains in its original order, including overlapping cells.
+    Differences use the same operations as _cage_point; no UV index, tolerance
+    or nearby-point cache is introduced. The caller owns this local evaluator
+    and verifies immutable source inputs before returning its measurement.
+    """
+    from .pattern_assembly import _refuse
+    rows=[]
+    for triangle_id,triangle,a,b,c,denominator in compiled:
+        check_time()
+        rows.append((triangle_id,triangle,a[0],a[1],b[0]-a[0],b[1]-a[1],
+                     c[0]-a[0],c[1]-a[1],denominator,
+                     tuple(tuple(frame['target_cm'][j])for j in triangle)))
+    def evaluate(uv):
+        if len(uv)!=2 or any(type(value)not in(int,float)or not math.isfinite(value)for value in uv):
+            _refuse('Cage evaluation needs finite source material UV: measurement','placement')
+        candidates=[]
+        for triangle_id,triangle,ax,ay,bx,by,cx,cy,denominator,targets in rows:
+            check_time()
+            dx=uv[0]-ax;dy=uv[1]-ay
+            beta=(dx*cy-dy*cx)/denominator
+            gamma=(bx*dy-by*dx)/denominator
+            alpha=1-beta-gamma
+            # alpha is NaN whenever beta/gamma is NaN. The original min/max
+            # predicate then rejects it, just as these ordered comparisons do.
+            if (alpha>=-1e-8 and beta>=-1e-8 and gamma>=-1e-8
+                    and alpha<=1+1e-8 and beta<=1+1e-8 and gamma<=1+1e-8):
+                bary=[alpha,beta,gamma]
+                target=[math.fsum(weight*point[k]for weight,point in zip(bary,targets))for k in range(3)]
+                candidates.append((triangle_id,bary,target))
+        if not candidates:
+            _refuse('Derived source UV is outside its explicit preform cage: measurement','placement')
+        if any(math.dist(candidates[0][2],candidate[2])>1e-6 for candidate in candidates[1:]):
+            _refuse('Ambiguous overlapping preform cage correspondence: measurement','placement')
+        triangle_id,bary,target=candidates[0]
+        return target,{'cage_triangle':triangle_id,'barycentric_weights':bary}
+    check_time()
+    return evaluate
+
+
 def intersect_guide_material_plane(piece,frame,triangles,section,seam_edges,*,max_faces=50000,
                                    max_points=20000,max_seconds=15.,epsilon_cm=1e-7,clock=time.monotonic,
                                    triangulated_boundary_uv=None,use_cage_lookup=False):
@@ -411,7 +453,8 @@ def intersect_guide_material_plane(piece,frame,triangles,section,seam_edges,*,ma
                 candidates=lookup.candidates(uv,check_time)
                 return _cage_point(lookup.frame,candidates,uv,'measurement',check_time)[0]
         else:
-            def evaluate(uv):return _cage_point(frame,compiled,uv,'measurement',check_time)[0]
+            prepared_evaluate=_prepare_linear_cage_evaluator(frame,compiled,check_time)
+            def evaluate(uv):return prepared_evaluate(uv)[0]
     else:
         raise StudioError('Guide-plane measurement requires explicit arc sections or a source UV cage')
     vertices={};nodes={};segments=set();bindings={};edges={};edge_directions={};faces=set();area=0.
