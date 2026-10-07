@@ -72,6 +72,25 @@ l'outil refuse une répartition implicite de l'aisance entre ces mesures.
 
 Les autres services à réutiliser sont `studio_prepare_body_target`,
 `studio_compile_production_dossier` et `studio_prepare_pattern_ease_variant`.
+`studio_prepare_body_path_review(project_root, body_profile_path,
+specification_path, output_dir)` mesure les frontières corporelles déclarées
+par `source_joint` dans l'adapter du corps natif authentifié. Sa spécification
+versionnée déclare les chemins, les budgets de lecture, géométrie, temps et
+sortie ; les projections sont optionnelles. Le service écrit un rapport exact,
+sa fiche de revue et un reçu dans un dossier neuf sous `preparation/`, sans
+modifier le corps, la fiche originale, SQLite ou une gate. Une interface
+ouverte, branchée ou multiple est refusée. Une courbe source fermée conserve
+le statut `SOURCE_REGION_BOUNDARY_LENGTH` et `tailoring_homology: REVIEW_REQUIRED` :
+elle ne remplace pas automatiquement un tour horizontal ou un trajet de col.
+Les projections montrent les bords réels mais ne qualifient pas leur occlusion.
+
+La relecture des UV source d'un maillage natif synchronisé réutilise maintenant
+son sampler de bord et sa gradation, avec le profil complet, son binding et
+son journal de travail authentifiés. Le transport binary32 est reproduit pour
+la gradation ; les ancres finales doivent retrouver exactement les doubles
+source restaurés par le writer. Une enveloppe locale borne le replay, sans
+réutiliser une ancienne horloge. Les observations d'un placement refusé peuvent
+étayer ce diagnostic source, mais n'admettent aucun placement ou fitting.
 Les options de compilation peuvent préparer des propositions de chemins depuis
 les guides et les maillages exacts. Lire séparément compilation, préflight de
 fitting et propositions ; une compilation complète ne qualifie pas la taille.

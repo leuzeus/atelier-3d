@@ -53,6 +53,23 @@ class ProtocolTests(unittest.TestCase):
         s=self.initialized(); response=s.handle({"jsonrpc":"2.0","id":2,"method":"tools/list"})
         self.assertGreater(len(response["result"]["tools"]),15)
 
+    def test_body_path_review_public_arguments_and_artifact_annotation(self):
+        from unittest.mock import patch
+        descriptor=TOOLS['studio_prepare_body_path_review']['descriptor']
+        self.assertFalse(descriptor['annotations']['readOnlyHint'])
+        self.assertFalse(descriptor['annotations']['destructiveHint'])
+        arguments={'project_root':'selected-project','body_profile_path':'profile.json',
+                   'specification_path':'paths.json','output_dir':'preparation/fresh'}
+        with patch('a3d.tools.Project', return_value='project') as project, \
+                patch('a3d.body_source_paths.prepare_project_body_path_review',
+                      return_value={'status':'BODY_SOURCE_PATH_REVIEW_PREPARED'}) as prepare:
+            self.assertEqual(call('studio_prepare_body_path_review',arguments),
+                             {'status':'BODY_SOURCE_PATH_REVIEW_PREPARED'})
+            project.assert_called_once_with('selected-project')
+            prepare.assert_called_once_with('project','profile.json','paths.json','preparation/fresh')
+        with self.assertRaises(StudioError):
+            call('studio_prepare_body_path_review',dict(arguments, implicit_anatomy=True))
+
     def test_preinitialize_tools_refused(self):
         s=Server(); r=s.handle({"jsonrpc":"2.0","id":1,"method":"tools/list"})
         self.assertIn("error",r)

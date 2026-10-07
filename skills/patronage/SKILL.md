@@ -44,6 +44,13 @@ sourcés. Lire séparément compilation, fit_preflight et propositions de mesure
 Préparer les correspondances nécessaires pour revue ; localiser toute mesure
 manquante ou non supportée. Les calculs de production doivent être génériques,
 alimentés par des données explicites, avec budgets et résidus mesurés.
+Pour une frontière corporelle déclarée dans l'adapter, utiliser
+`studio_prepare_body_path_review` avec une spécification explicite et un
+dossier de sortie neuf. Présenter sa courbe et ses projections pour revue
+d'homologie avant de l'employer comme mesure de tailleur. Sa longueur 3D ne
+devient pas un tour horizontal ; une décision d'aisance visant un autre trajet
+n'est pas transférée. Le service refuse les interfaces ouvertes, branchées ou
+multiples et conserve le corps natif accepté.
 
 Si un manque de capacité source est mesuré, préparer une variante séparée avec
 `studio_prepare_pattern_ease_variant` dans son domaine déclaré. Présenter les
