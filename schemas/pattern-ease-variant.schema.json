@@ -277,6 +277,122 @@
               "stations"
             ],
             "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "pieces": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "mode": {
+                "const": "WEIGHTED_SOURCE_UV"
+              },
+              "anchor_vertices": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "scale_x": {
+                "type": "object",
+                "properties": {
+                  "minimum": {
+                    "type": "number",
+                    "minimum": 0.05,
+                    "maximum": 5
+                  },
+                  "initial": {
+                    "type": "number",
+                    "minimum": 0.05,
+                    "maximum": 5
+                  },
+                  "maximum": {
+                    "type": "number",
+                    "minimum": 0.05,
+                    "maximum": 5
+                  }
+                },
+                "required": [
+                  "minimum",
+                  "initial",
+                  "maximum"
+                ],
+                "additionalProperties": false
+              },
+              "scale_y": {
+                "type": "object",
+                "properties": {
+                  "minimum": {
+                    "type": "number",
+                    "minimum": 0.05,
+                    "maximum": 5
+                  },
+                  "initial": {
+                    "type": "number",
+                    "minimum": 0.05,
+                    "maximum": 5
+                  },
+                  "maximum": {
+                    "type": "number",
+                    "minimum": 0.05,
+                    "maximum": 5
+                  }
+                },
+                "required": [
+                  "minimum",
+                  "initial",
+                  "maximum"
+                ],
+                "additionalProperties": false
+              },
+              "weights_by_piece": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 10000,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                }
+              },
+              "protected_edges_by_piece": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "maxItems": 10000,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "required": [
+              "id",
+              "pieces",
+              "mode",
+              "anchor_vertices",
+              "scale_x",
+              "scale_y",
+              "weights_by_piece",
+              "protected_edges_by_piece"
+            ],
+            "additionalProperties": false
           }
         ]
       },
@@ -305,7 +421,10 @@
             "minLength": 1
           },
           "path_kind": {
-            "const": "closed_girth"
+            "enum": [
+              "closed_girth",
+              "open_material_span"
+            ]
           },
           "segments": {
             "type": "array",

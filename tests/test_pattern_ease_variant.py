@@ -8,7 +8,8 @@ from unittest.mock import patch
 from a3d.core import StudioError,atomic_json,digest,sha
 from a3d.packages import build_package,inspect_package
 from a3d.production_dossier import compile_production_dossier
-from a3d.pattern_ease_variant import prepare_pattern_ease_variant,prepare_project_pattern_ease_variant,_svg,_seams
+from a3d.pattern_ease_variant import (prepare_pattern_ease_variant,prepare_project_pattern_ease_variant,_svg,_seams,
+    _weighted_transport,_review,_source_reference_path)
 from tests.test_core import Case
 from tests.test_garment_planner import example as planner_example
 
@@ -74,7 +75,185 @@ def fixture(mode='WIDTH_BY_V_STATIONS'):
     return compiled,{'garment.test':data},decision,policy,dossier,spec
 
 
+def source_reference_fixture():
+    from tests.test_garment_measurements import collar_cycle_fixture
+    c,_,_,_=collar_cycle_fixture();cid='textile.unusual';pid='band.named'
+    data={'component_id':cid,'units':'cm','pieces':{p:copy.deepcopy(r['source_geometry'])for p,r in c['textiles'].items()},
+        'seams':[{k:link[k]for k in('piece_a','piece_b','edge_a','edge_b','orientation','kind')}|{'id':link['source_link_id']}for link in c['links']],
+        'material':{'mass_kg':.1,'tension_stiffness':20.,'compression_stiffness':20.,'shear_stiffness':10.,'bending_stiffness':.3}}
+    data['pieces']['insert.named']['vertices']=[[-math.sqrt(3),1.],[0.,2.],[math.sqrt(3),1.]]
+    annotations=[]
+    for p,piece in data['pieces'].items():
+        piece.update(position_cm=[0.,0.,0.],rotation_degrees=[0.,0.,0.])
+        marks=[{'id':s['id']+'-mid','seam_id':s['id'],'position':.5,'symbol':'notch'}for s in data['seams']if p in(s['piece_a'],s['piece_b'])]
+        annotations.append({'id':p,'grain_direction':[0,1],
+            'dimensions_cm':[max(v[k]for v in piece['vertices'])-min(v[k]for v in piece['vertices'])for k in(0,1)],
+            'seam_allowance_cm':0.,'pattern':{'cut_quantity':1,'cut_outline_cm':copy.deepcopy(piece['vertices']),'folds':[],'assembly_marks':marks}})
+    dossier={'asset_id':'variant.source.reference','units':'cm','components':{cid:{'pipeline':'PATTERN_SEWN','pieces':annotations}}}
+    _,_,_,policy,_,spec=fixture();spec=copy.deepcopy(spec);ref=spec['packages'][0]['source_ref']
+    spec['packages']=[{'component_id':cid,'source_ref':ref}]
+    spec['piece_semantics']={p:{**r['semantics'],'layer':'cloth','longitudinal_uv_axis':'u'if p==pid else'v'}for p,r in c['textiles'].items()}
+    spec['layers']['nodes'][1]['panels']=list(data['pieces'])
+    compiled=compile_production_dossier(dossier,{cid:{'source_ref':ref,'data':data}},spec)
+    segment={'piece':pid,'from':{'edge':'stop.a','fraction':1.},'to':{'edge':'stop.b','fraction':0.}}
+    target={'body_landmark':'neck','body_reference_length_cm':12.,'ease_total_cm':2.,'target_material_length_cm':14.,
+        'body_plus_target_interpretation':'ASSEMBLED_SOURCE_PATH_TARGET_ONLY','source_path_ref':{'path':'comparison.json','sha256':'d'*64},
+        'material_reference':{'domain':'PERMANENT_ENDPOINT_CYCLE','component_id':cid,'piece':pid,'source_geometry_sha256':digest(data['pieces'][pid]),
+            'source_v_cm':0.,'segments':[segment],'source_material_length_cm':12.}}
+    decision={'status':'SOURCE_PATH_DESIGN_INTENT_APPROVED','approved':True,'component_ids':[cid],
+        'approved_scope':['assembled_source_path_design_targets'],'body_ref':spec['body_ref'],'dossier_ref':spec['source_ref'],
+        'targets':[target],'proposal_ref':target['source_path_ref'],'review_ref':{'path':'intent.json','sha256':'e'*64}}
+    fixed={'minimum':1.,'initial':1.,'maximum':1.};free={'minimum':1.,'initial':1.,'maximum':1.5}
+    weights=[(max(0.,min(u-2.,8.))/u if u else 0.)for u,v in data['pieces'][pid]['vertices']]
+    policy.update(compiled_sha256=digest(compiled),body_ref=spec['body_ref'],dossier_ref=spec['source_ref'],
+        families=[{'id':'local.band','pieces':[pid],'mode':'WEIGHTED_SOURCE_UV','anchor_vertices':{pid:0},
+                   'weights_by_piece':{pid:weights},'protected_edges_by_piece':{pid:[]},'scale_x':free,'scale_y':fixed},
+                  {'id':'local.partner','pieces':['neck.named'],'mode':'AFFINE_SOURCE_UV','anchor_vertices':{'neck.named':0},
+                   'scale_x':copy.deepcopy(free),'scale_y':copy.deepcopy(fixed)}],
+        nominal_paths=[{'id':'design.source.neck','body_landmark':'neck','component_id':cid,'layer':'cloth','path_kind':'open_material_span',
+            'objective':'TARGET','path_parameterization':'SOURCE_V_CM','source_v_cm':0.,'segments':[segment],
+            'joins':[],'engaged_links':[],'takeup':[]}])
+    return compiled,{cid:data},decision,policy,dossier,spec
+
+
 class PatternEaseVariant(Case):
+    def test_assembled_source_reference_reaches_a_separate_coupled_variant_without_girth_promotion(self):
+        c,data,d,p,_,_=source_reference_fixture();before=digest([c,data,d,p])
+        result=prepare_pattern_ease_variant(c,data,d,p)
+        self.assertEqual(result['status'],'PROPOSAL_READY_FOR_REVIEW');self.assertTrue(result['packages_allowed_for_review'])
+        check=result['target_checks'][0]
+        self.assertAlmostEqual(check['material_length_cm'],14.,places=5)
+        self.assertEqual(check['assembled_row_topology']['status'],'CLOSED_PERMANENT_ENDPOINT_CYCLE')
+        self.assertEqual(check['assembled_row_topology']['source_neckline_attachment']['coverage'],'FULL_SOURCE_ROW_ONCE')
+        self.assertEqual(check['path_kind'],'open_material_span');self.assertEqual(check['body_reference_length_cm'],12.)
+        self.assertEqual(check['ease_total_cm'],2.);self.assertNotIn('body_girth_cm',check)
+        self.assertEqual(check['qualification'],'SOURCE_REFERENCE_TARGET_ONLY');self.assertFalse(check['admissible_for_fit'])
+        candidate=result['candidate_garments']['textile.unusual']
+        self.assertEqual(candidate['seams'],data['textile.unusual']['seams'])
+        self.assertEqual(candidate['pieces']['insert.named'],data['textile.unusual']['pieces']['insert.named'])
+        self.assertTrue(all(row['status']=='COMPATIBLE'for row in result['seam_constraints']))
+        self.assertTrue(all(mark['status']=='MATERIAL_POINT_PRESERVED'for mark in result['material_notches']))
+        self.assertTrue(all(row['faces_preserved']and row['edges_preserved']for row in result['piece_diff']))
+        self.assertEqual(result['qualification'],'PATTERN_PROPOSAL_ONLY');self.assertEqual(result['acceptance'],'NOT_GRANTED')
+        self.assertEqual(digest([c,data,d,p]),before)
+
+    def test_assembled_source_target_rejects_false_homology_reference_or_closure_contract(self):
+        for change in('scalar','breakdown','legacy-status','source-ref','domain','geometry','material-length','material-segment','v',
+                      'path-kind','join','engaged','distinct-endpoints','normalized-notches','weighted-y'):
+            c,data,d,p,_,_=source_reference_fixture();target=d['targets'][0];path=p['nominal_paths'][0]
+            if change=='scalar':target['target_material_length_cm']+=.1
+            elif change=='breakdown':target['ease_cm']={'target':2.}
+            elif change=='legacy-status':d['status']='NUMERIC_EASE_DESIGN_INTENT_APPROVED';d['approved_scope']=['numeric_ease_design_targets','underlayer_intent']
+            elif change=='source-ref':target['source_path_ref']['sha256']='wrong'
+            elif change=='domain':target['material_reference']['domain']='UNSUPPORTED'
+            elif change=='geometry':target['material_reference']['source_geometry_sha256']='f'*64
+            elif change=='material-length':target['material_reference']['source_material_length_cm']+=.1
+            elif change=='material-segment':target['material_reference']['segments'][0]['from']['fraction']=.5
+            elif change=='v':target['material_reference']['source_v_cm']=1.
+            elif change=='path-kind':path['path_kind']='closed_girth'
+            elif change=='join':path['joins']=['textile.unusual::band.fastener']
+            elif change=='engaged':path['engaged_links']=['textile.unusual::band.fastener']
+            elif change=='distinct-endpoints':
+                c['links'][0]['kind']='closure';data['textile.unusual']['seams'][0]['kind']='closure';p['compiled_sha256']=digest(c)
+            elif change=='normalized-notches':p['notch_policy']='NORMALIZED_ARC_FRACTIONS'
+            else:p['families'][0]['scale_y']['maximum']=1.1
+            with self.subTest(change=change),self.assertRaises(StudioError):prepare_pattern_ease_variant(c,data,d,p)
+
+    def test_weighted_local_uv_keeps_protected_cap_cuff_and_source_notches(self):
+        c,data,d,p,_,_=fixture();pid='sleeve'
+        p['families']=[{'id':pid,'pieces':[pid],'mode':'WEIGHTED_SOURCE_UV','anchor_vertices':{pid:1},
+            'weights_by_piece':{pid:[0.,0.,0.,1.,0.,0.,0.,1.]},
+            'protected_edges_by_piece':{pid:['cuff','cap-back','cap-front']},
+            'scale_x':{'minimum':1.,'initial':1.,'maximum':2.},'scale_y':{'minimum':1.,'initial':1.,'maximum':1.}}]
+        before=digest([c,data,d,p]);r=prepare_pattern_ease_variant(c,data,d,p)
+        self.assertTrue(r['packages_allowed_for_review'])
+        check=next(row for row in r['target_checks']if row['body_landmark']=='upper-arm.left')
+        self.assertAlmostEqual(check['material_length_cm'],12.,places=5)
+        piece=r['candidate_garments']['garment.test']['pieces'][pid]
+        for index in(0,1,2,4,5,6):self.assertEqual(piece['vertices'][index],data['garment.test']['pieces'][pid]['vertices'][index])
+        self.assertEqual(r['candidate_garments']['garment.test']['pieces']['cuff'],data['garment.test']['pieces']['cuff'])
+        self.assertTrue(all(m['status']=='MATERIAL_POINT_PRESERVED'for m in r['material_notches']))
+        self.assertEqual(digest([c,data,d,p]),before)
+
+    def test_weighted_policy_protection_weights_anchors_and_source_domain_are_strict(self):
+        for change in('protected-weight','missing-weights','bool-weight','anchor','missing-edge','nontriangular','cut','allowance'):
+            c,data,d,p,_,_=source_reference_fixture();family=p['families'][0];pid='band.named';owner=c['textiles'][pid]
+            if change=='protected-weight':family['protected_edges_by_piece'][pid]=['middle']
+            elif change=='missing-weights':family['weights_by_piece'][pid].pop()
+            elif change=='bool-weight':family['weights_by_piece'][pid][0]=True
+            elif change=='anchor':family['anchor_vertices'][pid]=1000
+            elif change=='missing-edge':family['protected_edges_by_piece'][pid]=['invented']
+            elif change=='nontriangular':
+                data['textile.unusual']['pieces'][pid]['faces']=[[0,1,2,3,4,5,6]]
+                owner['source_geometry']=copy.deepcopy(data['textile.unusual']['pieces'][pid])
+            elif change=='cut':owner['source']['pattern']['cut_outline_cm'][0][0]-=.1
+            else:owner['source']['seam_allowance_cm']=.1
+            p['compiled_sha256']=digest(c)
+            with self.subTest(change=change),self.assertRaises(StudioError):prepare_pattern_ease_variant(c,data,d,p)
+
+    def test_weighted_pl_fold_crossings_match_exact_source_triangle_oracle(self):
+        source={'vertices':[[0.,0.],[4.,0.],[4.,4.],[0.,4.]],'faces':[[0,1,2],[0,2,3]],'edges':{'fixed':[0,1]}}
+        family={'id':'local','_piece':'arbitrary','anchor_vertices':{'arbitrary':0},'weights_by_piece':{'arbitrary':[0.,0.,1.,0.]}}
+        before=digest([source,family]);targets,point,line=_weighted_transport(source,family,{'local:x':1.5,'local:y':1.},lambda:None)
+        self.assertEqual(targets,[[0.,0.],[4.,0.],[6.,4.],[0.,4.]])
+        self.assertEqual(point([.5,3.5]),[.75,3.5])
+        self.assertEqual(line([[.5,3.5],[3.5,.5]]),[[.75,3.5],[3.,2.],[3.75,.5]])
+        with self.assertRaises(StudioError):point([-1.,2.])
+        with self.assertRaises(StudioError):line([[-1.,2.],[2.,2.]])
+        with self.assertRaises(StudioError):line([[.5,.5]]*41)
+        with self.assertRaises(StudioError):line([[float('nan'),1.],[1.,1.]])
+        self.assertEqual(digest([source,family]),before)
+        _,_,identity=_weighted_transport(source,family,{'local:x':1.,'local:y':1.},lambda:None)
+        original=[[.5,3.5],[3.5,.5]];self.assertEqual(identity(original),original)
+
+    def test_material_notch_pair_objective_detects_equal_length_but_shifted_material_midpoint(self):
+        from a3d.pattern_ease_variant import _paired_material_notch_residuals
+        c,data,_,p,_,_=source_reference_fixture();candidate=copy.deepcopy(data)
+        candidate['textile.unusual']['pieces']['band.named']['vertices'][2][0]=6.5
+        seams=_seams(c,candidate,p['constraints']);self.assertTrue(all(row['status']=='COMPATIBLE'for row in seams))
+        annotations={pid:copy.deepcopy(row['source'])for pid,row in c['textiles'].items()}
+        residual=_paired_material_notch_residuals(c,c,candidate,annotations,seams)
+        self.assertTrue(any(abs(value)>.49 for value in residual))
+
+    def test_source_reference_budget_impossible_protection_and_input_mutation_do_not_admit(self):
+        c,data,d,p,_,_=source_reference_fixture();before=digest([c,data,d,p]);p['budgets']['max_evaluations']=1
+        result=prepare_pattern_ease_variant(c,data,d,p)
+        self.assertEqual(result['status'],'INCOMPLETE_BUDGET');self.assertFalse(result['packages_allowed_for_review'])
+        self.assertEqual(result['candidate_garments'],data)
+        c,data,d,p,_,_=source_reference_fixture();p['families'][0]['weights_by_piece']['band.named']=[0.]*7
+        result=prepare_pattern_ease_variant(c,data,d,p)
+        self.assertEqual(result['status'],'REFUSED_CONSTRAINTS');self.assertFalse(result['packages_allowed_for_review'])
+        c,data,d,p,_,_=source_reference_fixture();ticks=iter([0.,11.])
+        with self.assertRaisesRegex(StudioError,'initial computation time budget'):
+            prepare_pattern_ease_variant(c,data,d,p,clock=lambda:next(ticks))
+        c,data,d,p,_,_=source_reference_fixture()
+        from a3d.pattern_ease_variant import _candidate
+        def changed(*args,**kwargs):
+            result=_candidate(*args,**kwargs);d['targets'][0]['source_path_ref']['path']='changed.json';return result
+        with patch('a3d.pattern_ease_variant._candidate',side_effect=changed),self.assertRaisesRegex(StudioError,'immutable'):
+            prepare_pattern_ease_variant(c,data,d,p)
+
+    def test_source_reference_review_delegates_to_specific_canonical_intent(self):
+        _,_,decision,_,_,_=source_reference_fixture();project=SimpleNamespace();ref={'path':'decision.json','sha256':'a'*64}
+        with patch('a3d.source_path_intent.review_source_path_intent',return_value=[{'gate':'specific-source-intent'}])as method:
+            self.assertEqual(_review(project,decision,ref),[{'gate':'specific-source-intent'}])
+        method.assert_called_once_with(project,decision,ref)
+
+    def test_attached_source_reference_rechecks_full_candidate_coverage_and_refuses_nonmonotone_row(self):
+        from a3d.garment_measurements import _collar_neckline_row
+        c,data,d,p,_,_=source_reference_fixture();target=d['targets'][0];row=p['nominal_paths'][0]
+        target['material_reference']['attachment']=_collar_neckline_row(c,'band.named',0.,[[0.,0.],[12.,0.]])
+        result=prepare_pattern_ease_variant(c,data,d,p)
+        self.assertTrue(result['packages_allowed_for_review'])
+        proof=result['target_checks'][0]['assembled_row_topology']['source_neckline_attachment']
+        self.assertEqual(proof['coverage'],'FULL_SOURCE_ROW_ONCE')
+        modified=copy.deepcopy(c);modified['textiles']['band.named']['source_geometry']['vertices'][2][0]=1.5
+        with self.assertRaisesRegex(StudioError,'folded or collapsed'):
+            _source_reference_path(modified,row,target,d['component_ids'])
+        del target['material_reference']['attachment']
+        with self.assertRaisesRegex(StudioError,'folded or collapsed'):
+            _source_reference_path(modified,row,target,d['component_ids'])
+
     def dense_policy(self,policy):
         policy=copy.deepcopy(policy)
         policy['nominal_paths'][0]['source_v_cm']=7.
@@ -204,6 +383,121 @@ class PatternEaseVariant(Case):
         result=prepare_pattern_ease_variant(c,data,d,p,clock=lambda:next(ticks))
         self.assertEqual(result['status'],'INCOMPLETE_BUDGET');self.assertEqual(result['candidate_garments'],data)
         self.assertFalse(result['packages_allowed_for_review'])
+
+    def test_deadline_expiring_during_diff_cannot_return_ready_or_publish_archives(self):
+        from a3d.pattern_ease_variant import _bounds
+        from a3d.board_contract import validate_patterns
+        elapsed=[0.];validated=[False]
+        def validation(*args):
+            result=validate_patterns(*args);validated[0]=True;return result
+        def delayed_bounds(*args):
+            result=_bounds(*args)
+            if validated[0]:elapsed[0]=11.
+            return result
+        c,data,d,p,_,_=fixture();before=digest([c,data,d,p])
+        with patch('a3d.pattern_ease_variant.validate_patterns',side_effect=validation), \
+                patch('a3d.pattern_ease_variant._bounds',side_effect=delayed_bounds):
+            result=prepare_pattern_ease_variant(c,data,d,p,clock=lambda:elapsed[0])
+        self.assertEqual(result['status'],'INCOMPLETE_BUDGET');self.assertFalse(result['packages_allowed_for_review'])
+        self.assertEqual(result['solver']['stop_reason'],'TIME_BUDGET_POSTPROCESSING')
+        self.assertEqual(result['solver']['seconds_elapsed'],11.)
+        self.assertTrue(result['piece_diff']);self.assertTrue(result['candidate_garments'])
+        self.assertEqual(result['proposal_sha256'],digest({key:value for key,value in result.items()if key!='proposal_sha256'}))
+        self.assertEqual(digest([c,data,d,p]),before)
+        project,_,_,_=self.project_fixture();elapsed[0]=0.;validated[0]=False
+        original=prepare_pattern_ease_variant
+        def bounded(*args):return original(*args,clock=lambda:elapsed[0])
+        with patch('a3d.pattern_ease_variant.prepare_pattern_ease_variant',side_effect=bounded), \
+                patch('a3d.pattern_ease_variant.validate_patterns',side_effect=validation), \
+                patch('a3d.pattern_ease_variant._bounds',side_effect=delayed_bounds):
+            published=prepare_project_pattern_ease_variant(project,'compiled.json','decision.json','policy.json','variants/late-budget')
+        self.assertEqual(published['status'],'INCOMPLETE_BUDGET');self.assertEqual(published['packages'],{})
+        self.assertTrue((self.root/'variants/late-budget/candidate-garments.json').is_file())
+        self.assertFalse((self.root/'variants/late-budget/packages').exists())
+
+    def test_minimal_source_target_derives_only_its_nominal_identifier_type_and_optional_original_length(self):
+        c,data,d,p,_,_=source_reference_fixture();target=d['targets'][0]
+        for key in('body_landmark','body_plus_target_interpretation'):target.pop(key)
+        target['material_reference'].pop('source_material_length_cm')
+        for key in('proposal_ref','review_ref'):d.pop(key)
+        p['nominal_paths'][0]['body_landmark']='source-boundary.band.named'
+        before=digest([c,data,d,p]);result=prepare_pattern_ease_variant(c,data,d,p)
+        self.assertEqual(result['status'],'PROPOSAL_READY_FOR_REVIEW')
+        self.assertEqual(result['target_checks'][0]['body_landmark'],'source-boundary.band.named')
+        self.assertEqual(result['target_checks'][0]['target_interpretation'],'ASSEMBLED_SOURCE_PATH_TARGET_ONLY')
+        self.assertNotIn('body_girth_cm',result['target_checks'][0]);self.assertEqual(digest([c,data,d,p]),before)
+
+    def test_project_source_decision_has_no_legacy_proposal_or_review_reference_requirement(self):
+        c,data,d,p,dossier,spec=source_reference_fixture();cid='textile.unusual'
+        def stored(name,value):
+            atomic_json(self.root/name,value);return {'path':name,'sha256':sha(self.root/name)}
+        body_ref=stored('source-body.json',{'scope':'SYNTHETIC_FACADE_ADAPTER_ONLY'})
+        dossier_ref=stored('source-dossier.json',dossier)
+        source=self.root/'source-band';source.mkdir();atomic_json(source/'garment.json',data[cid])
+        (source/'pattern.svg').write_bytes(_svg(data[cid]))
+        package=build_package(source,self.root/'source-band.garmentpkg',dossier['asset_id'],cid,'PATTERN_SEWN',
+            {'source':'test','created_by':'unit adapter fixture','notes':'TEST_ONLY'})
+        package_ref={'path':'source-band.garmentpkg','sha256':package['sha256']}
+        spec.update(source_ref=dossier_ref,body_ref=body_ref);spec['packages'][0]['source_ref']=package_ref
+        spec['layers']['source_ref']=dossier_ref
+        for node in spec['layers']['nodes']:node['source_ref']=dossier_ref
+        spec_ref=stored('source-specification.json',spec)
+        c=compile_production_dossier(dossier,{cid:{'source_ref':package_ref,'data':data[cid]}},spec)
+        c['specification_source_ref']=spec_ref;c['compiled_sha256']=digest({key:value for key,value in c.items()if key!='compiled_sha256'})
+        d.update(body_ref=body_ref,dossier_ref=dossier_ref,production_specification_ref=spec_ref)
+        for key in('proposal_ref','review_ref'):d.pop(key)
+        target=d['targets'][0]
+        target['source_path_ref']=stored('source-comparison.json',{'scope':'SYNTHETIC_ADAPTER_ONLY'})
+        target['human_intent_ref']=stored('source-intent.json',{'scope':'SYNTHETIC_ADAPTER_ONLY'})
+        target['human_review_gate']='source.target';target['material_reference'].pop('source_material_length_cm')
+        target['material_reference']['source_geometry_sha256']=digest(c['textiles']['band.named']['source_geometry'])
+        decision_ref=stored('source-decision.json',d)
+        p.update(compiled_sha256=digest(c),body_ref=body_ref,dossier_ref=dossier_ref,design_decision_ref=decision_ref)
+        stored('source-compiled.json',c);stored('source-policy.json',p)
+        project=SimpleNamespace(root=self.root)
+        # Canonical admission is tested independently in test_source_path_intent.
+        # This adapter probe verifies its callback and the exact file inventory.
+        with patch('a3d.source_path_intent.review_source_path_intent',return_value=[{'gate':'source.target'}])as reviewed:
+            result=prepare_project_pattern_ease_variant(project,'source-compiled.json','source-decision.json','source-policy.json','variants/source-adapter')
+        self.assertEqual(result['status'],'PROPOSAL_READY_FOR_REVIEW');self.assertEqual(reviewed.call_count,3)
+        artifact=json.loads((self.root/'variants/source-adapter/proposal.json').read_bytes())
+        self.assertIn(spec_ref,artifact['input_refs']);self.assertIn(target['source_path_ref'],artifact['input_refs'])
+        self.assertIn(target['human_intent_ref'],artifact['input_refs']);self.assertTrue(result['packages'])
+
+    @staticmethod
+    def narrow_weighted_source(initial=1.):
+        c,data,d,p,_,_=source_reference_fixture();pid='band.named';cid='textile.unusual'
+        source=data[cid]['pieces'][pid];source['vertices'][6][0]=10.9
+        c['textiles'][pid]['source_geometry']=copy.deepcopy(source)
+        c['textiles'][pid]['source']['pattern']['cut_outline_cm']=copy.deepcopy(source['vertices'])
+        d['targets'][0]['material_reference']['source_geometry_sha256']=digest(source)
+        p['families'][0]['weights_by_piece'][pid][6]=1.
+        p['families'][0]['scale_x']['initial']=initial
+        p['families'][1]['scale_x']['initial']=initial
+        p['compiled_sha256']=digest(c)
+        return c,data,d,p
+
+    def test_actual_weighted_face_barrier_preserves_valid_best_when_target_would_invert_a_source_face(self):
+        c,data,d,p=self.narrow_weighted_source();before=digest([c,data,d,p])
+        result=prepare_pattern_ease_variant(c,data,d,p);domain=result['solver']['geometry_domain']
+        self.assertTrue(domain['enabled']);self.assertTrue(domain['best_valid'])
+        self.assertGreater(domain['rejected_evaluations'],0)
+        self.assertTrue(any(w['code']=='VARIANT_FACE_ORIENTATION_INVALID'for row in domain['rejections']for w in row['witnesses']))
+        self.assertEqual(result['status'],'REFUSED_CONSTRAINTS');self.assertFalse(result['packages_allowed_for_review'])
+        self.assertFalse(any(row['code']=='VARIANT_FACE_ORIENTATION_INVALID'for row in result['diagnostics']))
+        for diff in result['piece_diff']:self.assertTrue(diff['faces_preserved']);self.assertTrue(diff['edges_preserved'])
+        self.assertEqual(digest([c,data,d,p]),before)
+
+    def test_finite_difference_uses_valid_opposite_side_and_invalid_initial_configuration_is_refused(self):
+        c,data,d,p=self.narrow_weighted_source(1.03447)
+        result=prepare_pattern_ease_variant(c,data,d,p);domain=result['solver']['geometry_domain']
+        self.assertTrue(domain['best_valid'])
+        self.assertTrue(any(row['phase']=='FINITE_DIFFERENCE'for row in domain['rejections']))
+        c,data,d,p=self.narrow_weighted_source(1.05)
+        result=prepare_pattern_ease_variant(c,data,d,p)
+        self.assertEqual(result['solver']['stop_reason'],'INITIAL_GEOMETRY_INVALID')
+        self.assertFalse(result['solver']['geometry_domain']['best_valid']);self.assertFalse(result['packages_allowed_for_review'])
+        self.assertEqual(result['status'],'REFUSED_CONSTRAINTS')
 
     def test_solver_uses_representable_actual_step_for_very_narrow_legal_intervals_at_both_endpoints(self):
         for endpoint in(1.,1.+1e-13):
