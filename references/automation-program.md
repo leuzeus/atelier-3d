@@ -2559,3 +2559,38 @@ timeout de transport. Aucune nouvelle coupe, anatomie, géométrie admise,
 simulation ou revue artistique n'est déduite de cette qualification logicielle.
 
 [Qualification exacte et installation 0704](automation-meshing-time-installation-evidence-20261007.json).
+
+### 2026-10-07 — Maillage 0704 complet, placement refusé et restauration
+
+Le runtime 0704 est vérifié après relance. Le run `run.dcc0c3d66da54b47b5401ed92e9d9968`
+et sa tentative `attempt.909d6d9bd3864a7e8ebce726b451b553` sont préparés puis explicitement autorisés.
+Le transport MCP expire à 300 s ; le reçu natif réel est ensuite réconcilié sans
+renvoi. Blender termine en 392,087 s : le maillage des dix pièces est achevé
+en 102,744 s, 15 895 sommets et 29 431 faces, angle minimal source 15,039°
+pour un seuil inchangé de 15°. Ce succès porte sur le maillage source.
+
+Le placement reste NEEDS_CORRECTION. Le noyau de réserve conserve une proposition
+calculée à 2,75 cm, avec quatre repères à 0,24835–0,25208 cm pour une réserve
+requise de 0,3 cm. Son budget de 60 s expire après 57 mesures (60,698 s) ; cette
+proposition non admise ne peut être appliquée. La récupération métrique reste
+NOT_EXECUTED. Les guides placés ont un angle minimal de 0,286° et des étirements
+principaux de 0,00629 à 5,97284 ; contacts et intersections restent refusés.
+Les vues exactes face/dos montrent les épaules et le haut du torse dans le corps.
+Ces résultats ne prouvent pas à eux seuls un déficit de taille des patrons.
+
+Le candidat est sauvegardé avec douze vues : manteau 10/10, textile global 10/15 ;
+ceinture, deux pièces de capuche et deux empiècements manquent, boucle absente.
+La restauration du checkpoint `pre-660891ec377f4a25ba2b916816fab1c3` est autorisée
+puis exécutée. La scène courante contient à nouveau le mannequin accepté seul ;
+le candidat et ses reçus restent conservés.
+
+La question utilisateur sur hauteur/largeur du cou déclenche un contrôle ciblé :
+le guide initial du col utilise une section transversale, son rapport largeur/
+profondeur et la hauteur source de 7 cm. Cette extrusion ne contrôle pas toute
+la surface du cou sur cette hauteur. Examiner séparément le raccord source et
+les trajets anatomiques acceptés avant de préparer un nouveau placement.
+L’optimisation de l’authentification répétée des artefacts corporels est étudiée
+sans relâcher leurs empreintes ni l’état évalué du corps. Aucun nouveau Cloth,
+fitting, mouvement, PASS artistique ou release finale n’est accordé.
+
+[Reçu natif, candidat et restauration](automation-native-mesh-300-evidence-20261007.json).
