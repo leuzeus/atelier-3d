@@ -20,7 +20,7 @@ from pathlib import Path
 from .core import ROOT, StudioError, canonical, digest, ident, inside, relative, sha
 
 
-CODE_SOURCES = ('body_source_paths', 'core', 'native_evidence', 'run_projection_archive',
+CODE_SOURCES = ('body_source_paths', 'body_path_openings', 'core', 'native_evidence', 'run_projection_archive',
                 'body_context', 'body_target', 'body_source', 'body_region_sections',
                 'catalog_anatomy', 'shoulder_surface', 'head_surface', 'anatomy_profile',
                 'contact_geometry')
@@ -34,7 +34,7 @@ MAX_JSON_BYTES = 32*1024*1024
 
 
 def validate_specification(specification):
-    if (not isinstance(specification, dict) or set(specification)-{'version', 'paths', 'budgets', 'display'}
+    if (not isinstance(specification, dict) or set(specification)-{'version', 'paths', 'budgets', 'display', 'opening_exploration'}
             or specification.get('version') != 1 or type(specification.get('version')) is not int):
         raise StudioError('Body source paths require an explicit version 1 specification')
     budgets = specification.get('budgets')
@@ -69,6 +69,13 @@ def validate_specification(specification):
                 not 1 <= display['max_faces'] <= 15000 or not 600 <= display['width_px'] <= 2400 or
                 not 600 <= display['height_px'] <= 2400):
             raise StudioError('Body source path display requires explicit bounded face and pixel budgets')
+    if 'opening_exploration' in specification:
+        from .body_path_openings import validate_opening_options
+        options = validate_opening_options(specification['opening_exploration'])
+        if options['path_id'] not in ids:
+            raise StudioError('Body opening exploration must select one declared source path')
+        if options['max_output_bytes'] > budgets['max_output_bytes'] or options['max_seconds'] > seconds:
+            raise StudioError('Body opening exploration cannot exceed the parent storage or time budgets')
     return specification
 
 
@@ -521,6 +528,26 @@ def prepare_project_body_path_review(project, body_profile_path, specification_p
                   shared_verifier_reserved_read_bytes=verifier_reserve,
                   source_preservation='VERIFIED_BEFORE_PUBLICATION')
     artifacts = {}
+    if 'opening_exploration' in specification:
+        from .body_path_openings import prepare_opening_candidates, render_opening_candidates
+        options = specification['opening_exploration']
+        path = next(row for row in result['paths'] if row['id'] == options['path_id'])
+        opening_started = time.monotonic(); opening_last = [opening_started]
+        def opening_check():
+            budget.check()
+            current = time.monotonic()
+            if (not math.isfinite(current) or current < opening_last[0] or
+                    current-opening_started > options['max_seconds']):
+                raise StudioError('Body opening exploration cumulative time budget exceeded or clock moved backwards')
+            opening_last[0] = current
+        opening_check()
+        exploration = prepare_opening_candidates(profile, geometry, path, options, budget_check=opening_check)
+        artifacts['opening-options.svg'] = render_opening_candidates(
+            profile, geometry, exploration, options, budget_check=opening_check)
+        opening_check()
+        if len(canonical(exploration))+len(artifacts['opening-options.svg']) > options['max_output_bytes']:
+            raise StudioError('Body opening exploration report and diagram exceed their combined storage budget')
+        result['opening_exploration'] = exploration
     if 'display' in specification:
         board, display = _projection_board(profile, geometry, result, specification['display'], budget)
         result['display'] = display; artifacts['projections.svg'] = board
@@ -533,6 +560,11 @@ def prepare_project_body_path_review(project, body_profile_path, specification_p
                     repr(path['length_cm'])+' | '+repr(path['body_frame_height_range_cm'])+' |')
     if 'display' in specification: rows += ['', '![Projections du mesh et des frontières source](projections.svg)',
         '', 'Affichage sans contrôle d’occlusion. Les faces affichées peuvent être échantillonnées ; tous les segments mesurés sont surlignés.']
+    if 'opening_exploration' in specification:
+        rows += ['', '## Hypothèses d’ouverture à examiner', '',
+                 '![Arcs omis et arcs corporels restants](opening-options.svg)', '',
+                 'Les extrémités sont calculées dans l’ordre topologique de la vraie boucle, depuis son intersection sagittale frontale.',
+                 'Aucune ouverture, aisance ou correspondance au patron n’est choisie. Ces hypothèses requièrent leur propre revue.']
     rows += ['', 'La frontière entre régions source n’est pas automatiquement une mesure de tailleur. Le corps, la pose et le profil sont conservés.',
              'Fitting, Cloth et Blender : non exécutés. Acceptation : non accordée.', '', 'Références exactes :', '']
     rows += ['- '+ref['path']+' — `'+ref['sha256']+'`' for ref in result['input_refs']]

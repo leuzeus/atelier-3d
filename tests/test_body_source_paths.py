@@ -205,6 +205,56 @@ class BodySourcePaths(unittest.TestCase):
             with self.assertRaisesRegex(StudioError, 'exists'):
                 prepare_project_body_path_review(project, 'profile.json', 'specification.json', 'preparation/review')
 
+    def test_optional_openings_have_separate_unselected_artifacts_and_preserve_the_body(self):
+        with tempfile.TemporaryDirectory(dir=ROOT) as directory:
+            root = Path(directory); project, _ = native_project(root)
+            spec = read_json(root/'specification.json')
+            spec['opening_exploration'] = {'path_id':'source.neck-boundary',
+                'reference_plane':'BODY_SAGITTAL','front_anchor':'UNIQUE_FRONTMOST_INTERSECTION',
+                'max_pairs':1,'max_seconds':2.,'max_output_bytes':512000}
+            atomic_json(root/'specification.json', spec)
+            before = {p.name:sha(p) for p in root.iterdir() if p.is_file()}
+            result = prepare_project_body_path_review(project, 'profile.json', 'specification.json', 'preparation/openings')
+            self.assertEqual({name:sha(root/name) for name in before}, before)
+            self.assertEqual(result['qualification'], 'NONE')
+            self.assertIn('opening_exploration',result['report'])
+            self.assertIn('opening-options.svg',result['artifacts'])
+            self.assertIn('projections.svg',result['artifacts'])
+            self.assertEqual(result['report']['paths'][0]['tailoring_homology'],'REVIEW_REQUIRED')
+            for ref in result['artifacts'].values(): self.assertEqual(sha(root/ref['path']),ref['sha256'])
+
+    def test_opening_exploration_cannot_select_another_path_or_exceed_parent_budgets(self):
+        base = specification()
+        base['opening_exploration'] = {'path_id':'source.neck-boundary',
+            'reference_plane':'BODY_SAGITTAL','front_anchor':'UNIQUE_FRONTMOST_INTERSECTION',
+            'max_pairs':1,'max_seconds':2.,'max_output_bytes':512000}
+        for field,value in (('path_id','other.path'),('max_seconds',16.),('max_output_bytes',5*1024*1024)):
+            spec = copy.deepcopy(base); spec['opening_exploration'][field] = value
+            with self.subTest(field=field), self.assertRaises(StudioError): validate_specification(spec)
+
+    def test_opening_computation_and_renderer_share_one_cumulative_time_budget(self):
+        from a3d import body_path_openings
+        original_prepare = body_path_openings.prepare_opening_candidates
+        original_render = body_path_openings.render_opening_candidates
+        with tempfile.TemporaryDirectory(dir=ROOT) as directory:
+            root = Path(directory); project, _ = native_project(root)
+            spec = read_json(root/'specification.json')
+            spec['opening_exploration'] = {'path_id':'source.neck-boundary',
+                'reference_plane':'BODY_SAGITTAL','front_anchor':'UNIQUE_FRONTMOST_INTERSECTION',
+                'max_pairs':1,'max_seconds':1.,'max_output_bytes':512000}
+            atomic_json(root/'specification.json',spec)
+            elapsed = [0.]
+            def prepare(*args, **kwargs):
+                result = original_prepare(*args, **kwargs); elapsed[0] = .6; return result
+            def render(*args, **kwargs):
+                result = original_render(*args, **kwargs); elapsed[0] = 1.1; return result
+            with patch('a3d.body_source_paths.time.monotonic',side_effect=lambda:elapsed[0]), \
+                    patch.object(body_path_openings,'prepare_opening_candidates',side_effect=prepare), \
+                    patch.object(body_path_openings,'render_opening_candidates',side_effect=render), \
+                    self.assertRaisesRegex(StudioError,'cumulative'):
+                prepare_project_body_path_review(project,'profile.json','specification.json','preparation/expired')
+            self.assertFalse((root/'preparation/expired').exists())
+
     def test_file_only_and_failed_or_forged_native_attempt_cannot_qualify_a_profile(self):
         for mode in ('no-event', 'failed', 'forged-binding'):
             with tempfile.TemporaryDirectory(dir=ROOT) as directory:
