@@ -1083,7 +1083,7 @@
   "body_changed": false,
   "central_source_piece_changed": false,
   "source_data_unchanged": true,
-  "pattern_review": "HUMAN_DECISION_PENDING",
+  "pattern_review": "HUMAN_APPROVED",
   "production_binding": "NOT_CHANGED",
   "Blender": "NOT_EXECUTED",
   "fitting": "NOT_EXECUTED",
@@ -1098,5 +1098,35 @@
   "source_probe_receipt": {
     "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-source-row-real-variant-probe-v3\\receipt.json",
     "sha256": "daad8b1156cd0f712f92c51bb3c1ef2f654e05f4379f27bd5fd96952dbd97cbc"
+  },
+  "human_cutting_decision": {
+    "decision_id": "1d9f7648-a6cc-420b-a498-25d8f9a1ec51",
+    "source": "human",
+    "source_ref": "codex://threads/01a10118-bef1-7c71-9a8f-6ac8191361a2#user-je-valide-collar-source-row-v3-2026-10-07",
+    "statement": "Je valide",
+    "approved": true,
+    "evidence": {
+      "pattern-variant.collar-source-row-v3.proposal": {
+        "path": "variants/source-row-grading-v3/proposal.json",
+        "recorded_at": "2026-10-07T08:23:36.454186+00:00",
+        "sha256": "54537d847b8e14b4c65cd6077ac34b415ad30906995cf8550c19aea9522299a0"
+      },
+      "pattern-variant.collar-source-row-v3.review": {
+        "path": "preparation/source-row-pattern-review-v1/closeups.png",
+        "recorded_at": "2026-10-07T08:23:56.578375+00:00",
+        "sha256": "22776309d7c63d75f3b6bf79ca7f43179db2a5935621c07a2657ae35c12715d5"
+      },
+      "pattern-variant.collar-source-row-v3.package": {
+        "path": "variants/source-row-grading-v3/packages/garment.coat.garmentpkg",
+        "recorded_at": "2026-10-07T08:24:17.451831+00:00",
+        "sha256": "3ba1ffe6a5b647fb41db388476e118fdaf2f4ee57e4e3c4a8c3c624915faddf1"
+      },
+      "pattern-variant.collar-source-row-v3.dossier": {
+        "path": "variants/source-row-grading-v3/candidate-dossier.json",
+        "recorded_at": "2026-10-07T08:24:38.341859+00:00",
+        "sha256": "17a7e313542a1708e0588feec48beb91789f9fbd9fa8bf90606b2e02fdb2f493"
+      }
+    },
+    "timestamp": "2026-10-07T12:30:18.625128+00:00"
   }
 }

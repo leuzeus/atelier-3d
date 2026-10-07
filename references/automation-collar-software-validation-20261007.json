@@ -21,7 +21,9 @@
     "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-collar-pattern-source-full-validation-v1\\validation.json",
     "sha256": "894cb1cd11de8ae6d547f04871d66d8449cec4a11e66e34364b4a2273442458b"
   },
-  "subsequent_changes": "DOCUMENTATION_AND_EVIDENCE_ONLY",
-  "target_pattern_review": "HUMAN_DECISION_PENDING",
+  "subsequent_changes": "DOCUMENTATION_AND_EVIDENCE_ONLY_THROUGH_2c21327",
+  "subsequent_verified_head": "2c213274dae8f4b3b04a981816020fa2602d2d0f",
+  "new_revision_preparation_code": "REQUIRES_SEPARATE_SOFTWARE_VALIDATION",
+  "target_pattern_review": "HUMAN_APPROVED_2026_10_07",
   "fitted_garment": "NOT_QUALIFIED"
 }
