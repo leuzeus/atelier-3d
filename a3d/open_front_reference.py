@@ -357,20 +357,28 @@ def render_open_front_reference(profile, report, *, max_output_bytes):
             ' stroke-dasharray="5 4"' if dashed else '')+' points="'+' '.join(f'{x:.4f},{y:.4f}' for x, y in points)+'"/>'
     for index, row in enumerate(report['sections']):
         left = 25+index*395; body = row['body_section_curve_cm']; guide = row['guide_body_frame_polyline_cm']
+        # Anatomy sections with this exact source identity represent a selected
+        # closed mesh/plane loop; their cyclic array omits a repeated endpoint.
+        section = profile['landmarks'].get(row['body_landmark'], {}).get('section', {})
+        cyclic = (section.get('status') == 'MEASURED' and section.get('confidence') == 'MEASURED_SECTION'
+                  and type(section.get('loop_count')) is int and type(section.get('excluded_loops')) is int
+                  and section['loop_count']-section['excluded_loops'] == 1
+                  and section.get('curve_cm') == body and digest(section) == row['body_section_sha256'])
+        display_body = body+[body[0]] if cyclic and body[0] != body[-1] else body
         points = body+guide
         xmin, xmax = min(p[0] for p in points), max(p[0] for p in points)
         ymin, ymax = min(p[1] for p in points), max(p[1] for p in points)
-        scale = min(320/max(xmax-xmin, 1e-9), 260/max(ymax-ymin, 1e-9))
+        scale = min(320/max(xmax-xmin, 1e-9), 215/max(ymax-ymin, 1e-9))
         def project(point):
             return (left+180+(point[0]-(xmin+xmax)/2)*scale,
-                    235-(point[1]-(ymin+ymax)/2)*scale)
+                    257.5-(point[1]-(ymin+ymax)/2)*scale)
         parts += [f'<text x="{left}" y="94" font-size="18">{esc(row["body_landmark"])}</text>',
                   f'<text x="{left}" y="115" font-size="13">Coupe horizontale réelle — avant vers le haut</text>',
-                  poly([project(p) for p in body], '#64748b'), poly([project(p) for p in guide], '#0369a1', 3)]
+                  poly([project(p) for p in display_body], '#64748b'), poly([project(p) for p in guide], '#0369a1', 3)]
         for side, endpoint in row['endpoints'].items():
             x, y = project(endpoint['body_frame_cm'])
             parts += [f'<circle cx="{x:.4f}" cy="{y:.4f}" r="4" fill="#0369a1"/>',
-                      f'<text x="{x+7:.4f}" y="{y-7:.4f}" font-size="12">{esc(side)}</text>']
+                      f'<text x="{x+7:.4f}" y="{max(150., min(380., y-7)):.4f}" font-size="12">{esc(side)}</text>']
         labels = [f'Matière : {row["material_width_cm"]:.2f} cm',
                   f'Projection droite : {row["projected_right_span_cm"]:.2f} cm',
                   f'Distance endpoints : {row["endpoint_distance_cm"]:.2f} cm',

@@ -306,6 +306,34 @@ class OpenFrontReference(unittest.TestCase):
             self.assertEqual(digest(report), snapshot)
         self.assertEqual(original['report_sha256'], digest({k: v for k, v in original.items() if k != 'report_sha256'}))
 
+    def test_svg_closes_verified_cyclic_body_sections_without_changing_report(self):
+        inputs, options = fixture()
+        for landmark in inputs[1]['landmarks'].values():
+            section = landmark['section']; section['curve_cm'].pop()
+            section.update(confidence='MEASURED_SECTION', loop_count=1, excluded_loops=0)
+        refresh(inputs); report = prepare_open_front_reference(*inputs, **options)
+        before = digest([inputs[1], report]); seal = report['report_sha256']
+        tree = ET.fromstring(render_open_front_reference(inputs[1], report, max_output_bytes=100000))
+        ns = {'s': 'http://www.w3.org/2000/svg'}
+        outlines = [node for node in tree.findall('.//s:polyline', ns) if node.attrib['stroke'] == '#64748b'][:3]
+        self.assertEqual(len(outlines), 3)
+        for node in outlines:
+            points = [[float(value) for value in p.split(',')] for p in node.attrib['points'].split()]
+            self.assertEqual(points[0], points[-1]); self.assertEqual(len(points), 5)
+        self.assertEqual(report['report_sha256'], seal); self.assertEqual(digest([inputs[1], report]), before)
+
+    def test_svg_does_not_close_unverified_open_body_polyline(self):
+        inputs, options = fixture()
+        for landmark in inputs[1]['landmarks'].values():
+            landmark['section']['curve_cm'].pop()
+        refresh(inputs); report = prepare_open_front_reference(*inputs, **options)
+        tree = ET.fromstring(render_open_front_reference(inputs[1], report, max_output_bytes=100000))
+        ns = {'s': 'http://www.w3.org/2000/svg'}
+        outlines = [node for node in tree.findall('.//s:polyline', ns) if node.attrib['stroke'] == '#64748b'][:3]
+        for node in outlines:
+            points = node.attrib['points'].split(); self.assertEqual(len(points), 4)
+            self.assertNotEqual(points[0], points[-1])
+
 
 if __name__ == '__main__':
     unittest.main()
