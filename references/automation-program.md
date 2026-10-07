@@ -64,6 +64,18 @@ qualifie le diagnostic réel, pas la taille, les épaules ou le fitting.
 La qualification intégrée et le prochain build local de ce rôle restent
 à préparer. Aucun nouveau patron n'est adopté et aucune simulation n'est lancée.
 
+La revue indépendante détecte puis ferme deux défauts de la première version
+du service : périmètre de dossier de l'intention et recontrôle des gates du
+profil sans décision optionnelle. Les empreintes des services et schémas sont
+maintenant journalisées et recontrôlées. Les 83 tests ciblés incluant la
+distribution des mannequins passent sous les deux Python. Le rapport réel
+réexécuté `patronage-runtime-review-v5/` conserve les huit trajets manquants,
+la revue canonique et la réconciliation de périmètre requises, sans transfert
+de décision. La première suite intégrée du commit `2dab52b` conserve son
+échec de fixture packaging (profil agent absent de la copie de test) ; cette
+fixture est corrigée et les TOML locaux non autorisés restent exclus. Cette
+première qualification n'est pas présentée comme PASS.
+
 La restauration et l'inspection réussies sous 0506 restent des preuves natives
 de la scène contenant le corps seul ; elles n'admettent pas la correction 0507.
 Le code intégré historique exporté au

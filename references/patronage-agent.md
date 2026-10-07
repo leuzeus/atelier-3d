@@ -53,6 +53,13 @@ entre pièces ni n'adoptent une variante. Aucun calcul manuel de tableau n'est
 nécessaire. Les références sont vérifiées avant et après ; aucun nouvel état
 de gate ni scène n'est créé.
 
+Une intention provenant d'un autre dossier reste une proposition diagnostique,
+avec périmètre à réconcilier, même si sa décision originale est revue. Elle
+ne devient pas une intention canonique du dossier courant. Les revues de fitting
+sont relues à chaque frontière, y compris sans décision numérique optionnelle.
+L'outil journalise et recontrôle les sources Python de `a3d/` et les contrats
+JSON de `schemas/` pendant le calcul.
+
 `refresh_body_regions=true` peut remesurer les sections obliques source dans de
 nouveaux fichiers, après vérification des références originales et de leur
 origine corporelle native. Si elles sont périmées, l'outil produit un supplément

@@ -10,6 +10,7 @@ from tests.test_garment_fit import fixture
 
 def design(spec, measured=36., target=4.):
     return {'status': 'NUMERIC_EASE_DESIGN_INTENT_APPROVED', 'approved': True,
+        'dossier_ref': copy.deepcopy(spec['dossier_ref']),
         'body_ref': copy.deepcopy(spec['body_ref']), 'component_ids': copy.deepcopy(spec['component_ids']),
         'classification': copy.deepcopy(spec['classification']),
         'targets': [{'body_landmark': 'chest', 'body_girth_cm': measured,
@@ -126,7 +127,7 @@ class Patronage(Case):
             row['homology_source_ref'] = source; row['ease']['source_ref'] = source
         atomic_json(self.root/'fit.json', spec)
         if with_decision: atomic_json(self.root/'decision.json', design(spec))
-        return SimpleNamespace(root=self.root), compiled, body, spec
+        return SimpleNamespace(root=self.root, state=lambda: {'gates': {}}), compiled, body, spec
 
     def _run(self, project, decision=None, output='preparation/review-v1', refresh=False):
         return prepare_project_patronage_review(project, 'source.json', 'compile-spec.json',
@@ -237,3 +238,44 @@ class Patronage(Case):
         self.assertEqual(report['status'], 'PATRONAGE_REVIEW_REQUIRED')
         self.assertTrue(report['canonical_numeric_review_required'])
         self.assertEqual(report['acceptance'], 'NOT_GRANTED')
+
+    def test_other_dossier_intention_is_only_a_diagnostic_proposal(self):
+        compiled, body, spec = fixture(); decision = design(spec)
+        decision['dossier_ref'] = {'path':'other.json', 'sha256':'f'*64}
+        report = compare_patronage(compiled, body, spec, decision)
+        self.assertFalse(report['design_scope_matches'])
+        self.assertEqual(report['status'], 'PATRONAGE_REVIEW_REQUIRED')
+        self.assertEqual(report['design_intent_review'], 'REQUIRES_DESIGN_SCOPE_RECONCILIATION')
+
+    def test_canonical_decision_for_other_dossier_does_not_review_this_report(self):
+        project, compiled, body, spec = self._project_inputs(with_decision=True)
+        atomic_json(self.root/'other.json', {})
+        decision = read_json(self.root/'decision.json')
+        decision['dossier_ref'] = {'path':'other.json', 'sha256':sha(self.root/'other.json')}
+        atomic_json(self.root/'decision.json', decision)
+        with (patch('a3d.production_dossier.compile_project_dossier', return_value=compiled),
+              patch('a3d.patronage.assess_compiled_fit', return_value=assess_source_fit(compiled, body, spec)),
+              patch('a3d.pattern_ease_variant._review', return_value=[{'decision_id':1}])):
+            report = self._run(project, decision='decision.json')
+        self.assertEqual(report['design_intent_review'], 'REQUIRES_DESIGN_SCOPE_RECONCILIATION')
+        self.assertTrue(report['canonical_numeric_review_required'])
+        self.assertEqual(report['acceptance'], 'NOT_GRANTED')
+
+    def test_profile_only_gate_revocation_during_calculation_refuses_output(self):
+        project, compiled, body, spec = self._project_inputs()
+        authenticated = assess_source_fit(compiled, body, spec)
+        state = {'value': [{'numeric_ease': {'status':'REVIEWED'}}]}
+        authenticated.update(intent_review='REVIEWED_EXACT_NUMERIC_INTENT', human_reviews=copy.deepcopy(state['value']))
+        real_compare = compare_patronage
+        def compare(*args):
+            report = real_compare(*args)
+            state['value'] = [{'numeric_ease': {'status':'PENDING'}}]
+            return report
+        with (patch('a3d.production_dossier.compile_project_dossier', return_value=compiled),
+              patch('a3d.patronage.assess_compiled_fit', return_value=authenticated),
+              patch('a3d.garment_fit._fit_reviews', side_effect=lambda *args: copy.deepcopy(state['value'])) as reviews,
+              patch('a3d.patronage.compare_patronage', side_effect=compare),
+              self.assertRaisesRegex(StudioError, 'canonical fitting review changed')):
+            self._run(project)
+        self.assertGreaterEqual(reviews.call_count, 3)
+        self.assertFalse((self.root/'preparation/review-v1').exists())

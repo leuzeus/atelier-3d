@@ -3,7 +3,7 @@ import copy
 import hashlib
 import json
 
-from .core import StudioError, atomic_json, contract, digest, inside, sha
+from .core import ROOT, StudioError, atomic_json, contract, digest, inside, sha
 from .garment_fit import assess_source_fit, assess_compiled_fit, _girth, _region_girth, _finite
 
 
@@ -94,6 +94,14 @@ def compare_patronage(compiled, body, specification, decision=None, body_regions
         'fitting': 'NOT_EXECUTED', 'acceptance': 'NOT_GRANTED',
         'next': ('Prepare missing measurement paths/body sections or numeric intentions; review their correspondence'
                  if incomplete else 'Review measured deltas and prepare a separate bounded pattern variant when needed; verify spatial coverage')}
+    result['design_scope_matches'] = decision is None or decision.get('dossier_ref') == specification['dossier_ref']
+    if not result['design_scope_matches']:
+        # Arithmetic can show a proposed intention, but cannot claim it was
+        # reviewed for another dossier, even with identical body/classification.
+        result['design_intent_review'] = 'REQUIRES_DESIGN_SCOPE_RECONCILIATION'
+        result['canonical_numeric_review_required'] = True
+        if result['status'] != 'PATRONAGE_DATA_INCOMPLETE': result['status'] = 'PATRONAGE_REVIEW_REQUIRED'
+        result['next'] += '; reconcile the numerical design scope with the exact current dossier'
     if digest([compiled, body, specification, decision, body_regions]) != before:
         raise StudioError('Patronage calculation changed its inputs')
     return result
@@ -126,6 +134,7 @@ def prepare_project_patronage_review(project, dossier_path, specification_path,
     from .body_region_sections import body_region_descriptor, measure_project_body_regions
     from .pattern_ease_variant import _review
     from .production_dossier import compile_project_dossier
+    from .garment_fit import _fit_reviews
     if not output_dir.startswith('preparation/') or output_dir == 'preparation/':
         raise StudioError('Patronage review needs a fresh directory under preparation/')
     output = inside(project.root, output_dir, must_exist=False)
@@ -134,6 +143,11 @@ def prepare_project_patronage_review(project, dossier_path, specification_path,
     if type(refresh_body_regions) is not bool:
         raise StudioError('Patronage region refresh requires an explicit boolean')
     implementation_sha256 = sha(__file__)
+    def code_sources():
+        return {path.relative_to(ROOT).as_posix(): sha(path)
+                for directory, pattern in (('a3d', '*.py'), ('schemas', '*.json'))
+                for path in sorted((ROOT/directory).rglob(pattern))}
+    implementation_sources = code_sources()
     refs = []
     def snapshot(path):
         file = inside(project.root, path); raw = file.read_bytes()
@@ -172,6 +186,10 @@ def prepare_project_patronage_review(project, dossier_path, specification_path,
                 supplement_ref=supplement_ref, fit_profile_ref=copy.deepcopy(refs[-1]),
                 old_supplement_digest=digest(old_supplement), new_supplement_digest=digest(expected))
     authenticated = assess_compiled_fit(project, compiled, actual_fit_path)
+    current_fit_ref = {'path': actual_fit_path, 'sha256': sha(inside(project.root, actual_fit_path))}
+    fit_reviews = _fit_reviews(project, specification, current_fit_ref)
+    if authenticated.get('human_reviews', fit_reviews) != fit_reviews:
+        raise StudioError('Patronage fitting reviews changed after authentication')
     body = snapshot(specification['body_ref']['path'])
     if refs[-1] != specification['body_ref']:
         raise StudioError('Patronage body file changed')
@@ -184,7 +202,11 @@ def prepare_project_patronage_review(project, dossier_path, specification_path,
     def review_state():
         if decision is None: return None
         try:
-            return {'status': 'REVIEWED_EXACT_NUMERIC_INTENT',
+            return {'status': ('REVIEWED_EXACT_NUMERIC_INTENT'
+                    if decision.get('dossier_ref') == specification['dossier_ref']
+                    else 'REQUIRES_DESIGN_SCOPE_RECONCILIATION'),
+                    'decision_dossier_ref': decision.get('dossier_ref'),
+                    'current_dossier_ref': specification['dossier_ref'],
                     'reviews': _review(project, decision, decision_ref)}
         except StudioError as error:
             # Diagnostic arithmetic may expose an unrecorded/revoked intention;
@@ -207,11 +229,15 @@ def prepare_project_patronage_review(project, dossier_path, specification_path,
     def verify():
         if sha(__file__) != implementation_sha256:
             raise StudioError('Patronage implementation changed during calculation')
+        if code_sources() != implementation_sources:
+            raise StudioError('Patronage service code or schemas changed during calculation')
         for ref in refs:
             if sha(inside(project.root, ref['path'])) != ref['sha256']:
                 raise StudioError('Patronage source or evidence changed: '+ref['path'])
         if review_state() != reviews:
             raise StudioError('Patronage canonical numerical review changed')
+        if _fit_reviews(project, specification, current_fit_ref) != fit_reviews:
+            raise StudioError('Patronage canonical fitting review changed')
     verify()
     report = compare_patronage(compiled, body, specification, decision, regions)
     for key in ('status', 'checks', 'diagnostics', 'compiled_dossier_sha256', 'body_profile_sha256', 'specification_sha256'):
@@ -228,6 +254,8 @@ def prepare_project_patronage_review(project, dossier_path, specification_path,
         report['next'] += '; reconcile the exact existing human numerical decision before adopting any pattern variant'
     report['body_region_refresh'] = refresh
     report['code_sha256'] = implementation_sha256
+    report['service_code_sources'] = implementation_sources
+    report['service_code_sha256'] = digest(implementation_sources)
     verify()
     if not output_created:
         output.mkdir(parents=True, exist_ok=False)

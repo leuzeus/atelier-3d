@@ -57,5 +57,52 @@
     "No new pattern adoption, Blender execution, Cloth, fitting or artistic acceptance"
   ],
   "integrated_validation": "PENDING",
-  "installation": "CURRENT_0602_HAS_NO_NEW_PATRONAGE_CAPABILITY"
+  "installation": "CURRENT_0602_HAS_NO_NEW_PATRONAGE_CAPABILITY",
+  "reviewed_revision": {
+    "independent_review": "NO_REMAINING_CONFIRMED_P2",
+    "issues_closed": [
+      "foreign dossier intention stays diagnostic and requires scope reconciliation",
+      "profile-only fitting review revocation detected at every boundary",
+      "source fingerprints cover a3d/**/*.py and schemas/**/*.json"
+    ],
+    "targeted": {
+      "tests": 83,
+      "python311": {
+        "seconds": 8.553,
+        "sha256": "1bda4d17a7d57a870e3bffbaf5131415b545a6f515efb427e421e2b76aa2a369"
+      },
+      "python313": {
+        "seconds": 10.073,
+        "sha256": "66232d6de2473946192855009dc4ff3318713f193f22b038b78349b2aa29b115"
+      }
+    },
+    "real": {
+      "status": "PATRONAGE_DATA_INCOMPLETE",
+      "rows": 8,
+      "source_paths_present": 0,
+      "design_scope_matches": false,
+      "code_sha256": "8b609e000d2449abec3626a882949ecb428216d56e7d74a8a89f5b712cff1eff",
+      "service_code_sha256": "6fa7e69e3b7257c949fc413e43327cd72355e1e72a6d9b12436d92f44d77cf15",
+      "native_execution": false,
+      "report": {
+        "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-reviewed-design-main-v1/execution-project/preparation/patronage-runtime-review-v5/report.json",
+        "sha256": "22c3e8ba46d10d938457dba1c9a8649b8de2a95b7aaff06f1f357c5e37f4cd7c"
+      },
+      "result": {
+        "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-patronage-code-validation-v1/real-project-result-reviewed.json",
+        "sha256": "861b4f7458ea362542409683903bed0926b6920cc9c331715241a2449eeca28d"
+      }
+    },
+    "first_integrated": {
+      "commit": "2dab52b449ba0b67fdf55ac099f6ef0052bd036a",
+      "status": "FAIL",
+      "tests": 1772,
+      "errors": 1,
+      "reason": "Mannequin packaging fixture omitted new required agent template",
+      "log_sha256": "ceb72efd5883425d0b00405da510267fe7a38d1f8046875b5af6c0ef7a046d13",
+      "source_unchanged": true,
+      "contracts": "PASS_14",
+      "new_candidate_qualification": "PENDING"
+    }
+  }
 }

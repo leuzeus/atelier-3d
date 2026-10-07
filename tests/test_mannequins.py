@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from a3d.core import ROOT, StudioError, atomic_json, read_json, sha
 from a3d.mannequins import catalog, distribution_files, select_catalog_body
-from scripts.package_plugin import DIRS, ROOT_FILES, inventory
+from scripts.package_plugin import AGENT_PROFILES, DIRS, ROOT_FILES, inventory
 from tests.test_core import Case
 
 
@@ -17,6 +17,9 @@ class Mannequins(Case):
         for name in DIRS:
             (self.root/name).mkdir(exist_ok=True)
         shutil.copytree(ROOT/'assets/mannequins', self.root/'assets/mannequins')
+        for name in AGENT_PROFILES:
+            (self.root/name).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(ROOT/name, self.root/name)
         return self.root/'assets/mannequins/catalog.json'
 
     def test_catalog_has_real_sources_dimensions_readiness_and_no_sex_inference(self):
@@ -36,11 +39,13 @@ class Mannequins(Case):
         (self.root/'assets/mannequins/personal.blend').write_bytes(b'private scene')
         (self.root/'tests/private.blend').write_bytes(b'private scene')
         (self.root/'config.local.json').write_text('private config')
+        (self.root/'templates/agents/local-private.toml').write_text('private configuration')
         included = inventory(self.root)
         blends = [p for p in included if p.suffix == '.blend']
         self.assertEqual(set(blends), set(distribution_files(self.root)))
         self.assertEqual(len(blends), 2)
         self.assertFalse(any(p.name == 'config.local.json' for p in included))
+        self.assertFalse(any(p.name == 'local-private.toml' for p in included))
 
     def test_byte_mutation_notice_mutation_license_and_personal_scene_are_refused(self):
         path = self.fixture(); original = read_json(path)
