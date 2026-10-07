@@ -2383,3 +2383,47 @@ exécutée. Aucun candidat textile n'est encore créé dans la scène ; placemen
 Cloth, drapé, fitting, mouvement et revue visuelle restent non qualifiés.
 
 [Preuves du raccordement actuel](automation-native-binding-v3-evidence-20261007.json).
+
+### 2026-10-07 — Candidat manteau refusé, options techniques omises localisées
+
+L'utilisateur autorise la tentative `attempt.a574c5e5ea1d4f71af5f9980d82f0f08`
+du run `run.cece5c47060e4336b10132c0e921732c`. Blender 0702 termine en
+317,904 s, au-delà du délai de transport MCP de 300 s. Le reçu natif et ses
+artefacts sont conservés ; `studio_next_run_step` réconcilie le résultat réel
+sans nouveau calcul et rend `NEEDS_CORRECTION`. Une lecture ultérieure de scène
+par le MCP répond normalement : le timeout ne démontre pas une déconnexion.
+
+Le candidat `attempt-d575d9b6d2f640ebb27c42b11b7c067f` comprend les dix pièces
+du manteau, douze vues techniques et son master Blender. Ses pixels de face
+montrent encore le corps traversant le haut du torse et les épaules. L'inventaire
+du candidat donne manteau 10/10, ensemble textile 10/15 ; ceinture, deux pièces
+de capuche et deux empiècements restent absents, de même que la boucle rigide.
+La présence du candidat ne qualifie ni le montage actif ni le fitting.
+
+La récupération métrique s'arrête avant toute itération sur un angle REST dérivé
+de 4,057463° (manche droite, face 27284), inférieur au seuil conservé de 15°.
+La source approuvée n'est pas déclarée trop petite par ce résultat. L'enquête
+en lecture seule relève que les nouveaux fichiers générés avaient omis deux
+options techniques déjà disponibles : le profil synchronisé et la réserve des
+stops anatomiques. Le coordinateur avait repris la préparation standard sans
+réappliquer ces contrôles ; le moteur avait donc utilisé son parcours historique.
+L'augmentation seule des passes ne résoudrait pas le rollback non monotone.
+
+Un helper générique prépare `preparation/coat-recovery-current-source-v1/`
+via `a3d.meshing_profile.prepare_recovery_profile` sur le package canonique
+actuel. Il rétablit `SYNCHRONIZED_GRADED_V1`, son raffinement à 15° / huit passes /
+4 000 insertions, le budget de 90 s et 30 000 sommets, puis la réserve commune
+selon l'axe haut du corps exact déjà accepté. Les patrons, le mannequin, les
+seuils et les autres entrées de placement restent inchangés. Aucun ancien mesh
+n'est recopié ; les mappings natifs devront être reconstruits. Cette proposition
+passe les contrats existants mais reste non exécutée et non qualifiée en natif.
+Le code installé suffit ; aucune nouvelle installation ne découle de ce correctif
+d'entrées, et les PASS logiciels historiques ne sont pas transférés à ce candidat.
+
+La restauration du checkpoint `pre-6bdb7fb5fde4409fab63d6a8d216faee.blend`
+est préparée par le MCP et son autorisation distincte est demandée. Elle n'est
+pas exécutée. Les sources de coupe déjà approuvées conservent leur décision ;
+la revue visuelle du volume, la couverture, les couches, l'enfilage, Cloth,
+le drapé, le fitting et les mouvements restent à réaliser.
+
+[Preuves et fichiers actuels](automation-coat-candidate-v1-evidence-20261007.json).
