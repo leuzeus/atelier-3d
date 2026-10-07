@@ -56,8 +56,9 @@
     "Template presence does not automatically register a native Codex subagent",
     "No new pattern adoption, Blender execution, Cloth, fitting or artistic acceptance"
   ],
-  "integrated_validation": "PENDING",
-  "installation": "CURRENT_0602_HAS_NO_NEW_PATRONAGE_CAPABILITY",
+  "integrated_validation": "PASS_1775_TESTS_AND_14_CONTRACTS_ON_E0655965",
+  "installation": "EXACT_NATIVE_0603_INSTALLED_RUNTIME_RESTART_REQUIRED",
+  "qualified_revision_evidence": "automation-patronage-installation-evidence-20261006.json",
   "reviewed_revision": {
     "independent_review": "NO_REMAINING_CONFIRMED_P2",
     "issues_closed": [
@@ -102,7 +103,7 @@
       "log_sha256": "ceb72efd5883425d0b00405da510267fe7a38d1f8046875b5af6c0ef7a046d13",
       "source_unchanged": true,
       "contracts": "PASS_14",
-      "new_candidate_qualification": "PENDING"
+      "new_candidate_qualification": "SUPERSEDED_BY_PASS_E0655965_NOT_BY_THIS_FAILED_EXPORT"
     }
   }
 }

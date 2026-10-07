@@ -4,7 +4,19 @@ Plan approuvé par l'utilisateur le 3 octobre 2026. Base : branche
 `codex/garment-automation-v1`, commit `8dfeac77c3b1bc3b11a4dbe6401eb2b1bb0a54ea`,
 version 0.7.0-rc.2. Le programme est suivi ici pendant l'implémentation.
 
-**État courant du 6 octobre :** 0601 a réellement été chargé puis la
+**État courant du 6 octobre — patronage :** le commit de code `e0655965`
+passe 1 775 tests, aucun SKIP, en 236,815 s et 14 contrats sur export immuable.
+Le build local distinct `0.7.0-rc.2.dev.2026100603` est installé par le
+gestionnaire natif : 657 fichiers source et 658 fichiers installés vérifiés.
+Le skill Patronage et son outil de comparaison sont distribués ; le profil
+Codex fourni reste un template, sans enregistrement automatique dans l'hôte.
+Le serveur du chat utilise encore le processus 0602 et ne peut plus lire son
+cache remplacé : redémarrage et vérification de 0603 requis. Le diagnostic
+réel V5 contient huit mesures corporelles et zéro des huit trajets source
+requis ; aucune nouvelle coupe ni exécution native n'est produite.
+[Qualification et installation du patronage](automation-patronage-installation-evidence-20261006.json).
+
+**Observation native conservée du 6 octobre :** 0601 a réellement été chargé puis la
 préparation exacte autorisée a été exécutée une seule fois. Le maillage des
 dix pièces du manteau termine dans son budget de 90 s, angle REST minimal
 15,014°. La recherche de réserve des épaules progresse puis épuise ses 60 s ;
@@ -61,8 +73,9 @@ humaine existante reste à réconcilier dans le registre du projet d'exécution,
 sans demander de nouveau les mêmes chiffres. Le rapport se trouve dans
 `execution-project/preparation/patronage-runtime-review-v4/`. Cette preuve
 qualifie le diagnostic réel, pas la taille, les épaules ou le fitting.
-La qualification intégrée et le prochain build local de ce rôle restent
-à préparer. Aucun nouveau patron n'est adopté et aucune simulation n'est lancée.
+Cette première révision est historique. Le rapport V5 et la qualification du
+commit `e0655965` ci-dessus la remplacent pour le code livré. Aucun nouveau
+patron n'est adopté et aucune simulation n'est lancée.
 
 La revue indépendante détecte puis ferme deux défauts de la première version
 du service : périmètre de dossier de l'intention et recontrôle des gates du
@@ -75,6 +88,14 @@ de décision. La première suite intégrée du commit `2dab52b` conserve son
 échec de fixture packaging (profil agent absent de la copie de test) ; cette
 fixture est corrigée et les TOML locaux non autorisés restent exclus. Cette
 première qualification n'est pas présentée comme PASS.
+
+La qualification suivante du commit `e0655965` passe les 1 775 tests et les
+14 contrats sur un nouvel export intact. Le build local 0603 conserve ses
+preuves exactes et les stages précédents sur G:. L'installation sur disque
+ne vaut pas un runtime rechargé. Après redémarrage, reprendre la réconciliation
+de l'intention déjà décidée et les chemins de mesure du torse, des épaules et
+des autres pièces. Leur préparation doit utiliser des services génériques ;
+les données d'homologie et les futures variantes restent à examiner.
 
 La restauration et l'inspection réussies sous 0506 restent des preuves natives
 de la scène contenant le corps seul ; elles n'admettent pas la correction 0507.
