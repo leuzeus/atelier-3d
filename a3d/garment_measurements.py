@@ -805,9 +805,11 @@ def propose_compiled_measurement_paths(project,compiled,guides_path,fit_path,bod
                 raise StudioError('Canonical source UV writer inputs lack exact native receipt ownership')
             recipe=contract('sewing-recipe',load(replay_refs[0]))
             spec=contract('pattern-preparation',load(replay_refs[1]));dossier=load(replay_refs[2])
-            if spec.get('meshing_profile'):
-                raise StudioError('Canonical source UV replay needs the exact synchronized writer profile; unsupported replay is refused')
-            storage=replay_source_boundary_storage(source_data[cid],recipe,payload,spec['regular_mesh'],dossier)
+            replay_options={}
+            if 'meshing_profile'in spec:
+                replay_options={'meshing_profile':spec['meshing_profile'],
+                                'meshing_observation':result.get('meshing_observation')}
+            storage=replay_source_boundary_storage(source_data[cid],recipe,payload,spec['regular_mesh'],dossier,**replay_options)
             payload['_canonical_source_uv_storage']=storage
             storage_input_refs.extend(replay_refs)
             mesh_origins[cid]['source_uv_storage']={key:storage[key]for key in ('status','storage_mode','content_sha256')}

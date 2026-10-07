@@ -13,12 +13,59 @@ from .sewing import chain_lengths, edge_chain, sample_chain
 
 
 def _boundary_observation(native):
-    return {'component_id':native.get('component_id'),'panels':native.get('panels'),
+    observation={'component_id':native.get('component_id'),'panels':native.get('panels'),
         'seams':native.get('seams'),'boundary_uv':{pid:[native['rest_cm'][i][:2]for i in panel['boundary']]
             for pid,panel in native['panels'].items()}}
+    if 'meshing_profile'in native:
+        observation.update(meshing_profile=native['meshing_profile'],meshing_work=native.get('meshing_work'))
+    return observation
 
 
-def replay_source_boundary_storage(data,recipe,native,regular_mesh,dossier=None):
+def _synchronized_replay_envelope(data,recipe,native,regular_mesh,profile,observation):
+    from .meshing_profile import create_envelope,verify_inventory,profile_binding
+    envelope=create_envelope(profile,data['component_id'],recipe,regular_mesh)
+    verify_inventory(profile,data,envelope)
+    binding=profile_binding(profile);work=native.get('meshing_work')
+    if (native.get('meshing_profile')!=binding or not isinstance(observation,dict)
+        or observation.get('status')!='COMPLETED_MESH_BUILD_ONLY' or observation.get('qualification')!='NONE'
+        or observation.get('profile')!=binding or observation.get('work')!=work or not isinstance(work,dict)):
+        raise StudioError('Canonical source UV replay needs the exact completed synchronized writer observation')
+    counts=work.get('work');limits=dict(envelope.limits)
+    owner_work=work.get('owner_work');controls=work.get('material_controls')
+    times=[work.get(key)for key in ('start','last_checkpoint','absolute_deadline')]
+    if (set(work)!={'version','component_id','limits','owner_limits','work','owner_work','material_controls',
+                   'costs_refunded','clock_scope','start','absolute_deadline','last_checkpoint','last_phase',
+                   'qualification','admission'}
+        or work.get('version')!=1 or work.get('component_id')!=data['component_id']
+        or work.get('limits')!=limits or work.get('owner_limits')!=dict(envelope.owner_limits)
+        or work.get('qualification')!='NONE' or work.get('admission')!='NONE'
+        or work.get('costs_refunded')is not False
+        or work.get('clock_scope')!='SINGLE_CALLER_LOCAL_PROCESS_NO_CROSS_PROCESS_DEADLINE'
+        or work.get('last_phase')!='envelope_snapshot'
+        or not isinstance(counts,dict) or set(counts)!=set(limits)
+        or any(type(counts[key])is not int or not 0<=counts[key]<=limit for key,limit in limits.items())
+        or any(not _number(value)for value in times)
+        or not times[0]<=times[1]<times[2]<=times[0]+profile['budgets']['max_seconds']):
+        raise StudioError('Canonical source UV replay synchronized writer work is incomplete or outside its declared limits')
+    owners=set(data['pieces'])|{seam['id']for seam in data['seams']}
+    if (not isinstance(owner_work,dict)or not set(owner_work)<=owners
+        or any(not isinstance(row,dict)or not set(row)<=set(limits)
+               or any(type(value)is not int or not 0<=value<=min(limits[key],envelope.owner_limits.get(key,limits[key]))
+                      for key,value in row.items())for row in owner_work.values())
+        or any(sum(row.get(key,0)for row in owner_work.values())>counts[key]for key in limits)
+        or not isinstance(controls,dict)or set(controls)!=set(data['pieces'])
+        or any(type(value)is not int or not 0<=value<=owner_work.get(pid,{}).get('attempted_insertions',0)
+               for pid,value in controls.items())
+        or sum(controls.values())>counts['attempted_insertions']):
+        raise StudioError('Canonical source UV replay synchronized writer owner work or material controls are invalid')
+    if len(native['rest_cm'])>min(recipe['mesh']['max_vertices'],regular_mesh['max_vertices']):
+        raise StudioError('Canonical source UV replay exceeds the synchronized native vertex budget')
+    envelope.check('source_uv_replay_writer_binding')
+    return envelope
+
+
+def replay_source_boundary_storage(data,recipe,native,regular_mesh,dossier=None,*,
+                                   meshing_profile=None,meshing_observation=None):
     """Authenticate source anchors against the existing writer's exact sampler.
 
     Source/package and native-receipt authentication belongs to the wrapper.
@@ -31,20 +78,32 @@ def replay_source_boundary_storage(data,recipe,native,regular_mesh,dossier=None)
             or native.get('source_garment_sha256')!=digest(data)
             or native.get('regular_preparation_mesh')!=regular_mesh):
             raise StudioError('Canonical source UV replay differs from its source, component or regular mesh')
-        if native.get('meshing_profile'):
-            raise StudioError('Canonical source UV replay needs the exact synchronized writer profile; unsupported replay is refused')
+        synchronized=meshing_profile is not None
+        if synchronized!=('meshing_profile'in native)or(not synchronized and meshing_observation is not None):
+            raise StudioError('Canonical source UV replay needs its exact synchronized writer profile and observation')
         fields={key:recipe[key]for key in ('component_id','mesh','placements','seams','pins')}
         for key in ('experimental_prefit','trial_mode'):
             if key in recipe:fields[key]=recipe[key]
         if 'trial_mode'in recipe:fields['trial_pieces']=recipe['trial_pieces']
         if native.get('recipe_mesh_sha256')!=digest(fields):
             raise StudioError('Canonical source UV replay recipe differs from the native writer recipe')
-        before=digest([data,recipe,native,regular_mesh,dossier])
-        parts,seams,_=prepare_regular_boundaries(data,recipe,regular_mesh,dossier)
+        envelope=(_synchronized_replay_envelope(data,recipe,native,regular_mesh,meshing_profile,meshing_observation)
+                  if synchronized else None)
+        def check(phase):
+            if envelope is not None:envelope.check('source_uv_replay:'+phase)
+        check('before_input_hash')
+        inputs=[data,recipe,native,regular_mesh,dossier]
+        if synchronized:inputs.extend((meshing_profile,meshing_observation))
+        before=digest(inputs);check('after_input_hash')
+        if synchronized:
+            parts,seams,_=prepare_regular_boundaries(data,recipe,regular_mesh,dossier,
+                meshing_envelope=envelope,transport_2d=_binary32)
+        else:parts,seams,_=prepare_regular_boundaries(data,recipe,regular_mesh,dossier)
         if set(parts)!=set(native['panels']) or set(seams)!=set(native['seams']):
             raise StudioError('Canonical source UV replay piece or seam inventory differs')
         boundaries={};all_double=True;all_binary32=True;owned=set()
         for pid,row in parts.items():
+            check('panel:'+pid)
             panel,indices,boundary=_panel(native,pid,len(native['rest_cm']))
             if owned & indices:raise StudioError('Canonical source UV replay panel ownership overlaps')
             owned.update(indices)
@@ -58,6 +117,7 @@ def replay_source_boundary_storage(data,recipe,native,regular_mesh,dossier=None)
                 raise StudioError('Canonical source UV replay named-edge ownership or order differs: '+pid)
             bindings={}
             for index,key,point,provenance in zip(mapping,row['keys'],row['polygon'],row['sample_provenance']):
+                if envelope is not None:envelope.reserve('work_steps',1,owner=pid)
                 actual=native['rest_cm'][index]
                 if not isinstance(actual,list)or len(actual)!=3 or any(not _number(x)for x in actual):
                     raise StudioError('Canonical source UV replay needs finite actual rest coordinates')
@@ -69,15 +129,19 @@ def replay_source_boundary_storage(data,recipe,native,regular_mesh,dossier=None)
         if owned!=set(range(len(native['rest_cm']))):
             raise StudioError('Canonical source UV replay has unowned native rest vertices')
         for sid,row in seams.items():
+            check('seam:'+sid)
             actual=native['seams'][sid]
             pairs=[[native['panels'][row['piece_a']]['boundary'][a],
                     native['panels'][row['piece_b']]['boundary'][b]]for a,b in zip(row['a'],row['b'])]
             if (any(actual.get(key)!=row[key]for key in ('piece_a','piece_b','kind','parameters'))
                 or actual.get('pairs')!=pairs):
                 raise StudioError('Canonical source UV replay seam parameters, relation or pairing differ: '+sid)
+        if synchronized and not all_double:
+            raise StudioError('Synchronized writer source UV differs from exact restored source-double boundary storage')
         if not all_double and not all_binary32:
             raise StudioError('Native source UV differs from both exact source-double and exact binary32 writer storage')
-        if digest([data,recipe,native,regular_mesh,dossier])!=before:
+        check('before_preservation_hash')
+        if digest(inputs)!=before:
             raise StudioError('Canonical source UV replay changed its exact inputs')
         result={'version':1,'status':'CANONICAL_SOURCE_BOUNDARY_REPLAY_CHECKED',
             'storage_mode':'SOURCE_DOUBLE'if all_double else'BINARY32',
@@ -85,7 +149,17 @@ def replay_source_boundary_storage(data,recipe,native,regular_mesh,dossier=None)
             'regular_mesh_sha256':digest(regular_mesh),'boundaries':boundaries,
             'native_boundary_observation_sha256':digest(_boundary_observation(native)),
             'qualification':'NONE','native_mesh_changed':False,'source_cut_changed':False}
+        if synchronized:
+            from .boundary_gradation import _shape
+            result['meshing_profile']=copy.deepcopy(native['meshing_profile'])
+            result['native_meshing_observation_sha256']=digest(meshing_observation)
+            # Include the final digest's storage before returning this additional output.
+            result['content_sha256']='0'*64
+            nodes,size=_shape(result,lambda:check('output_shape'))
+            envelope.reserve('output_nodes',nodes);envelope.reserve('output_bytes',size)
+            result.pop('content_sha256')
         result['content_sha256']=digest(result)
+        check('terminal')
         return result
     except StudioError:raise
     except (KeyError,TypeError,IndexError,ValueError,OverflowError) as error:
@@ -113,9 +187,12 @@ def _number(value):
 
 def _binary32(point):
     try:
-        return [struct.unpack('f', struct.pack('f', value))[0] for value in point]
+        result=[struct.unpack('f', struct.pack('f', value))[0] for value in point]
     except (OverflowError, struct.error) as error:
         raise StudioError('Source sewing UV exceeds the native binary32 domain') from error
+    if any(not math.isfinite(value)for value in result):
+        raise StudioError('Source sewing UV exceeds the native binary32 domain')
+    return result
 
 
 def _index_list(value, count, label, *, unique=True):

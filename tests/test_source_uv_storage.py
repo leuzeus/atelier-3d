@@ -47,6 +47,15 @@ def fixture(binary32=False,vertex_alias=False,multiple=False):
 
 
 class SourceUVStorage(unittest.TestCase):
+    def test_explicit_absent_profile_keeps_historical_replay_identical(self):
+        data,recipe,native,regular,_=fixture()
+        original=replay_source_boundary_storage(data,recipe,native,regular)
+        explicit=replay_source_boundary_storage(data,recipe,native,regular,
+            meshing_profile=None,meshing_observation=None)
+        self.assertEqual(original,explicit)
+        self.assertNotIn('meshing_profile',original)
+        self.assertNotIn('native_meshing_observation_sha256',original)
+
     def test_exact_double_and_binary32_replay_preserves_inputs_and_full_boundary(self):
         for binary32 in (False,True):
             data,recipe,native,regular,links=fixture(binary32)
