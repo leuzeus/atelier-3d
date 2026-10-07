@@ -2538,3 +2538,24 @@ non qualifiés ; aucune nouvelle revue de coupe ne porte sur ce seul budget.
 
 [Budgets de maillage](meshing-time-budgets.md) et
 [preuves natives et proposition séparée](automation-meshing-budget-expansion-evidence-20261007.json).
+
+### 2026-10-07 — Contrat de durée qualifié et build local 0704 installé
+
+Le commit `1a83c1c44afe6a2697671a53bdbc6d956c656d2d` est qualifié sur export
+immuable : 1 935 tests en 376,955 s, zéro SKIP et 14 contrats PASS. Le build
+local `0.7.0-rc.2.dev.2026100704` est préparé depuis cet export et installé
+par le mécanisme natif Codex. Ses 697 fichiers correspondent au stage exact ;
+les stages antérieurs sur G: et les refus natifs sont conservés. La confiance
+des hooks n'est pas automatisée et aucune préversion finale n'est publiée.
+
+Le MCP encore connecté conserve le chemin 0703 et signale l'absence de son
+ancien `config.schema.json` après remplacement du cache. La relance de
+l'application puis la vérification effective de 0704 restent requises.
+La scène restaurée `working-recovered-dad90f3411ba48928ac8b356b432500b`
+contient le mannequin accepté seul. Les entrées séparées à 300 s sont prêtes,
+mais leur run n'est pas enregistré et leur opération n'est pas exécutée.
+Leur autorisation exacte devra déclarer ce budget et la distinction avec le
+timeout de transport. Aucune nouvelle coupe, anatomie, géométrie admise,
+simulation ou revue artistique n'est déduite de cette qualification logicielle.
+
+[Qualification exacte et installation 0704](automation-meshing-time-installation-evidence-20261007.json).

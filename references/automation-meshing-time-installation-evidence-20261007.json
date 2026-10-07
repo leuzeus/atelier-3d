@@ -1,0 +1,87 @@
+{
+  "date": "2026-10-07",
+  "scope": "MESHING_TIME_RESOURCE_CONTRACT_SOFTWARE_AND_LOCAL_INSTALLATION",
+  "code_commit": "1a83c1c44afe6a2697671a53bdbc6d956c656d2d",
+  "software": {
+    "status": "PASS",
+    "tests": 1935,
+    "skipped": 0,
+    "test_seconds": 376.955,
+    "contracts": 14,
+    "source_unchanged": true,
+    "native_execution": false,
+    "validation_ref": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-meshing-time-full-validation-v1/validation.json",
+      "sha256": "fa4b18f5ed9f3c00fd7a89b313c33c18ec1c596b7c83ce1d959dc01902829d54"
+    }
+  },
+  "installation": {
+    "status": "PASS_EXACT_NATIVE_INSTALLED_COPY",
+    "version": "0.7.0-rc.2.dev.2026100704",
+    "files": 697,
+    "method": "NATIVE_CODEX_PLUGIN_ADD",
+    "preparation_ref": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-meshing-time-local-build-v1/installation-preparation.json",
+      "sha256": "b8e4ef8194d7bce53942cb1aa75fa6ff8e6289e59743e037318b49496f5623a1"
+    },
+    "verification_ref": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-meshing-time-local-build-v1/installation-verification.json",
+      "sha256": "6e7253added81734b2e3dbea0b00c055afc32a6400ff0bcf44996b3418e09b81"
+    },
+    "previous_stages_on_g_preserved": true,
+    "hook_trust_scripted": false
+  },
+  "connected_runtime": {
+    "status": "STALE_0703_SCHEMA_PATH_MISSING",
+    "doctor_response": {
+      "content": [
+        {
+          "type": "text",
+          "text": "[Errno 2] No such file or directory: 'C:\\\\Users\\\\leuz9\\\\.codex\\\\plugins\\\\cache\\\\atelier-3d-local\\\\atelier-3d\\\\0.7.0-rc.2.dev.2026100703\\\\schemas\\\\config.schema.json'"
+        }
+      ],
+      "isError": true
+    },
+    "verification_after_restart": "REQUIRED"
+  },
+  "native_input_variant": {
+    "directory": "preparation/coat-meshing-budget-300-v1",
+    "mesh_seconds": 300,
+    "maximum_supported_mesh_seconds": 600,
+    "default_seconds": 90,
+    "recipe_bytes_changed": false,
+    "body_changed": false,
+    "patterns_changed": false,
+    "quality_gates_changed": false,
+    "other_budgets_changed": false,
+    "run_sha256": "5cebbded0fcbb1cbc5a252ad8ac1b3cadff40604ea993ef778ca8fc4e6868a58",
+    "registered": false,
+    "executed": false
+  },
+  "transport": {
+    "timeout_seconds": 300,
+    "extended": false,
+    "next_after_uncertainty": "RECONCILE_ACTUAL_NATIVE_RECEIPT_NO_AUTOMATIC_REPLAY"
+  },
+  "native_restore": {
+    "status": "PASS",
+    "working_ref": {
+      "path": ".a3d/blender/working-recovered-dad90f3411ba48928ac8b356b432500b.blend",
+      "sha256": "c3022d051bd18abf91e5214ed533b2a0dc94dd18e1a6683c6cdd688e9c1fa5bc"
+    },
+    "qualification": "NOT_GRANTED"
+  },
+  "garment": {
+    "stage": "RECONSTRUCTING",
+    "current_scene": "ACCEPTED_BODY_ONLY",
+    "textiles_present": 0,
+    "textiles_expected": 15,
+    "rigid_buckle": "ABSENT",
+    "new_cutting_review": "NOT_REQUIRED_UNCHANGED_SOURCES",
+    "native_mesh_300_seconds": "NOT_EXECUTED",
+    "fitting": "NOT_QUALIFIED",
+    "artist_review": "NOT_EXECUTED",
+    "final_release": "NOT_PUBLISHED"
+  },
+  "qualification": "NONE"
+}
