@@ -62,11 +62,19 @@ def improve_interior(vertices,faces,boundary_indices,*,target_angle,min_edge,max
         raise StudioError('Interior refinement cannot repair inconsistent source mesh topology')
     boundary={i for edge,uses in edges.items() if len(uses)==1 for i in edge}
     fixed.update(boundary)
-    def state(ids):
+    # Only committed coordinates enter this call-local cache. Trial metrics
+    # remain isolated, and an accepted move invalidates all incident faces.
+    # Keep every cooperative checkpoint, even when arithmetic is reused.
+    committed_metrics={}
+    def state(ids, *, committed=True):
         rows=[]
         for f in ids:
             checkpoint('metric_face')
-            rows.append(triangle_metrics([points[i] for i in faces[f]]))
+            row=committed_metrics.get(f) if committed else None
+            if row is None:
+                row=triangle_metrics([points[i] for i in faces[f]])
+                if committed:committed_metrics[f]=row
+            rows.append(row)
         return (min((r['min_angle_degrees'] for r in rows),default=180.),
             min((min(r['edges_cm']) for r in rows),default=math.inf),
             sum(max(0.,target_angle-r['min_angle_degrees'])**2 for r in rows),
@@ -108,17 +116,21 @@ def improve_interior(vertices,faces,boundary_indices,*,target_angle,min_edge,max
                     positive=all(orientation[f]*((points[b][0]-points[a][0])*(points[c][1]-points[a][1])-
                         (points[b][1]-points[a][1])*(points[c][0]-points[a][0]))>1e-12
                         for f in incident[i] for a,b,c in (faces[f],))
-                    new=state(incident[i]) if positive else None
+                    new=state(incident[i],committed=False) if positive else None
                     if (new and new[0]>=old[0]-1e-7 and new[1]>=min(min_edge,old[1])-1e-9
                             and new[2]<old[2]-1e-9
                             and all(after>=min(target_angle,before)-1e-7 for before,after in zip(old[3],new[3]))
                             and (best_state is None or (-new[0],new[2])<(-best_state[0],best_state[2]))):
                         best=trial;best_state=new
                     points[i]=origin
-            if best is not None:points[i]=best;changed=True;moves+=1
+            if best is not None:
+                points[i]=best;changed=True;moves+=1
+                for f in incident[i]:committed_metrics.pop(f,None)
         completed=iteration+1
         if not changed:break
-    after=state(range(len(faces)))
+    # Terminal measurements always reread actual coordinates. The cache only
+    # avoids repeated work while proposing moves, never replaces the audit.
+    after=state(range(len(faces)),committed=False)
     report={'algorithm':'BOUNDED_INTERIOR_LOCAL_ANGLE_IMPROVEMENT_V2',
         'passes':completed,'accepted_vertex_moves':moves,'boundary_anchors_changed':False,
         'boundary_vertex_count':len(boundary),'fixed_vertex_count':len(fixed),

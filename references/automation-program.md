@@ -2427,3 +2427,41 @@ la revue visuelle du volume, la couverture, les couches, l'enfilage, Cloth,
 le drapé, le fitting et les mouvements restent à réaliser.
 
 [Preuves et fichiers actuels](automation-coat-candidate-v1-evidence-20261007.json).
+
+### 2026-10-07 — Reprise native, budget synchronisé et cache de métriques
+
+Après le redémarrage demandé, les MCP répondent sous 0702. La restauration
+explicitement autorisée du checkpoint `pre-6bdb7fb5fde4409fab63d6a8d216faee`
+réouvre le mannequin accepté seul ; le candidat refusé et ses preuves restent
+conservés. Le nouvel essai autorisé utilise les entrées corrigées dans
+`preparation/coat-recovery-current-source-v1/`, run
+`run.bdfb2820c4eb4406b8e7f2f4ebb07c7e`, tentative
+`attempt.34f9928c75464e109d0be1a26d52eef1`.
+
+L'opération termine en 194,317 s ; le budget de maillage propre à cette opération
+atteint 90 s sur `interior_refinement:vertex`, pièce `back-right`. Le maillage
+synchronisé n'a pas de résultat terminal complet et aucun candidat textile
+n'est créé : manteau 0/10, textile global 0/15, boucle absente. Le run est
+réconcilié `NEEDS_CORRECTION`. Cette phase d'arrêt ne constitue pas un profil
+CPU et ne prouve pas que le seul raffinement consomme tout le budget. La
+restauration du checkpoint de cet essai est préparée, non exécutée.
+
+Une optimisation générique de `a3d.mesh_refinement` réutilise les métriques des
+faces aux coordonnées engagées. Les essais restent non cachés ; chaque mouvement
+accepté invalide ses faces incidentes, et l'audit terminal relit les coordonnées
+réelles. Les checkpoints, les seuils, l'ordre numérique, les contours, la
+topologie et les limites de déplacement restent conservés. Les 76 tests ciblés
+passent. Le rejeu portable des dix pièces d'un maillage UV historique conserve
+exactement coordonnées, rapports et séquences de checkpoints. Une revue
+indépendante ne relève aucun P1/P2 et rapporte 32 comparaisons différentielles
+supplémentaires, avec des sommets intérieurs voisins, deux orientations et
+279 mouvements acceptés.
+
+Le correctif est dans les sources, pas dans le plugin installé. Son gain
+mesuré concerne le raffinement portable historique ; la durée du parcours
+natif complet et le fitting restent non qualifiés. Aucun Cloth, drapé,
+mouvement ou revue artistique n'est admis. Les patrons inchangés ne demandent
+pas de nouvelle décision de coupe ; les vues du futur candidat resteront à
+présenter à l'utilisateur.
+
+[Résultat natif et portée de l'optimisation](automation-coat-budget-performance-evidence-20261007.json).
