@@ -2324,3 +2324,32 @@ entre les tours n'est pas établi ; aucun redémarrage supplémentaire n'est req
 maintenant. Vérifier à l'avenir le runtime et les outils après installation avant
 de demander une action utilisateur. Ce constat ne qualifie pas un hot reload
 universel ni le vêtement. L'adoption réelle reste à exécuter par le nouvel outil.
+
+### 2026-10-07 — Variante approuvée adoptée et préparation publique régénérée
+
+Le MCP connecté 0702 exécute réellement l'adoption canonique de la variante
+de col V3 approuvée : cinq pièces changées, manches précédemment acceptées
+conservées, corps inchangé et epoch `19ca533d1eabf37df59bf934d22925001a464a71bddc7cba9e3b6366a2a6f640`.
+Les cinq runs historiques dépendants sont invalidés pour la reprise ; leurs
+tentatives et reçus restent conservés. Le pipeline courant est admis sans issue.
+
+Un helper générique prépare de nouveaux fichiers de métadonnées en ne changeant
+que les références du dossier et des packages ; les rôles, couches, repères,
+corps et paramètres numériques sont conservés. Le compilateur public produit
+ensuite `preparation/public-source-preparation-v4/` : 15 pièces textiles,
+une pièce rigide et templates sourcés. Le guide manteau demeure
+`NEEDS_CORRECTION / PARTIAL_SOURCE_RELATION_ALIGNMENT` ; cette sortie ne
+constitue pas une admission de placement. Le profil de fitting doit être
+remesuré sur les nouvelles sources ; `FIT_METADATA_REQUIRED` reste explicite.
+
+La lecture native constate seulement le mannequin accepté dans Blender. Le
+code exact de `bind_component_preparations` est préparé en 0702 vers le dossier
+neuf `preparation/native-source-bindings-v3/`, puis conservé sous
+`preparation/native-binding-request-v3/`. Son exécution attend la réponse à la
+demande d'autorisation dédiée. Aucun placement, Cloth, drapé ou fitting n'est
+exécuté par cette adoption ou cette compilation ; aucune nouvelle revue de
+coupe n'est nécessaire pour réutiliser les fichiers inchangés déjà approuvés.
+La revue visuelle du futur candidat, la couverture du torse et les contrôles
+des épaules restent à effectuer.
+
+[Preuves actuelles](automation-source-adoption-live-evidence-20261007.json).
