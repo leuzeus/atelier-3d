@@ -447,10 +447,6 @@
     "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\variants\\source-row-grading-v3\\proposal.json",
     "sha256": "54537d847b8e14b4c65cd6077ac34b415ad30906995cf8550c19aea9522299a0"
   },
-  "native_probe_receipt": {
-    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-source-row-real-variant-probe-v3\\receipt.json",
-    "sha256": "daad8b1156cd0f712f92c51bb3c1ef2f654e05f4379f27bd5fd96952dbd97cbc"
-  },
   "review_closeups": {
     "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\source-row-pattern-review-v1\\closeups.png",
     "sha256": "22776309d7c63d75f3b6bf79ca7f43179db2a5935621c07a2657ae35c12715d5"
@@ -1098,5 +1094,9 @@
     "targeted_tests_pass": 57,
     "scope": "PORTABLE_KERNEL_POLICY_INTENT_ONLY",
     "reviewer": "/root/implement_textile"
+  },
+  "source_probe_receipt": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-source-row-real-variant-probe-v3\\receipt.json",
+    "sha256": "daad8b1156cd0f712f92c51bb3c1ef2f654e05f4379f27bd5fd96952dbd97cbc"
   }
 }

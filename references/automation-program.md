@@ -29,6 +29,15 @@ artistique n'est exécuté par ce lot.
 [Qualification et installation 0701](automation-patronage-source-installation-evidence-20261007.json).
 [Variante d'encolure prête pour revue](automation-collar-pattern-variant-evidence-20261007.json).
 
+**Qualification du logiciel de patronage :** le candidat `17e19ea` passe
+1 900 tests, aucun SKIP, en 275,089 s et les 14 contrats sur export Git
+immuable. La revue indépendante ferme les défauts de budget terminal,
+compatibilité des interfaces, révocation des décisions et déduplication des
+trajets. La barrière géométrique et les contrôles de coutures restent actifs.
+Les ajouts postérieurs à ce candidat sont documentaires. Cette qualification
+ne vaut ni revue humaine des cinq patrons ni fitting du vêtement complet.
+[Reçu exact du logiciel](automation-collar-software-validation-20261007.json).
+
 **Installation précédente vérifiée — patronage 0603 :** le commit de code `e0655965`
 passe 1 775 tests, aucun SKIP, en 236,815 s et 14 contrats sur export immuable.
 Le build local distinct `0.7.0-rc.2.dev.2026100603` est installé par le
