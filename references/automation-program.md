@@ -2998,3 +2998,22 @@ Le prototype de changement du seul repère d'épaule n'a pas été intégré : s
 trois variantes restent refusées et masquées en haut du torse. La propagation
 des bords col–torse est étudiée séparément, sans moyenne implicite des coins
 ni nouvelle attache anatomique admise.
+
+### 2026-10-08 — Contraintes observées, provenance et partie ouverte des membres
+
+Le replay réel de 43013b7, qualifié par 2 173 tests et quatorze contrats,
+ne progresse que d'un pas matière. Le correctif f85080c conserve les contraintes
+réellement violées entre itérations et en recalcule les gradients : six pas
+sur huit sont acceptés, mais le gain spatial reste d'environ 0,02 mm et le
+placement demeure refusé. Le commit d0f0d7d conserve les incidences corporelles
+vérifiées jusque-là perdues par le normaliseur, sans sélectionner une nappe.
+Voir [les preuves et limites](automation-active-constraints-20261008.md).
+
+Le POC des membres distingue une erreur de cage d'une erreur de carte : la
+tête ouverte était refermée comme un tube. Le nouveau mode explicite
+`SOURCE_SEWN_DOMAIN_V1` dérive le domaine fermé de la couture réelle et prolonge
+sa section terminale. Le patron et l'attache sont conservés ; le tube et les
+contacts restent non admis. Les captures avant/après ont été affichées.
+Le logiciel intégré, son replay et ses preuves doivent être qualifiés avant
+toute installation ou opération native ; aucune preuve des coupons ou des
+seules têtes de manches ne devient une acceptation du vêtement complet.

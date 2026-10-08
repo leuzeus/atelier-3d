@@ -409,7 +409,13 @@ def _paired_limb_boundary(data, pid):
     return seam, records, spans
 
 
-def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8, anatomical_references=None):
+def validate_limb_parameterization(value):
+    if type(value) is not str or value not in ('SOURCE_ROW_CIRCUMFERENCE_V1', 'SOURCE_SEWN_DOMAIN_V1'):
+        raise StudioError('Unsupported limb surface parameterization')
+
+
+def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8, anatomical_references=None,
+                       limb_parameterization='SOURCE_ROW_CIRCUMFERENCE_V1', source_cage_budgets=None):
     """Seam-bound auxiliary cages for explicit sleeves and cuffs.
 
     Actual source faces receive uniform integer barycentric refinement. Their
@@ -418,6 +424,14 @@ def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8, anatomi
     boundary polyline. This is a geometric starting hypothesis: neither metric
     admission, anatomical homology, skin contact nor fitting is granted here.
     """
+    validate_limb_parameterization(limb_parameterization)
+    sewn_domain_mode = limb_parameterization == 'SOURCE_SEWN_DOMAIN_V1'
+    if sewn_domain_mode:
+        import time
+        from .source_seam_coupling import _Budget
+        from .limb_surface_sampling import compile_sewn_domain, sewn_domain_interval, sewn_domain_cage
+        source_budget = _Budget(source_cage_budgets, time.monotonic)
+        source_points = source_faces = 0
     _profile(profile)
     if set(semantics) != set(data['pieces']):
         raise StudioError('Limb cages require exact source semantic coverage')
@@ -433,8 +447,18 @@ def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8, anatomi
         if side not in (('left', 'right', 'center') if attachment else ('left', 'right')) or semantic.get('longitudinal_uv_axis') != 'v':
             raise StudioError('Limb cage requires an explicit anatomical side and longitudinal material V axis: '+pid)
         piece = data['pieces'][pid]
-        uv, triangles = _source_limb_mesh(piece, cage_subdivisions)
+        if sewn_domain_mode:
+            source_budget.check()
+            source_points += len(piece.get('vertices', [])); source_faces += len(piece.get('faces', []))
+            if (source_points > source_budget.limits['max_source_points']
+                    or source_faces > source_budget.limits['max_source_triangles']):
+                raise StudioError('Sewn limb source point or triangle budget exhausted')
+            _source_limb_mesh(piece, 1)
+        else:
+            uv, triangles = _source_limb_mesh(piece, cage_subdivisions)
         seam, pairs, spans = _paired_limb_boundary(data, pid)
+        if sewn_domain_mode:
+            sewn_domain = compile_sewn_domain(piece, pairs, pid, source_budget)
         axis_names = policy.get('axis_landmarks') if attachment else ['shoulder.'+side, 'wrist.'+side]
         if (not isinstance(axis_names, list) or len(axis_names) != 2 or
                 any(not isinstance(name, str) or not name for name in axis_names)):
@@ -477,22 +501,34 @@ def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8, anatomi
             anchor = shoulder if cuff_policy is None else wrist
             return [anchor[i]+downward[i]*offset for i in range(3)]
 
-        target = []
-        for u, v in uv:
-            lo, hi = _source_span(piece, v); width = hi-lo; point = center(v)
-            if width > 1e-10:
-                if not lo-1e-8 <= u <= hi+1e-8:
-                    raise StudioError('Limb cage control lies outside the actual horizontal material interval')
-                phase = (u-lo)/width
-                # Both actual sewing sides use exactly the same phase, avoiding
-                # sin(2*pi) round-off in a supposedly common source target.
-                angle = 0. if abs(u-lo) <= 1e-9 or abs(u-hi) <= 1e-9 else 2*math.pi*phase
+        source_ref = 'measured-body-profile:'+profile['cache_key']+'; source-piece:'+pid+\
+                     '; source-seam:'+seam['id']+'; SOURCE_PAIRED_LIMB_CAGE'
+        if sewn_domain_mode:
+            def evaluate(query):
+                u, v = query; lo, hi = sewn_domain_interval(piece, sewn_domain, query, pid, source_budget)
+                width = hi-lo; point = center(v)
+                angle = 0. if abs(u-lo) <= 1e-9 or abs(u-hi) <= 1e-9 else 2*math.pi*(u-lo)/width
                 radius = width/(2*math.pi)
                 point = [point[i]+radius*(-math.cos(angle)*transverse[i]+math.sin(angle)*tangent[i]) for i in range(3)]
-            target.append(_world(profile, point))
-        frame = {'source_ref': 'measured-body-profile:'+profile['cache_key']+'; source-piece:'+pid+
-                 '; source-seam:'+seam['id']+'; SOURCE_PAIRED_LIMB_CAGE',
-                 'uv_cm': uv, 'target_cm': target, 'triangles': triangles}
+                return _world(profile, point)
+            frame, sampling_report = sewn_domain_cage(piece, sewn_domain, pid, cage_subdivisions,
+                                                       evaluate, source_ref, source_budget)
+            uv = frame['uv_cm']; triangles = frame['triangles']; target = frame['target_cm']
+        else:
+            target = []
+            for u, v in uv:
+                lo, hi = _source_span(piece, v); width = hi-lo; point = center(v)
+                if width > 1e-10:
+                    if not lo-1e-8 <= u <= hi+1e-8:
+                        raise StudioError('Limb cage control lies outside the actual horizontal material interval')
+                    phase = (u-lo)/width
+                    # Both actual sewing sides use exactly the same phase, avoiding
+                    # sin(2*pi) round-off in a supposedly common source target.
+                    angle = 0. if abs(u-lo) <= 1e-9 or abs(u-hi) <= 1e-9 else 2*math.pi*phase
+                    radius = width/(2*math.pi)
+                    point = [point[i]+radius*(-math.cos(angle)*transverse[i]+math.sin(angle)*tangent[i]) for i in range(3)]
+                target.append(_world(profile, point))
+            frame = {'source_ref': source_ref, 'uv_cm': uv, 'target_cm': target, 'triangles': triangles}
         attachment_evidence = None
         if attachment:
             from .anatomical_placement import sample_path
@@ -505,7 +541,11 @@ def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8, anatomi
             if math.hypot(*offset) > 100.:
                 raise StudioError('Limb attachment offset exceeds its bounded placement domain')
             expected = _world(profile, [a+b for a, b in zip(target_body, offset)])
-            observed = _cage_point(frame, _compile_cage(frame, pid), anchor_uv, pid)[0]
+            if sewn_domain_mode:
+                compiled_cage = _compile_cage(frame, pid, check_time=source_budget.check)
+                observed = _cage_point(frame, compiled_cage, anchor_uv, pid, check_time=source_budget.check)[0]
+            else:
+                observed = _cage_point(frame, _compile_cage(frame, pid), anchor_uv, pid)[0]
             translation = [b-a for a, b in zip(observed, expected)]
             frame['target_cm'] = [[a+b for a, b in zip(point, translation)] for point in target]
             frame['source_ref'] += '; measured-attachment:'+reference['path_sha256']
@@ -515,6 +555,14 @@ def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8, anatomi
                 'translation_world_cm': translation, 'axis_landmarks': list(axis_names),
                 'axis_landmarks_usage': 'ORIENTATION_ONLY_NOT_SKIN_ATTACHMENT',
                 'attachment_offset_body_cm': offset, 'material_metric_changed_by_attachment': False}
+            if sewn_domain_mode:
+                residual = math.dist(_cage_point(frame, compiled_cage, anchor_uv, pid,
+                                                check_time=source_budget.check)[0], expected)
+                if residual > 1e-8:
+                    raise StudioError('Sewn limb cage failed the unchanged anatomical anchor: '+pid)
+                attachment_evidence.update(placement_recomputed_on_new_cage=True,
+                    unplaced_anchor_world_cm=observed, actual_anchor_residual_cm=residual,
+                    anatomical_target_changed=False, native_contact_check='REQUIRED')
         frames[pid] = frame
         evidence.append({'piece': pid, 'role': semantic['role'], 'side': side,
             'guide_kind': 'SOURCE_PAIRED_LIMB_CAGE', 'source_contour_sha256': digest(piece),
@@ -525,10 +573,12 @@ def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8, anatomi
             'source_guide_axis_cm': [_world(profile, center(v_lo)), _world(profile, center(v_hi))],
             **({'declared_axis_length_cm': math.dist(shoulder, wrist)} if attachment else
                {'shoulder_wrist_axis_length_cm': math.dist(shoulder, wrist)}),
-            'cage_refinement': {'method': 'UNIFORM_BARYCENTRIC_EXISTING_SOURCE_FACES',
+            'cage_refinement': sampling_report if sewn_domain_mode else {'method': 'UNIFORM_BARYCENTRIC_EXISTING_SOURCE_FACES',
                 'subdivisions': cage_subdivisions, 'source_faces': len(piece['faces']),
                 'control_vertices': len(uv), 'control_triangles': len(triangles),
                 'source_topology_changed': False},
+            **({'limb_parameterization': limb_parameterization, 'source_sewn_domain': sewn_domain}
+               if sewn_domain_mode else {}),
             **({'source_longitudinal_anchor_policy': cuff_policy} if cuff_policy else {}),
             **({'anatomical_attachment': attachment_evidence} if attachment_evidence else {}),
             'source_uv_scaled': False, 'body_rescaling': False,
@@ -536,10 +586,18 @@ def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8, anatomi
             'native_contact_check': 'REQUIRED', 'fitting': 'NOT_EXECUTED'})
     if digest([data, semantics, profile]) != original:
         raise StudioError('Limb cages changed immutable source, semantics or body')
+    if sewn_domain_mode:
+        source_budget.check()
+        if not frames:
+            raise StudioError('Source sewn limb parameters need an actual limb guide family')
     return {'status': 'PARTIAL_GUIDES' if pending else 'LIMB_GUIDES_PREPARED',
         'panels': frames, 'pending_pieces': pending, 'evidence': evidence,
         'source_sha256': digest(data), 'semantics_sha256': digest(semantics),
         'profile_sha256': digest(profile), 'profile_cache_key': profile['cache_key'],
+        **({'limb_parameterization': limb_parameterization, 'source_cage_budget': {
+                'limits': dict(source_budget.limits), 'controls': source_budget.controls,
+                'triangles': source_budget.triangles, 'source_points': source_points,
+                'source_triangles': source_faces}} if sewn_domain_mode else {}),
         'source_mutated': False, 'source_uv_scaled': False, 'qualification': 'NONE',
         'simulation': 'NOT_EXECUTED', 'fitting': 'NOT_EXECUTED'}
 
@@ -825,7 +883,8 @@ def validate_section_parameterization(value, upper_blend, surface_sections):
 
 def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sections=True, skin_sections=None,
                           *,source_seam_coupling=None,seam_recipe=None, anatomical_references=None,
-                          anatomical_geometry=None, section_parameterization='POLYLINE_ARCLENGTH_V1'):
+                          anatomical_geometry=None, section_parameterization='POLYLINE_ARCLENGTH_V1',
+                          limb_parameterization='SOURCE_ROW_CIRCUMFERENCE_V1'):
     """Dispatch complete source coverage; return pending unsupported roles.
 
     A missing declaration or impossible native guide produces an actionable
@@ -833,6 +892,7 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
     pending pieces keep the result inadmissible for whole-garment preparation.
     """
     validate_section_parameterization(section_parameterization, upper_blend, surface_sections)
+    validate_limb_parameterization(limb_parameterization)
     _profile(profile)
     if skin_sections and (skin_sections.get('profile_sha256')!=digest(profile) or
             skin_sections.get('sections_sha256')!=digest({k:v for k,v in skin_sections.items() if k!='sections_sha256'}) or
@@ -852,6 +912,12 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
             (references or {}).get('pieces', {}).get(pid, {}).get('guide_kind') is None
             for pid, row in semantics.items()):
         raise StudioError('Source material torso parameters need an actual torso guide family')
+    if limb_parameterization == 'SOURCE_SEWN_DOMAIN_V1' and not any(
+            (references or {}).get('pieces', {}).get(pid, {}).get('guide_kind') == 'LIMB_ATTACHMENT_V1'
+            or (row.get('role') in ('sleeve', 'cuff') and
+                (references or {}).get('pieces', {}).get(pid, {}).get('guide_kind') is None)
+            for pid, row in semantics.items()):
+        raise StudioError('Source sewn limb parameters need an actual limb guide family')
     frames = {}; reports = []; diagnostics = []
     families = [('torso', {'front', 'back', 'side'}, torso_volume_frames),
                 ('limb', {'sleeve', 'cuff'}, limb_volume_frames),
@@ -876,7 +942,10 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
                             synchronize_boundaries=not (source_seam_coupling or {}).get('strategy') == 'COUPLED_REST_METRIC_V2',
                             **({'section_parameterization':section_parameterization}
                                if section_parameterization != 'POLYLINE_ARCLENGTH_V1' else {}))
-                      if name == 'torso' else build(data, family_semantics, profile, anatomical_references=references)
+                      if name == 'torso' else build(data, family_semantics, profile, anatomical_references=references,
+                          **({'limb_parameterization': limb_parameterization,
+                              'source_cage_budgets': source_seam_coupling['budgets'] if source_seam_coupling else None}
+                             if name == 'limb' and limb_parameterization == 'SOURCE_SEWN_DOMAIN_V1' else {}))
                       if name in ('limb', 'specialised') else build(data, family_semantics, profile))
         except StudioError as error:
             diagnostics.append({'family': name, 'code': 'GUIDE_INPUT_OR_CAPABILITY_MISSING', 'message': str(error),

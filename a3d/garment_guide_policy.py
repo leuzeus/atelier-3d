@@ -11,12 +11,13 @@ import json
 import zipfile
 
 from .core import ROOT,StudioError,contract,digest,inside,read_json,sha
-from .garment_guides import garment_volume_frames,measured_native_skin_sections,validate_section_parameterization
+from .garment_guides import (garment_volume_frames,measured_native_skin_sections,
+                            validate_section_parameterization,validate_limb_parameterization)
 from .anatomical_guide_inputs import check_anatomical_inputs, project_anatomical_references
 
 
 CODE_SOURCES=('garment_guide_policy','anatomical_guide_inputs','anatomical_placement','regional_surface_guides','assembly_relaxation','active_metric_constraints',
-    'dressing_derivation','body_region_sections','garment_guides','semantic_placement','torso_sections','guide_cage_sampling','material_section_sampling',
+    'dressing_derivation','body_region_sections','garment_guides','limb_surface_sampling','semantic_placement','torso_sections','guide_cage_sampling','material_section_sampling',
     'source_seam_coupling','guide_stage_metrics','cloth_metrics','rigid_guide_alignment','shoulder_guides','preform_volume','pattern_assembly','anatomy_profile','shoulder_surface','head_surface','contact_geometry','sewing','core')
 
 
@@ -45,10 +46,11 @@ def prepare_guide_policy(compiled,profile,geometry,geometry_ref,component_parame
     reference_components=check_anatomical_inputs(component_parameters,anatomical_references)
     components={}
     for cid,parameters in sorted(component_parameters.items()):
-        if set(parameters)-{'source_seam_coupling','anatomical_references_ref','section_parameterization'}!={'upper_blend','surface_sections','skin_section_heights_cm'}:
+        if set(parameters)-{'source_seam_coupling','anatomical_references_ref','section_parameterization','limb_parameterization'}!={'upper_blend','surface_sections','skin_section_heights_cm'}:
             raise StudioError('Guide parameters must explicitly declare blend, measured surfaces and skin heights without overrides')
         validate_section_parameterization(parameters.get('section_parameterization','POLYLINE_ARCLENGTH_V1'),
             parameters['upper_blend'],parameters['surface_sections'])
+        validate_limb_parameterization(parameters.get('limb_parameterization','SOURCE_ROW_CIRCUMFERENCE_V1'))
         row={**copy.deepcopy(parameters),'package_source_ref':copy.deepcopy(owners[cid]['package_source_ref'])}
         if cid in selected:
             row['source_seam_recipe_sha256']=digest(source_seam_recipes[cid])
@@ -64,6 +66,7 @@ def prepare_guide_policy(compiled,profile,geometry,geometry_ref,component_parame
         components[cid]=row
     modern=bool(reference_components) or any(row.get('source_seam_coupling',{}).get('strategy')=='COUPLED_REST_METRIC_V2'
         or row.get('section_parameterization')=='SOURCE_MATERIAL_U_V1'
+        or row.get('limb_parameterization')=='SOURCE_SEWN_DOMAIN_V1'
         for row in component_parameters.values())
     policy={'version':2 if modern else 1,'generator':'GARMENT_VOLUME_FRAMES_V2' if modern else 'GARMENT_VOLUME_FRAMES_V1','compiled_sha256':digest(compiled),
         'dossier_ref':copy.deepcopy(compiled['source_ref']),
@@ -97,6 +100,7 @@ def reconstruct_guide_policy(compiled,profile,geometry,geometry_ref,source_data,
     reference_components=check_anatomical_inputs(policy['components'],anatomical_references)
     modern=bool(reference_components) or any(row.get('source_seam_coupling',{}).get('strategy')=='COUPLED_REST_METRIC_V2'
         or row.get('section_parameterization')=='SOURCE_MATERIAL_U_V1'
+        or row.get('limb_parameterization')=='SOURCE_SEWN_DOMAIN_V1'
         for row in policy['components'].values())
     if (policy['version']!=(2 if modern else 1) or
             policy['generator']!=('GARMENT_VOLUME_FRAMES_V2' if modern else 'GARMENT_VOLUME_FRAMES_V1')):
@@ -138,6 +142,7 @@ def reconstruct_guide_policy(compiled,profile,geometry,geometry_ref,source_data,
             surface_sections=row['surface_sections'],skin_sections=skin,
             source_seam_coupling=coupling,seam_recipe=recipe,
             **({'section_parameterization':row['section_parameterization']} if 'section_parameterization'in row else {}),
+            **({'limb_parameterization':row['limb_parameterization']} if 'limb_parameterization'in row else {}),
             **({'anatomical_references':anatomical_references[cid],
                 'anatomical_geometry':{'geometry':geometry,'triangles':anatomical_references[cid].get('triangles')}}
                if cid in reference_components else {}))

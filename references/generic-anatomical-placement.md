@@ -15,6 +15,7 @@ simulation, les contacts natifs et la revue du vêtement restent nécessaires.
 | Moyenne des seules frontières allongeant le col | `COUPLED_REST_METRIC_V2` corrige d’abord par translations, puis optimise ensemble les coutures et la métrique des triangles UV source | Conservation du meilleur candidat, extrema de déformation par pièce, limites de déplacement et stagnation ; aucun `READY` de placement émis par ce noyau |
 | Manches omises du groupe corrigé | `piece_scope: PERMANENT_COMPONENT` suit les relations permanentes, y compris vers les manches et manchettes | Aucun lien détachable ou de fermeture n’est transformé en couture permanente |
 | Attache anatomique déplacée après sa construction | Contraintes de points source UV, distinctes des ancrages numériques, pendant le couplage ; contrôle des réserves après celui-ci | Les contrôles de support peuvent être surcontraints ; une incompatibilité reste incomplète |
+| Tête ouverte de membre refermée comme une section tubulaire | `SOURCE_SEWN_DOMAIN_V1` dérive le domaine tubulaire de la couture longitudinale et prolonge sa section terminale sur la partie ouverte | Une seule couture unaire compatible ; le tube et les contacts peuvent rester refusés |
 | Embu perdu lors de la préparation | Recette source exacte transportée dans le rapport V2 et vérifiée avant génération des entrées natives | Aucun remplacement implicite par zéro ni modification de tolérance |
 
 ## Couverture du corps
@@ -60,6 +61,15 @@ du profil), `paths`, `pieces` et, pour les surfaces, `triangles_ref`. Chaque ent
 de `paths` référence un rapport sauvegardé avec `report_ref: {path, sha256}`,
 `path_id` et `region`. Le chargeur vérifie les fichiers, les budgets, les chemins
 internes au projet et les coordonnées contre la géométrie du corps.
+
+Après cette vérification géométrique, chaque trajet normalisé conserve
+`source_face_incidence` : faces incidentes aux arêtes ordonnées, régions
+correspondantes et identités du corps, de la pose et des étiquettes. Les listes
+sont copiées ; sans géométrie vérifiée, ce reçu est absent. Cette provenance
+permet de préparer une graine de correspondance. Elle ne sélectionne aucune
+nappe, ne définit pas de domaine de continuation et ne valide pas une nouvelle
+attache. La provenance native et la revue humaine restent authentifiées par
+l'appelant. Les coordonnées historiques du trajet ne changent pas.
 
 Les politiques de pièces sont explicites :
 
@@ -195,6 +205,40 @@ Les reçus distinguent projection refusée, absence de descente, dépassement
 d'une borne et pas accepté. Un pas accepté ne qualifie ni les contacts, ni
 le placement complet, ni Cloth ou le fitting. L'identité des cages lie également
 le code du noyau de projection et ses constantes, même si les cibles coïncident.
+
+## Domaine cousu des membres
+
+Le paramètre de composant `limb_parameterization` accepte
+`SOURCE_SEWN_DOMAIN_V1`. Son omission ou la valeur explicite
+`SOURCE_ROW_CIRCUMFERENCE_V1` conserve le calcul historique.
+
+Le nouveau mode exige les deux bords réels d'une couture permanente unaire,
+appariés au même V, monotones, de longueur et de partition compatibles. Le
+domaine tubulaire est leur intervalle V commun. À l'intérieur, le calcul
+conserve la loi des sections source. À l'extérieur, il prolonge le cylindre de
+la section terminale sans refermer la largeur locale de la partie ouverte sur
+un tour complet. Les coordonnées U du patron sont conservées, même pour une
+extension asymétrique. La continuité en position est assurée au raccord ; la
+continuité de dérivée ne l'est pas.
+
+Le mode inclut une partition des faces source aux changements V, avec calcul
+rationnel et un seul arrondi des nouvelles coordonnées. Les aires, frontières,
+propriétaires et contrôles source sont vérifiés par les validateurs existants.
+La résolution `cage_subdivisions` reste 8 dans le dispatcher, et peut être de
+2 à 16 dans le noyau. Elle subdivise ici les cellules partitionnées : son coût
+diffère du même nombre appliqué aux anciens triangles. Les membres partagent
+un budget borné, avec au plus 32 768 triangles par cage.
+
+Les domaines multiples, appariements obliques, largeurs terminales nulles et
+extensions sortant de l'intervalle U terminal sont refusés. Une extension
+conique, une main complète ou une topologie sans couture longitudinale
+compatible ne sont pas inférées. Le calcul dépend des relations source et des
+axes déclarés, sans nom de vêtement ou de pièce codé dans le noyau.
+
+Une attache anatomique existante peut nécessiter une nouvelle translation
+rigide de la cage. Cette translation est mesurée et enregistrée ; les anciens
+contacts ne sont pas réutilisés. La correction de la partie ouverte ne valide
+ni la métrique du tube, ni les contacts, ni le vêtement complet.
 
 ## Vérifications et portée
 
