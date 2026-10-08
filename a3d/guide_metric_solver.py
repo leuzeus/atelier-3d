@@ -271,7 +271,7 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         max_iterations=100,max_seconds=60.,max_displacement_cm=8.,max_step_cm=.5,
         cg_iterations=80,cg_tolerance=1e-5,stagnation_iterations=5,strain_weight=100.,protected_indices=(),
         seam_ids=(),max_initial_seam_gap_cm=None,fixed_stop_stretch_margin=0.,anchor_scope='per_piece',clock=time.monotonic,
-        displacement_reference=None,deadline=None,protected_stop_reference=None):
+        displacement_reference=None,deadline=None,protected_stop_reference=None,surface_constraints=None):
     """Recover only declared pieces and freeze actual source stops/pins.
 
     Each protected edge is ``{piece,edge}``; its existing first and last source
@@ -297,6 +297,9 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
     edges. The caller authenticates the preceding anchor/body measurement;
     this pure option grants no contact, body or garment admission.
     ``deadline`` is an absolute cooperative monotonic deadline shared by phases.
+    Optional ``surface_constraints`` binds sampled oriented triangle planes,
+    explicit material coverage and bounded local trust patches. Both source
+    metric and these local constraints must pass; body contacts stay unassessed.
     Omitting these options preserves the historical policy and receipt shape.
     """
     if (type(max_iterations)is not int or max_iterations<1 or type(cg_iterations)is not int or cg_iterations<1
@@ -323,17 +326,15 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         raise StudioError('A protected stop reference requires an explicit original-guide displacement reference')
     if relocated_stop_policy and not protected_edges:
         raise StudioError('A protected stop reference requires explicit named source edges')
-    shared=displacement_reference is not None or deadline is not None
+    shared=displacement_reference is not None or deadline is not None or surface_constraints is not None
     declared_deadline=deadline
     if shared and deadline is not None and(type(deadline)not in(int,float)or not math.isfinite(deadline)):
         raise StudioError('Shared guide recovery deadline must be a finite absolute monotonic time')
     def immutable_inputs():
         values=[payload,coordinates,quality,piece_ids,protected_edges,protected_indices,seam_ids,max_initial_seam_gap_cm,fixed_stop_stretch_margin,anchor_scope]
         result=values+[displacement_reference,declared_deadline]if shared else values
-        return result+[protected_stop_reference]if relocated_stop_policy else result
-    try:before=digest(immutable_inputs())
-    except(TypeError,ValueError)as error:
-        raise StudioError('Guide metric recovery requires finite structured source inputs')from error
+        if relocated_stop_policy:result=result+[protected_stop_reference]
+        return result+[surface_constraints]if surface_constraints is not None else result
     if shared:
         original_clock=clock;last_time=None
         def clock():
@@ -343,7 +344,21 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
                     or last_time is not None and value<last_time):
                 raise StudioError('Shared guide recovery clock must be finite and monotonic')
             last_time=value;return value
-    start=clock();deadline=start+max_seconds if deadline is None else min(start+max_seconds,deadline)
+    surface_start=None
+    if surface_constraints is not None:
+        from .constrained_guide_recovery import preflight_surface_constraints
+        surface_start=clock()
+        surface_deadline=surface_start+max_seconds if deadline is None else min(surface_start+max_seconds,deadline)
+        def surface_preflight_check():
+            if clock()>=surface_deadline:raise _RecoveryDeadline('surface_preflight')
+        preflight_surface_constraints(surface_constraints,surface_preflight_check)
+        surface_preflight_check()
+    try:before=digest(immutable_inputs())
+    except(TypeError,ValueError)as error:
+        raise StudioError('Guide metric recovery requires finite structured source inputs')from error
+    if surface_constraints is not None:surface_preflight_check()
+    start=clock()if surface_start is None else surface_start
+    deadline=start+max_seconds if deadline is None else min(start+max_seconds,deadline)
     if shared and not math.isfinite(deadline):
         raise StudioError('Shared guide recovery effective deadline must be finite')
     def time_guard(phase):
@@ -422,6 +437,14 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
     anchor_components=None
     if anchor_scope=='permanent_component':
         anchor_components=_component_anchors(faces,groups,representatives,fixed_roots,fixed,payload['panels'],deadline,clock)
+    surface=None;surface_initial=None
+    if surface_constraints is not None:
+        from .constrained_guide_recovery import LocalSurfaceConstraints
+        surface=LocalSurfaceConstraints(surface_constraints,payload,initial,active,groups,fixed_roots,
+            lambda:time_guard('surface_constraints'))
+        surface_initial=surface.observe(baseline)
+        if not surface_initial['trust_domain_valid']:
+            raise StudioError('Local surface constraints: semantic alignment leaves its measured trust patch')
     def residual(points):
         total=0.
         for ids,gradients,area in faces:
@@ -433,14 +456,21 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
             lo=math.sqrt(max(0.,(trace-delta)/2));hi=math.sqrt(max(0.,(trace+delta)/2))
             squared=(lo-1)**2+(hi-1)**2
             total+=area*(squared+strain_weight*squared*squared/2)
-        return total
-    best=copy.deepcopy(baseline);best_energy=residual(best);history=[];stagnant=0;stop='ITERATION_BUDGET';iterations=0
+        return total+surface.observe(points)['energy']if surface else total
+    best=copy.deepcopy(baseline);surface_best=surface_initial
+    best_energy=residual(best);history=[];stagnant=0;stop='ITERATION_BUDGET';iterations=0
     def admitted(points):
         time_guard('metric_validation')
         accepted=_metric_admitted(payload,points,quality,binding)
+        if surface:accepted=accepted and surface.observe(points)['satisfied']
         time_guard('metric_validation')
         return accepted
-    initial_valid=admitted(initial)
+    if surface:
+        time_guard('initial_combined_validation')
+        initial_source_metric_valid=_metric_admitted(payload,initial,quality,binding)
+        initial_valid=initial_source_metric_valid and surface.observe(initial)['satisfied']
+        time_guard('initial_combined_validation')
+    else:initial_valid=admitted(initial)
     stop_bounds=_fixed_stop_bounds(payload,initial,quality,protected_edges,binding,fixed_stop_stretch_margin,deadline,clock)
     time_guard('fixed_stop_preflight')
     impossible_stops=stop_bounds['status']=='IMPOSSIBLE_FIXED_STOPS'
@@ -461,7 +491,9 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
     if impossible_stops:stop='FIXED_SOURCE_STOP_BOUND_EXCEEDS_METRIC'
     if immutable_source_violations:stop='IMMUTABLE_SOURCE_MESH_QUALITY'
     expired_phase=None
-    for iteration in range(1,1 if impossible_stops or immutable_source_violations else max_iterations+1):
+    impossible_surface=bool(surface_initial and surface_initial['fixed_violation'])
+    if impossible_surface and not immutable_source_violations and not impossible_stops:stop='INCOMPATIBLE_FIXED_SURFACE_CONSTRAINT'
+    for iteration in range(1,1 if impossible_stops or immutable_source_violations or impossible_surface else max_iterations+1):
         try:
             if admitted(best):stop='SOURCE_METRIC_RECOVERED';break
             if clock()>=deadline:stop='TIME_BUDGET';break
@@ -486,6 +518,7 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
                         for j,h in zip(ids,gradients):
                             representative=representatives[j]
                             row[representative]=row.get(representative,0.)+weighted_area*_dot(g,h)
+            if surface:surface.add_proximal_terms(best,lookup,matrix,rhs,origin)
             diagonal=[row[free[i]] for i,row in enumerate(matrix)]
             rows=[[(lookup[j],weight) for j,weight in row.items() if j in lookup] for row in matrix]
             fixed_terms=[[(j,weight) for j,weight in row.items() if j not in lookup] for row in matrix]
@@ -515,13 +548,21 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
                 movement=max(math.dist(a,b) for a,b in zip(reference,candidate))
                 actual_step=max(math.dist(a,b)for a,b in zip(best,candidate))if shared else None
                 if shared and(movement>max_displacement_cm or actual_step>max_step_cm):continue
+                surface_candidate=surface.observe(candidate)if surface else None
+                if surface_candidate and not surface_candidate['trust_domain_valid']:continue
+                # A metric-valid but locally inadmissible pose is not a usable
+                # step. Valid local constraints may never be lost for strain.
+                if surface_candidate and not surface_candidate['satisfied'] and(
+                        surface.observe(best)['satisfied']or _metric_admitted(payload,candidate,quality,binding)):continue
                 energy=residual(candidate)
                 if movement>max_displacement_cm or energy>=best_energy-1e-10:continue
                 time_guard('trajectory_validation')
                 try:validate_linear_motion(payload,best,candidate)
                 except StudioError:continue
                 time_guard('trajectory_validation')
-                best=candidate;best_energy=energy;accepted=True;break
+                best=candidate;best_energy=energy
+                if surface:surface_best=surface_candidate
+                accepted=True;break
             history.append({'iteration':iteration,'energy':best_energy,'accepted':accepted,'linear_systems':linear,
                 'max_displacement_cm':max(math.dist(a,b) for a,b in zip(reference,best)),
                 **({'actual_step_cm':actual_step if accepted else 0.}if shared else {})})
@@ -541,7 +582,13 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         final=error.quality_metrics;final_valid=False
     expired=shared and clock()>=deadline
     if expired:expired_phase=expired_phase or 'final_validation'
-    valid=not impossible_stops and not immutable_source_violations and final_valid and not expired
+    # Reuse the complete observation captured for this exact best candidate.
+    # Never start a new surface pass after deadline/final metric validation.
+    surface_final=surface_best if surface else None
+    if surface and surface_final['coordinate_sha256']!=digest(best):
+        raise StudioError('Local surface constraints: final snapshot differs from returned candidate')
+    valid=not impossible_stops and not immutable_source_violations and final_valid and not expired and(
+        surface_final is None or surface_final['satisfied'])
     if expired:stop='TIME_BUDGET'
     if valid:stop='SOURCE_METRIC_RECOVERED'
     if digest(immutable_inputs())!=before:
@@ -581,6 +628,11 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         result['seam_coupling']=coupling
         result['policy'].update(seam_ids=list(seam_ids),max_initial_seam_gap_cm=max_initial_seam_gap_cm)
     if anchor_components:result['anchor_components']=anchor_components
+    if surface:
+        result['surface_constraints']=surface.report(surface_initial,surface_final)
+        result['initial_metric_valid']=initial_source_metric_valid
+        result['policy']['surface_constraints']='LOCAL_SAMPLED_PLANES_WITH_EXPLICIT_TRUST_PATCHES'
+        result['combined_constraints_valid']=bool(valid)
     if relocated_stop_policy:
         result.update(protected_stop_reference_sha256=digest(stop_reference),
             named_fixed_stop_indices=sorted(named_stops),
@@ -591,7 +643,9 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
         if result['max_displacement_cm']>max_displacement_cm:
             raise StudioError('Returned guide candidate exceeds the shared original-guide displacement budget')
         finished=clock()
-        if finished>=deadline:result.update(status='NEEDS_CORRECTION',stop_reason='TIME_BUDGET')
+        if finished>=deadline:
+            result.update(status='NEEDS_CORRECTION',stop_reason='TIME_BUDGET')
+            if surface:result['combined_constraints_valid']=False
         result.update(displacement_reference_sha256=digest(reference),
             initial_displacement_from_reference_cm=max(math.dist(a,b)for a,b in zip(reference,initial)),
             displacement_from_entry_cm=max(math.dist(a,b)for a,b in zip(initial,best)),
@@ -602,4 +656,14 @@ def recover_guide_metric(payload,coordinates,quality,piece_ids,protected_edges=(
             physical_fixed_indices=sorted(physical_fixed))
         if digest(immutable_inputs())!=before:
             raise StudioError('Guide metric recovery changed an immutable input before return')
+        if surface:
+            # The final immutable-input hash is part of this option's budget.
+            # Preserve the bound best observation; do not remeasure or admit a
+            # candidate whose terminal verification finished after the deadline.
+            finished=clock()
+            if finished>=deadline:
+                expired_phase=expired_phase or 'terminal_input_validation'
+                result.update(status='NEEDS_CORRECTION',stop_reason='TIME_BUDGET',combined_constraints_valid=False)
+            result['elapsed_seconds']=finished-start
+            result['shared_deadline'].update(finished=finished,expired=finished>=deadline,expired_phase=expired_phase)
     return result

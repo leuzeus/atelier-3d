@@ -2746,3 +2746,26 @@ Cette préparation n'exécute pas Blender et ne reporte aucun gate. Runtime
 connecté 0704 inchangé ; installation de cette nouvelle option non effectuée.
 
 [Preuve de l'option publique](automation-body-surface-facade-evidence-20261007.json).
+
+### 2026-10-07 — Solveur métrique et échantillons locaux de peau
+
+Le solveur existant accepte maintenant `surface_constraints`, désactivé par
+défaut. Les termes locaux utilisent les mêmes représentants de couture, avec
+points barycentriques, normales orientées, réserve et domaines de confiance
+explicitement fournis. Le succès exige métrique et contraintes locales ;
+les stops/pins, UV, topologie et panneaux inactifs restent conservés. Les
+plafonds précèdent les empreintes complètes ; toutes les nouvelles phases,
+y compris le dernier hash, appartiennent à l'horloge. Les expirations tardives
+conservent un meilleur candidat avec observation liée à ses coordonnées.
+
+Cinquante-huit tests ciblés passent, dix-huit nouveaux et quarante existants.
+La revue indépendante a clos ses trois cas P2 de deadline/bornage sans autre
+P1/P2. L'opération reste portable et locale : origine native à authentifier
+par le caller, contacts continus non qualifiés, aucune simulation ou fitting.
+Le producteur natif des contraintes n'est pas intégré ; la couverture de
+4 096 vertices actifs ne permet pas d'annoncer le solveur appliqué aux six
+cages historiques de 20 278 contrôles. Une portée ou représentation admissible
+reste à préparer en réutilisant les contrats matériels existants.
+
+[Récupération locale et limites](constrained-guide-recovery.md),
+[tests et revue du solveur](automation-constrained-guide-recovery-evidence-20261007.json).
