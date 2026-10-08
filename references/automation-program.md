@@ -2682,3 +2682,29 @@ humaine de ces repères est acceptée le 7 octobre : décisions gauche
 58aec1c4-f9c9-4ef9-8535-38e199795b39. Corps et patrons restent inchangés.
 
 [Tests et rejeu des étapes](automation-guide-stage-observation-evidence-20261007.json).
+
+### 2026-10-07 — Trajets corporels ouverts et revue des épaules
+
+Le noyau générique `body_surface_paths` calcule des polylignes sur les vraies
+arêtes du maillage dans un domaine déclaré. Il conserve extrémités source,
+faces porteuses, repère, longueur, corde et descente ; il refuse ambiguïtés,
+domaines disjoints et budgets dépassés. L'erreur vers une surface lisse reste
+non estimée. La revue indépendante du minimum et des routes alternatives est
+close sans P1/P2 après correction ; 79 tests ciblés passent, dont onze nouveaux.
+
+La planche à quatre vues des trajets d'épaule est inspectée puis acceptée par
+l'utilisateur : gauche 13,1680 cm / descente 2,0678 cm, droite 13,1878 cm /
+descente 2,0615 cm. Les décisions 6ac516b8-0657-4474-8cce-fd97d2208384 et
+cbb9bdae-b4fb-4113-b310-6296829083ae référencent les fichiers examinés.
+Ces décisions ne fixent ni couture du manteau ni aisance ni modification de
+patron. Une couture source de 18,4391 cm ne se compare pas sans correspondance
+à une épaule corporelle et à l'intention de coupe ample.
+
+L'intégration à la revue corporelle existante du plugin est l'unité suivante :
+réutiliser l'authentification native et les budgets cumulés, publier une
+proposition ouverte sans remplacer les tours fermés ni transférer les gates.
+Le code source et les preuves sont conservés sur G: ; runtime 0704 inchangé,
+aucun nouvel essai Blender, Cloth ou fitting.
+
+[Trajets ouverts et portée](body-surface-paths.md),
+[tests et décisions exactes](automation-body-surface-path-evidence-20261007.json).
