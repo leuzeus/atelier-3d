@@ -28,6 +28,8 @@ class ActiveConstraintPolicy(unittest.TestCase):
         self.assertEqual(relaxation['settings']['constraint_projection'], 'ACTIVE_PRINCIPAL_CONE_V1')
         self.assertEqual(relaxation['qualification'], 'NONE')
         self.assertFalse(relaxation['whole_piece_admission'])
+        self.assertEqual(relaxation['constraint_projection']['observed_constraint_policy'],
+                         'RETAIN_NONLINEAR_VIOLATIONS_V1')
         verified = verify_guide_policy(compiled, profile, geometry, ref, data, policy, guides,
                                         source_seam_recipes=recipes)
         self.assertEqual(verified['comparison'], 'FULL_UNROUNDED_GUIDE_REPORT_IDENTICAL')
@@ -66,6 +68,19 @@ class ActiveConstraintPolicy(unittest.TestCase):
             after, changed = run(data, frames, recipe, **options)
         self.assertNotEqual(report['source_binding_sha256'], changed['source_binding_sha256'])
         self.assertEqual(report['relaxation']['kernel_code_sha256'], changed['relaxation']['kernel_code_sha256'])
+        for pid in before:
+            self.assertEqual(before[pid]['target_cm'], after[pid]['target_cm'])
+            self.assertNotEqual(before[pid]['source_ref'], after[pid]['source_ref'])
+
+    def test_cage_binding_includes_observed_constraint_policy_even_without_motion(self):
+        from tests.test_assembly_relaxation import fixture as assembly_fixture, run
+        data, frames, recipe = assembly_fixture()
+        options = {'constraint_projection': 'ACTIVE_PRINCIPAL_CONE_V1', 'max_iterations': 2}
+        before, report = run(data, frames, recipe, **options)
+        with patch('a3d.active_metric_constraints.OBSERVED_CONSTRAINT_POLICY',
+                   'DIFFERENT_OBSERVED_CONSTRAINT_POLICY'):
+            after, changed = run(data, frames, recipe, **options)
+        self.assertNotEqual(report['source_binding_sha256'], changed['source_binding_sha256'])
         for pid in before:
             self.assertEqual(before[pid]['target_cm'], after[pid]['target_cm'])
             self.assertNotEqual(before[pid]['source_ref'], after[pid]['source_ref'])

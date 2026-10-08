@@ -557,7 +557,8 @@ def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=No
         if 'constraint_projection' in relaxation_report:
             projection = relaxation_report['constraint_projection']
             binding_inputs.append({key: projection[key] for key in
-                ('mode', 'kernel_code_sha256', 'max_sweeps', 'residual_tolerance')})
+                ('mode', 'kernel_code_sha256', 'max_sweeps', 'residual_tolerance',
+                 'observed_constraint_policy')})
         source_binding = digest(binding_inputs)
     else:
         source_binding = digest([data, frames, seam_recipe, subdivisions] if semantics is None else

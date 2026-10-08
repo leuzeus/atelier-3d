@@ -178,6 +178,16 @@ global reste contrôlé pendant les calculs. Les valeurs non finies, les domaine
 invalides et les dérivées singulières non supportées sont refusés explicitement.
 Une face entièrement fixée reste mesurée mais n'exige aucune dérivée.
 
+La politique `RETAIN_NONLINEAR_VIOLATIONS_V1` conserve les couples face/borne
+réellement refusés pendant les recherches de pas du même solve. Leurs gradients
+sont recalculés aux coordonnées courantes, même lorsque la face est sortie de
+la bande d'arrondi. Aucun témoin n'est déduit du seul manque de descente. Cette
+sélection évite d'oublier une contrainte qui reste limitante ; elle peut être
+conservatrice si la face acquiert ensuite de la marge. Les témoins sont
+dédoublonnés et comptés séparément des contraintes actives par arrondi.
+Cette politique fait partie de l'identité des cages ; elle n'ajoute ni budget
+de recherche ni tolérance physique.
+
 Une direction projetée doit encore descendre l'objectif, respecter les limites
 de déplacement, puis passer la recherche et les enveloppes non linéaires
 existantes. Un échec conserve la meilleure proposition avec sa raison d'arrêt.

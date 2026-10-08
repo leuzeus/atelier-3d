@@ -82,6 +82,7 @@ def relax_assembly(states, initial, witnesses, budget, *, options=None, fixed_co
                                                 MODE, MAX_SWEEPS, RESIDUAL_TOLERANCE)
         from . import active_metric_constraints
         projection_records = []; search_records = []
+        observed_constraints = set(); observed_violation_count = 0
         search_phase = 'RIGID'; search_iteration = 0
     before = digest([initial, witnesses, {pid: {
         'uv': state['uv'], 'triangles': state['triangles']} for pid, state in states.items()}])
@@ -170,10 +171,13 @@ def relax_assembly(states, initial, witnesses, budget, *, options=None, fixed_co
             if (stretches is None or any(not math.isfinite(value) for value in stretches)
                     or stretches[0] < low-roundoff or stretches[1] > high+roundoff):
                 if failure is not None:
+                    measurable = stretches is not None and all(math.isfinite(value) for value in stretches)
+                    violated_sides = ([] if not measurable else
+                        (['LOWER'] if stretches[0] < low-roundoff else [])
+                        + (['UPPER'] if stretches[1] > high+roundoff else []))
                     failure.update(reason='CURRENT_NONLINEAR_METRIC_ENVELOPE', face_ordinal=ordinal,
-                        piece=pid, principal_stretches=(stretches if stretches is not None
-                            and all(math.isfinite(value) for value in stretches) else None),
-                        bounds=[low, high], arithmetic_roundoff=roundoff)
+                        piece=pid, principal_stretches=stretches if measurable else None,
+                        bounds=[low, high], arithmetic_roundoff=roundoff, violated_sides=violated_sides)
                 return False
         return True
 
@@ -264,6 +268,7 @@ def relax_assembly(states, initial, witnesses, budget, *, options=None, fixed_co
             'max_edge_strain': edge_strain, 'max_seam_gap_cm': max_gap}, grad, diagonal
 
     def search(directions, fraction):
+        nonlocal observed_violation_count
         current, _, _ = evaluate(points, fraction)
         step = _distance_step_limit(points, directions, original, settings['max_displacement_cm'])
         if projection_enabled:
@@ -276,6 +281,16 @@ def relax_assembly(states, initial, witnesses, budget, *, options=None, fixed_co
             if projection_enabled:
                 failure = {}; descending = measured['objective'] < current['objective']
                 admissible = within_metric_envelopes(candidate, failure) if descending else False
+                if failure:
+                    # Only an actual finite nonlinear metric violation yields
+                    # a side identity. No gradient or rejected point survives.
+                    added = 0
+                    for side in failure['violated_sides']:
+                        identity = (failure['face_ordinal'], side)
+                        observed_violation_count += 1
+                        added += int(identity not in observed_constraints)
+                        observed_constraints.add(identity)
+                    failure['new_retained_constraints'] = added
                 observation['trials'].append({'step': step, 'objective': measured['objective'],
                     'descending': descending, 'nonlinear_metric_check': ('PASS' if admissible else 'FAIL')
                         if descending else 'NOT_EXECUTED_NO_DESCENT', **({'failure': failure} if failure else {})})
@@ -342,7 +357,8 @@ def relax_assembly(states, initial, witnesses, budget, *, options=None, fixed_co
             search_phase = 'MATERIAL'; search_iteration = iteration
             try:
                 directions, observed = project_active_principal_direction(
-                    points, directions, diagonal, faces, metric_envelopes, fixed, budget.check)
+                    points, directions, diagonal, faces, metric_envelopes, fixed, budget.check,
+                    observed_constraints=observed_constraints)
             except ConstraintProjectionRefused as error:
                 projection_records.append({'iteration': iteration, 'status': 'REFUSED', **error.diagnostic})
                 termination = 'CONSTRAINT_PROJECTION_REFUSED'
@@ -418,6 +434,12 @@ def relax_assembly(states, initial, witnesses, budget, *, options=None, fixed_co
         report['constraint_projection'] = {'mode': MODE,
             'kernel_code_sha256': sha(active_metric_constraints.__file__), 'max_sweeps': MAX_SWEEPS,
             'residual_tolerance': RESIDUAL_TOLERANCE, 'iterations': projection_records,
+            'observed_constraint_policy': active_metric_constraints.OBSERVED_CONSTRAINT_POLICY,
+            'observed_violation_count': observed_violation_count,
+            'retained_observed_constraint_count': len(observed_constraints),
+            'duplicate_observed_violation_count': observed_violation_count-len(observed_constraints),
+            'retained_constraint_identities_sha256': digest(sorted(observed_constraints)),
+            'retention_scope': 'CURRENT_SOLVE_ONLY_CONSERVATIVE_SIDE_IDENTITIES_CURRENT_GRADIENTS',
             'nonlinear_metric_admission': 'UNCHANGED', 'qualification': 'NONE'}
         report['line_search_diagnostics'] = search_records
     budget.check()

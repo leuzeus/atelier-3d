@@ -142,6 +142,66 @@ class ActivePrincipalDirection(unittest.TestCase):
             active._project_halfspaces([[1., 0., 0.]], [1.], [[(0, [1., 0., 0.])]]*600, set(), deadline)
         self.assertIs(raised.exception, error)
 
+    def test_retained_lower_side_survives_roundoff_exit_and_rebuilds_rotated_gradient(self):
+        # Slack and roundoff reproduce the post-first-step face17878 failure.
+        low = .5102662958428772; high = 1.7207534509809037
+        points = [[0., 0., 0.], [1.4, 0., 0.], [0., .5102662964415002, 0.]]
+        uv = [[0., 0.], [1., 0.], [0., 1.]]
+        direction = [[0., 0., 0.], [-.1, 0., 0.], [0., -.0012, 0.]]
+        retained = [(0, 'LOWER')]; before = copy.deepcopy(retained)
+        rotate = lambda p: [p[2], p[0], p[1]]
+        for iteration in range(4):
+            args = (points, direction, [1., 1., 1.], [(uv, [0, 1, 2], 'piece')],
+                    {'piece': [low, high]}, {0})
+            unprotected, old = active.project_active_principal_direction(*args, check)
+            self.assertEqual(old['roundoff_active_constraint_count'], 0)
+            trial = [[p[k]+d[k]/8192 for k in range(3)] for p, d in zip(points, unprotected)]
+            self.assertLess(principal_stretches(uv, trial)[0], low-1e-10*high)
+            protected, report = active.project_active_principal_direction(
+                *args, check, observed_constraints=retained)
+            self.assertEqual(report['retained_additional_constraint_count'], 1)
+            self.assertEqual(report['retained_overlap_constraint_count'], 0)
+            self.assertEqual(report['qualification'], 'NONE')
+            moved = [[p[k]+.25*d[k] for k in range(3)] for p, d in zip(points, protected)]
+            minimum, maximum = principal_stretches(uv, moved)
+            self.assertGreaterEqual(minimum, low-1e-10*high)
+            self.assertLess(maximum, principal_stretches(uv, points)[1])
+            self.assertLess(-sum(active._dot(a, b) for a, b in zip(direction, protected)), 0.)
+            points = [rotate(p) for p in moved]; direction = [rotate(d) for d in direction]
+        self.assertEqual(retained, before)
+
+    def test_observed_constraints_deduplicate_and_fixed_faces_need_no_derivative(self):
+        args = triangle()
+        retained = [(0, 'UPPER'), (0, 'UPPER')]
+        _, report = active.project_active_principal_direction(*args, check, observed_constraints=retained)
+        self.assertEqual(report['retained_observed_constraint_count'], 1)
+        self.assertEqual(report['duplicate_observed_constraint_count'], 1)
+        self.assertEqual(report['retained_overlap_constraint_count'], 1)
+        with mock.patch.object(active, '_principal_gradients', side_effect=AssertionError('fixed')):
+            result, report = active.project_active_principal_direction(
+                [[0., 0., 0.], [1.2, 0., 0.], [0., 1.2, 0.]], args[1], args[2],
+                args[3], {'arbitrary': [.5, 2.]}, {0, 1, 2}, check,
+                observed_constraints=[(0, 'LOWER')])
+        self.assertEqual(result, [[0., 0., 0.]]*3)
+        self.assertEqual(report['fixed_only_constraint_count'], 1)
+
+    def test_invalid_observed_identities_and_deadline_refuse_explicitly(self):
+        for retained in (None, {}, [(True, 'LOWER')], [(math.nan, 'LOWER')],
+                         [(math.inf, 'LOWER')], [(0, math.nan)], [(0, 'LEFT')],
+                         [(1, 'LOWER')], [(-1, 'LOWER')], [(0, 0)], [(0, 'LOWER', 1)]):
+            with self.subTest(retained=retained), self.assertRaises(active.ConstraintProjectionRefused):
+                active.project_active_principal_direction(*triangle(), check, observed_constraints=retained)
+        args = list(triangle()); args[3] *= 300
+        retained = [(i, 'LOWER') for i in range(300)]
+        error = StudioError('deadline validating retained constraints'); calls = []
+        def deadline():
+            calls.append(1)
+            if len(calls) == 6: raise error
+        with self.assertRaises(StudioError) as raised:
+            active.project_active_principal_direction(*args, deadline, observed_constraints=retained)
+        self.assertIs(raised.exception, error)
+        self.assertNotIsInstance(raised.exception, active.ConstraintProjectionRefused)
+
 
 class ActivePrincipalIntegration(unittest.TestCase):
     def test_omitted_option_preserves_exact_historical_coordinates_and_report(self):
@@ -178,11 +238,52 @@ class ActivePrincipalIntegration(unittest.TestCase):
 
     def test_nonfinite_or_zero_direction_never_enters_search_as_descent(self):
         for value in (0., math.inf):
-            def invalid(points, *args): return [[value]*3 for _ in points], {'qualification': 'NONE'}
+            def invalid(points, *args, **kwargs): return [[value]*3 for _ in points], {'qualification': 'NONE'}
             with mock.patch.object(active, 'project_active_principal_direction', side_effect=invalid):
                 _, report = solve({'constraint_projection': active.MODE})
             self.assertEqual(report['termination'], 'CONSTRAINT_PROJECTION_NO_DESCENT')
             self.assertEqual(report['iterations'], 0)
+            self.assertEqual(report['constraint_projection']['observed_violation_count'], 0)
+
+    def test_nonlinear_rejections_supply_current_sides_for_later_iterations(self):
+        states, points, witnesses = solve_fixture()
+        points['b'] = [[x-3., y-3., z] for x, y, z in points['b']]
+        witnesses[0]['paired_cage_controls'] = [[['a', 0], ['b', 0]], [['a', 2], ['b', 1]]]
+        before = copy.deepcopy([states, points, witnesses])
+        targets, report = relax_assembly(states, points, witnesses, _Budget(None, time.monotonic),
+            options={'max_iterations': 8, 'rigid_iterations': 0, 'constraint_projection': active.MODE},
+            fixed_controls={'a': [0]})
+        self.assertEqual([states, points, witnesses], before)
+        self.assertEqual(targets['a'][0], points['a'][0])
+        self.assertEqual(report['iterations'], 8)
+        self.assertLess(report['best']['objective'], report['initial']['objective'])
+        projection = report['constraint_projection']
+        retained = set(); total = 0
+        for search in report['line_search_diagnostics']:
+            iteration = projection['iterations'][search['iteration']]
+            self.assertEqual(iteration['retained_observed_constraint_count'], len(retained))
+            for trial in search['trials']:
+                if 'failure' not in trial: continue
+                self.assertTrue(trial['descending'])
+                self.assertEqual(trial['nonlinear_metric_check'], 'FAIL')
+                failure = trial['failure']; low, high = failure['bounds']
+                roundoff = failure['arithmetic_roundoff']; measured = failure['principal_stretches']
+                for side in failure['violated_sides']:
+                    if side == 'LOWER': self.assertLess(measured[0], low-roundoff)
+                    else: self.assertGreater(measured[1], high+roundoff)
+                    retained.add((failure['face_ordinal'], side)); total += 1
+            self.assertEqual(search['result'], 'STEP_ACCEPTED')
+        self.assertGreater(len(retained), 0)
+        self.assertGreater(total, len(retained))
+        self.assertEqual(projection['retained_observed_constraint_count'], len(retained))
+        self.assertEqual(projection['duplicate_observed_violation_count'], total-len(retained))
+        self.assertTrue(any(row['retained_additional_constraint_count'] for row in projection['iterations']))
+        for pid, state in states.items():
+            low, high = report['initial_material_trust_envelopes'][pid]
+            actual = principal_stretches(state['uv'], targets[pid])
+            self.assertGreaterEqual(actual[0], low-1e-10*max(1., high))
+            self.assertLessEqual(actual[1], high+1e-10*max(1., high))
+        self.assertEqual(report['qualification'], 'NONE')
 
     def test_projection_mode_is_explicit_and_versioned(self):
         self.assertNotIn('constraint_projection', validate_options())

@@ -17,6 +17,7 @@ RESIDUAL_TOLERANCE = 1e-12
 MAX_CONTROLS = 70000
 MAX_FACES = 131072
 WITNESS_LIMIT = 32
+OBSERVED_CONSTRAINT_POLICY = 'RETAIN_NONLINEAR_VIOLATIONS_V1'
 
 
 class ConstraintProjectionRefused(StudioError):
@@ -155,7 +156,7 @@ def _project_halfspaces(direction, diagonal, rows, fixed, check_time):
 
 
 def project_active_principal_direction(points, direction, diagonal, faces, metric_envelopes,
-                                       fixed, check_time):
+                                       fixed, check_time, *, observed_constraints=()):
     """Return a finite candidate direction and observations, never an admission."""
     if not callable(check_time):
         raise ConstraintProjectionRefused('MISSING_DEADLINE_CALLBACK')
@@ -172,7 +173,19 @@ def project_active_principal_direction(points, direction, diagonal, faces, metri
         check_time()
         if not isinstance(pid, str) or not pid or not _vector(bounds, 2) or not 0 <= bounds[0] <= bounds[1]:
             raise ConstraintProjectionRefused('INVALID_METRIC_ENVELOPE')
+    if (not isinstance(observed_constraints, (list, tuple, set, frozenset))
+            or len(observed_constraints) > 2*len(faces)):
+        raise ConstraintProjectionRefused('INVALID_OBSERVED_CONSTRAINT_LAYOUT')
+    retained = set()
+    for ordinal, item in enumerate(observed_constraints):
+        if ordinal % 128 == 0: check_time()
+        if (not isinstance(item, (list, tuple)) or len(item) != 2
+                or type(item[0]) is not int or not 0 <= item[0] < len(faces)
+                or type(item[1]) is not str or item[1] not in ('LOWER', 'UPPER')):
+            raise ConstraintProjectionRefused('INVALID_OBSERVED_CONSTRAINT_IDENTITY')
+        retained.add(tuple(item))
     rows = []; witnesses = []; active_count = 0; fixed_count = 0
+    roundoff_count = retained_additional_count = retained_overlap_count = 0
     try:
         for ordinal, face in enumerate(faces):
             if ordinal % 128 == 0: check_time()
@@ -191,8 +204,17 @@ def project_active_principal_direction(points, direction, diagonal, faces, metri
             if measured[0] < low-roundoff or measured[1] > high+roundoff:
                 raise ConstraintProjectionRefused('CURRENT_POINT_OUTSIDE_UNCHANGED_ENVELOPE', face_ordinal=ordinal)
             active = []
-            if measured[0] <= low+roundoff: active.append((0, -1., low))
-            if measured[1] >= high-roundoff: active.append((1, 1., high))
+            for singular, sign, bound, kind, at_roundoff in (
+                    (0, -1., low, 'LOWER', measured[0] <= low+roundoff),
+                    (1, 1., high, 'UPPER', measured[1] >= high-roundoff)):
+                observed = (ordinal, kind) in retained
+                roundoff_count += int(at_roundoff)
+                retained_additional_count += int(observed and not at_roundoff)
+                retained_overlap_count += int(observed and at_roundoff)
+                if at_roundoff or observed:
+                    origins = (['METRIC_ENVELOPE_ROUNDOFF'] if at_roundoff else [])
+                    if observed: origins.append('OBSERVED_NONLINEAR_VIOLATION')
+                    active.append((singular, sign, bound, origins))
             if not active: continue
             active_count += len(active)
             # A completely fixed face has no direction. Its current geometry
@@ -202,7 +224,9 @@ def project_active_principal_direction(points, direction, diagonal, faces, metri
             sigma, gradients = _principal_gradients(uv, xyz)
             if max(abs(a-b) for a, b in zip(sigma, measured)) > 1e-9*max(1., high):
                 raise ConstraintProjectionRefused('ANALYTICAL_AND_CANONICAL_METRICS_DISAGREE', face_ordinal=ordinal)
-            for singular, sign, bound in active:
+            # Retain only the side identity from earlier rejected steps. Every
+            # derivative below is rebuilt at the current coordinates.
+            for singular, sign, bound, origins in active:
                 support = [(i, [sign*x for x in gradient]) for i, gradient in zip(indices, gradients[singular]) if i not in fixed]
                 norm = math.sqrt(_sum(_dot(row, row) for _, row in support))
                 if not math.isfinite(norm) or norm == 0:
@@ -210,14 +234,22 @@ def project_active_principal_direction(points, direction, diagonal, faces, metri
                 rows.append([(i, [x/norm for x in row]) for i, row in support])
                 if len(witnesses) < WITNESS_LIMIT:
                     witnesses.append({'face_ordinal': ordinal, 'piece': pid,
-                        'kind': 'LOWER' if singular == 0 else 'UPPER', 'sigma': measured[singular], 'bound': bound})
+                        'kind': 'LOWER' if singular == 0 else 'UPPER', 'sigma': measured[singular],
+                        'bound': bound, 'origins': origins})
         projected, report = _project_halfspaces(direction, diagonal, rows, fixed, check_time)
     except (OverflowError, ZeroDivisionError) as error:
         raise ConstraintProjectionRefused('UNREPRESENTABLE_PROJECTION_ARITHMETIC') from error
     report.update(method=MODE, kernel_code_sha256=sha(__file__), active_constraint_count=active_count,
         fixed_only_constraint_count=fixed_count, witnesses=witnesses,
+        roundoff_active_constraint_count=roundoff_count,
+        retained_observed_constraint_count=len(retained),
+        retained_additional_constraint_count=retained_additional_count,
+        retained_overlap_constraint_count=retained_overlap_count,
+        duplicate_observed_constraint_count=len(observed_constraints)-len(retained),
+        observed_constraint_policy=OBSERVED_CONSTRAINT_POLICY,
         witnesses_truncated=len(rows)>len(witnesses), max_sweeps=MAX_SWEEPS,
-        residual_tolerance=RESIDUAL_TOLERANCE, activity_policy='EXISTING_METRIC_ENVELOPE_ROUNDOFF',
+        residual_tolerance=RESIDUAL_TOLERANCE,
+        activity_policy='EXISTING_METRIC_ENVELOPE_ROUNDOFF_UNION_OBSERVED_VIOLATIONS',
         repeated_or_zero_active_singular_values='CONSERVATIVE_REFUSAL_UNLESS_FACE_FULLY_FIXED',
         fixed_controls_policy='REMOVED_BEFORE_PROJECTION', nonlinear_admission='REQUIRED_UNCHANGED', qualification='NONE')
     return projected, report
