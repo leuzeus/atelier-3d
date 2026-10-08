@@ -8,16 +8,22 @@ import copy
 import hashlib
 import json
 import math
+from dataclasses import dataclass
 from pathlib import Path
 
 from a3d.core import StudioError,contract,digest,inside
 
 
-def _read_bound_json(file,ref,label):
-    """Authenticate the exact bytes that are decoded, including duplicate keys."""
+def _read_bound_bytes(file,ref,label):
     raw=Path(file).read_bytes()
     if hashlib.sha256(raw).hexdigest()!=ref['sha256']:
         raise StudioError('Anchor reserve '+label+' changed')
+    return raw
+
+
+def _read_bound_json(file,ref,label):
+    """Authenticate the exact bytes that are decoded, including duplicate keys."""
+    raw=_read_bound_bytes(file,ref,label)
     def pairs(rows):
         result={}
         for key,value in rows:
@@ -25,7 +31,12 @@ def _read_bound_json(file,ref,label):
             result[key]=value
         return result
     try:
+        def finite_float(text):
+            value=float(text)
+            if not math.isfinite(value):raise StudioError('Nonfinite body JSON')
+            return value
         return json.loads(raw.decode('utf-8-sig'),object_pairs_hook=pairs,
+            parse_float=finite_float,
             parse_constant=lambda value:(_ for _ in ()).throw(StudioError('Nonfinite body JSON')))
     except (UnicodeDecodeError,json.JSONDecodeError) as error:
         raise StudioError('Anchor reserve '+label+' is not valid JSON') from error
@@ -74,7 +85,63 @@ def _current_contact_body(context,binding):
     return bodies
 
 
-def _bound_body_files(binding):
+def _freeze_binding(value):
+    """Private immutable, type-exact tree; floats retain their exact bits."""
+    kind=type(value)
+    if kind is dict:
+        if any(type(key) is not str for key in value):raise StudioError('Body binding keys must be text')
+        return (dict,tuple((key,_freeze_binding(child))for key,child in sorted(value.items())))
+    if kind in (list,tuple):return (kind,tuple(_freeze_binding(child)for child in value))
+    if kind is float:
+        if not math.isfinite(value):raise StudioError('Nonfinite body binding')
+        return (float,value.hex())
+    if kind in (str,int,bool,type(None)):return (kind,value)
+    raise StudioError('Body binding requires immutable JSON-compatible identities')
+
+
+def _matches_binding(value,frozen):
+    kind,expected=frozen
+    if type(value) is not kind:return False
+    if kind is dict:
+        return (len(value)==len(expected) and all(key in value and _matches_binding(value[key],child)
+                for key,child in expected))
+    if kind in (list,tuple):
+        return len(value)==len(expected) and all(_matches_binding(v,child)for v,child in zip(value,expected))
+    if kind is float:return value.hex()==expected
+    return value==expected
+
+
+@dataclass(frozen=True,slots=True)
+class _BoundBodyArtifactCache:
+    snapshot:tuple
+    seal:tuple
+    files:tuple
+    files_sha256:str
+
+
+def _create_bound_body_cache(binding):
+    """Validate once in this call; cache neither a live body nor permission."""
+    snapshot=_freeze_binding(binding)
+    _bound_body_files(binding)
+    seal=_freeze_binding(binding)
+    if snapshot!=seal:raise StudioError('Anchor reserve body binding changed during cache creation')
+    files=tuple((name,str(binding[name+'_file']),binding[name+'_ref']['sha256'])for name in ('profile','geometry'))
+    return _BoundBodyArtifactCache(snapshot,seal,files,digest(files))
+
+
+def _bound_body_files(binding,*,artifact_cache=None):
+    if artifact_cache is not None:
+        if (type(artifact_cache) is not _BoundBodyArtifactCache or
+                artifact_cache.snapshot!=artifact_cache.seal or
+                digest(artifact_cache.files)!=artifact_cache.files_sha256):
+            raise StudioError('Anchor reserve body artifact cache changed')
+        if not _matches_binding(binding,artifact_cache.snapshot):
+            raise StudioError('Anchor reserve body binding changed after artifact authentication')
+        files=tuple((name,str(binding[name+'_file']),binding[name+'_ref']['sha256'])for name in ('profile','geometry'))
+        if files!=artifact_cache.files:raise StudioError('Anchor reserve cached artifact references changed')
+        for name,file,identity in files:
+            _read_bound_bytes(file,{'sha256':identity},'body '+name)
+        return
     profile=_read_bound_json(binding['profile_file'],binding['profile_ref'],'body profile')
     geometry=_read_bound_json(binding['geometry_file'],binding['geometry_ref'],'body geometry')
     if (digest(profile)!=binding['profile_sha256'] or
@@ -144,11 +211,16 @@ def verified_anchor_body(project,recipe,plan,preparation):
     return binding
 
 
-def measure_anchor_reserve(payload,coordinates,context,plan,binding,stops,moving,identity,*,expected_source_sha256=None):
+def measure_anchor_reserve(payload,coordinates,context,plan,binding,stops,moving,identity,*,
+                           expected_source_sha256=None,artifact_cache=None,artifact_cache_loader=None):
     """Measure stops against full evaluated target triangles; no plane witnesses."""
     from blender.pattern_assembly import collision_check
     try:
-        _bound_body_files(binding)
+        if artifact_cache_loader is not None:
+            if artifact_cache is not None or not callable(artifact_cache_loader):
+                raise StudioError('Anchor reserve requires one internal artifact cache source')
+            artifact_cache=artifact_cache_loader()
+        _bound_body_files(binding,artifact_cache=artifact_cache)
         bodies=_current_contact_body(context,binding)
         clearance=plan['collision']['clearance_cm'];contacts=[]
         if type(clearance) not in (int,float) or not math.isfinite(clearance) or clearance<0:
@@ -173,7 +245,7 @@ def measure_anchor_reserve(payload,coordinates,context,plan,binding,stops,moving
                     ('NEAREST_NORMAL','UNANIMOUS_THREE_RAY_PARITY','FLOAT64_ON_SURFACE_WITNESS')):
                 return {'status':'UNAVAILABLE','reason':'UNKNOWN_OR_INCOMPLETE_SIGNED_BODY_CLASSIFIER'}
             contacts.append({'vertex':index,'signed_offset_cm':offset,'clearance_cm':clearance})
-        _bound_body_files(binding)
+        _bound_body_files(binding,artifact_cache=artifact_cache)
         _current_contact_body(context,binding)
     except Exception as error:
         return {'status':'UNAVAILABLE','reason':'EXACT_NATIVE_BODY_MEASUREMENT_UNAVAILABLE','error':str(error)}
@@ -213,9 +285,16 @@ def propose_anchor_reserve(payload,coordinates,context,recipe,plan,preparation,b
             raise StudioError('Anchor reserve V1 cannot move authored physical supports')
     if recipe.get('pins'):raise StudioError('Anchor reserve V1 cannot move a recipe with physical pins')
     source_identity=digest(payload);moving=moving_indices(payload,stops);ordered_stops=sorted(stops)
+    artifact_cache=None
+    def cached_artifacts():
+        # Lazy inside measure_anchor_reserve's existing failure wrapper and
+        # within the search clock. A failed construction is never memoized.
+        nonlocal artifact_cache
+        if artifact_cache is None:artifact_cache=_create_bound_body_cache(binding)
+        return artifact_cache
     result=solve_anchor_reserve(payload,coordinates,
         lambda source,points:measure_anchor_reserve(source,points,context,plan,binding,ordered_stops,
-            moving,identity,expected_source_sha256=source_identity),specification,
+            moving,identity,expected_source_sha256=source_identity,artifact_cache_loader=cached_artifacts),specification,
         body_frame_up=binding['frame']['up'],context_identity=identity,
         displacement_reference=original_guide,
         rest_precondition={'status':'PASSED','source_sha256':source_identity,'candidate_sha256':digest(coordinates)},
