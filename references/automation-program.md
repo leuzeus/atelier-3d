@@ -3053,3 +3053,20 @@ L'essai combiné précédent est refusé au budget de 120 secondes. Son meilleur
 le corps. Le POC de continuation résout séparément quatre requêtes issues des
 cibles col–torse, sans les déplacer, mais n'est pas une carte de l'intérieur.
 Voir [le contrat, les mesures et les limites](automation-local-correspondence-20261008.md).
+
+### 2026-10-08 — Correspondances de frontière et recentrage conditionnel
+
+Le noyau interne `341c798` reproduit les 174 correspondances locales et les
+15 refus explicites de sommets du diagnostic exhaustif d'encolure. Les trois
+contrôles partenaires sans domaine restent non résolus. Les 27 segments sous
+réserve se situent devant et ne dépendent pas des supports fixés arrière.
+Ce résultat ne déplace aucun panneau et ne donne pas une carte de l'intérieur.
+Le commit exact passe 2 222 tests sans SKIP en 455,000 secondes et 14 contrats
+sur l'export immuable. La revue indépendante est clôturée sans bloqueur restant
+pour ce noyau de diagnostic.
+
+Le recentrage calculé des manchettes démontre un défaut local de centrage,
+mais aggrave la métrique globale jusqu'à environ 22 % d'étirement. Ce candidat
+est refusé, conservé et affiché. Une expérience distincte sur la forme d'une
+section conserve son périmètre sans prouver la faisabilité d'un tube.
+Voir [les résultats, images et limites](automation-boundary-diagnostics-20261008.md).
