@@ -2769,3 +2769,21 @@ reste à préparer en réutilisant les contrats matériels existants.
 
 [Récupération locale et limites](constrained-guide-recovery.md),
 [tests et revue du solveur](automation-constrained-guide-recovery-evidence-20261007.json).
+
+### 2026-10-07 — Contrôle d'intégration et empreinte des guides
+
+La première suite intégrée du commit ad21369 exécute 1 996 tests en 410,371 s,
+avec un échec de fermeture des dépendances du générateur de guides ; les
+quatorze contrats passent, source immuable. Ce résultat reste FAIL et ne
+qualifie aucun build. Le module d'observation nouvellement importé manquait
+dans `CODE_SOURCES`. Le correctif ajoute `guide_stage_metrics` et son dépendant
+`cloth_metrics`, puis renforce le contrôle des imports relatifs sans module
+explicite et des mutations de hashes. Trente-six tests ciblés passent ; le
+test renforcé d'invalidation passe aussi. La revue ne relève aucun P1/P2.
+
+Les anciennes politiques de guides doivent être régénérées depuis les mêmes
+sources et le code courant avant leur réemploi. Aucune coordonnée ou coupe
+n'est changée par ce correctif. La qualification intégrée suivante porte sur
+un nouvel export Git exact ; la tentative échouée est conservée séparément.
+
+[Échec observé et correction de provenance](automation-guide-dependency-recovery-evidence-20261007.json).

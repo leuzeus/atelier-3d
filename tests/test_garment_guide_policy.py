@@ -48,22 +48,27 @@ class GuidePolicy(Case):
         # Include late imports in the upper_blend branch even when the current
         # source has only specialized panels and would produce the same points.
         coordinate_modules=('garment_guides','semantic_placement','torso_sections','guide_cage_sampling','source_seam_coupling','rigid_guide_alignment','shoulder_guides',
-            'preform_volume','anatomy_profile','shoulder_surface','head_surface','contact_geometry')
+            'guide_stage_metrics','cloth_metrics','preform_volume','anatomy_profile','shoulder_surface','head_surface','contact_geometry')
         dependencies=set()
         for module in coordinate_modules:
             tree=ast.parse((ROOT/('a3d/'+module+'.py')).read_text(encoding='utf-8'))
             for node in ast.walk(tree):
-                if isinstance(node,ast.ImportFrom)and node.module:
-                    if node.level==1:dependencies.add(node.module.split('.')[0])
-                    elif node.module.startswith('a3d.'):dependencies.add(node.module.split('.')[1])
+                if isinstance(node,ast.ImportFrom):
+                    if node.level==1:
+                        if node.module:dependencies.add(node.module.split('.')[0])
+                        else:dependencies.update(alias.name.split('.')[0] for alias in node.names)
+                    elif node.module and node.module.startswith('a3d.'):dependencies.add(node.module.split('.')[1])
         self.assertIn('shoulder_guides',dependencies);self.assertLessEqual(dependencies,set(CODE_SOURCES))
         c,p,g,ref,data,params=fixture();policy=prepare_guide_policy(c,p,g,ref,params)
         guides,_=reconstruct_guide_policy(c,p,g,ref,data,policy);identity=guide_generator_identity()
         self.assertEqual(identity['shoulder_guides'],sha(ROOT/'a3d/shoulder_guides.py'))
-        with patch('a3d.garment_guide_policy.sha',side_effect=lambda path:
-                'f'*64 if path.name=='shoulder_guides.py'else sha(path)):
-            with self.assertRaisesRegex(StudioError,'generator code is stale'):
-                verify_guide_policy(c,p,g,ref,data,policy,guides)
+        self.assertEqual(identity['guide_stage_metrics'],sha(ROOT/'a3d/guide_stage_metrics.py'))
+        self.assertEqual(identity['cloth_metrics'],sha(ROOT/'a3d/cloth_metrics.py'))
+        for dependency in ('shoulder_guides','guide_stage_metrics','cloth_metrics'):
+            with self.subTest(dependency=dependency), patch('a3d.garment_guide_policy.sha',side_effect=lambda path:
+                    'f'*64 if path.name==dependency+'.py'else sha(path)):
+                with self.assertRaisesRegex(StudioError,'generator code is stale'):
+                    verify_guide_policy(c,p,g,ref,data,policy,guides)
 
     def test_private_guide_helpers_code_change_invalidates_existing_guide_policy(self):
         c,p,g,ref,data,params=fixture();policy=prepare_guide_policy(c,p,g,ref,params)
