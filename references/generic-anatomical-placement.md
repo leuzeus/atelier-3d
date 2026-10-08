@@ -77,6 +77,7 @@ Les politiques de pièces sont explicites :
 | --- | --- |
 | `PATH_BAND_V1` | `path_ref`, `material_axis`, `source_anchor_edge`, `source_anchor_fraction`, `path_anchor_fraction`, `longitudinal_direction_body`, `max_path_expansion_ratio` |
 | `LIMB_ATTACHMENT_V1` | `attachment_path_ref`, `path_fraction`, `source_anchor_edge`, `source_anchor_fraction`, `axis_landmarks`, `transverse_direction_body`, `attachment_offset_body` |
+| `LIMB_SEGMENT_AXIS_V1` | `anatomical_region`, `axis_landmarks`, `transverse_direction_body`, `source_end_edges`, `source_anchor_end` |
 | `surface_envelope` | `method: REGIONAL_SURFACE_ENVELOPE_V1`, `source_region_ids`, `direction_body`, `reserve_cm`, `max_displacement_cm` |
 
 Pour `PATH_BAND_V1`, `path_direction` fixe explicitement le sens de parcours :

@@ -17,7 +17,7 @@ from .anatomical_guide_inputs import check_anatomical_inputs, project_anatomical
 
 
 CODE_SOURCES=('garment_guide_policy','anatomical_guide_inputs','anatomical_placement','regional_surface_guides','assembly_relaxation','active_metric_constraints',
-    'dressing_derivation','body_region_sections','garment_guides','limb_surface_sampling','semantic_placement','torso_sections','guide_cage_sampling','material_section_sampling',
+    'dressing_derivation','body_region_sections','garment_guides','limb_surface_sampling','limb_axis_binding','semantic_placement','torso_sections','guide_cage_sampling','material_section_sampling',
     'source_seam_coupling','guide_stage_metrics','cloth_metrics','rigid_guide_alignment','shoulder_guides','preform_volume','pattern_assembly','anatomy_profile','shoulder_surface','head_surface','contact_geometry','sewing','core')
 
 

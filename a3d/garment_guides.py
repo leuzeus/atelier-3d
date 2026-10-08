@@ -441,10 +441,11 @@ def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8, anatomi
     for pid, semantic in sorted(semantics.items()):
         policy = (anatomical_references or {}).get('pieces', {}).get(pid, {})
         attachment = policy.get('guide_kind') == 'LIMB_ATTACHMENT_V1'
-        if semantic.get('role') not in ('sleeve', 'cuff') and not attachment:
+        segment_axis = policy.get('guide_kind') == 'LIMB_SEGMENT_AXIS_V1'
+        if semantic.get('role') not in ('sleeve', 'cuff') and not (attachment or segment_axis):
             pending.append(pid); continue
         side = semantic.get('side')
-        if side not in (('left', 'right', 'center') if attachment else ('left', 'right')) or semantic.get('longitudinal_uv_axis') != 'v':
+        if side not in (('left', 'right', 'center') if (attachment or segment_axis) else ('left', 'right')) or semantic.get('longitudinal_uv_axis') != 'v':
             raise StudioError('Limb cage requires an explicit anatomical side and longitudinal material V axis: '+pid)
         piece = data['pieces'][pid]
         if sewn_domain_mode:
@@ -459,25 +460,35 @@ def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8, anatomi
         seam, pairs, spans = _paired_limb_boundary(data, pid)
         if sewn_domain_mode:
             sewn_domain = compile_sewn_domain(piece, pairs, pid, source_budget)
-        axis_names = policy.get('axis_landmarks') if attachment else ['shoulder.'+side, 'wrist.'+side]
+        axis_names = policy.get('axis_landmarks') if (attachment or segment_axis) else ['shoulder.'+side, 'wrist.'+side]
         if (not isinstance(axis_names, list) or len(axis_names) != 2 or
                 any(not isinstance(name, str) or not name for name in axis_names)):
             raise StudioError('Limb attachment requires explicit proximal/distal axis landmarks: '+pid)
         if attachment:
             _validate_limb_region(_path_reference(anatomical_references, policy.get('attachment_path_ref'), pid),
                                   semantic, axis_names, pid)
+        segment_binding = None
+        if segment_axis:
+            from .limb_axis_binding import resolve_segment_axis, segment_center
+            segment_binding = resolve_segment_axis(piece, profile, policy)
+            _validate_limb_region({'region': policy['anatomical_region']}, semantic, axis_names, pid)
         shoulder, wrist = [profile['landmarks'].get(name, {}).get('point_cm') for name in axis_names]
         if any(not isinstance(point, (list, tuple)) or len(point) != 3 or
                any(type(v) not in (int, float) or not math.isfinite(v) for v in point) for point in (shoulder, wrist)):
             raise StudioError('Limb cages require finite measured shoulder and wrist landmarks')
-        downward = unit([b-a for a, b in zip(shoulder, wrist)])
-        forward = _vector(policy.get('transverse_direction_body'), 'limb transverse direction') if attachment else [0., 1., 0.]
-        projection = dot(forward, downward)
-        transverse = unit([forward[i]-projection*downward[i] for i in range(3)])
-        tangent = unit(cross(downward, transverse))
+        if segment_binding is not None:
+            downward = segment_binding['downward_body']
+            transverse = segment_binding['transverse_body']
+            tangent = segment_binding['tangent_body']
+        else:
+            downward = unit([b-a for a, b in zip(shoulder, wrist)])
+            forward = _vector(policy.get('transverse_direction_body'), 'limb transverse direction') if attachment else [0., 1., 0.]
+            projection = dot(forward, downward)
+            transverse = unit([forward[i]-projection*downward[i] for i in range(3)])
+            tangent = unit(cross(downward, transverse))
         v_lo = min(p[1] for p in piece['vertices']); v_hi = max(p[1] for p in piece['vertices'])
         cuff_policy = None
-        if semantic['role'] == 'cuff':
+        if semantic['role'] == 'cuff' and not segment_axis:
             declared = semantic.get('guide_edges', {}); stops = {}
             for name in ('distal', 'proximal'):
                 edge = declared.get(name)
@@ -497,12 +508,16 @@ def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8, anatomi
                 'source_orientation': 'EXPLICIT_NAMED_EDGES', 'source_v_sign': sign}
 
         def center(v):
+            if segment_binding is not None:
+                return segment_center(segment_binding, v)
             offset = v_hi-v if cuff_policy is None else -(v-stops['distal'])*sign
             anchor = shoulder if cuff_policy is None else wrist
             return [anchor[i]+downward[i]*offset for i in range(3)]
 
         source_ref = 'measured-body-profile:'+profile['cache_key']+'; source-piece:'+pid+\
                      '; source-seam:'+seam['id']+'; SOURCE_PAIRED_LIMB_CAGE'
+        if segment_binding is not None:
+            source_ref += '; segment-axis:'+segment_binding['evidence']['binding_sha256']
         if sewn_domain_mode:
             def evaluate(query):
                 u, v = query; lo, hi = sewn_domain_interval(piece, sewn_domain, query, pid, source_budget)
@@ -580,6 +595,7 @@ def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8, anatomi
             **({'limb_parameterization': limb_parameterization, 'source_sewn_domain': sewn_domain}
                if sewn_domain_mode else {}),
             **({'source_longitudinal_anchor_policy': cuff_policy} if cuff_policy else {}),
+            **({'source_segment_axis': segment_binding['evidence']} if segment_binding is not None else {}),
             **({'anatomical_attachment': attachment_evidence} if attachment_evidence else {}),
             'source_uv_scaled': False, 'body_rescaling': False,
             'anatomical_homology': 'REVIEW_REQUIRED', 'metric_admission': 'REQUIRED',
@@ -913,7 +929,7 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
             for pid, row in semantics.items()):
         raise StudioError('Source material torso parameters need an actual torso guide family')
     if limb_parameterization == 'SOURCE_SEWN_DOMAIN_V1' and not any(
-            (references or {}).get('pieces', {}).get(pid, {}).get('guide_kind') == 'LIMB_ATTACHMENT_V1'
+            (references or {}).get('pieces', {}).get(pid, {}).get('guide_kind') in ('LIMB_ATTACHMENT_V1', 'LIMB_SEGMENT_AXIS_V1')
             or (row.get('role') in ('sleeve', 'cuff') and
                 (references or {}).get('pieces', {}).get(pid, {}).get('guide_kind') is None)
             for pid, row in semantics.items()):
@@ -927,14 +943,14 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
         family_semantics = copy.deepcopy(semantics)
         for pid, policy in (references or {}).get('pieces', {}).items():
             kind = policy.get('guide_kind')
-            if kind not in (None, 'PATH_BAND_V1', 'LIMB_ATTACHMENT_V1'):
+            if kind not in (None, 'PATH_BAND_V1', 'LIMB_ATTACHMENT_V1', 'LIMB_SEGMENT_AXIS_V1'):
                 raise StudioError('Unsupported anatomical piece guide kind: '+str(kind))
-            owner = {'PATH_BAND_V1': 'specialised', 'LIMB_ATTACHMENT_V1': 'limb'}.get(kind)
+            owner = {'PATH_BAND_V1': 'specialised', 'LIMB_ATTACHMENT_V1': 'limb', 'LIMB_SEGMENT_AXIS_V1': 'limb'}.get(kind)
             if owner is not None and owner != name:
                 family_semantics[pid]['role'] = 'owned_by_explicit_anatomical_guide'
-        extra_kind = {'limb': 'LIMB_ATTACHMENT_V1', 'specialised': 'PATH_BAND_V1'}.get(name)
+        extra_kinds = {'limb': ('LIMB_ATTACHMENT_V1', 'LIMB_SEGMENT_AXIS_V1'), 'specialised': ('PATH_BAND_V1',)}.get(name, ())
         if not any(p.get('role') in roles for p in family_semantics.values()) and not (
-                extra_kind and any(p.get('guide_kind') == extra_kind for p in (references or {}).get('pieces', {}).values())):
+                any(p.get('guide_kind') in extra_kinds for p in (references or {}).get('pieces', {}).values())):
             continue
         try:
             report = (build(data, family_semantics, profile, upper_blend=upper_blend, surface_sections=surface_sections,skin_sections=skin_sections,
