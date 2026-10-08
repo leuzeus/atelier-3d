@@ -2932,3 +2932,17 @@ chaque candidat doit désormais être accompagné de captures, même s'il est re
 avec gros plans avant/après, statut, pièces présentes et origine des images.
 La correction géométrique du col, du dos, des épaules et des manches reste ouverte.
 Voir [les observations et le point de reprise](automation-replay-preview-20261008.md).
+
+### 2026-10-08 — Continuité du col, comparaison visuelle et diagnostic du torse
+
+Le commit 376a39e ajoute un champ transverse constant explicite et une partition
+matérielle aux changements de segment du trajet. Le replay du col isolé conserve
+le corps et le patron ; son étirement maximal passe de 23,35 à 1,31, mais les
+déformations restantes empêchent son admission. Les vues avant/après utilisent
+le même cadrage et ont été montrées pendant le travail.
+
+Le torse présente des défauts distincts de transition, de couverture et de
+projection rasante. Un POC borné fonctionne sur un cas synthétique, sans devenir
+une qualification du vêtement ni une dépendance du plugin. Les guides bruts du
+dos doivent également être corrigés avant cette étape.
+Voir [les résultats, captures et limites](automation-band-continuity-20261008.md).
