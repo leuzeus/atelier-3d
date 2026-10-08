@@ -67,3 +67,29 @@ admises : `qualification=NONE`, `fitting=NOT_GRANTED`,
 `permission=NOT_GRANTED`. La prochaine préparation doit recompiler les guides
 et recettes dépendants. Placement, Cloth, drapé, fitting et revue artistique
 gardent leurs opérations, contrôles et autorisations propres.
+
+## Reprise après une mise à jour logicielle
+
+Une mise à jour peut modifier les empreintes des producteurs tout en recalculant
+exactement les mêmes patrons et le même dossier. Cette situation ne demande pas
+une nouvelle décision de coupe. Elle exige une revalidation explicite avec
+`studio_revalidate_source_adoption(project_root, output_dir)`, dans un dossier
+neuf sous `preparation/` et sans opération de production active.
+
+Le service authentifie l'adoption historique, son événement canonique, ses
+ancêtres, les fichiers et les décisions humaines actuelles. Il rejoue le calcul
+avec le code courant. Seules les valeurs SHA des producteurs peuvent différer :
+leur inventaire reste identique, et chaque autre champ, sortie, géométrie,
+annotation, raccord et référence de package doit être strictement identique.
+Une modification de données, une revue révoquée ou un producteur absent reste
+un refus. L'epoch source, les packages et les anciennes décisions sont conservés.
+
+Une attestation neuve conserve les deux inventaires logiciels et les fichiers
+exacts. Son enregistrement canonique fait autorité ; un fichier laissé par une
+interruption ne suffit pas. L'admission suivante refait le calcul intégral et
+vérifie cette attestation contre le code effectivement chargé. Une nouvelle
+modification de code la rend périmée et demande une nouvelle revalidation.
+
+Cette opération ne revalide aucune preuve de placement, de simulation ou de
+fitting. Les guides et les résultats physiques gardent leurs contrôles de code,
+de géométrie et de candidat. Aucune autorisation Blender n'est créée.

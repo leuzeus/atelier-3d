@@ -159,6 +159,13 @@ def adopt_reviewed_source_revision(project_root, revision_path, expected_parent_
     return adopt(Project(project_root), revision_path, expected_parent_epoch, request_key)
 
 
+@tool('studio_revalidate_source_adoption', 'Revalidate an existing adopted design after a software update. Require exact replay of its source geometry, packages, ancestry and actual human decisions; only producer hashes may differ. Append a canonical software attestation without changing source bindings, body, scene or source epoch. Does not revalidate production evidence or authorize Blender.',
+      {**P, 'output_dir': S}, ('project_root', 'output_dir'), False)
+def revalidate_source_adoption(project_root, output_dir):
+    from .reviewed_source_adoption import revalidate_source_adoption as revalidate
+    return revalidate(Project(project_root), output_dir)
+
+
 @tool('studio_prepare_patronage_review', 'Compute source-bound tailoring comparisons and write a fresh review sheet from exact measured body sections, seam-line material paths and optionally canonically reviewed numeric ease. Reuses existing authenticated services. Open spans never become closed girths; missing measurements stay incomplete. No pattern/body mutation, native execution, fitting acceptance or new gate.',
       {**P, 'dossier_path': S, 'specification_path': S, 'fit_profile_path': S, 'output_dir': S, 'design_decision_path': S,
        'refresh_body_regions': {'type': 'boolean'}},

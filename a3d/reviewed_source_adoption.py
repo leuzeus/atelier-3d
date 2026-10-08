@@ -6,6 +6,7 @@ permissions are outside this service. Historical V1 producers stay unchanged.
 import copy
 from contextlib import ExitStack, closing
 import json
+import re
 from pathlib import Path
 import sqlite3
 import time
@@ -17,6 +18,7 @@ from .reviewed_pattern_admission import (_base, _human, _parse, _ref, _reference
 from .store import ACTIVE_JOBS, Project
 
 KEY = 'reviewed-source-adoption'
+REVALIDATION_KEY = 'reviewed-source-software-revalidation'
 KIND = 'REVIEWED_SOURCE_ADOPTION'
 MAX_FILE_BYTES = 64 * 1024 * 1024
 MAX_MANIFEST_BYTES = 16 * 1024 * 1024
@@ -132,7 +134,31 @@ def _roles(revision):
     return roles
 
 
-def _prepared_calculation(project, reference, baseline=None):
+def _producer_comparison(historical, current):
+    """Only hash changes within the same explicit producer inventory are eligible."""
+    if (not isinstance(historical, dict) or not historical or set(historical) != set(current) or
+            any(not isinstance(value, str) or re.fullmatch('[0-9a-f]{64}', value) is None
+                for value in [*historical.values(), *current.values()])):
+        raise StudioError('Source software revalidation requires the same valid producer inventory')
+    return {'historical': copy.deepcopy(historical), 'current': copy.deepcopy(current),
+            'changed_paths': sorted(name for name in current if historical[name] != current[name])}
+
+
+def _ancestor_roots(project, proof):
+    roots = {Project(proof['origin']['source_project']).root}
+    origins = [*proof['base_decision_origins'].values(), proof['pattern_decision_origin']]
+    for origin in origins:
+        roots.add(Project(origin['project']).root)
+        roots.update(Project(row['project']).root for row in origin.get('import_lineage', []))
+    generation = proof['generation_origin']; roots.add(Project(generation['source_project']).root)
+    roots.update(Project(row['project']).root for row in generation.get('import_lineage', []))
+    roots.discard(project.root)
+    if len(roots) > 8:
+        raise StudioError('Source adoption ancestor reservation budget exceeded')
+    return sorted(roots, key=lambda path: str(path).casefold())
+
+
+def _prepared_calculation(project, reference, baseline=None, *, software_replay=False):
     from .reviewed_pattern_revisions import calculate_reviewed_pattern_revision
     revision = _read(project, reference)
     if revision.get('status') != 'DESIGN_SOURCE_REVISION_PREPARED' or revision.get('source_revision') != 'ADOPTION_REQUIRED':
@@ -141,7 +167,12 @@ def _prepared_calculation(project, reference, baseline=None):
     roles = _roles(revision)
     calculated = calculate_reviewed_pattern_revision(project, gate_name, roles, baseline=baseline)
     observed = {key: value for key, value in revision.items() if key != 'outputs'}
-    if not _same(observed, calculated['result']):
+    expected = calculated['result']
+    comparison = _producer_comparison(observed.get('code_producers'), expected['code_producers'])
+    if software_replay:
+        observed = {key: value for key, value in observed.items() if key != 'code_producers'}
+        expected = {key: value for key, value in expected.items() if key != 'code_producers'}
+    if not _same(observed, expected):
         raise StudioError('Source adoption prepared revision differs from current authenticated replay')
     outputs = revision.get('outputs')
     if not isinstance(outputs, dict) or set(outputs) != {'effective-dossier.json', 'effective-packages.json'}:
@@ -149,6 +180,7 @@ def _prepared_calculation(project, reference, baseline=None):
     if (not _same(_read(project, outputs['effective-dossier.json']), calculated['dossier']) or
             not _same(_read(project, outputs['effective-packages.json']), calculated['packages'])):
         raise StudioError('Source adoption prepared output differs from its calculated source revision')
+    calculated['producer_comparison'] = comparison
     return revision, calculated
 
 
@@ -305,15 +337,7 @@ def adopt_reviewed_source_revision(project, revision_path, expected_parent_epoch
         raise StudioError('Source adoption expected parent epoch differs from the exact current design')
     cid = revision['component_id']; affected = [revision['epoch_basis']['parent']['dossier_ref'], _reference(packages[cid])]
     codes = _codes()
-    roots = {Project(proof['origin']['source_project']).root}
-    origins = [*proof['base_decision_origins'].values(), proof['pattern_decision_origin']]
-    for origin in origins:
-        roots.add(Project(origin['project']).root)
-        roots.update(Project(row['project']).root for row in origin.get('import_lineage', []))
-    generation = proof['generation_origin']; roots.add(Project(generation['source_project']).root)
-    roots.update(Project(row['project']).root for row in generation.get('import_lineage', []))
-    roots.discard(project.root)
-    if len(roots) > 8: raise StudioError('Source adoption ancestor reservation budget exceeded')
+    roots = _ancestor_roots(project, proof)
     with ExitStack() as reservations:
         for root in sorted(roots, key=lambda path: str(path).casefold()): reservations.enter_context(Project(root).transaction())
         with project.transaction() as db:
@@ -373,15 +397,16 @@ def adopt_reviewed_source_revision(project, revision_path, expected_parent_epoch
     return receipt
 
 
-def require_reviewed_source_adoption(project, state, base_manifest, packages):
+def _verify_reviewed_source_adoption(project, state, base_manifest, packages, *, preparing_revalidation=False):
     """Verify current admission using immutable parent data and actual gates."""
     from .planning import package_records, _validate_dossier_structure
     if not _same(_state(project), state): raise StudioError('Source adoption requires current canonical state')
     record = project.verify_evidence(state, KEY); manifest = _read(project, _reference(record))
+    codes = _codes()
     if (manifest.get('version') != 2 or manifest.get('kind') != KIND or manifest.get('status') != 'REVIEWED_SOURCE_INPUTS_ADOPTED' or
-            manifest.get('project_id') != state['project_id'] or manifest.get('asset_sha256') != digest(state['asset']) or
-            manifest.get('code_producers') != _codes()):
+            manifest.get('project_id') != state['project_id'] or manifest.get('asset_sha256') != digest(state['asset'])):
         raise StudioError('Source adoption manifest identity or producer code is stale')
+    producer_comparison = _producer_comparison(manifest.get('code_producers'), codes)
     rows = [row for _, row in _events(project, 'reviewed_source_revision_adopted') if row.get('request') == manifest.get('request')]
     if (len(rows) != 1 or not _same(rows[0]['active_record'], record) or
             not _same(rows[0]['parent_snapshot_ref'], manifest['parent_snapshot_ref']) or
@@ -397,7 +422,7 @@ def require_reviewed_source_adoption(project, state, base_manifest, packages):
     baseline, proof = _parent_baseline(project, snapshot)
     if not _same(base_manifest, _read(project, proof['base_board_ref'])):
         raise StudioError('Source adoption replaced its original reviewed construction board')
-    revision, calculation = _prepared_calculation(project, manifest['revision_ref'], baseline)
+    revision, calculation = _prepared_calculation(project, manifest['revision_ref'], baseline, software_replay=True)
     if (manifest['source_epoch'] != revision['source_epoch'] or manifest['parent_epoch'] != revision['parent_source_epoch'] or
             manifest['component_id'] != revision['component_id'] or manifest['reviewed_piece_ids'] != revision['reviewed_piece_ids'] or
             not _same(manifest['generation_origin'], proof['generation_origin']) or
@@ -409,6 +434,27 @@ def require_reviewed_source_adoption(project, state, base_manifest, packages):
     if not _same(dossier, calculation['dossier']): raise StudioError('Source adoption effective dossier changed')
     _validate_dossier_structure(project, state, dossier, packages)
     calculation['recheck'](); calculation['check_budget']()
+    if _codes() != codes or not _same(_state(project), state):
+        raise StudioError('Source adoption canonical state or verification code changed during replay')
+    replay = {'version': 1, 'status': 'EXACT_DESIGN_REPLAY_UNDER_CURRENT_SOFTWARE',
+        'project_id': state['project_id'], 'adoption_ref': _reference(record),
+        'revision_ref': manifest['revision_ref'], 'source_epoch': manifest['source_epoch'],
+        'adoption_producers': producer_comparison, 'revision_producers': calculation['producer_comparison'],
+        'design_result_sha256': digest({k: v for k, v in calculation['result'].items() if k != 'code_producers'}),
+        'effective_dossier_sha256': digest(calculation['dossier']), 'effective_packages_sha256': digest(calculation['packages']),
+        'comparison': 'ALL_DESIGN_FIELDS_AND_OUTPUTS_IDENTICAL_EXCEPT_PRODUCER_HASHES',
+        'production_evidence': 'NOT_REVALIDATED', 'qualification': 'NONE', 'fitting': 'NOT_GRANTED', 'permission': 'NOT_GRANTED'}
+    changed = producer_comparison['changed_paths'] or calculation['producer_comparison']['changed_paths']
+    if changed and not preparing_revalidation:
+        if REVALIDATION_KEY not in state['evidence']:
+            raise StudioError('Source adoption software changed; run studio_revalidate_source_adoption before production')
+        refreshed = project.verify_evidence(state, REVALIDATION_KEY)
+        saved = _read(project, _reference(refreshed))
+        events = [row for _, row in _events(project, 'reviewed_source_adoption_revalidated')
+                  if _same(row.get('active_record'), refreshed)]
+        if (not _same(saved, replay) or len(events) != 1 or
+                events[0].get('replay_sha256') != digest(replay)):
+            raise StudioError('Source adoption software revalidation is stale or lacks its canonical event')
     view = copy.deepcopy(baseline['board'])
     view.update(status='REVIEWED_SOURCE_ADOPTION_VERIFIED', kind=KIND,
         dossier_path=manifest['effective_dossier_ref']['path'],
@@ -421,4 +467,63 @@ def require_reviewed_source_adoption(project, state, base_manifest, packages):
         source_epoch=manifest['source_epoch'], qualification='NONE', fitting='NOT_GRANTED', permission='NOT_GRANTED',
         provenance={'kind': 'calculated', 'adoption_ref': _reference(record), 'parent_snapshot_ref': manifest['parent_snapshot_ref'],
                     'generation_origin': manifest['generation_origin'], 'reviewed_piece_ids': manifest['reviewed_piece_ids']})
-    return view
+    if changed and not preparing_revalidation:
+        view['provenance']['software_revalidation_ref'] = _reference(refreshed)
+        view['dependencies'][refreshed['path']] = refreshed['sha256']
+    return view, replay, _ancestor_roots(project, proof)
+
+
+def require_reviewed_source_adoption(project, state, base_manifest, packages):
+    return _verify_reviewed_source_adoption(project, state, base_manifest, packages)[0]
+
+
+def revalidate_source_adoption(project, output_dir):
+    """Append a software attestation only after a full, identical design replay.
+
+    Never modifies the adoption, its source epoch, packages, human gates or
+    production results. The normal verifier still recalculates the full proof.
+    """
+    from .core import relative
+    from .planning import package_records
+    relative(output_dir)
+    if not output_dir.startswith('preparation/') or output_dir == 'preparation/':
+        raise StudioError('Source software revalidation requires a fresh preparation directory')
+    output = inside(project.root, output_dir, False)
+    if output.exists() or (output.parent.exists() and any(
+            p.name.casefold() == output.name.casefold() for p in output.parent.iterdir())):
+        raise StudioError('Preserve the existing software revalidation directory')
+    state = _state(project)
+    if state['stage'] != 'RECONSTRUCTING':
+        raise StudioError('Source software revalidation requires RECONSTRUCTING')
+    base = _read(project, _reference(project.verify_evidence(state, 'construction-board')))
+    _, replay, roots = _verify_reviewed_source_adoption(project, state, base, package_records(project, state),
+                                                       preparing_revalidation=True)
+    with ExitStack() as reservations:
+        for root in roots:
+            reservations.enter_context(Project(root).transaction())
+        with project.transaction() as db:
+            current = project.state(db)
+            if not _same(current, state):
+                raise StudioError('Source software revalidation canonical state changed before recording')
+            _no_active_work(current, db)
+            # Recheck under the same ancestor reservations as source adoption.
+            _, repeated, observed_roots = _verify_reviewed_source_adoption(
+                project, current, base, package_records(project, current), preparing_revalidation=True)
+            if not _same(repeated, replay) or observed_roots != roots:
+                raise StudioError('Source software revalidation changed during recording')
+            output.mkdir(parents=True, exist_ok=False)
+            path = output/'revalidation.json'
+            atomic_json(path, replay)
+            record = {'path': path.relative_to(project.root).as_posix(), 'sha256': sha(path), 'recorded_at': now()}
+            # Files and code are not protected by SQLite reservations: verify
+            # them again after writing and before activating the attestation.
+            _, after_write, final_roots = _verify_reviewed_source_adoption(
+                project, current, base, package_records(project, current), preparing_revalidation=True)
+            if (not _same(after_write, replay) or final_roots != roots or
+                    not _same(project.state(db), current) or not _same(_read(project, _reference(record)), replay)):
+                raise StudioError('Source software revalidation changed after writing')
+            current['evidence'][REVALIDATION_KEY] = record
+            project.save(db, current, 'reviewed_source_adoption_revalidated',
+                         {'active_record': record, 'replay_sha256': digest(replay)})
+    return {**replay, 'manifest_ref': _reference(record), 'source_bindings': 'UNCHANGED',
+            'human_decisions': 'UNCHANGED', 'scene': 'UNCHANGED'}
