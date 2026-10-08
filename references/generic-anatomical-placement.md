@@ -243,6 +243,11 @@ ni la métrique du tube, ni les contacts, ni le vêtement complet.
 
 ## Vérifications et portée
 
+Le [noyau de continuation locale](surface-path-continuation.md) prépare un
+diagnostic générique depuis les incidences natives d'un bord corporel. Il
+conserve les ambiguïtés et les domaines manquants. Il n'est pas encore raccordé
+au dispatcher et ne modifie pas le placement des panneaux.
+
 Les tests couvrent les référentiels tournés, les côtés anatomiques, les jambes
 avec repères de hanche et cheville, les régions personnalisées, le chargement
 public des fichiers, les modifications de source, les coutures unaires,
