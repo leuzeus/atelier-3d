@@ -138,6 +138,10 @@ def prepare_project_component_preparation(project, compilation, parameters_path,
         error.diagnostic = {**getattr(error, 'diagnostic', {}), 'phase': phase,
                             'qualification': 'NONE', 'simulation': 'NOT_EXECUTED',
                             'fitting': 'NOT_EXECUTED', 'acceptance': 'NOT_GRANTED'}
+        if getattr(error, 'guide_diagnostic', None) is not None:
+            # Preserve the producer's exact material segment/triangle evidence
+            # through the public error envelope, without replacing its reason.
+            error.diagnostic['guide_failure'] = copy.deepcopy(error.guide_diagnostic)
         if artifacts:
             error.diagnostic['partial_artifacts'] = copy.deepcopy(artifacts)
         incomplete = {cid: {key: copy.deepcopy(row[key])

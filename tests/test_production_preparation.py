@@ -177,6 +177,33 @@ class ProductionPreparation(Case):
         self.assertEqual(error.diagnostic['fitting'], 'NOT_EXECUTED')
         self.assertEqual(before, self.files())
 
+    def test_material_boundary_failure_reaches_public_mcp_with_exact_controls(self):
+        from a3d.server import Server
+        project, compiled = self.fixture(); before = self.files()
+        error = StudioError('Source-conforming cage boundary does not cover an original source segment once: panel')
+        error.guide_diagnostic = {'reason': 'SOURCE_BOUNDARY_NOT_REPRESENTED',
+            'source_segment_vertex_ids': [6, 7], 'controls': [[0., 20], [.625, 235], [1., 21]],
+            'source_uv_cm': [[10., 2.], [12.5, 3.25], [14., 4.]], 'qualification': 'NONE'}
+        expected = json.loads(json.dumps(error.guide_diagnostic))
+        server = Server(); server.initialized = server.ready = True
+        with patch('a3d.tools.Project', return_value=project), \
+                patch('a3d.production_dossier.compile_project_dossier', return_value=compiled), \
+                patch('a3d.production_preparation.reconstruct_guide_policy', side_effect=error):
+            response = server.handle({'jsonrpc': '2.0', 'id': 1, 'method': 'tools/call', 'params': {
+                'name': 'studio_compile_production_dossier', 'arguments': {
+                    'project_root': str(project.root), 'dossier_path': 'dossier.json',
+                    'specification_path': 'production.json', 'preparation_parameters_path': 'parameters.json',
+                    'standard_recipe_path': 'standard.json', 'preparation_output_dir': 'proposals/v1'}}})
+        result = json.loads(json.dumps(response))['result']
+        self.assertTrue(result['isError'])
+        self.assertEqual(result['content'][0]['text'], str(error))
+        details = result['structuredContent']
+        self.assertEqual(details['preparation_phase'], 'GUIDE_RECONSTRUCTION')
+        self.assertEqual(details['diagnostic']['guide_failure'], expected)
+        self.assertEqual(details['diagnostic']['fitting'], 'NOT_EXECUTED')
+        self.assertEqual(error.guide_diagnostic, expected)
+        self.assertEqual(before, self.files())
+
     def test_changed_parameters_recipe_or_code_during_generation_is_refused_before_outputs(self):
         from a3d.production_preparation import reconstruct_guide_policy as real_reconstruct
         for change in ('parameters.json', 'standard.json', 'code'):
