@@ -212,7 +212,8 @@ def verified_anchor_body(project,recipe,plan,preparation):
 
 
 def measure_anchor_reserve(payload,coordinates,context,plan,binding,stops,moving,identity,*,
-                           expected_source_sha256=None,artifact_cache=None,artifact_cache_loader=None):
+                           expected_source_sha256=None,artifact_cache=None,artifact_cache_loader=None,
+                           contact_identity_loader=None):
     """Measure stops against full evaluated target triangles; no plane witnesses."""
     from blender.pattern_assembly import collision_check
     try:
@@ -221,7 +222,13 @@ def measure_anchor_reserve(payload,coordinates,context,plan,binding,stops,moving
                 raise StudioError('Anchor reserve requires one internal artifact cache source')
             artifact_cache=artifact_cache_loader()
         _bound_body_files(binding,artifact_cache=artifact_cache)
-        bodies=_current_contact_body(context,binding)
+        if 'collision_sha256' in identity and digest(plan['collision'])!=identity['collision_sha256']:
+            raise StudioError('Anchor reserve collision plan differs from the measured context identity')
+        contact_guard=contact_identity_loader() if contact_identity_loader is not None else None
+        if contact_guard is None:bodies=_current_contact_body(context,binding)
+        else:
+            from blender.contact_body_identity import verify_contact_body_identity
+            bodies=verify_contact_body_identity(context,binding,plan,contact_guard,expected_guard=contact_guard)
         clearance=plan['collision']['clearance_cm'];contacts=[]
         if type(clearance) not in (int,float) or not math.isfinite(clearance) or clearance<0:
             return {'status':'UNAVAILABLE','reason':'INVALID_DECLARED_COLLISION_RESERVE'}
@@ -246,7 +253,10 @@ def measure_anchor_reserve(payload,coordinates,context,plan,binding,stops,moving
                 return {'status':'UNAVAILABLE','reason':'UNKNOWN_OR_INCOMPLETE_SIGNED_BODY_CLASSIFIER'}
             contacts.append({'vertex':index,'signed_offset_cm':offset,'clearance_cm':clearance})
         _bound_body_files(binding,artifact_cache=artifact_cache)
-        _current_contact_body(context,binding)
+        if 'collision_sha256' in identity and digest(plan['collision'])!=identity['collision_sha256']:
+            raise StudioError('Anchor reserve collision plan changed during measurement')
+        if contact_guard is None:_current_contact_body(context,binding)
+        else:verify_contact_body_identity(context,binding,plan,contact_guard,expected_guard=contact_guard)
     except Exception as error:
         return {'status':'UNAVAILABLE','reason':'EXACT_NATIVE_BODY_MEASUREMENT_UNAVAILABLE','error':str(error)}
     return {'status':'MEASURED','context_identity':copy.deepcopy(identity),
@@ -286,15 +296,24 @@ def propose_anchor_reserve(payload,coordinates,context,recipe,plan,preparation,b
     if recipe.get('pins'):raise StudioError('Anchor reserve V1 cannot move a recipe with physical pins')
     source_identity=digest(payload);moving=moving_indices(payload,stops);ordered_stops=sorted(stops)
     artifact_cache=None
+    contact_identity=None;contact_identity_initialized=False
     def cached_artifacts():
         # Lazy inside measure_anchor_reserve's existing failure wrapper and
         # within the search clock. A failed construction is never memoized.
         nonlocal artifact_cache
         if artifact_cache is None:artifact_cache=_create_bound_body_cache(binding)
         return artifact_cache
+    def cached_contact_identity():
+        nonlocal contact_identity,contact_identity_initialized
+        if not contact_identity_initialized:
+            from blender.contact_body_identity import create_contact_body_identity
+            contact_identity=create_contact_body_identity(context,binding,plan,_current_contact_body)
+            contact_identity_initialized=True
+        return contact_identity
     result=solve_anchor_reserve(payload,coordinates,
         lambda source,points:measure_anchor_reserve(source,points,context,plan,binding,ordered_stops,
-            moving,identity,expected_source_sha256=source_identity,artifact_cache_loader=cached_artifacts),specification,
+            moving,identity,expected_source_sha256=source_identity,artifact_cache_loader=cached_artifacts,
+            contact_identity_loader=cached_contact_identity),specification,
         body_frame_up=binding['frame']['up'],context_identity=identity,
         displacement_reference=original_guide,
         rest_precondition={'status':'PASSED','source_sha256':source_identity,'candidate_sha256':digest(coordinates)},

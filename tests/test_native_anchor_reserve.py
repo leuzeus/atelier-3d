@@ -130,7 +130,7 @@ class NativeAnchorReserveAdapter(unittest.TestCase):
     def test_rotated_sourced_axis_rigid_proposal_keeps_original_budget_and_no_admission(self):
         before=digest([self.payload,self.points,self.plan,self.spec])
         def query(source,points,context,plan,binding,stops,moving,identity,*,expected_source_sha256=None,
-                  artifact_cache=None,artifact_cache_loader=None):
+                  artifact_cache=None,artifact_cache_loader=None,contact_identity_loader=None):
             return {'status':'MEASURED','context_identity':identity,'source_sha256':expected_source_sha256 or digest(source),
                     'candidate_sha256':digest(points),'method':'FULL_BODY_COLLISION','sign_status':'UNAMBIGUOUS',
                     'moving_indices':moving,'protected_contacts':[{'vertex':i,'signed_offset_cm':points[i][0],
@@ -467,6 +467,160 @@ class NativeAnchorReserveAdapter(unittest.TestCase):
         self.assertEqual(result['status'],'ANCHORS_ADMISSIBLE_ONLY')
         self.assertGreater(result['spent_budget']['measurement_calls'],1)
         create.assert_called_once()
+
+    def streaming_body(self):
+        """Complete fake native API; world/source changes remain observable."""
+        class Matrix:
+            def __matmul__(self,point):return point
+        self.loop_faces=[[0,1,2]];self.loop_owners=[0];self.cache_key='cache'
+        def mesh_capture():
+            return SimpleNamespace(vertices=[SimpleNamespace(co=[v/100 for v in point])
+                    for point in self.actual['vertices_cm']],
+                polygons=[SimpleNamespace(vertices=face) for face in self.actual['faces']],
+                loop_triangles=[SimpleNamespace(vertices=face,polygon_index=owner)
+                    for face,owner in zip(self.loop_faces,self.loop_owners)],
+                attributes={'.sculpt_face_set':SimpleNamespace(domain='FACE',data_type='INT',
+                    data=[SimpleNamespace(value=value) for value in self.actual['face_sets']])},
+                calc_loop_triangles=Mock())
+        self.native_evaluated=SimpleNamespace(matrix_world=Matrix(),to_mesh=Mock(side_effect=mesh_capture),to_mesh_clear=Mock())
+        self.body.evaluated_get=Mock(return_value=self.native_evaluated)
+        self.body.get=lambda key:self.cache_key if key=='a3d_profile_cache_key' else None
+        self.context['bodies'][0]['snapshot']={'object':'target','dimensions_cm':[0.,1.,1.]}
+
+    def stream_guard(self):
+        from blender.anchor_reserve import _current_contact_body
+        from blender.contact_body_identity import create_contact_body_identity
+        return create_contact_body_identity(self.context,self.binding,self.plan,_current_contact_body)
+
+    def stream_measure(self,guard,identity=None):
+        return measure_anchor_reserve(self.payload,self.points,self.context,self.plan,self.binding,[0,1],
+            [0,1],identity or {},artifact_cache=_create_bound_body_cache(self.binding),
+            contact_identity_loader=lambda:guard)
+
+    def test_stream_guard_preserves_query_and_output_without_surface_digest_recapture(self):
+        self.streaming_body()
+        with patch('blender.pattern_assembly.collision_check',return_value=self.signed()):
+            legacy=measure_anchor_reserve(self.payload,self.points,self.context,self.plan,self.binding,[0,1],[0,1],{})
+            guard=self.stream_guard();self.evaluate.reset_mock()
+            with patch('blender.contact_body_identity.math.isfinite',wraps=__import__('math').isfinite):
+                actual=self.stream_measure(guard)
+        self.assertEqual(actual,legacy);self.evaluate.assert_not_called()
+        self.assertEqual(self.native_evaluated.to_mesh.call_count,2)
+        self.assertEqual(self.native_evaluated.to_mesh_clear.call_count,2)
+
+    def test_stream_guard_rejects_all_context_buffers_and_bvh_replacement_before_query(self):
+        mutations={
+            'coords':lambda row:row['coords'][0].__setitem__(0,1.),
+            'faces':lambda row:row['faces'][0].reverse(),
+            'owners':lambda row:row['polygons'].__setitem__(0,1),
+            'world_triangles':lambda row:row['triangles'][0][0].__setitem__(0,1.),
+            'bvh':lambda row:row.__setitem__('tree',object()),
+            'snapshot_dimensions':lambda row:row['snapshot']['dimensions_cm'].__setitem__(1,2.),
+            'snapshot_name':lambda row:row['snapshot'].__setitem__('object','other'),
+            'closed':lambda row:row.__setitem__('closed',False),
+            'orientation':lambda row:row['orientation_issues'].append('changed'),
+            'surface_identity':lambda row:row.__setitem__('sha256','changed'),
+            'name':lambda row:row.__setitem__('name','other')}
+        self.streaming_body();original=copy.deepcopy({key:value for key,value in self.context['bodies'][0].items()
+                    if key not in ('object','tree')})
+        tree=self.context['bodies'][0]['tree']
+        for name,mutate in mutations.items():
+            row=self.context['bodies'][0];row.update(copy.deepcopy(original));row['tree']=tree
+            guard=self.stream_guard();mutate(row)
+            with self.subTest(name=name),patch('blender.pattern_assembly.collision_check') as query:
+                actual=self.stream_measure(guard)
+            self.assertEqual(actual['status'],'UNAVAILABLE');query.assert_not_called()
+
+    def test_stream_guard_rejects_live_topology_regions_owners_cache_and_simultaneous_changes(self):
+        self.streaming_body();original=copy.deepcopy(self.actual)
+        for mode in ('vertex','polygon','region','triangles','owners','cache-key','missing-body','body-and-context'):
+            self.actual=copy.deepcopy(original);self.loop_faces=[[0,1,2]];self.loop_owners=[0];self.cache_key='cache'
+            self.body.type='MESH';self.context['bodies'][0]['coords']=copy.deepcopy(original['vertices_cm'])
+            guard=self.stream_guard()
+            if mode in ('vertex','body-and-context'):self.actual['vertices_cm'][0][0]=1.
+            if mode=='body-and-context':self.context['bodies'][0]['coords'][0][0]=1.
+            if mode=='polygon':self.actual['faces'][0].reverse()
+            if mode=='region':self.actual['face_sets'][0]=2
+            if mode=='triangles':self.loop_faces[0].reverse()
+            if mode=='owners':self.loop_owners[0]=1
+            if mode=='cache-key':self.cache_key='other'
+            if mode=='missing-body':self.body.type='EMPTY'
+            with self.subTest(mode=mode),patch('blender.pattern_assembly.collision_check') as query:
+                actual=self.stream_measure(guard)
+            self.assertEqual(actual['status'],'UNAVAILABLE');query.assert_not_called()
+            self.assertEqual(self.native_evaluated.to_mesh.call_count,self.native_evaluated.to_mesh_clear.call_count)
+
+    def test_stream_guard_refuses_mutation_during_query_and_collision_plan_changes(self):
+        self.streaming_body()
+        for mode in ('vertex','triangles','bvh','collision'):
+            guard=self.stream_guard()
+            original=copy.deepcopy(self.actual);tree=self.context['bodies'][0]['tree']
+            triangles=copy.deepcopy(self.context['bodies'][0]['triangles'])
+            def change(*args,**kwargs):
+                if mode=='vertex':self.actual['vertices_cm'][0][0]=1.
+                if mode=='triangles':self.context['bodies'][0]['triangles'][0][0][0]=1.
+                if mode=='bvh':self.context['bodies'][0]['tree']=object()
+                if mode=='collision':self.plan['collision']['clearance_cm']=.2
+                return self.signed()
+            with self.subTest(mode=mode),patch('blender.pattern_assembly.collision_check',side_effect=change):
+                actual=self.stream_measure(guard)
+            self.assertEqual(actual['status'],'UNAVAILABLE')
+            self.actual=original;self.context['bodies'][0]['tree']=tree
+            self.context['bodies'][0]['triangles']=triangles;self.plan['collision']['clearance_cm']=.3
+
+    def test_stream_guard_seals_private_state_and_collision_plan_before_queries(self):
+        self.streaming_body()
+        for field,value in (('expected',()),('seal',()),('handles',()),('collision',()),('collision_seal',())):
+            guard=self.stream_guard();object.__setattr__(guard,field,value)
+            with self.subTest(field=field),patch('blender.pattern_assembly.collision_check') as query:
+                actual=self.stream_measure(guard)
+            self.assertEqual(actual['status'],'UNAVAILABLE');query.assert_not_called()
+        guard=self.stream_guard();self.plan['collision']['other']='changed'
+        with patch('blender.pattern_assembly.collision_check') as query:actual=self.stream_measure(guard)
+        self.assertEqual(actual['status'],'UNAVAILABLE');query.assert_not_called()
+
+    def test_stream_guard_cleanup_after_invalid_native_capture_and_inputs_preserved(self):
+        self.streaming_body();guard=self.stream_guard()
+        before=digest([self.payload,self.points,self.binding,self.plan])
+        def invalid_mesh():
+            return SimpleNamespace(attributes={},vertices=[],polygons=[])
+        self.native_evaluated.to_mesh.side_effect=invalid_mesh
+        with patch('blender.pattern_assembly.collision_check') as query:actual=self.stream_measure(guard)
+        self.assertEqual(actual['status'],'UNAVAILABLE');query.assert_not_called()
+        self.native_evaluated.to_mesh_clear.assert_called_once()
+        self.assertEqual(before,digest([self.payload,self.points,self.binding,self.plan]))
+        self.native_evaluated.to_mesh_clear.reset_mock()
+        self.native_evaluated.to_mesh.side_effect=RuntimeError('Native allocation failed')
+        with patch('blender.pattern_assembly.collision_check') as query:actual=self.stream_measure(guard)
+        self.assertEqual(actual['status'],'UNAVAILABLE');query.assert_not_called()
+        self.native_evaluated.to_mesh_clear.assert_called_once()
+
+    def test_stream_guard_lazy_creation_once_and_default_legacy_remains_available(self):
+        from blender.contact_body_identity import create_contact_body_identity
+        self.streaming_body()
+        def signed_points(coordinates,*args,**kwargs):return self.signed(offset=coordinates[0][0])
+        with patch('blender.contact_body_identity.create_contact_body_identity',wraps=create_contact_body_identity) as create,\
+                patch('blender.pattern_assembly.collision_check',side_effect=signed_points):
+            result=propose_anchor_reserve(self.payload,self.points,self.context,{'pins':[]},self.plan,self.spec,self.binding,
+                self.quality,self.points,{'budgets':self.budgets,'protected_indices':[0]})
+        self.assertEqual(result['status'],'ANCHORS_ADMISSIBLE_ONLY');create.assert_called_once()
+        self.evaluate.assert_called_once()
+        self.assertEqual(self.native_evaluated.to_mesh.call_count,
+                         2*result['spent_budget']['measurement_calls'])
+        self.evaluate.reset_mock();self.native_evaluated.to_mesh.reset_mock()
+        with patch('blender.pattern_assembly.collision_check',return_value=self.signed()):
+            result=measure_anchor_reserve(self.payload,self.points,self.context,self.plan,self.binding,[0],[0],{})
+        self.assertEqual(result['status'],'MEASURED');self.assertEqual(self.evaluate.call_count,2)
+        self.native_evaluated.to_mesh.assert_not_called()
+
+    def test_stream_initial_authentication_failure_keeps_structured_proposal_failure(self):
+        self.streaming_body();self.context['bodies'][0]['snapshot']['dimensions_cm'][0]=1.
+        with patch('blender.pattern_assembly.collision_check') as query:
+            result=propose_anchor_reserve(self.payload,self.points,self.context,{'pins':[]},self.plan,self.spec,self.binding,
+                self.quality,self.points,{'budgets':self.budgets,'protected_indices':[0]})
+        self.assertEqual(result['status'],'NEEDS_MEASUREMENT')
+        self.assertEqual(result['stop_reason'],'MEASUREMENT_UNAVAILABLE');query.assert_not_called()
+        self.assertEqual(result['coordinates_cm'],self.points)
 
 
 class SingleEvaluatedBodyCapture(unittest.TestCase):
