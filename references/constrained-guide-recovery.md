@@ -39,9 +39,32 @@ cohérence des données fournies ; l'authentification native et la validité des
 sections appartiennent à l'appelant. Ses sorties conservent `qualification:
 NONE`, `contacts: NOT_ASSESSED`, simulation et fitting non exécutés.
 
-L'adaptateur de production qui prépare ces contraintes depuis les mesures
-exactes du candidat reste à intégrer. Aucun nouveau résultat natif du manteau
-n'est produit par cette unité. Les modules `material_surface_*` restent les
+Le producteur portable `produce_local_surface_constraints` calcule les points
+les plus proches sur les triangles fermés du corps fourni. Il contrôle la
+géométrie, la propriété et le winding des faces, les bindings matériels et
+les empreintes avant de publier un document. Un préflight borne tout l'arbre
+JSON avant sérialisation. Tous les indices sélectionnés sont diagnostiqués ;
+aucune sélection favorable n'est utilisée pour obtenir une admission.
+
+Les égalités entre triangles, même coplanaires, restent refusées à la tolérance
+float64 déclarée. Une projection hors triangle, un point hors boule de confiance,
+une reconstruction barycentrique imprécise ou un domaine mesuré absent empêchent
+la publication du document. Les budgets du diagnostic autorisent jusqu'à
+32 000 indices ; le consommateur V1 reste limité à 4 096 lignes. Une distance
+au triangle fermé et un offset orienté de son plan ne mesurent pas le signe
+global intérieur/extérieur, ni l'aisance du vêtement.
+
+Le replay sur les artefacts natifs conservés couvre 512/512 points du col et
+12 991/12 991 points des six pièces déclarées. Le col comporte 199 ambiguïtés
+et 199 projections hors patch. Le groupe comporte 6 038 ambiguïtés, 6 039
+projections hors patch et 575 points hors boule de 20 cm. Les deux rapports
+restent `NEEDS_REPRESENTATION`, sans document consommable ni verdict de taille.
+Les domaines `MEASURED` n'ont pas été inventés. Les cinq originaux restent
+inchangés et la triangulation native est authentifiée par remesure du profil.
+
+L'adaptateur de production et une représentation admissible des bords partagés
+restent à intégrer. Aucun placement natif corrigé du manteau n'est produit par
+cette unité. Les modules `material_surface_*` restent les
 contrats de transport/interpolation des champs et références matérielles ;
 ils ne sont pas remplacés par cet objectif d'optimisation local.
 
@@ -52,3 +75,5 @@ Les cas portent sur des fixtures portables ; ils ne qualifient pas les pièces
 du manteau ni deux mannequins natifs de même tour.
 
 [Tests, contrat et portée](automation-constrained-guide-recovery-evidence-20261007.json).
+
+[Producteur, replay du candidat et qualification intégrée](automation-local-surface-guard-evidence-20261008.json).

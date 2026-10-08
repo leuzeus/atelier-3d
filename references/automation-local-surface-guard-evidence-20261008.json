@@ -1,0 +1,132 @@
+{
+  "date": "2026-10-08",
+  "scope": "LOCAL_SURFACE_DIAGNOSTIC_PRODUCER_EVALUATED_BODY_GUARD_AND_NATIVE_SOURCE_REBIND",
+  "code_commit": "751affbc0ac42df1400ae92214c02324da11c5ba",
+  "software": {
+    "status": "PASS",
+    "tests": 2020,
+    "skipped": 0,
+    "test_seconds": 398.792,
+    "contracts": 14,
+    "immutable_export": true,
+    "source_unchanged": true,
+    "review": "NO_NEW_P1_P2_IDENTIFIED",
+    "validation_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\..\\program-local-surface-guard-full-validation-v1\\validation.json",
+      "sha256": "a2ce204ffb2470abf9cd23c68581ddd09464b1f04a59dbc9cbc33fcee98b6cf4"
+    }
+  },
+  "connected_runtime": {
+    "status": "VERIFIED_0705",
+    "version": "0.7.0-rc.2.dev.2026100705",
+    "schema_files": 52,
+    "new_751affb_code_installed": false,
+    "doctor_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\..\\program-reloaded-0705-v1\\doctor.json",
+      "sha256": "16fcc62895775d62df8d3b950c1ed91dd74f2559fa29cd40c5ccc1e413b55a3e"
+    }
+  },
+  "guide_regeneration": {
+    "status": "REGENERATED_V5_FROM_SAME_INPUTS",
+    "guides_bytes_equal_to_v4": true,
+    "assembly_plan_bytes_equal_to_v4": true,
+    "comparison_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\..\\program-reloaded-0705-v1\\regeneration-comparison.json",
+      "sha256": "16954e807756b8941ab15c2d8236ba1bc846309cdb61371cbc7cc6c7596224c4"
+    }
+  },
+  "native_binding": {
+    "status": "NATIVE_BINDING_FINISH_RECONCILED",
+    "human_authorization": "call_b11720ac12544592a90c6a57cd392bf5 / Autoriser ce raccordement natif",
+    "provider_timeout_seconds": 300,
+    "replayed": false,
+    "textile_pieces": 15,
+    "canonical_start_event": 162,
+    "canonical_finish_event": 163,
+    "checkpoint": {
+      "path": ".a3d/checkpoints/pre-50165f95df2343d78d7ab2d7fd38427a.blend",
+      "sha256": "8de5572d1a026ea1a49f502eea359aa0e03d5acd6e4d9766e09353b3c066292d"
+    },
+    "reconciliation_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\..\\program-reloaded-0705-v1\\native-binding-reconciliation.json",
+      "sha256": "65673573f10b611bec840aa53ee7c0bff7ad1efda961efd13196db15fee31273"
+    },
+    "scene_inventory": "ONE_BODY_ZERO_TEXTILES_ZERO_BUCKLE",
+    "placement": "NOT_EXECUTED",
+    "simulation": "NOT_EXECUTED"
+  },
+  "portable_candidate_replay": {
+    "source": "PRESERVED_REFUSED_CANDIDATE_NOT_LIVE_SCENE",
+    "status": "NEEDS_REPRESENTATION",
+    "collar": {
+      "diagnosed": 512,
+      "selected": 512,
+      "ties": 199,
+      "projection_outside_patch": 199,
+      "outside_20_cm_ball": 0
+    },
+    "six_pieces": {
+      "diagnosed": 12991,
+      "selected": 12991,
+      "ties": 6038,
+      "projection_outside_patch": 6039,
+      "outside_20_cm_ball": 575,
+      "consumer_v1_max_rows": 4096
+    },
+    "measured_domains": "NOT_SUPPLIED_NOT_INVENTED",
+    "consumer_document": false,
+    "inputs_unchanged": true,
+    "dimensional_verdict": "NOT_ASSESSED",
+    "summary_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\..\\program-local-surface-candidate-replay-v1\\summary.json",
+      "sha256": "dd2956face96dfea72b5fb860dc0427b1df9047d830dead7992baeebff922a6c"
+    },
+    "inputs_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\..\\program-local-surface-candidate-replay-v1\\inputs.json",
+      "sha256": "1c348526cf9e9af990520ec70dab823512b0e9266efad696630d6a6cb84b97a0"
+    }
+  },
+  "native_guard": {
+    "source": "FULL_EVALUATED_BODY_BEFORE_AND_AFTER_EACH_QUERY_WITH_EXACT_BUFFER_SEALS",
+    "collision_queries_changed": false,
+    "budgets_changed": false,
+    "admission_changed": false,
+    "native_performance": "NOT_MEASURED",
+    "portable_profile": {
+      "evaluated_API": "SIMULATED",
+      "vertices": 10582,
+      "triangulation": "SYNTHETIC_FAN",
+      "python311_ref": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\..\\program-evaluated-body-guard-portable-profile-v1\\python311-final.json",
+        "sha256": "0022a0a7f374eec6c05945114b3cf33dc0089c9945325e5225bf13293a17de94"
+      },
+      "python313_ref": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\..\\program-evaluated-body-guard-portable-profile-v1\\python313-final.json",
+        "sha256": "c0e3ffb840758e6bde531edcffd9618640b99d6825b2d4ba4c31b66f868e12a8"
+      }
+    }
+  },
+  "technical_inputs": {
+    "status": "PREPARED_NOT_EXECUTED",
+    "mesh_seconds": 300,
+    "source_angle_degrees": 15,
+    "anchor_seconds": 60,
+    "receipt_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\..\\program-reviewed-design-main-v1\\execution-project\\preparation\\coat-current-guides-0705-v1\\receipt.json",
+      "sha256": "1cb7c2ca014d6d19f3fdcafc0658a95fc16a90dad7b5cd564098dd2d3b146d89"
+    }
+  },
+  "body_changed": false,
+  "patterns_changed": false,
+  "new_cutting_review": "NONE_PENDING_IN_THIS_UNIT",
+  "remaining": [
+    "ADMISSIBLE_SHARED_EDGE_SURFACE_REPRESENTATION_AND_MEASURED_DOMAINS",
+    "NATIVE_GUARD_PERFORMANCE_QUALIFICATION",
+    "SHOULDER_AND_TORSO_PLACEMENT_ADMISSION",
+    "FULL_15_TEXTILES_AND_BUCKLE",
+    "DRESSING_CLOTH_DRAPE_FITTING_MOTION",
+    "EXACT_CANDIDATE_HUMAN_ARTISTIC_REVIEW",
+    "FINAL_PRERELEASE_AND_VERIFIED_INSTALLATION"
+  ],
+  "qualification": "NONE"
+}

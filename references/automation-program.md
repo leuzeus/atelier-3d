@@ -4,11 +4,12 @@ Plan approuvé par l'utilisateur le 3 octobre 2026. Base : branche
 `codex/garment-automation-v1`, commit `8dfeac77c3b1bc3b11a4dbe6401eb2b1bb0a54ea`,
 version 0.7.0-rc.2. Le programme est suivi ici pendant l'implémentation.
 
-**État courant — 7 octobre, après l'essai 0704 :** le runtime connecté 0704
-est désormais périmé après l'installation locale vérifiée de 0705 : son ancien
-cache est absent et son rechargement est requis. Le build 0705 contient le code
+**État courant — 8 octobre, après rechargement et raccordement natif :** le
+runtime connecté 0705 est vérifié, avec ses 52 schémas. Il contient le code
 cc69fec, qualifié par 1 996 tests, zéro SKIP et quatorze contrats. Ses 719 fichiers
-sont vérifiés octet par octet ; la préversion finale reste non publiée.
+installés ont été vérifiés octet par octet. Le nouveau code 751affb passe
+2 020 tests, zéro SKIP et quatorze contrats sur un export immuable ; il reste
+distinct du runtime installé 0705. La préversion finale reste non publiée.
 
 Le runtime 0704, avant cette installation,
 a exécuté le maillage des dix pièces du manteau sous budget 300 s. Le maillage
@@ -21,15 +22,30 @@ Le complément dimensionnel est intégré. La déformation du témoin de col est
 localisée au raccord par moyenne : 7 → 7 → 8,5531 cm. Les racines des bras
 et deux trajets corporels d'épaule sont examinés puis acceptés. Le code source
 ajoute les observations par transformation, un cache d'artefacts contrôlé et
-les trajets ouverts sur arêtes ; ces ajouts sont installés dans 0705, dont
-l'activation dans l'application reste à vérifier après rechargement.
+les trajets ouverts sur arêtes ; ces ajouts sont installés et connectés dans 0705.
 Les tableaux localisent les correspondances de patronage manquantes ; aucune
 nouvelle modification de coupe n'est décidée par les seules pénétrations.
 
+Les guides V5 sont régénérés depuis les mêmes entrées. Leurs coordonnées et
+leur plan restent identiques aux V4 : aucune correction de placement n'est
+déduite de cette régénération. Le raccordement natif V4 autorisé est achevé et
+réconcilié depuis ses fichiers et sa fin SQLite, malgré le timeout MCP à 300 s.
+Il couvre les quinze textiles ; il n'exécute aucun placement. Les nouvelles
+entrées techniques conservent le budget de maillage de 300 s et le seuil de 15°.
+
 Les lots de guide contraint, contacts et récupération métrique restent en cours.
+Le nouveau producteur portable diagnostique entièrement les 512 points du col
+et les 12 991 points des six pièces sélectionnées. Ses refus localisent les
+limites du modèle de patch et du plafond de 4 096 lignes ; aucun document de
+contraintes admissible n'est produit pour ce candidat. L'extension de cette
+représentation et les domaines corporels mesurés restent à préparer. Le guard
+natif évite les sérialisations répétées, sans réduire les contrôles du corps ;
+son gain dans Blender n'est pas encore mesuré.
 Cloth, drapé, fitting, les mouvements, la revue artistique et la préversion
 finale restent non réalisés. Les entrées suivantes constituent le journal
 chronologique : leurs versions et résultats ne remplacent pas cet état courant.
+
+[Rechargement, raccordement et qualification du nouveau code](automation-local-surface-guard-evidence-20261008.json).
 
 **Jalon historique du 7 octobre — intentions de patronage enregistrées :** le
 redémarrage est effectué et le diagnostic connecté confirme 0701, ses
@@ -2823,3 +2839,47 @@ finale restent à réaliser. Aucune nouvelle coupe n'attend une décision dans
 ce lot ; les revues du candidat complet restent requises.
 
 [Qualification, installation et point de reprise](automation-body-path-constrained-installation-evidence-20261007.json).
+
+### 2026-10-08 — Rechargement, diagnostic de peau et raccordement réconcilié
+
+Le runtime connecté 0705 est confirmé après la relance autorisée. Les guides
+V5 sont recompilés depuis les mêmes sources, avec la fermeture des dépendances
+corrigée. Leurs coordonnées et le plan sont identiques aux V4. Aucun résultat
+de placement n'est transféré par cette régénération.
+
+Le producteur générique de contraintes locales contrôle les entrées avant
+digest et diagnostique tous les indices sélectionnés. Deux P2 de préflight
+et de barycentrie sont corrigés et clos par revue indépendante. Le replay
+du candidat historique authentifie les cinq originaux et la triangulation
+native. Il couvre 512 points du col et 12 991 points des six pièces. Les
+ambiguïtés de bords, projections hors patch, domaines non fournis et plafond
+du consommateur empêchent de produire un document admissible. Ces diagnostics
+ne concluent pas à une sous-taille.
+
+Le guard du corps évalué commence par l'authentification complète, puis
+contrôle chaque capture avant et après les mesures : sommets WORLD, polygones,
+régions, triangles ordonnés, propriétaires, buffers réellement utilisés,
+collider, BVH, cache et plan. Il évite le digest de la surface et la seconde
+reconstruction des triangles ; les requêtes et critères restent conservés.
+Les profils portables utilisent une API simulée et des triangles fan synthétiques.
+Le gain natif n'est pas encore mesuré. Le commit 751affb passe 2 020 tests,
+zéro SKIP, en 398,792 s, et quatorze contrats, source immuable. Il n'est pas
+installé dans le runtime 0705.
+
+L'utilisateur autorise le raccordement natif V4. Le MCP expire à 300 s,
+puis les fichiers et l'événement SQLite `blender_finished` apparaissent.
+Le reçu est réconcilié sans nouvel envoi : quinze textiles couverts, références
+et checkpoint vérifiés. L'inventaire connecté contient uniquement le corps
+accepté. Les entrées techniques fraîches réappliquent les contrôles existants
+de 300 s de maillage, 15° et 60 s de réserve d'ancrages ; aucune préparation
+de candidat ni simulation n'est exécutée. La mention de restauration dans
+le helper historique ne constitue pas une récupération nécessaire ici :
+la fin est canonique et aucune opération n'est en attente.
+
+Prochaine unité : rendre admissible la représentation des voisinages de
+bords partagés et des domaines corporels, puis qualifier le guard sur une
+opération native distinctement autorisée. Une répétition inchangée du candidat
+ne remplace pas cette correction. Aucune nouvelle coupe n'attend une décision ;
+la revue artistique du vêtement complet reste requise après construction.
+
+[Preuves, limites et fichiers exacts](automation-local-surface-guard-evidence-20261008.json).
