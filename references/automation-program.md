@@ -21,7 +21,8 @@ Le complément dimensionnel est intégré. La déformation du témoin de col est
 localisée au raccord par moyenne : 7 → 7 → 8,5531 cm. Les racines des bras
 et deux trajets corporels d'épaule sont examinés puis acceptés. Le code source
 ajoute les observations par transformation, un cache d'artefacts contrôlé et
-les trajets ouverts sur arêtes ; ces ajouts ne sont pas encore installés.
+les trajets ouverts sur arêtes ; ces ajouts sont installés dans 0705, dont
+l'activation dans l'application reste à vérifier après rechargement.
 Les tableaux localisent les correspondances de patronage manquantes ; aucune
 nouvelle modification de coupe n'est décidée par les seules pénétrations.
 
