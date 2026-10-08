@@ -244,9 +244,26 @@ ni la métrique du tube, ni les contacts, ni le vêtement complet.
 ## Vérifications et portée
 
 Le [noyau de continuation locale](surface-path-continuation.md) prépare un
-diagnostic générique depuis les incidences natives d'un bord corporel. Il
-conserve les ambiguïtés et les domaines manquants. Il n'est pas encore raccordé
-au dispatcher et ne modifie pas le placement des panneaux.
+diagnostic générique depuis les incidences natives d'un bord corporel. L'option
+explicite `source_boundary_bindings` du composant le raccorde maintenant au
+dispatcher, après le calcul des positions finales. Elle exige la recette
+authentifiée, les relations source, le domaine corporel et le sens de requête
+`CURRENT_PARTNER_BOUNDARY_TARGET`. L'absence de cette option conserve le
+comportement historique.
+
+Le producteur conserve les supports barycentriques de chaque partenaire et
+les incidences du corps exact. Il mesure les coordonnées actuelles, y compris
+les changements introduits par le couplage, sans ajouter d'attache ni déplacer
+un contrôle. Les départs sur un sommet exigent l'étoile native complète et une
+unique nappe admissible ; une ambiguïté ou un domaine manquant reste un refus.
+Les budgets explicites s'appliquent aussi aux petits résidus ; un calcul non
+représentable ne peut produire une correction infinie.
+
+Ce raccord est un diagnostic de positions. Les essais distincts de correction
+conjointe restent des propositions refusées tant que matière, attaches,
+raccords et contacts ne passent pas sur le même candidat. Le [bilan de ces
+essais](automation-joint-placement-20261008.md) conserve les comparaisons, les
+contre-exemples et leurs limites.
 
 Les tests couvrent les référentiels tournés, les côtés anatomiques, les jambes
 avec repères de hanche et cheville, les régions personnalisées, le chargement

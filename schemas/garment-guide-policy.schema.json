@@ -155,6 +155,53 @@
           "anatomical_references_sha256": {
             "type": "string", "pattern": "^[a-f0-9]{64}$"
           },
+          "source_boundary_bindings": {
+            "type": "object",
+            "properties": {
+              "version": {"const": 1},
+              "method": {"const": "HOMOLOGOUS_PATH_BAND_BOUNDARY_V1"},
+              "driver_piece": {"type": "string", "minLength": 1, "maxLength": 100},
+              "source_seam_ids": {
+                "type": "array", "minItems": 1, "maxItems": 128, "uniqueItems": true,
+                "items": {"type": "string", "minLength": 1, "maxLength": 100}
+              },
+              "ease_distribution": {"const": "UNIFORM_NORMALIZED_SOURCE_ARC"},
+              "query_target_kind": {"const": "CURRENT_PARTNER_BOUNDARY_TARGET"},
+              "budgets": {
+                "type": "object",
+                "properties": {
+                  "max_source_points": {"type": "integer", "minimum": 1, "maximum": 80000},
+                  "max_source_triangles": {"type": "integer", "minimum": 1, "maximum": 32768},
+                  "max_controls": {"type": "integer", "minimum": 1, "maximum": 70000},
+                  "max_triangles": {"type": "integer", "minimum": 1, "maximum": 131072},
+                  "max_seconds": {"type": "number", "minimum": 0.000001, "maximum": 120}
+                },
+                "required": ["max_seconds"],
+                "additionalProperties": false
+              },
+              "continuation": {
+                "type": "object",
+                "properties": {
+                  "method": {"const": "SEEDED_SURFACE_PATH_LIFT_V2"},
+                  "min_cosine": {"type": "number", "minimum": 0, "maximum": 1},
+                  "max_events": {"type": "integer", "minimum": 1, "maximum": 2000000}
+                },
+                "required": ["method", "min_cosine", "max_events"],
+                "additionalProperties": false
+              },
+              "recipe_ref": {
+                "type": "object",
+                "properties": {
+                  "path": {"type": "string", "minLength": 1},
+                  "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+                },
+                "required": ["path", "sha256"],
+                "additionalProperties": false
+              }
+            },
+            "required": ["version", "method", "driver_piece", "source_seam_ids", "ease_distribution", "query_target_kind", "budgets", "continuation", "recipe_ref"],
+            "additionalProperties": false
+          },
           "source_seam_coupling": {
             "type": "object",
             "properties": {

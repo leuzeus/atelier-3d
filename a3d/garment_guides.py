@@ -900,7 +900,7 @@ def validate_section_parameterization(value, upper_blend, surface_sections):
 def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sections=True, skin_sections=None,
                           *,source_seam_coupling=None,seam_recipe=None, anatomical_references=None,
                           anatomical_geometry=None, section_parameterization='POLYLINE_ARCLENGTH_V1',
-                          limb_parameterization='SOURCE_ROW_CIRCUMFERENCE_V1'):
+                          limb_parameterization='SOURCE_ROW_CIRCUMFERENCE_V1', source_boundary_bindings=None):
     """Dispatch complete source coverage; return pending unsupported roles.
 
     A missing declaration or impossible native guide produces an actionable
@@ -1031,7 +1031,7 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
         if alignment.get('status')=='PARTIAL_ROLE_SEEDS_PREPARED':
             diagnostics.append({'family':'source_rigid_alignment','code':'PARTIAL_SOURCE_RELATION_ALIGNMENT',
                 'message':'Rigid seeds cover front attachments only; other permanent relations still require correction'})
-    elif seam_recipe is not None:
+    elif seam_recipe is not None and source_boundary_bindings is None:
         raise StudioError('A sewing recipe cannot enable undeclared guide coupling')
     final_attachments = anatomical_attachment_residuals(frames, attachment_controls)
     if final_attachments['violations']:
@@ -1059,9 +1059,19 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
         coverage['prepared_piece_guides'] = [{'piece': pid, 'guide_kind': row.get('guide_kind', 'LEGACY_ROLE_GUIDE'),
             'prepared': pid in frames, 'surface_envelope_declared': 'surface_envelope' in row}
             for pid, row in sorted(references['pieces'].items())]
+    boundary_report = None
+    if source_boundary_bindings is not None:
+        from .source_boundary_bindings import inspect_current_source_boundaries
+        if references is None or not isinstance(anatomical_geometry, dict) or seam_recipe is None:
+            raise StudioError('Boundary inspection needs explicit anatomical references, native geometry and source recipe')
+        boundary_report = inspect_current_source_boundaries(data, frames, seam_recipe, profile,
+            anatomical_geometry.get('geometry'), anatomical_references, source_boundary_bindings)
+        if boundary_report['status'] == 'PARTIAL_BOUNDARY_CONTINUATION':
+            diagnostics.append({'family': 'source_boundary_bindings', 'code': 'CURRENT_BOUNDARY_CONTINUATION_INCOMPLETE',
+                'message': 'Current sewing supports remain available; anatomical paths or boundary reserve are unresolved'})
     pending = sorted(set(data['pieces'])-set(frames))
     return {'version': 1, 'status': 'PARTIAL_GUIDES' if pending or any(
-                row.get('family') in ('source_rigid_alignment', 'regional_surface_envelope', 'anatomical_constraints') for row in diagnostics) else 'GARMENT_GUIDES_PREPARED',
+                row.get('family') in ('source_rigid_alignment', 'regional_surface_envelope', 'anatomical_constraints', 'source_boundary_bindings') for row in diagnostics) else 'GARMENT_GUIDES_PREPARED',
             'panels': frames, 'pending_pieces': pending, 'diagnostics': diagnostics, 'families': reports,
             **({'source_seam_coupling':coupling_report}if coupling_report is not None else {}),
             **({'regional_surface_envelope': envelope_report} if envelope_report is not None else {}),
@@ -1069,6 +1079,7 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
             **({'post_coupling_surface_reserve': final_envelope} if final_envelope is not None else {}),
             **({'anatomical_region_coverage': coverage} if coverage is not None else {}),
             **({'anatomical_references_sha256': digest(anatomical_references)} if references is not None else {}),
+            **({'source_boundary_bindings': boundary_report} if boundary_report is not None else {}),
             'source_sha256': digest(data), 'semantics_sha256': digest(semantics),
             'profile_cache_key': profile['cache_key'], 'profile_sha256': digest(profile),
             'source_mutated': False, 'source_uv_scaled': False, 'qualification': 'NONE',

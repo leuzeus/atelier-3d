@@ -38,6 +38,44 @@ couture textile. Les empreintes lient le résultat aux tableaux, aux requêtes,
 à la politique et au code exacts. Le nombre d'événements borne le travail,
 pas une distance anatomique.
 
+### Graines exactement aux sommets — V2
+
+La méthode explicite `SEEDED_SURFACE_PATH_LIFT_V2` conserve les mêmes champs et
+autorise aussi les fractions exactement égales à `0` ou `1`. Le sommet est alors
+respectivement `seed_edge_vertex_ids[0]` ou `seed_edge_vertex_ids[1]`. L'arête
+source déclarée doit toujours exister. Aucune fraction voisine n'est arrondie ou
+rapprochée d'une extrémité.
+
+Pour cette graine de sommet, `seed_face_ids` doit contenir **toutes les faces
+source incidentes au sommet dans les régions autorisées**, en indices entiers
+distincts, avec une limite de 256 faces. Les seules incidences de l'arête ne
+suffisent pas. L'appelant dérive cette liste depuis la géométrie native
+authentifiée ; le noyau la compare à l'étoile reconstruite depuis les triangles.
+
+Avant de sélectionner une sortie, le noyau vérifie :
+
+- l'étoile native entière, y compris les triangles hors du domaine, est manifold
+  et connexe ; aucune région exclue ne peut masquer une branche non manifold ;
+- la restriction aux régions autorisées est connexe et tous ses triangles sont
+  transverses dans la direction déclarée ;
+- un seul triangle autorisé contient un intervalle strictement positif du trajet
+  projeté sortant du sommet.
+
+Une étoile de bord en éventail est permise. Un trajet le long de deux triangles
+sortants reste ambigu et est refusé. L'ordre des faces ou la proximité de la
+cible ne choisit jamais une branche. Les parcours d'étoiles consomment le même
+budget cumulé que la construction et les autres requêtes du lot.
+
+Le rapport de graine ajoute `seed_kind: NATIVE_VERTEX`, `vertex_id`, les indices
+des étoiles native et autorisée, et leur portée. Le champ
+`all_native_incident_source_faces` désigne alors l'étoile entière du sommet.
+La version de politique et les requêtes sont couvertes par les empreintes.
+
+Pour une fraction strictement intérieure, V2 applique le contrat d'arête V1,
+avec au plus deux faces incidentes. V1 conserve son refus des extrémités et son
+comportement historique. L'API interne `Surface.trace` garde également ce
+défaut ; l'extension exige `allow_vertex_seed=True`.
+
 Les bornes sont explicites : 100 000 sommets, 200 000 triangles et faces source,
 128 régions, 4 096 requêtes, 120 secondes et 2 000 000 événements au maximum.
 Les coordonnées et directions sont finies et bornées à ±1 000 000 cm ou unités
@@ -48,8 +86,9 @@ de requêtes non traitées.
 
 ## Refus et portée
 
-Les graines exactement à un sommet et les chemins de longueur projetée nulle
-restent non supportés dans cette version. Un pli, un passage rasant, une
+Les graines exactement à un sommet restent non supportées en V1 ; V2 les
+traite sous le contrat d'étoile ci-dessus. Les chemins de longueur projetée
+nulle restent non supportés dans les deux versions. Un pli, un passage rasant, une
 branche ambiguë, une étoile non manifold ou une sortie du domaine produit
 un refus. Une arrivée sur une arête peut identifier le point sans certifier
 son cône de normales. Une expiration au dernier calcul ne peut produire un

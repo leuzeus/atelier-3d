@@ -1,4 +1,4 @@
-"""Bounded piecewise-linear lifting of explicit paths from source edge seeds.
+"""Bounded piecewise-linear lifting from explicit source edge or vertex seeds.
 
 No nearest selection, displacement, source editing or garment admission. The
 domain is the supplied existing source-region union. Only this supplied path
@@ -18,6 +18,7 @@ from .core import StudioError, digest, sha
 MAX_COORDINATE_CM = 1000000
 MAX_QUERIES = 4096
 MAX_WORK_EVENTS = 2000000
+MAX_VERTEX_SEED_FACES = 256
 
 
 def _number(x):
@@ -157,7 +158,52 @@ class Surface:
         v = ((b[0]-a[0])*(q[1]-a[1])-(b[1]-a[1])*(q[0]-a[0]))/determinant
         return (1-u-v, u, v)
 
-    def trace(self, seed_edge, seed_fraction, seed_faces, target):
+    def _seed_vertex_star(self, vertex):
+        """Validate the entire native fan before its declared-domain restriction."""
+        native = self.vertex_triangles.get(vertex, set())
+        if not native:
+            raise Refused('MISSING_NATIVE_VERTEX_STAR')
+        adjacency = {}
+        for tid in sorted(native):
+            self.tick()
+            adjacent = set()
+            for other in self.triangles[tid]:
+                if other == vertex:
+                    continue
+                incident = self.edge_triangles[tuple(sorted((vertex, other)))]
+                if len(incident) > 2:
+                    raise Refused('NONMANIFOLD_VERTEX_STAR')
+                adjacent.update(set(incident)-{tid})
+            adjacency[tid] = adjacent
+
+        def connected(domain):
+            if not domain:
+                return False
+            pending = [min(domain)]
+            reached = set(pending)
+            while pending:
+                self.tick()
+                tid = pending.pop()
+                neighbours = adjacency[tid] & domain
+                if len(neighbours) > 2:
+                    return False
+                for other in sorted(neighbours-reached):
+                    reached.add(other)
+                    pending.append(other)
+            return reached == domain
+
+        if not connected(native):
+            raise Refused('NONMANIFOLD_OR_DISCONNECTED_NATIVE_VERTEX_STAR')
+        local = native & self.domain_triangles
+        if not connected(local):
+            raise Refused('NONMANIFOLD_OR_DISCONNECTED_VERTEX_STAR')
+        for tid in sorted(local):
+            self.tick()
+            if self.cosines[tid] <= self.min_cosine:
+                raise Refused('FOLD_OR_GRAZING_IN_SEED_VERTEX_STAR', triangle=tid)
+        return sorted(native), sorted(local)
+
+    def trace(self, seed_edge, seed_fraction, seed_faces, target, *, allow_vertex_seed=False):
         start = self.clock()
         traversed = []
         result = {'scope': 'DECLARED_SINGLE_PROJECTED_PATH_LIFT_ONLY', 'qualification': 'NONE',
@@ -167,14 +213,20 @@ class Surface:
                   'min_cosine_predicate': self.min_cosine}
         try:
             self.tick()
+            if type(allow_vertex_seed) is not bool:
+                raise Refused('INVALID_VERTEX_SEED_POLICY')
             if (not isinstance(seed_edge, (list, tuple)) or len(seed_edge) != 2 or any(
                     type(i) is not int or not 0 <= i < len(self.vertices) for i in seed_edge)
                     or len(set(seed_edge)) != 2):
                 raise Refused('INVALID_NATIVE_SEED_EDGE')
-            if type(seed_fraction) not in (int, float) or not 0 < seed_fraction < 1:
+            vertex_seed = (allow_vertex_seed and type(seed_fraction) in (int, float)
+                           and seed_fraction in (0, 1))
+            if (type(seed_fraction) not in (int, float) or
+                    not (0 < seed_fraction < 1 or vertex_seed)):
                 raise Refused('SEED_ENDPOINT_NOT_SUPPORTED_BY_EDGE_SEED_V1')
+            face_limit = MAX_VERTEX_SEED_FACES if vertex_seed else 2
             if (not finite_vector(target) or not isinstance(seed_faces, (list, tuple))
-                    or not 1 <= len(seed_faces) <= 2 or any(
+                    or not 1 <= len(seed_faces) <= face_limit or any(
                     type(f) is not int or not 0 <= f < len(self.regions) for f in seed_faces)
                     or len(set(seed_faces)) != len(seed_faces)):
                 raise Refused('INVALID_SEED_OR_TARGET')
@@ -183,6 +235,9 @@ class Surface:
             incident = self.edge_triangles[edge]
             if not incident or len(incident) > 2:
                 raise Refused('MISSING_OR_NONMANIFOLD_SEED_EDGE')
+            if vertex_seed:
+                vertex = seed_edge[int(seed_fraction)]
+                incident, vertex_candidates = self._seed_vertex_star(vertex)
             actual_faces = sorted({self.owners[t] for t in incident if t in self.domain_triangles})
             if sorted(seed_faces) != actual_faces:
                 raise Refused('SEED_FACE_INCIDENCES_DIFFER_FROM_DECLARED_DOMAIN', actual_faces=actual_faces)
@@ -232,6 +287,12 @@ class Surface:
                     'projected_path_interval': ([float(interval(t)[0]), float(interval(t)[1])]
                         if interval(t) is not None else None)} for t in candidates],
                 'initial_choice_rule': 'ONE_ALLOWED_TRANSVERSE_INCIDENT_TRIANGLE_CONTAINS_POSITIVE_PATH_INTERVAL'}
+            if vertex_seed:
+                result['seed_incidence'].update(seed_kind='NATIVE_VERTEX', vertex_id=vertex,
+                    native_star_triangles=incident, authorized_star_triangles=vertex_candidates,
+                    incidence_scope='COMPLETE_AUTHORIZED_NATIVE_VERTEX_STAR',
+                    native_star_status='MANIFOLD_CONNECTED', domain_star_status='CONNECTED_TRANSVERSE',
+                    initial_choice_rule='ONE_AUTHORIZED_VERTEX_STAR_TRIANGLE_CONTAINS_POSITIVE_PATH_INTERVAL')
             if len(outgoing) != 1:
                 raise Refused('SEED_HAS_NO_UNIQUE_TRANSVERSE_OUTGOING_PATCH', outgoing=outgoing,
                               seed_cosines=[self.cosines[t] for t in candidates])
@@ -359,9 +420,10 @@ def trace_surface_paths(vertices, triangles, owners, face_regions, policy, queri
     required = {'method', 'source_region_ids', 'direction_world', 'min_cosine', 'max_seconds', 'max_events'}
     query_fields = {'request_id', 'seed_edge_vertex_ids', 'seed_fraction', 'seed_face_ids', 'target_world_cm'}
     if (not isinstance(policy, dict) or set(policy) != required
-            or policy['method'] != 'SEEDED_SURFACE_PATH_LIFT_V1'
+            or policy['method'] not in ('SEEDED_SURFACE_PATH_LIFT_V1', 'SEEDED_SURFACE_PATH_LIFT_V2')
             or not isinstance(queries, list) or not 1 <= len(queries) <= MAX_QUERIES):
         raise StudioError('Surface continuation requires its exact bounded policy and query list')
+    vertex_mode = policy['method'] == 'SEEDED_SURFACE_PATH_LIFT_V2'
     identifiers = set()
     for query in queries:
         if (not isinstance(query, dict) or set(query) != query_fields
@@ -369,10 +431,12 @@ def trace_surface_paths(vertices, triangles, owners, face_regions, policy, queri
                 or query['request_id'] in identifiers):
             raise StudioError('Surface continuation requires distinct bounded exact query identities')
         identifiers.add(query['request_id'])
+        face_limit = (MAX_VERTEX_SEED_FACES if vertex_mode and
+                      type(query['seed_fraction']) in (int, float) and query['seed_fraction'] in (0, 1) else 2)
         if (not isinstance(query['seed_edge_vertex_ids'], list) or len(query['seed_edge_vertex_ids']) != 2
                 or any(type(i) is not int or not 0 <= i < 100000 for i in query['seed_edge_vertex_ids'])
                 or type(query['seed_fraction']) not in (int, float) or not 0 <= query['seed_fraction'] <= 1
-                or not isinstance(query['seed_face_ids'], list) or not 1 <= len(query['seed_face_ids']) <= 2
+                or not isinstance(query['seed_face_ids'], list) or not 1 <= len(query['seed_face_ids']) <= face_limit
                 or any(type(i) is not int or not 0 <= i < 200000 for i in query['seed_face_ids'])
                 or not finite_vector(query['target_world_cm'])):
             raise StudioError('Surface continuation requires bounded numeric query values')
@@ -395,7 +459,7 @@ def trace_surface_paths(vertices, triangles, owners, face_regions, policy, queri
     rows = []
     for query in queries:
         row = surface.trace(query['seed_edge_vertex_ids'], query['seed_fraction'], query['seed_face_ids'],
-                            query['target_world_cm'])
+                            query['target_world_cm'], allow_vertex_seed=vertex_mode)
         row['request_id'] = query['request_id']
         rows.append(row)
         if row.get('reason') in ('TIME_BUDGET_EXHAUSTED', 'WORK_BUDGET_EXHAUSTED'):

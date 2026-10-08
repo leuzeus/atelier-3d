@@ -3070,3 +3070,21 @@ mais aggrave la métrique globale jusqu'à environ 22 % d'étirement. Ce candida
 est refusé, conservé et affiché. Une expérience distincte sur la forme d'une
 section conserve son périmètre sans prouver la faisabilité d'un tube.
 Voir [les résultats, images et limites](automation-boundary-diagnostics-20261008.md).
+
+### 2026-10-08 — Correspondances sur les positions réelles et essais conjoints
+
+Le producteur optionnel `source_boundary_bindings` est raccordé au dispatcher
+après le placement. Il conserve les supports bilatéraux, les graines natives
+et les refus ; il ne déplace pas les panneaux. Les 107 tests ciblés et la revue
+indépendante passent pour cette portée. Le replay réel de l'essai 02 atteint
+156 chemins contre 122 avant, avec 49 correspondances perdues et 32 domaines
+encore manquants. Ce diagnostic ne qualifie pas le placement.
+
+Les essais distincts de correction des coordonnées préservent les patrons et
+les attaches mais restent refusés. Le cisaillement initial du col est mesuré,
+un contre-exemple démontre l'effondrement possible du solveur conjoint, et
+l'audit de surfaces détecte 1 217 paires d'intersection dans l'essai 04. Les
+images avant/après ont été affichées avec le corps opaque ; les refus sont
+conservés. Le travail se poursuit sur la récupération de métrique et les
+contraintes de contact, sans déduire une impossibilité des patrons.
+Voir [le bilan, les preuves et les limites](automation-joint-placement-20261008.md).

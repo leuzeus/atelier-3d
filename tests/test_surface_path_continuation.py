@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import unittest
 
-from a3d.surface_path_continuation import Surface, Refused, trace_surface_paths
+from a3d.surface_path_continuation import Surface, Refused, trace_surface_paths, MAX_VERTEX_SEED_FACES
 from a3d.core import StudioError
 
 
@@ -236,6 +236,169 @@ class ContinuationTests(unittest.TestCase):
         self.assertEqual(result['status'], 'CONTINUATION_INCOMPLETE')
         self.assertEqual(result['rows'], [])
         self.assertEqual(result['unprocessed_queries'], 1)
+
+
+class VertexSeedTests(unittest.TestCase):
+    vertices = VERTICES + [[1., 1., 0.]]
+    triangles = [[0, 1, 4], [1, 2, 4], [2, 3, 4], [3, 0, 4]]
+
+    def surface(self, **kwargs):
+        return planar(self.vertices, self.triangles, **kwargs)
+
+    def query(self, **changes):
+        return {'request_id': 'exact.vertex', 'seed_edge_vertex_ids': [4, 0],
+                'seed_fraction': 0., 'seed_face_ids': [0, 1, 2, 3],
+                'target_world_cm': [1.2, 1.6, .3]} | changes
+
+    def batch(self, queries=None, **changes):
+        policy = {'method': 'SEEDED_SURFACE_PATH_LIFT_V2', 'source_region_ids': [0],
+                  'direction_world': [0., 0., 1.], 'min_cosine': 1e-9,
+                  'max_seconds': 120., 'max_events': 100000} | changes
+        return trace_surface_paths(self.vertices, self.triangles, [0, 1, 2, 3], [0]*4,
+                                   policy, queries if queries is not None else [self.query()])
+
+    def test_exact_vertex_uses_complete_star_and_unique_outgoing_triangle(self):
+        result = self.batch()
+        self.assertEqual(result['status'], 'LOCAL_PATHS_REACHED')
+        row = result['rows'][0]
+        self.assertEqual(row['selected_source_face'], 2)
+        self.assertEqual(row['point_world_cm'], [1.2, 1.6, 0.])
+        incidence = row['seed_incidence']
+        self.assertEqual(incidence['vertex_id'], 4)
+        self.assertEqual(incidence['native_star_triangles'], [0, 1, 2, 3])
+        self.assertEqual(incidence['all_authorized_incident_source_faces'], [0, 1, 2, 3])
+        self.assertFalse(row['nearest_selection'])
+        self.assertEqual(result['contact_admission'], 'NOT_GRANTED')
+
+    def test_reversed_edge_endpoint_identifies_same_vertex(self):
+        a = self.batch()['rows'][0]
+        b = self.batch([self.query(seed_edge_vertex_ids=[0, 4], seed_fraction=1.)])['rows'][0]
+        for field in ('point_world_cm', 'selected_source_face', 'normal_world', 'signed_ray_distance_cm'):
+            self.assertEqual(a[field], b[field])
+        self.assertEqual(b['seed_incidence']['vertex_id'], 4)
+
+    def test_boundary_vertex_fan_is_supported(self):
+        r = planar().trace([0, 1], 0, [0, 1], [.5, 1.5, .3], allow_vertex_seed=True)
+        self.assertEqual(r['status'], 'LOCAL_PATH_LIFT_REACHED')
+        self.assertEqual(r['point_world_cm'], [.5, 1.5, 0.])
+
+    def test_edge_incidence_subset_cannot_claim_vertex_incidence(self):
+        r = self.batch([self.query(seed_face_ids=[0, 3])])['rows'][0]
+        self.assertEqual(r['reason'], 'SEED_FACE_INCIDENCES_DIFFER_FROM_DECLARED_DOMAIN')
+        self.assertEqual(r['diagnostic']['actual_faces'], [0, 1, 2, 3])
+
+    def test_vertex_hidden_native_nonmanifold_star_is_not_filtered_away(self):
+        vertices = self.vertices + [[1., 1., 1.], [2., 1., 1.]]
+        triangles = self.triangles + [[4, 5, 6]]
+        r = planar(vertices, triangles, regions=[0, 0, 0, 0, 1]).trace(
+            [4, 0], 0, [0, 1, 2, 3], [1.2, 1.6, .3], allow_vertex_seed=True)
+        self.assertEqual(r['reason'], 'NONMANIFOLD_OR_DISCONNECTED_NATIVE_VERTEX_STAR')
+
+    def test_vertex_nonmanifold_incident_edge_is_refused(self):
+        vertices = self.vertices + [[1., 0., 1.]]
+        triangles = self.triangles + [[4, 1, 5]]
+        r = planar(vertices, triangles, regions=[0, 0, 0, 0, 1]).trace(
+            [4, 0], 0, [0, 1, 2, 3], [1.2, 1.6, .3], allow_vertex_seed=True)
+        self.assertEqual(r['reason'], 'NONMANIFOLD_VERTEX_STAR')
+
+    def test_authorized_vertex_domain_must_be_connected(self):
+        r = self.surface(regions=[0, 1, 0, 1]).trace(
+            [4, 0], 0, [0, 2], [1.2, 1.6, .3], allow_vertex_seed=True)
+        self.assertEqual(r['reason'], 'NONMANIFOLD_OR_DISCONNECTED_VERTEX_STAR')
+
+    def test_entire_authorized_seed_fan_must_be_transverse(self):
+        triangles = copy.deepcopy(self.triangles)
+        triangles[0].reverse()
+        r = planar(self.vertices, triangles).trace(
+            [4, 0], 0, [0, 1, 2, 3], [1.2, 1.6, .3], allow_vertex_seed=True)
+        self.assertEqual(r['reason'], 'FOLD_OR_GRAZING_IN_SEED_VERTEX_STAR')
+
+    def test_path_on_two_outgoing_patches_stays_ambiguous(self):
+        r = self.batch([self.query(target_world_cm=[1.5, 1.5, .3])])['rows'][0]
+        self.assertEqual(r['reason'], 'SEED_HAS_NO_UNIQUE_TRANSVERSE_OUTGOING_PATCH')
+        self.assertEqual(len(r['diagnostic']['outgoing']), 2)
+
+    def test_zero_projected_vertex_path_and_missing_edge_are_refused(self):
+        r = self.batch([self.query(target_world_cm=[1., 1., .3])])['rows'][0]
+        self.assertEqual(r['reason'], 'ZERO_PROJECTED_PATH_NEEDS_SEED_NORMAL_CONE')
+        r = self.surface().trace([1, 3], 0, [0, 1], [.5, 1.5, .3], allow_vertex_seed=True)
+        self.assertEqual(r['reason'], 'MISSING_OR_NONMANIFOLD_SEED_EDGE')
+
+    def test_v1_still_refuses_endpoints_and_v2_preserves_interior_behavior(self):
+        r = planar().trace([0, 1], 0., [0], [.5, 1.5, .3])
+        self.assertEqual(r['reason'], 'SEED_ENDPOINT_NOT_SUPPORTED_BY_EDGE_SEED_V1')
+        rows = [planar().trace([0, 1], .5, [0], [.5, 1.5, .3], allow_vertex_seed=option)
+                for option in (False, True)]
+        for row in rows:
+            row.pop('elapsed_seconds')
+        self.assertEqual(*rows)
+        self.assertEqual(self.batch([self.query(seed_face_ids=[0, 3])],
+            method='SEEDED_SURFACE_PATH_LIFT_V1')['rows'][0]['reason'],
+            'SEED_ENDPOINT_NOT_SUPPORTED_BY_EDGE_SEED_V1')
+
+    def test_vertex_strict_arguments_and_face_count_bound(self):
+        for changes in ({'seed_fraction': False}, {'seed_fraction': float('nan')},
+                        {'seed_face_ids': [False, 1]}, {'seed_face_ids': list(range(MAX_VERTEX_SEED_FACES+1))},
+                        {'seed_edge_vertex_ids': [False, 0]}):
+            with self.subTest(changes=changes), self.assertRaises(StudioError):
+                self.batch([self.query(**changes)])
+        r = self.batch([self.query(seed_face_ids=[0, 1, 2, 2])])['rows'][0]
+        self.assertEqual(r['reason'], 'INVALID_SEED_OR_TARGET')
+        r = self.surface().trace([4, 0], 0, [0, 1, 2, 3], [1.2, 1.6, .3], allow_vertex_seed=1)
+        self.assertEqual(r['reason'], 'INVALID_VERTEX_SEED_POLICY')
+
+    def test_budget_exhaustion_inside_native_vertex_star_retains_refusal(self):
+        r = self.surface(max_events=12).trace(
+            [4, 0], 0, [0, 1, 2, 3], [1.2, 1.6, .3], allow_vertex_seed=True)
+        self.assertEqual(r['reason'], 'WORK_BUDGET_EXHAUSTED')
+        self.assertNotIn('point_world_cm', r)
+
+    def test_vertex_batch_budget_is_cumulative(self):
+        probe = self.surface()
+        probe.trace([4, 0], 0, [0, 1, 2, 3], [1.2, 1.6, .3], allow_vertex_seed=True)
+        result = self.batch([self.query(request_id=str(i)) for i in range(3)], max_events=probe.events)
+        self.assertEqual(result['rows'][0]['status'], 'LOCAL_PATH_LIFT_REACHED')
+        self.assertEqual(result['rows'][1]['reason'], 'WORK_BUDGET_EXHAUSTED')
+        self.assertEqual(result['unprocessed_queries'], 1)
+
+    def test_fraction_near_vertex_remains_exact_edge_interior(self):
+        for fraction in (5e-324, 1.-2.**-53):
+            with self.subTest(fraction=fraction):
+                r = self.batch([self.query(seed_fraction=fraction, seed_face_ids=[0, 3])])['rows'][0]
+                self.assertEqual(r['status'], 'LOCAL_PATH_LIFT_REACHED')
+                self.assertNotIn('vertex_id', r['seed_incidence'])
+                self.assertEqual(r['seed_incidence']['edge_fraction'], fraction)
+
+    def test_time_budget_interrupts_vertex_star(self):
+        class Clock:
+            value = 0.
+            def __call__(self):
+                self.value += .125
+                return self.value
+        r = self.surface(max_seconds=1.5, clock=Clock()).trace(
+            [4, 0], 0, [0, 1, 2, 3], [1.2, 1.6, .3], allow_vertex_seed=True)
+        self.assertEqual(r['reason'], 'TIME_BUDGET_EXHAUSTED')
+        self.assertNotIn('point_world_cm', r)
+
+    def test_rotated_frame_and_vertex_subdivision_preserve_surface_point(self):
+        target = [1.2, 1.6, .3]
+        original = self.surface().trace([4, 0], 0, [0, 1, 2, 3], target, allow_vertex_seed=True)
+        transform = lambda p: [p[2]+3., p[0]+5., p[1]+7.]
+        rotated = Surface([transform(p) for p in self.vertices], self.triangles,
+            [0, 1, 2, 3], [0]*4, [0], [1., 0., 0.]).trace(
+                [4, 0], 0, [0, 1, 2, 3], transform(target), allow_vertex_seed=True)
+        for a, b in zip(rotated['point_world_cm'], transform(original['point_world_cm'])):
+            self.assertAlmostEqual(a, b)
+        vertices = copy.deepcopy(self.vertices); triangles = []; owners = []
+        for owner, tri in enumerate(self.triangles):
+            mid = len(vertices)
+            vertices.append([sum(vertices[i][k] for i in tri)/3 for k in range(3)])
+            for a, b in zip(tri, tri[1:]+tri[:1]):
+                triangles.append([a, b, mid]); owners.append(owner)
+        refined = planar(vertices, triangles, owners, [0]*4).trace(
+            [4, 0], 0, [0, 1, 2, 3], target, allow_vertex_seed=True)
+        self.assertEqual(refined['selected_source_face'], original['selected_source_face'])
+        self.assertEqual(refined['point_world_cm'], original['point_world_cm'])
 
 
 if __name__ == '__main__':
