@@ -51,10 +51,49 @@ et décisions humaines restent conservés.
 
 ## Captures et portée
 
+Le replay du produit intégré `376c59882ddbad2353c7214049c9b0319a9def82`
+construit les quatre guides de membres en 4,954 secondes ; génération et
+mesures complémentaires prennent ensemble 6,563 secondes. Le budget partagé
+de génération reste 120 secondes, 70 000 contrôles et 131 072 triangles. Le
+résultat compte 26 116 contrôles et 51 584 triangles pour 80 sommets et
+72 faces source. Il reste `PARTIAL_GUIDES`, sans admission du vêtement.
+
+Les UV, triangles et XYZ des deux manches reproduisent exactement ceux du
+POC. Les ancres anatomiques sont remesurées après translation. Les manchettes
+conservent leur convention propre de bords distal/proximal ; elles n'ont pas
+de prolongement ouvert. Leurs plages principales restent 0,9414–1,1742 à
+gauche et 0,9484–1,1756 à droite, donc non admises. Leur nouvelle partition
+ne permet pas de réutiliser une ancienne preuve de fitting.
+
+Les reçus et cages du code produit sont sous
+`program-sewn-domain-product-replay-v1/execution/`. Le refus préalable du
+sandbox Windows est conservé séparément : il est survenu avant génération.
+Le calcul produit a été exécuté une seule fois ensuite. Aucun état canonique,
+patron ou corps n'a été modifié.
+
 Les captures sont calculées à partir des coordonnées enregistrées et des
 triangles natifs du corps opaque, sans Blender ni Cloth. Elles conservent le
 même cadrage : face, dos, profil, trois-quarts et gros plans. Les candidats
 refusés sont présentés avec leur statut.
+
+Le replay du code intégré ajoute les quatre guides, dont les deux manchettes,
+aux planches `program-sewn-domain-product-replay-v1/preview/before/` et
+`preview/after/`. Neuf images sont conservées par série. Les séries
+`details/before/` et `details/after/` ajoutent chacune neuf images pour les
+gros plans des têtes et des manchettes ; leurs cadrages sont également communs.
+Les quatre planches ont été affichées. Les vues montrent
+encore le corps à travers les manchettes et des parties du tube ; les têtes
+sont déployées mais ressortent au-dessus et à l'arrière des épaules. Il s'agit
+d'une correction de la carte matérielle, pas d'un placement réussi.
+
+La qualification logicielle du même commit termine avec **2 193 tests, aucun
+SKIP, en 436,765 secondes**, et **14 contrats JSON**. Les sources de l'export
+immuable sont inchangées après validation. Le reçu original du replay garde
+son statut historique de suite complète en attente ; un reçu distinct
+`program-sewn-domain-product-replay-v1/qualification-link.json` relie les
+empreintes du replay et de la qualification terminée. Voir le
+[manifeste de preuves](automation-placement-followup-evidence-20261008.json).
+Ce lien qualifie le logiciel et ne change aucune admission du vêtement.
 
 Fichiers sous `work/garment-automation-v1/program-limb-knot-partition-poc-v1/` :
 

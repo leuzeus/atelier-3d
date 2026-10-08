@@ -3014,6 +3014,21 @@ tête ouverte était refermée comme un tube. Le nouveau mode explicite
 `SOURCE_SEWN_DOMAIN_V1` dérive le domaine fermé de la couture réelle et prolonge
 sa section terminale. Le patron et l'attache sont conservés ; le tube et les
 contacts restent non admis. Les captures avant/après ont été affichées.
-Le logiciel intégré, son replay et ses preuves doivent être qualifiés avant
-toute installation ou opération native ; aucune preuve des coupons ou des
-seules têtes de manches ne devient une acceptation du vêtement complet.
+Le logiciel intégré 376c598 passe 2 193 tests sans SKIP en 436,765 secondes et
+quatorze contrats sur un export immuable. Son replay produit les deux manches
+et deux manchettes en 4,954 secondes ; génération et mesures prennent ensemble
+6,563 secondes. Les têtes ouvertes conservent la métrique de référence, mais
+les tubes, manchettes et contacts restent refusés. Les neuf images de chaque
+série avant/après sont conservées et les deux planches ont été affichées.
+Voir [le bilan et le reçu lié au commit](automation-sewn-domain-20261008.md).
+
+Le runtime connecté reste dev.2026100801, confirmé par le MCP. Aucun Blender,
+installation ou redémarrage ne découle de ces essais portables. L'état reste
+RECONSTRUCTING à la révision 100 ; la scène n'a pas été réinspectée. Le runtime
+historique ne peut réconcilier l'adoption source actualisée. La reprise native
+exigera un build contenant les corrections, sa vérification après chargement,
+puis une opération exacte autorisée. Les réserves régionales, la correspondance
+des épaules, la métrique des tubes et les raccords restent à traiter. Aucune
+nouvelle variante de coupe n'attend une revue humaine dans ce lot ; la revue
+artistique du futur vêtement complet reste ouverte. Aucune preuve des coupons
+ou des seules têtes de manches ne devient une acceptation du vêtement complet.
