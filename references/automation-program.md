@@ -4,7 +4,27 @@ Plan approuvé par l'utilisateur le 3 octobre 2026. Base : branche
 `codex/garment-automation-v1`, commit `8dfeac77c3b1bc3b11a4dbe6401eb2b1bb0a54ea`,
 version 0.7.0-rc.2. Le programme est suivi ici pendant l'implémentation.
 
-**État courant du 7 octobre — intentions de patronage enregistrées :** le
+**État courant — 7 octobre, après l'essai 0704 :** le runtime connecté 0704
+a exécuté le maillage des dix pièces du manteau sous budget 300 s. Le maillage
+source passe son seuil d'angle de 15°, mais le placement est refusé : contacts,
+déformation métrique et réserve d'ancrages incomplète. Le checkpoint est restauré ;
+le mannequin accepté est seul dans la scène, 0/15 textiles et boucle absente.
+Le candidat refusé, ses douze vues et ses reçus sont conservés.
+
+Le complément dimensionnel est intégré. La déformation du témoin de col est
+localisée au raccord par moyenne : 7 → 7 → 8,5531 cm. Les racines des bras
+et deux trajets corporels d'épaule sont examinés puis acceptés. Le code source
+ajoute les observations par transformation, un cache d'artefacts contrôlé et
+les trajets ouverts sur arêtes ; ces ajouts ne sont pas encore installés.
+Les tableaux localisent les correspondances de patronage manquantes ; aucune
+nouvelle modification de coupe n'est décidée par les seules pénétrations.
+
+Les lots de guide contraint, contacts et récupération métrique restent en cours.
+Cloth, drapé, fitting, les mouvements, la revue artistique et la préversion
+finale restent non réalisés. Les entrées suivantes constituent le journal
+chronologique : leurs versions et résultats ne remplacent pas cet état courant.
+
+**Jalon historique du 7 octobre — intentions de patronage enregistrées :** le
 redémarrage est effectué et le diagnostic connecté confirme 0701, ses
 52 schémas et le pipeline admis. Le repère source de base du cou, mesuré
 à 51,2154 cm, est accepté. L'utilisateur retient 4 cm d'aisance sur ce trajet,
@@ -2708,3 +2728,21 @@ aucun nouvel essai Blender, Cloth ou fitting.
 
 [Trajets ouverts et portée](body-surface-paths.md),
 [tests et décisions exactes](automation-body-surface-path-evidence-20261007.json).
+
+### 2026-10-07 — Préparation des trajets intégrée au plugin
+
+`studio_prepare_body_path_review` accepte l'option explicite
+`surface_exploration`, sans nouveau tool ni changement des arguments publics.
+La même opération authentifie le corps et les cycles, fixe un snapshot source
+acyclique, prépare les polylignes ouvertes et leur diagramme. Le délai enfant
+inclut la copie et la sérialisation du snapshot ; les budgets parent et enfant
+couvrent la publication jusqu'au marqueur complet. La régression du P2 de
+chronométrage passe ; revue finale sans autre P1/P2, trente tests ciblés PASS.
+
+Le handler public exécuté en processus de développement sur le corps actuel
+termine en 1,904 s, conserve profil et base canonique et reproduit exactement
+les deux polylignes acceptées. Les pixels de son diagramme sont inspectés.
+Cette préparation n'exécute pas Blender et ne reporte aucun gate. Runtime
+connecté 0704 inchangé ; installation de cette nouvelle option non effectuée.
+
+[Preuve de l'option publique](automation-body-surface-facade-evidence-20261007.json).

@@ -34,7 +34,7 @@ MAX_JSON_BYTES = 32*1024*1024
 
 
 def validate_specification(specification):
-    if (not isinstance(specification, dict) or set(specification)-{'version', 'paths', 'budgets', 'display', 'opening_exploration'}
+    if (not isinstance(specification, dict) or set(specification)-{'version', 'paths', 'budgets', 'display', 'opening_exploration', 'surface_exploration'}
             or specification.get('version') != 1 or type(specification.get('version')) is not int):
         raise StudioError('Body source paths require an explicit version 1 specification')
     budgets = specification.get('budgets')
@@ -76,7 +76,62 @@ def validate_specification(specification):
             raise StudioError('Body opening exploration must select one declared source path')
         if options['max_output_bytes'] > budgets['max_output_bytes'] or options['max_seconds'] > seconds:
             raise StudioError('Body opening exploration cannot exceed the parent storage or time budgets')
+    if 'surface_exploration' in specification:
+        _validate_surface_options(specification['surface_exploration'], specification)
     return specification
+
+
+def _validate_surface_options(options, specification):
+    """Only the operation's own measured cycles may provide endpoints."""
+    from .body_surface_paths import _Budget as SurfaceBudget, _DEFAULT
+    if (not isinstance(options, dict) or set(options) != {'version', 'paths', 'budgets', 'max_output_bytes'}
+            or type(options['version']) is not int or options['version'] != 1
+            or not isinstance(options['budgets'], dict) or set(options['budgets']) != set(_DEFAULT)
+            or 'display' not in specification):
+        raise StudioError('Body surface exploration requires explicit version, paths, all solver budgets, output cap and parent display')
+    limits = SurfaceBudget(options['budgets'], lambda: 0.).limits
+    parent = specification['budgets']
+    for child, outer in (('max_vertices', 'max_vertices'), ('max_faces', 'max_faces'),
+                         ('max_edges', 'max_face_edges'), ('max_paths', 'max_paths'), ('max_seconds', 'max_seconds')):
+        if limits[child] > parent[outer]:
+            raise StudioError('Body surface exploration cannot exceed its parent budget: '+child)
+    size = options['max_output_bytes']
+    if type(size) is not int or not 1 <= size <= parent['max_output_bytes']:
+        raise StudioError('Body surface exploration requires a bounded complete-bundle output cap')
+    paths = options['paths']; available = {row['id'] for row in specification['paths']}
+    if (not isinstance(paths, list) or not 1 <= len(paths) <= limits['max_paths']
+            or len(paths)+len(available) > parent['max_paths'] or len(available) > limits['max_paths']):
+        raise StudioError('Body surface exploration source cycles and proposals exceed the shared path budget')
+    ids = set()
+    for row in paths:
+        if (not isinstance(row, dict) or set(row) != {'id', 'domain_region_ids', 'start', 'end'}
+                or not isinstance(row['domain_region_ids'], list) or not 1 <= len(row['domain_region_ids']) <= 256
+                or any(type(i) is not int for i in row['domain_region_ids'])
+                or len(set(row['domain_region_ids'])) != len(row['domain_region_ids'])):
+            raise StudioError('Body surface exploration requires explicit source regions and endpoint selectors')
+        ident(row['id'])
+        if row['id'] in ids: raise StudioError('Body surface exploration proposal IDs must be unique')
+        ids.add(row['id'])
+        for selector in (row['start'], row['end']):
+            if not isinstance(selector, dict): raise StudioError('Body surface endpoint selector must be structured')
+            kind = selector.get('kind')
+            if kind == 'source_vertex':
+                if set(selector) != {'kind', 'vertex_id'} or type(selector['vertex_id']) is not int or selector['vertex_id'] < 0:
+                    raise StudioError('Body surface endpoint must name an actual source vertex ID')
+                continue
+            shared = {'kind', 'report_id', 'path_id'}
+            if kind == 'boundary_extreme':
+                valid = (set(selector) == shared|{'axis', 'extreme'}
+                    and selector['axis'] in ('right', 'forward', 'up') and selector['extreme'] in ('min', 'max'))
+            elif kind == 'boundary_toward_path_centroid':
+                valid = (set(selector) == shared|{'toward_report_id', 'toward_path_id'}
+                    and selector['toward_report_id'] == 'source' and isinstance(selector['toward_path_id'], str)
+                    and selector['toward_path_id'] in available)
+            else: valid = False
+            if (not valid or selector['report_id'] != 'source' or not isinstance(selector['path_id'], str)
+                    or selector['path_id'] not in available):
+                raise StudioError('Body surface endpoints require a declared source cycle under alias source')
+    return options
 
 
 class _Budget:
@@ -414,8 +469,9 @@ def _sql_progress(budget):
     except StudioError: return 1
 
 
-def _code_sources():
-    return {name: sha(ROOT/('a3d/'+name+'.py')) for name in CODE_SOURCES}
+def _code_sources(surface=False):
+    names = CODE_SOURCES+('body_surface_paths',) if surface else CODE_SOURCES
+    return {name: sha(ROOT/('a3d/'+name+'.py')) for name in names}
 
 
 def _remove_fresh_marker(project, output_dir, marker_path, identity, marker):
@@ -441,8 +497,10 @@ def _remove_fresh_marker(project, output_dir, marker_path, identity, marker):
         return
 
 
-def _projection_board(profile, geometry, result, display, budget):
+def _projection_board(profile, geometry, result, display, budget, *, open_paths=False, check=None, max_output_bytes=None):
     """Bounded orthographic source projections, not a Blender/occlusion render."""
+    check = budget.check if check is None else check
+    cap = budget.limits['max_output_bytes'] if max_output_bytes is None else min(max_output_bytes, budget.limits['max_output_bytes'])
     basis = _frame(profile); vertices = geometry['vertices_cm']; faces = geometry['faces']
     local = [[math.fsum((p[k]-basis['origin_cm'][k])*basis[axis][k] for k in range(3))
               for axis in ('right', 'forward', 'up')] for p in vertices]
@@ -451,13 +509,13 @@ def _projection_board(profile, geometry, result, display, budget):
     def append(text):
         nonlocal encoded
         encoded += len(text.encode('utf-8'))
-        if encoded > budget.limits['max_output_bytes']: raise StudioError('Body source projection storage budget exceeded')
+        if encoded > cap: raise StudioError('Body source projection storage budget exceeded')
         parts.append(text)
     append('<svg xmlns="http://www.w3.org/2000/svg" width="'+str(width)+'" height="'+str(height)+'" viewBox="0 0 '+str(width)+' '+str(height)+'">')
     append('<rect width="100%" height="100%" fill="white"/><g font-family="sans-serif" font-size="13">')
     views = [('Face', 1., 0.), ('Profil', 0., 1.), ('Dos', -1., 0.), ('Trois-quarts', 2**-.5, 2**-.5)]
     for view, (name, a, b) in enumerate(views):
-        budget.check(); projected = [[a*p[0]+b*p[1], p[2]] for p in local]
+        check(); projected = [[a*p[0]+b*p[1], p[2]] for p in local]
         lo = [min(p[k] for p in projected) for k in (0, 1)]; hi = [max(p[k] for p in projected) for k in (0, 1)]
         legend_height = 64+20*len(result['paths'])
         cell_w, cell_h = width/2, (height-legend_height)/2; x0, y0 = (view%2)*cell_w, (view//2)*cell_h
@@ -469,20 +527,30 @@ def _projection_board(profile, geometry, result, display, budget):
         append(f'<text x="{x0+18:.3f}" y="{y0+20:.3f}">{name}</text>')
         depth = lambda index: math.fsum(-b*local[i][0]+a*local[i][1] for i in faces[index])/len(faces[index])
         for index in sorted(displayed, key=lambda index: (depth(index), index)):
-            budget.check()
+            check()
             append('<polygon points="'+' '.join(pixels(i) for i in faces[index])+'" fill="#e7ebee" stroke="#bbc3c9" stroke-width=".3"/>')
         for path in result['paths']:
-            append('<polyline points="'+' '.join(pixels(i) for i in path['vertex_ids']+[path['vertex_ids'][0]])+
-                   '" fill="none" stroke="#d12435" stroke-width="2"/>')
+            if open_paths: check()
+            indices = path['vertex_ids'] if open_paths else path['vertex_ids']+[path['vertex_ids'][0]]
+            color = '#0969da' if open_paths else '#d12435'
+            metadata = ' data-closed="false" data-path-id="'+html.escape(path['id'], quote=True)+'"' if open_paths else ''
+            append('<polyline'+metadata+' points="'+' '.join(pixels(i) for i in indices)+
+                   '" fill="none" stroke="'+color+'" stroke-width="2"/>')
     for index, path in enumerate(result['paths']):
-        append('<text x="18" y="'+str(height-legend_height+28+index*20)+'">'+html.escape(path['display_name'])+
-               ' — frontière source ; homologie anatomique à revoir</text>')
+        append('<text x="18" y="'+str(height-legend_height+28+index*20)+'">'+html.escape(path.get('display_name', path['id']))+
+               (' — polyligne ouverte de surface proposée ; homologie à revoir</text>' if open_paths else
+                ' — frontière source ; homologie anatomique à revoir</text>'))
     append('<text x="18" y="'+str(height-20)+'">Projections source, sans contrôle d’occlusion ; arrondis SVG uniquement, mesures non arrondies.</text></g></svg>')
-    budget.check()
-    return ''.join(parts).encode('utf-8'), {'scope': 'SOURCE_ORTHOGRAPHIC_PROJECTIONS_ONLY',
+    check()
+    evidence = {'scope': 'SOURCE_ORTHOGRAPHIC_PROJECTIONS_ONLY',
         'display_face_ids': displayed, 'all_measurement_edges_displayed': True,
         'face_sampling_stride': stride, 'source_mesh_changed': False, 'occlusion': 'NOT_QUALIFIED',
         'display_coordinate_decimal_places': 3, 'measurement_rounding': 'NONE'}
+    if open_paths:
+        evidence.update(path_topology='OPEN_POLYLINES_WITHOUT_CLOSING_SEGMENT', path_color='#0969da',
+            path_vertex_ids={row['id']: list(row['vertex_ids']) for row in result['paths']},
+            mesh_approximation_error_cm=None, smooth_geodesic_error_bound='NOT_ESTABLISHED')
+    return ''.join(parts).encode('utf-8'), evidence
 
 
 def prepare_project_body_path_review(project, body_profile_path, specification_path, output_dir):
@@ -506,7 +574,8 @@ def prepare_project_body_path_review(project, body_profile_path, specification_p
     reader = _Reader(project, budget); reader.read(specification_path)
     if reader.refs[specification_path]['sha256'] != hashlib.sha256(raw_specification).hexdigest():
         raise StudioError('Body source path specification changed during bootstrap')
-    code = _code_sources(); profile = reader.read(body_profile_path); profile_ref = reader.refs[body_profile_path]
+    has_surface = 'surface_exploration' in specification
+    code = _code_sources(has_surface); profile = reader.read(body_profile_path); profile_ref = reader.refs[body_profile_path]
     receipt, origin, verifier_reserve = _authenticated_target(project, profile_ref, reader)
     refs = receipt['artifacts']; geometry = reader.reference(refs['geometry'])
     original = reader.reference(refs['source-geometry']); adapter = reader.reference(receipt['evidence']['adapter'])
@@ -528,13 +597,59 @@ def prepare_project_body_path_review(project, body_profile_path, specification_p
                   shared_verifier_reserved_read_bytes=verifier_reserve,
                   source_preservation='VERIFIED_BEFORE_PUBLICATION')
     artifacts = {}
+    publication_check = budget.check
+    output_cap = budget.limits['max_output_bytes']
+    if has_surface:
+        from .body_surface_paths import propose_body_surface_paths
+        surface_options = specification['surface_exploration']; output_cap = min(output_cap, surface_options['max_output_bytes'])
+        surface_started = time.monotonic(); surface_last = [surface_started]
+        if not math.isfinite(surface_started):
+            raise StudioError('Body surface exploration initial clock is not finite')
+        def surface_check():
+            budget.check(); current = time.monotonic()
+            if (not math.isfinite(current) or current < surface_last[0]
+                    or current-surface_started > surface_options['budgets']['max_seconds']):
+                raise StudioError('Body surface exploration cumulative time budget exceeded or clock moved backwards')
+            surface_last[0] = current
+            return current
+        publication_check = surface_check
+        surface_check()
+        source_report = copy.deepcopy(result)
+        source_blob = canonical(source_report)
+        surface_check()
+        artifacts['source-paths.json'] = source_blob
+        source_vertex_ids = {i for row in source_report['paths'] for i in row['vertex_ids']}
+        for request in surface_options['paths']:
+            for selector in (request['start'], request['end']):
+                if selector['kind'] == 'source_vertex' and selector['vertex_id'] not in source_vertex_ids:
+                    raise StudioError('Body surface explicit endpoints must belong to a declared measured source cycle')
+        # Reserve the added graph validation scan in the same face-edge budget
+        # that has already counted original and evaluated native geometry.
+        budget.face_edges += sum(len(face) for face in geometry['faces'])
+        if budget.face_edges > budget.limits['max_face_edges']:
+            raise StudioError('Body surface exploration shared face-edge budget exceeded')
+        surface_check()
+        surface = propose_body_surface_paths(geometry, {'source': source_report}, {
+            'version': 1, 'frame': copy.deepcopy(profile['frame']), 'paths': copy.deepcopy(surface_options['paths']),
+            'budgets': copy.deepcopy(surface_options['budgets'])}, clock=surface_check)
+        surface['source_report_ref'] = {'path': output_dir+'/source-paths.json', 'sha256': hashlib.sha256(source_blob).hexdigest()}
+        surface['operation_native_body_origin'] = copy.deepcopy(origin)
+        surface['shared_face_edge_incidences'] = budget.face_edges
+        surface['output_budget_scope'] = 'COMPLETE_REVIEW_BUNDLE_AND_FINAL_MARKER'
+        board, display = _projection_board(profile, geometry, surface, specification['display'], budget,
+            open_paths=True, check=surface_check, max_output_bytes=output_cap)
+        surface['display'] = display
+        artifacts['surface-paths.svg'] = board
+        artifacts['surface-paths.json'] = canonical(surface)
+        result['surface_exploration'] = surface
+        surface_check()
     if 'opening_exploration' in specification:
         from .body_path_openings import prepare_opening_candidates, render_opening_candidates
         options = specification['opening_exploration']
         path = next(row for row in result['paths'] if row['id'] == options['path_id'])
         opening_started = time.monotonic(); opening_last = [opening_started]
         def opening_check():
-            budget.check()
+            publication_check()
             current = time.monotonic()
             if (not math.isfinite(current) or current < opening_last[0] or
                     current-opening_started > options['max_seconds']):
@@ -549,7 +664,8 @@ def prepare_project_body_path_review(project, body_profile_path, specification_p
             raise StudioError('Body opening exploration report and diagram exceed their combined storage budget')
         result['opening_exploration'] = exploration
     if 'display' in specification:
-        board, display = _projection_board(profile, geometry, result, specification['display'], budget)
+        board, display = _projection_board(profile, geometry, result, specification['display'], budget,
+            check=publication_check if has_surface else None)
         result['display'] = display; artifacts['projections.svg'] = board
     rows = ['# Frontières corporelles source à revoir', '',
             'Mesures des vraies arêtes 3D du corps natif. Homologie anatomique à revoir ; aucune mensuration, aisance ou gate remplacée.', '',
@@ -565,24 +681,32 @@ def prepare_project_body_path_review(project, body_profile_path, specification_p
                  '![Arcs omis et arcs corporels restants](opening-options.svg)', '',
                  'Les extrémités sont calculées dans l’ordre topologique de la vraie boucle, depuis son intersection sagittale frontale.',
                  'Aucune ouverture, aisance ou correspondance au patron n’est choisie. Ces hypothèses requièrent leur propre revue.']
+    if has_surface:
+        rows += ['', '## Chemins ouverts sur les arêtes source à examiner', '',
+                 '![Propositions de polylignes ouvertes en bleu](surface-paths.svg)', '',
+                 'Le graphe utilise seulement les arêtes originales des régions explicitement déclarées.',
+                 'Les longueurs de polyligne, cordes et descentes suivent le repère exact du corps natif.',
+                 'L’erreur de discrétisation vers une géodésique lisse n’est pas estimée. Homologie de couture à revoir ; aucune mesure canonique remplacée.']
     rows += ['', 'La frontière entre régions source n’est pas automatiquement une mesure de tailleur. Le corps, la pose et le profil sont conservés.',
              'Fitting, Cloth et Blender : non exécutés. Acceptation : non accordée.', '', 'Références exactes :', '']
     rows += ['- '+ref['path']+' — `'+ref['sha256']+'`' for ref in result['input_refs']]
     rows += ['', 'Identités du code :', '']+['- '+name+' : `'+value+'`' for name, value in sorted(code.items())]
     artifacts['report.md'] = ('\n'.join(rows)+'\n').encode('utf-8')
+    if has_surface: publication_check()
     artifacts['report.json'] = canonical(result)
-    if sum(map(len, artifacts.values())) > budget.limits['max_output_bytes']:
+    if has_surface: publication_check()
+    if sum(map(len, artifacts.values())) > output_cap:
         raise StudioError('Body source path report storage budget exceeded')
     reader.preserve()
-    if _code_sources() != code: raise StudioError('Body source path code changed during preparation')
-    budget.check(); output.mkdir(parents=True, exist_ok=False)
+    if _code_sources(has_surface) != code: raise StudioError('Body source path code changed during preparation')
+    publication_check(); output.mkdir(parents=True, exist_ok=False)
     for name, blob in artifacts.items():
-        budget.check()
+        publication_check()
         with (output/name).open('xb') as stream: stream.write(blob)
     # This final marker distinguishes complete bundles from files left by an
     # interrupted write. It is not a canonical/native/product receipt.
     reader.preserve()
-    if _code_sources() != code: raise StudioError('Body source path code changed during publication')
+    if _code_sources(has_surface) != code: raise StudioError('Body source path code changed during publication')
     completed = {'version': 1, 'status': 'BODY_SOURCE_PATH_REVIEW_PREPARED', 'qualification': 'NONE',
         'artifacts': {name: {'path': output_dir+'/'+name, 'sha256': sha(output/name)} for name in artifacts},
         'input_files_preserved': True, 'measurement_code_preserved': True, 'database': 'READ_ONLY_NATIVE_ORIGIN',
@@ -590,16 +714,16 @@ def prepare_project_body_path_review(project, body_profile_path, specification_p
         'tailoring_homology': 'REVIEW_REQUIRED', 'fitting': 'NOT_EXECUTED', 'Blender': 'NOT_EXECUTED',
         'acceptance': 'NOT_GRANTED', 'report': result}
     marker = canonical({key: value for key, value in completed.items() if key != 'report'})
-    if sum(map(len, artifacts.values()))+len(marker) > budget.limits['max_output_bytes']:
+    if sum(map(len, artifacts.values()))+len(marker) > output_cap:
         raise StudioError('Body source path final marker exceeds its storage budget; incomplete bundle preserved')
-    budget.check()
+    publication_check()
     marker_path = output/'review-receipt.json'; identity = None
     try:
         with marker_path.open('xb') as stream:
             created = os.fstat(stream.fileno()); identity = (created.st_dev, created.st_ino)
             stream.write(marker)
         completed['review_receipt'] = {'path': output_dir+'/review-receipt.json', 'sha256': sha(marker_path)}
-        budget.check()
+        publication_check()
     except BaseException:
         if identity is not None: _remove_fresh_marker(project, output_dir, marker_path, identity, marker)
         raise

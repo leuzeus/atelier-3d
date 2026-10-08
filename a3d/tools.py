@@ -71,7 +71,7 @@ def prepare_body_target(project_root, selection_path, target_path):
     return result
 
 
-@tool('studio_prepare_body_path_review', 'Measure explicitly declared source body-region boundaries from an authenticated native target and write a fresh report and optional projections. An explicit opening_exploration in the specification can propose unselected endpoint pairs and covered/omitted arcs without closest-point matching. These curved source interfaces remain separate from horizontal girths and require anatomical homology review. No body/profile/gate mutation, Blender execution, tailoring acceptance or fitting admission.',
+@tool('studio_prepare_body_path_review', 'Measure explicitly declared source body-region boundaries from an authenticated native target and write a fresh report and optional projections. Explicit opening_exploration can propose unselected endpoint pairs and covered/omitted arcs. Explicit surface_exploration can propose open original-mesh-edge paths in declared source regions using exact source boundary selectors and bounded budgets; it does not qualify smooth geodesics. These paths remain separate from horizontal girths and require anatomical homology review. No body/profile/gate mutation, Blender execution, tailoring acceptance or fitting admission.',
       {**P, 'body_profile_path': S, 'specification_path': S, 'output_dir': S},
       ('project_root', 'body_profile_path', 'specification_path', 'output_dir'), read_only=False)
 def prepare_body_path_review(project_root, body_profile_path, specification_path, output_dir):

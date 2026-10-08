@@ -158,6 +158,16 @@ existent déjà. L'adaptation complète d'un torse ouvert et la correspondance d
 toutes les mesures de tailleur restent à développer et qualifier. Le rôle doit
 les signaler plutôt que présenter des fonctions nouvelles comme disponibles.
 
+Le noyau [de trajets ouverts](body-surface-paths.md) mesure maintenant les
+polylignes des arêtes source entre extrémités déclarées, dans des régions
+explicites. Il distingue longueur sur arêtes, corde et descente ; il ne
+qualifie pas une géodésique lisse. Les premiers trajets d'épaule ont été
+examinés sur le mannequin exact puis acceptés comme références corporelles.
+La correspondance aux coutures du manteau ample reste distincte, notamment
+pour une épaule tombante. La nouvelle option `surface_exploration` de la revue
+corporelle est développée sur cette branche ; vérifier sa disponibilité dans
+le runtime avant de l'utiliser.
+
 Le premier outil de comparaison utilise le contrat de fitting existant pour
 les tours corporels et trajets de matière déclarés. Il ne calcule pas encore
 automatiquement toutes les carrures, longueurs et pentes d'épaule. Ces mesures

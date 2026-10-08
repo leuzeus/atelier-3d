@@ -51,6 +51,15 @@ d'homologie avant de l'employer comme mesure de tailleur. Sa longueur 3D ne
 devient pas un tour horizontal ; une décision d'aisance visant un autre trajet
 n'est pas transférée. Le service refuse les interfaces ouvertes, branchées ou
 multiples et conserve le corps natif accepté.
+Pour un trajet ouvert sur la peau, utiliser l'option structurée
+`surface_exploration` lorsqu'elle est disponible dans le runtime chargé.
+Déclarer les régions source, les sélecteurs d'extrémités et tous les budgets.
+Les sélecteurs reprennent les cycles de la même revue sous l'alias `source` ;
+le repère vient du corps natif authentifié. Présenter la polyligne ouverte
+et son rapport pour revue : ce calcul sur les arêtes ne qualifie pas une
+géodésique lisse. Une acceptation du trajet corporel ne détermine ni la position
+de couture d'une épaule tombante, ni une aisance ou une capacité de patron.
+Conserver la distinction entre trajet corporel, ligne matérielle et couche.
 Lorsque l'extension de développement `opening_exploration` est disponible,
 préparer sa planche d'arcs omis/restants pour choisir la couverture d'un col
 ouvert. Les paires sont calculées sur le vrai cycle source ; leur sélection
@@ -65,7 +74,8 @@ Pour un devant ouvert comportant une
 pièce centrale déclarée, le noyau `open_front_reference` peut préparer une
 référence sourcée de visibilité ; le caller authentifie ses entrées et le
 rapport garde marges, recouvrement et fitting non admis. Vérifier la version
-chargée : ces extensions de branche ne sont pas encore distribuées dans 0701.
+chargée : `surface_exploration` est une nouvelle capacité de cette branche,
+absente du runtime de développement 0704 connecté lors de son implémentation.
 
 Si un manque de capacité source est mesuré, préparer une variante séparée avec
 `studio_prepare_pattern_ease_variant` dans son domaine déclaré. Présenter les
