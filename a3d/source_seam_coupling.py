@@ -552,8 +552,13 @@ def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=No
             binding.update(final_point_cm=point, final_residual_cm=residual,
                 max_fixed_control_displacement_cm=max(math.dist(targets[pid][i], original_proposals[pid][i])
                     for i in binding['fixed_cage_control_indices']))
-        source_binding = digest([data, frames, seam_recipe, subdivisions, semantics,
-            strategy, relaxation, numerical_anchor_edges, anatomical_attachments, relaxation_report['kernel_code_sha256']])
+        binding_inputs = [data, frames, seam_recipe, subdivisions, semantics,
+            strategy, relaxation, numerical_anchor_edges, anatomical_attachments, relaxation_report['kernel_code_sha256']]
+        if 'constraint_projection' in relaxation_report:
+            projection = relaxation_report['constraint_projection']
+            binding_inputs.append({key: projection[key] for key in
+                ('mode', 'kernel_code_sha256', 'max_sweeps', 'residual_tolerance')})
+        source_binding = digest(binding_inputs)
     else:
         source_binding = digest([data, frames, seam_recipe, subdivisions] if semantics is None else
             [data, frames, seam_recipe, subdivisions, semantics, alignment_report['kernel_code_sha256']])

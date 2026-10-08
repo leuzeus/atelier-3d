@@ -164,6 +164,28 @@ une direction de courbure arbitraire. L’embu non nul exige une distribution
 déclarée `UNIFORM_NORMALIZED_SOURCE_ARC`. Les poids du solveur et les budgets
 peuvent rendre la proposition incomplète ; les tolérances finales restent fixes.
 
+L'option `source_seam_coupling.relaxation.constraint_projection` accepte
+`ACTIVE_PRINCIPAL_CONE_V1`. Son omission conserve le solveur historique et
+n'ajoute aucune clé à ses paramètres ou diagnostics. Ce mode adapte la direction
+de descente aux bornes principales déjà actives, au lieu de diviser indéfiniment
+un pas qui aggrave toujours le même triangle. Il s'applique aux faces matérielles
+et à leurs propriétaires, indépendamment du vêtement ou de la région du corps.
+
+Les degrés de liberté fixés sont retirés avant la projection pondérée. Les
+256 balayages maximaux et le résidu normalisé de `1e-12` appartiennent au contrat
+versionné ; ce ne sont pas des tolérances physiques configurables. Le budget
+global reste contrôlé pendant les calculs. Les valeurs non finies, les domaines
+invalides et les dérivées singulières non supportées sont refusés explicitement.
+Une face entièrement fixée reste mesurée mais n'exige aucune dérivée.
+
+Une direction projetée doit encore descendre l'objectif, respecter les limites
+de déplacement, puis passer la recherche et les enveloppes non linéaires
+existantes. Un échec conserve la meilleure proposition avec sa raison d'arrêt.
+Les reçus distinguent projection refusée, absence de descente, dépassement
+d'une borne et pas accepté. Un pas accepté ne qualifie ni les contacts, ni
+le placement complet, ni Cloth ou le fitting. L'identité des cages lie également
+le code du noyau de projection et ses constantes, même si les cibles coïncident.
+
 ## Vérifications et portée
 
 Les tests couvrent les référentiels tournés, les côtés anatomiques, les jambes

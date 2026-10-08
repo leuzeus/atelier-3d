@@ -2976,3 +2976,25 @@ les guides incomplets du manteau. Le diagnostic isole maintenant le refus des
 pas matière aux contraintes actives, l'interpolation des manches et les chemins
 d'épaule validés mais non consommés par le torse. Voir
 [les observations, captures et preuves](automation-material-sections-20261008.md).
+
+### 2026-10-08 — Direction de correction compatible avec les contraintes actives
+
+Le diagnostic du solveur sans enveloppe reproduit quatorze pas qui diminuent
+l'énergie globale mais aggravent un triangle déjà à sa borne de compression.
+Le nouveau mode explicite `ACTIVE_PRINCIPAL_CONE_V1` projette la direction sur
+les contraintes principales actives, puis garde la recherche et les contrôles
+non linéaires existants. Son absence conserve la branche historique.
+
+Le POC réel réussit un premier pas de 1/512 : énergie matière de 29,51249 à
+29,37783, soit environ 0,46 % de réduction. Les quinze contrôles fixes restent
+identiques ; aucune convergence ni qualification de fitting n'en découle.
+Le mode produit ajoute les refus explicites, les vérifications de finitude,
+les contrôles de budget par blocs et l'identité du noyau dans les cages.
+Les faces entièrement fixées ne demandent pas de dérivée ; les singularités
+actives non supportées restent refusées. La revue indépendante est favorable.
+
+Le POC et ses captures sont dans `program-active-metric-cone-poc-v1/` sur G:.
+Le prototype de changement du seul repère d'épaule n'a pas été intégré : ses
+trois variantes restent refusées et masquées en haut du torse. La propagation
+des bords col–torse est étudiée séparément, sans moyenne implicite des coins
+ni nouvelle attache anatomique admise.

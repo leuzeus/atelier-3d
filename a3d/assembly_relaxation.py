@@ -32,8 +32,10 @@ _FLOAT_LIMITS = {'max_displacement_cm': 100., 'metric_weight': 10000.,
 def validate_options(options=None):
     if options is None:
         options = {}
-    if not isinstance(options, dict) or set(options)-set(DEFAULTS):
+    if not isinstance(options, dict) or set(options)-(set(DEFAULTS) | {'constraint_projection'}):
         raise StudioError('Unknown coupled rest metric relaxation option')
+    if 'constraint_projection' in options and options['constraint_projection'] != 'ACTIVE_PRINCIPAL_CONE_V1':
+        raise StudioError('Unsupported explicit coupled constraint projection')
     result = {**DEFAULTS, **options}
     for key, (low, high) in _INTEGER_LIMITS.items():
         if type(result[key]) is not int or not low <= result[key] <= high:
@@ -74,6 +76,13 @@ def relax_assembly(states, initial, witnesses, budget, *, options=None, fixed_co
     diagonally preconditioned descent and backtracking. No weld is performed.
     """
     settings = validate_options(options)
+    projection_enabled = settings.get('constraint_projection') == 'ACTIVE_PRINCIPAL_CONE_V1'
+    if projection_enabled:
+        from .active_metric_constraints import (project_active_principal_direction, ConstraintProjectionRefused,
+                                                MODE, MAX_SWEEPS, RESIDUAL_TOLERANCE)
+        from . import active_metric_constraints
+        projection_records = []; search_records = []
+        search_phase = 'RIGID'; search_iteration = 0
     before = digest([initial, witnesses, {pid: {
         'uv': state['uv'], 'triangles': state['triangles']} for pid, state in states.items()}])
     keys = [(pid, i) for pid in sorted(states) for i in range(len(states[pid]['uv']))]
@@ -148,7 +157,7 @@ def relax_assembly(states, initial, witnesses, budget, *, options=None, fixed_co
         metric_envelopes[pid][0] = min(metric_envelopes[pid][0], stretches[0])
         metric_envelopes[pid][1] = max(metric_envelopes[pid][1], stretches[1])
 
-    def within_metric_envelopes(candidate):
+    def within_metric_envelopes(candidate, failure=None):
         # A mean energy alone can hide a badly sheared thin triangle. Keep
         # each piece within its original worst extrema or the declared target
         # tolerance. This does not replace final all-triangle mesh admission.
@@ -160,6 +169,11 @@ def relax_assembly(states, initial, witnesses, budget, *, options=None, fixed_co
             roundoff = 1e-10*max(1., high)
             if (stretches is None or any(not math.isfinite(value) for value in stretches)
                     or stretches[0] < low-roundoff or stretches[1] > high+roundoff):
+                if failure is not None:
+                    failure.update(reason='CURRENT_NONLINEAR_METRIC_ENVELOPE', face_ordinal=ordinal,
+                        piece=pid, principal_stretches=(stretches if stretches is not None
+                            and all(math.isfinite(value) for value in stretches) else None),
+                        bounds=[low, high], arithmetic_roundoff=roundoff)
                 return False
         return True
 
@@ -252,14 +266,27 @@ def relax_assembly(states, initial, witnesses, budget, *, options=None, fixed_co
     def search(directions, fraction):
         current, _, _ = evaluate(points, fraction)
         step = _distance_step_limit(points, directions, original, settings['max_displacement_cm'])
+        if projection_enabled:
+            observation = {'phase': search_phase, 'iteration': search_iteration, 'trials': []}
         for _ in range(14):
             budget.check()
             candidate = [[point[k]+step*direction[k] for k in range(3)]
                          for point, direction in zip(points, directions, strict=True)]
             measured, _, _ = evaluate(candidate, fraction)
-            if measured['objective'] < current['objective'] and within_metric_envelopes(candidate):
+            if projection_enabled:
+                failure = {}; descending = measured['objective'] < current['objective']
+                admissible = within_metric_envelopes(candidate, failure) if descending else False
+                observation['trials'].append({'step': step, 'objective': measured['objective'],
+                    'descending': descending, 'nonlinear_metric_check': ('PASS' if admissible else 'FAIL')
+                        if descending else 'NOT_EXECUTED_NO_DESCENT', **({'failure': failure} if failure else {})})
+                if descending and admissible:
+                    observation['result'] = 'STEP_ACCEPTED'; search_records.append(observation)
+                    return candidate, measured
+            elif measured['objective'] < current['objective'] and within_metric_envelopes(candidate):
                 return candidate, measured
             step *= .5
+        if projection_enabled:
+            observation['result'] = 'NO_ACCEPTABLE_STEP'; search_records.append(observation)
         return points, current
 
     initial_metrics, _, _ = evaluate(points)
@@ -278,6 +305,7 @@ def relax_assembly(states, initial, witnesses, budget, *, options=None, fixed_co
     # material relaxation; their source boundary identities remain separate.
     for iteration in range(settings['rigid_iterations']):
         budget.check()
+        if projection_enabled: search_iteration = iteration
         offsets = {pid: [0., 0., 0.] for pid in states}
         weights = {pid: 0. for pid in states}
         for a, b, weight in pairs:
@@ -310,6 +338,29 @@ def relax_assembly(states, initial, witnesses, budget, *, options=None, fixed_co
         current, grad, diagonal = evaluate(points, ramp, True)
         directions = [[-value/diagonal[i] if diagonal[i] and i not in fixed else 0. for value in row]
                       for i, row in enumerate(grad)]
+        if projection_enabled:
+            search_phase = 'MATERIAL'; search_iteration = iteration
+            try:
+                directions, observed = project_active_principal_direction(
+                    points, directions, diagonal, faces, metric_envelopes, fixed, budget.check)
+            except ConstraintProjectionRefused as error:
+                projection_records.append({'iteration': iteration, 'status': 'REFUSED', **error.diagnostic})
+                termination = 'CONSTRAINT_PROJECTION_REFUSED'
+                break
+            # A linear cone projection is only a direction proposal. Its
+            # descent and the nonlinear envelopes remain independent gates.
+            try:
+                derivative = math.fsum(g*d for gradient, direction in zip(grad, directions, strict=True)
+                                       for g, d in zip(gradient, direction, strict=True))
+            except (OverflowError, ValueError):
+                derivative = None
+            if derivative is None or not math.isfinite(derivative) or derivative >= 0:
+                projection_records.append({'iteration': iteration, 'status': 'NO_DESCENT', **observed,
+                    'gradient_dot_direction': derivative if derivative is not None and math.isfinite(derivative) else None})
+                termination = 'CONSTRAINT_PROJECTION_NO_DESCENT'
+                break
+            projection_records.append({'iteration': iteration, 'status': 'PROJECTED', **observed,
+                'gradient_dot_direction': derivative})
         proposal, measured = search(directions, ramp)
         completed += 1
         improvement = current['objective']-measured['objective']
@@ -363,5 +414,11 @@ def relax_assembly(states, initial, witnesses, budget, *, options=None, fixed_co
         'rotation_policy': 'INPUT_GUIDE_ORIENTATION_RETAINED_DURING_RIGID_TRANSLATION',
         'source_uv_scaled': False, 'contacts': 'NOT_ASSESSED', 'simulation': 'NOT_EXECUTED',
         'fitting': 'NOT_EXECUTED', 'whole_piece_admission': False}
+    if projection_enabled:
+        report['constraint_projection'] = {'mode': MODE,
+            'kernel_code_sha256': sha(active_metric_constraints.__file__), 'max_sweeps': MAX_SWEEPS,
+            'residual_tolerance': RESIDUAL_TOLERANCE, 'iterations': projection_records,
+            'nonlinear_metric_admission': 'UNCHANGED', 'qualification': 'NONE'}
+        report['line_search_diagnostics'] = search_records
     budget.check()
     return final, report

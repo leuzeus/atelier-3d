@@ -177,7 +177,8 @@
                   "strain_tolerance": {"type": "number", "minimum": 0.000001, "maximum": 0.5},
                   "stagnation_iterations": {"type": "integer", "minimum": 1, "maximum": 100},
                   "improvement_tolerance": {"type": "number", "minimum": 0.000000000001, "maximum": 0.01},
-                  "ease_distribution": {"enum": ["UNIFORM_NORMALIZED_SOURCE_ARC", "ZERO_EASE_ONLY"]}
+                  "ease_distribution": {"enum": ["UNIFORM_NORMALIZED_SOURCE_ARC", "ZERO_EASE_ONLY"]},
+                  "constraint_projection": {"enum": ["ACTIVE_PRINCIPAL_CONE_V1"]}
                 },
                 "additionalProperties": false
               },
