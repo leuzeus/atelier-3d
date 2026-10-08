@@ -238,6 +238,10 @@ def _resolve_measured_path(profile, report, path_id, *, expected_report_sha256, 
         if not isinstance(source_faces, list) or len(source_faces) != len(pairs):
             raise StudioError('Anatomical path needs exact source face incidence provenance')
         for pair, claimed_faces in zip(pairs, source_faces):
+            if (not isinstance(claimed_faces, list) or not claimed_faces or
+                    any(type(i) is not int or not 0 <= i < len(labels) for i in claimed_faces) or
+                    len(set(claimed_faces)) != len(claimed_faces)):
+                raise StudioError('Anatomical path face incidence requires distinct bounded integer face IDs')
             actual = mesh['owners'].get(tuple(sorted(pair)), [])
             selected_faces = [i for i in actual if labels[i] in regions]
             if (not actual or len(actual) > 2 or claimed_faces != selected_faces or
@@ -248,11 +252,26 @@ def _resolve_measured_path(profile, report, path_id, *, expected_report_sha256, 
         raise StudioError('Anatomical path length differs from its source-edge polyline')
     origin = profile['frame']['origin_cm']
     local = [[_dot([p[i]-origin[i] for i in range(3)], axis) for axis in axes] for p in points]
+    incidence = None
+    if geometry_snapshot is not None:
+        # Transport only incidence checked against this exact evaluated mesh.
+        # This is a surface seed, not a correspondence domain, an anatomical
+        # approval or evidence that an expanded garment target lies on skin.
+        incidence = {
+            'method': 'EXACT_SOURCE_EDGE_INCIDENCE_V1',
+            'identity': {key: identity[key] for key in
+                ('source_sha256', 'pose_sha256', 'geometry_sha256', 'face_sets_sha256')},
+            'edge_source_face_ids': copy.deepcopy(source_faces),
+            'edge_source_region_ids': [[labels[i] for i in faces] for faces in source_faces],
+            'surface_correspondence': 'NOT_SELECTED',
+            'native_provenance': 'CALLER_MUST_VERIFY',
+        }
     return {'path_id': path_id, 'region': region, 'source_region_ids': sorted(regions),
             'points_body_cm': local, 'points_world_cm': copy.deepcopy(points), 'closed': closed,
             'length_cm': length, 'report_sha256': expected_report_sha256, 'path_sha256': digest(row),
             'profile_sha256': digest(profile), 'reference_kind': 'SOURCE_MESH_EDGE_PATH',
             'vertex_ids': copy.deepcopy(vertex_ids), 'edge_vertex_ids': [list(pair) for pair in pairs],
+            **({'source_face_incidence': incidence} if incidence is not None else {}),
             'anatomical_homology': 'EXPLICIT_SELECTION_NOT_QUALIFIED',
             'geometry_validation': 'EXACT_SOURCE_EDGES_VERIFIED' if geometry_snapshot is not None else 'CALLER_MUST_VERIFY',
             'native_provenance': 'CALLER_MUST_VERIFY', 'human_review': 'CALLER_MUST_VERIFY',

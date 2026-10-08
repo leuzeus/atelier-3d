@@ -113,6 +113,45 @@ class AnatomicalPlacement(unittest.TestCase):
         self.assertEqual(result['geometry_validation'], 'CALLER_MUST_VERIFY')
         self.assertEqual(result['vertex_ids'], [0, 1, 2, 3])
         self.assertEqual(result['native_provenance'], 'CALLER_MUST_VERIFY')
+        self.assertNotIn('source_face_incidence', result)
+
+    def test_verified_incidence_survives_normalization_without_aliasing_or_coordinate_change(self):
+        for closed in (False, True):
+            for rotated in (False, True):
+                profile, geometry, report, doc, _ = fixture(closed=closed, rotated=rotated)
+                before = digest([profile, geometry, report, doc])
+                verified = validate_anatomical_references(profile, doc, geometry=geometry)['paths']['chosen']
+                unverified = resolve_measured_path(profile, report, 'measured',
+                    expected_report_sha256=digest(report), region='neck')
+                self.assertEqual(verified['points_body_cm'], unverified['points_body_cm'])
+                self.assertEqual(verified['points_world_cm'], unverified['points_world_cm'])
+                support = verified['source_face_incidence']
+                self.assertEqual(support['edge_source_face_ids'], report['paths'][0]['edge_source_face_ids'])
+                self.assertEqual(support['edge_source_region_ids'],
+                    [[geometry['face_sets'][i] for i in row] for row in support['edge_source_face_ids']])
+                self.assertEqual(support['identity'], {key: report['identity'][key] for key in
+                    ('source_sha256', 'pose_sha256', 'geometry_sha256', 'face_sets_sha256')})
+                self.assertEqual(support['surface_correspondence'], 'NOT_SELECTED')
+                self.assertEqual(support['native_provenance'], 'CALLER_MUST_VERIFY')
+                support['edge_source_face_ids'][0][0] = 999
+                support['identity']['pose_sha256'] = 'f'*64
+                self.assertEqual(digest([profile, geometry, report, doc]), before)
+
+    def test_unverified_geometry_never_publishes_claimed_incidence(self):
+        profile, _, report, _, _ = fixture()
+        report['paths'][0]['edge_source_face_ids'] = [[999]]
+        result = resolve_measured_path(profile, report, 'measured',
+            expected_report_sha256=digest(report), region='neck')
+        self.assertNotIn('source_face_incidence', result)
+        self.assertEqual(result['geometry_validation'], 'CALLER_MUST_VERIFY')
+
+    def test_incidence_rejects_numeric_aliases_duplicates_and_invalid_face_rows(self):
+        for face_ids in ([0., 1.], [False, True], [0, 0], [-1, 1], [0, 2], [], (0, 1), None):
+            profile, geometry, report, doc, _ = fixture()
+            report['paths'][0]['edge_source_face_ids'][0] = face_ids
+            rehash(doc)
+            with self.subTest(face_ids=face_ids), self.assertRaisesRegex(StudioError, 'integer face IDs'):
+                validate_anatomical_references(profile, doc, geometry=geometry)
 
     def test_stale_source_pose_geometry_profile_or_frame_are_refused(self):
         for variant in ('source_sha256', 'pose_sha256', 'geometry_sha256', 'profile_sha256', 'profile_cache_key', 'frame'):
