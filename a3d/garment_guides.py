@@ -142,6 +142,9 @@ def anatomical_band_frame(piece, policy, profile, references, pid, *, subdivisio
     along = 0 if axis == 'u' else 1; across = 1-along
     anchor = _declared_anchor(piece, policy)
     phase = _fraction(policy.get('path_anchor_fraction'), 'body path anchor fraction')
+    path_direction = policy.get('path_direction', 1)
+    if type(path_direction) is not int or path_direction not in (-1, 1):
+        raise StudioError('Path band direction must be the explicit integer +1 or -1')
     normal = _vector(policy.get('longitudinal_direction_body'), 'band longitudinal direction')
     width = max(p[along] for p in piece['vertices'])-min(p[along] for p in piece['vertices'])
     maximum = policy.get('max_path_expansion_ratio')
@@ -156,7 +159,7 @@ def anatomical_band_frame(piece, policy, profile, references, pid, *, subdivisio
     scale = width/reference['length_cm']
     expanded = [[center[k]+scale*(p[k]-center[k]) for k in range(3)] for p in points]
     uv, triangles = _source_limb_mesh(piece, subdivisions)
-    fractions = [(phase+(p[along]-anchor[along])/width) % 1. for p in uv]
+    fractions = [(phase+path_direction*(p[along]-anchor[along])/width) % 1. for p in uv]
     oriented = path_frames(expanded, fractions, closed=True, reference_normal=normal)
     target = [_world(profile, [frame['point_cm'][k]+(p[across]-anchor[across])*frame['normal'][k]
                               for k in range(3)]) for p, frame in zip(uv, oriented)]
@@ -169,7 +172,7 @@ def anatomical_band_frame(piece, policy, profile, references, pid, *, subdivisio
         'auxiliary_path_expansion_center_body_cm': center,
         'path_geometry_policy': 'SOURCE_WIDTH_EXPANSION_OF_MEASURED_3D_SHAPE_NOT_A_NEW_BODY_MEASUREMENT',
         'path_discretization': 'SOURCE_TRIANGLE_CAGE_SAMPLING_REQUIRES_FINAL_METRIC_AND_CONTACT_CHECKS',
-        'source_anchor_uv_cm': anchor, 'path_anchor_fraction': phase,
+        'source_anchor_uv_cm': anchor, 'path_anchor_fraction': phase, 'path_direction': path_direction,
         'longitudinal_direction_body': normal, 'material_height_policy': 'UNIT_TRANSVERSE_FIBRES',
         'source_contour_sha256': digest(piece), 'source_uv_scaled': False,
         'body_rescaling': False, 'surface_following': 'ACTUAL_THREE_DIMENSIONAL_PATH',

@@ -69,6 +69,14 @@ Les politiques de pièces sont explicites :
 | `LIMB_ATTACHMENT_V1` | `attachment_path_ref`, `path_fraction`, `source_anchor_edge`, `source_anchor_fraction`, `axis_landmarks`, `transverse_direction_body`, `attachment_offset_body` |
 | `surface_envelope` | `method: REGIONAL_SURFACE_ENVELOPE_V1`, `source_region_ids`, `direction_body`, `reserve_cm`, `max_displacement_cm` |
 
+Pour `PATH_BAND_V1`, `path_direction` fixe explicitement le sens de parcours :
+entier `1` ou `-1`. Son absence conserve le sens historique `1`. La phase
+`path_anchor_fraction` et le sens répondent à deux besoins distincts : placer
+un repère sur la courbe et faire correspondre l'ordre matériel à son orientation.
+Une phase ne corrige pas un parcours inversé. Les repères et le sens doivent
+venir des bords, coutures et trajets mesurés du projet ; leur choix reste une
+proposition de montage tant que le candidat n'a pas été examiné.
+
 Les guides V2 lient le code, le profil, la pose, la géométrie, les rapports, les
 sources, les recettes et les paramètres. La vérification reconstruit le rapport
 entier sans arrondi ; une durée d’exécution ne fait pas partie de cette identité.
