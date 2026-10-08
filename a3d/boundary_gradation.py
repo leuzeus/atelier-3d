@@ -346,7 +346,7 @@ def _transport_aliases(boundaries, transport, check):
             seen[value] = key
 
 
-def _sampling_cost(data, recipe, parameters, envelope, check):
+def _sampling_cost(data, recipe, parameters, envelope, check, mandatory_source_uv=None):
     """Reserve conservative work for the existing, cooperative sampler.
 
     Raw grids, source turns, propagation and optional-seed comparisons are
@@ -354,7 +354,8 @@ def _sampling_cost(data, recipe, parameters, envelope, check):
     on both sides ensure an expired operation cannot return qualified output.
     """
     source_count = sum(len(p['vertices']) for p in data['pieces'].values())
-    raw = source_count + sum(len(v) for v in parameters.values())
+    raw = source_count + sum(len(v) for v in parameters.values()) + sum(
+        len(v) for v in (mandatory_source_uv or {}).values())
     for piece in data['pieces'].values():
         check(); perimeter = chain_lengths(piece['vertices'] + piece['vertices'][:1])[-1]
         if not math.isfinite(perimeter / recipe['mesh']['spacing_cm']):
@@ -368,10 +369,13 @@ def _sample(data, recipe, regular, parameters, baseline, envelope, check):
     check()
     envelope.reserve('sampling_calls', 1)
     envelope.reserve('sampling_point_slots', min(regular['max_vertices'],recipe['mesh']['max_vertices']))
-    _sampling_cost(data,recipe,parameters,envelope,check)
+    mandatory = {pid: part['mandatory_source_uv_cm'] for pid, part in baseline.items()
+                 if part.get('mandatory_source_uv_cm')}
+    _sampling_cost(data,recipe,parameters,envelope,check,mandatory_source_uv=mandatory)
     check()
     parts, seams, reports = prepare_boundaries(data,recipe,seam_parameters=parameters,
-        regular_boundary_spacing_cm=regular['min_spacing_cm'])
+        regular_boundary_spacing_cm=regular['min_spacing_cm'],mandatory_source_uv=mandatory,
+        mandatory_check=check,mandatory_work=lambda amount:envelope.reserve('work_steps',amount))
     # The existing API has allocated its bounded batch. Register every new
     # material identity immediately, BEFORE validation or a downstream consumer.
     identities = {}
@@ -706,7 +710,7 @@ def synchronized_parameters(data,recipe,regular,baseline,oldseams,parameters,che
 
 def _public_boundaries(parts):
     fields = ('source','perimeter','keys','polygon','flip','source_sha256',
-              'sample_provenance','edges','regular_sampling_report')
+              'sample_provenance','edges','regular_sampling_report','mandatory_source_uv_cm')
     return {pid:{key:part[key] for key in fields if key in part} for pid,part in sorted(parts.items())}
 
 

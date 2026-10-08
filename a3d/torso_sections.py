@@ -165,7 +165,8 @@ def apply_measured_sections(panels, report, group, profile, skin_sections=None):
     return panels, report
 
 
-def source_bound_torso_cages(data, panels, *, subdivisions=8, budgets=None, _clock=time.monotonic):
+def source_bound_torso_cages(data, panels, *, subdivisions=8, budgets=None, _clock=time.monotonic,
+                             synchronize_boundaries=True):
     """Synchronize actual permanent torso boundaries in a source-UV cage.
 
     The existing measured-skin/shoulder guide remains the volume hypothesis.
@@ -183,6 +184,8 @@ def source_bound_torso_cages(data, panels, *, subdivisions=8, budgets=None, _clo
 
     if type(subdivisions) is not int or not 2 <= subdivisions <= 16:
         raise StudioError('Torso cage subdivisions must be an integer in 2..16')
+    if type(synchronize_boundaries) is not bool:
+        raise StudioError('Torso boundary synchronization must be explicitly boolean')
     if (not isinstance(panels, dict) or not panels or len(panels) > 16
             or not set(panels) <= set(data.get('pieces', {}))):
         raise StudioError('Torso cages require exact source pieces within the fixed panel budget')
@@ -287,10 +290,11 @@ def source_bound_torso_cages(data, panels, *, subdivisions=8, budgets=None, _clo
     for key, cohort in cohorts.items():
         budget.check()
         targets[key] = [math.fsum(originals[pid][index][k] for pid,index in cohort)/len(cohort) for k in range(3)]
-    for key, cohort in cohorts.items():
-        budget.check()
-        for pid, index in cohort:
-            frames[pid]['target_cm'][index] = list(targets[key])
+    if synchronize_boundaries:
+        for key, cohort in cohorts.items():
+            budget.check()
+            for pid, index in cohort:
+                frames[pid]['target_cm'][index] = list(targets[key])
     displacements = {pid:max(math.dist(a,b) for a,b in zip(originals[pid],frame['target_cm']))
                      for pid, frame in frames.items()}
     for witness in witnesses:
@@ -309,7 +313,8 @@ def source_bound_torso_cages(data, panels, *, subdivisions=8, budgets=None, _clo
         'unprocessed_external_relations':sorted(s['id'] for s in data.get('seams', [])
             if s.get('kind') == 'permanent' and ((s.get('piece_a') in frames) != (s.get('piece_b') in frames))),
         'boundary_correspondence':'COMPLETE_PIECEWISE_LINEAR_CAGE_SOURCE_ARC_DOMAIN',
-        'target_policy':'UNWEIGHTED_MEAN_OF_EXISTING_SKIN_AND_SHOULDER_GUIDE_PROPOSALS',
+        'target_policy':('UNWEIGHTED_MEAN_OF_EXISTING_SKIN_AND_SHOULDER_GUIDE_PROPOSALS' if synchronize_boundaries
+                         else 'UNCHANGED_GUIDE_TARGETS_AWAIT_COUPLED_REST_METRIC_SOLVE'),
         'volume':'UNCHANGED_AUXILIARY_PROPOSAL_EXCEPT_REPORTED_SOURCE_SEAM_CONTROL_CORRECTIONS',
         'front_coverage':'NOT_REVIEWED', 'source_mutated':False, 'source_uv_scaled':False,
         'body_changed':False, 'qualification':'NONE', 'metric_assessment':'REQUIRED',

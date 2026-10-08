@@ -2,6 +2,14 @@
 
 ## En développement — programme d'automatisation, 2026-10-04
 
+- Placement anatomique V2 : trajets 3D pour bandes, attaches de peau distinctes
+  des axes des membres et enveloppes de triangles source. Rôle générique
+  `panel`, inventaire des régions disponibles/manquantes, couplage de la
+  métrique matière et des coutures avec partenaires permanents complets.
+  Recettes d'embu et contraintes anatomiques conservées dans les entrées
+  natives. Les contrôles portables ne qualifient pas le fitting du manteau ;
+  voir [le contrat et ses limites](references/generic-anatomical-placement.md).
+
 - Rôle Patronage distribué avec le plugin et profil de sous-agent Codex fourni.
   `studio_prepare_patronage_review` recompile les sources, authentifie le corps
   et la décision numérique disponible, remesure sections et chemins matière,

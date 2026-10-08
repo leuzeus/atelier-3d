@@ -1,5 +1,20 @@
 # Validation d’Atelier 3D
 
+## Placement anatomique générique — 2026-10-08
+
+Le correctif V2 passe **2 108 tests**, zéro échec, zéro erreur et zéro SKIP,
+en 367,979 s, ainsi que **14 contrats JSON**. Les empreintes de 503 fichiers
+restent inchangées pendant la campagne finale. La revue indépendante ne
+conserve aucun constat ouvert dans son périmètre. Le [reçu exact](references/automation-generic-placement-evidence-20261008.json)
+conserve aussi l'essai initial interrompu par un changement de code concurrent.
+
+Les tests couvrent les guides 3D, les attaches, la métrique des coutures,
+l'embu source, le transport natif et les contrôles obligatoires du maillage.
+Les services Blender des tests sont simulés. Le replay sur le col source
+réel vérifie seulement sa représentation portable. Aucun essai Blender réel,
+Cloth, fitting ou acceptation du manteau n'est ajouté par ce lot.
+Voir [les capacités et limites du correctif](references/generic-anatomical-placement.md).
+
 ## Programme en développement — 2026-10-04
 
 Dernière unité : source figée 45, 900 tests portables PASS en 114,496 s et

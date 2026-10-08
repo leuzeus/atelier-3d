@@ -12,7 +12,8 @@ from .board_contract import assembly_mark_position
 from .cloth_metrics import (METRIC_VERSION, VALIDATOR_VERSION, METRIC_SCOPE,
     face_sources, evaluate_metrics, distribution as _distribution)
 from .sewing import (chain_lengths, edge_chain, point_inside, prepare_boundaries,
-                     sample_chain, segment_distance, seam_report, signed_area)
+                     sample_chain, segment_distance, seam_report, signed_area,
+                     mandatory_source_uv_inputs, mandatory_boundary_bindings)
 
 
 def _issue(code, message, category, **location):
@@ -436,12 +437,31 @@ def _notch_physical_identity(notch):
         binding['boundary_vertices'],binding['weights']) if weight!=0.))
 
 
+def anatomical_boundary_requirements(data, anatomical_attachments, *, check=None, work=None):
+    """Transport admitted attachment material coordinates into derived mesh constraints."""
+    if anatomical_attachments is None:
+        return {}
+    if not isinstance(anatomical_attachments, list) or len(anatomical_attachments) > 4096:
+        raise StudioError('Mandatory anatomical mesh controls require bounded source attachment records')
+    requests = {}
+    from .sewing import _bounded_uv_rows
+    for row in _bounded_uv_rows(anatomical_attachments, check, work):
+        if (not isinstance(row, dict) or row.get('piece') not in data['pieces'] or
+                'source_uv_cm' not in row):
+            raise StudioError('Mandatory anatomical mesh controls require bounded source attachment records')
+        requests.setdefault(row['piece'], []).append(row['source_uv_cm'])
+    return mandatory_source_uv_inputs(data, requests, check=check, work=work)
+
+
 def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None, *,
-                               meshing_envelope=None, transport_2d=None):
+                               meshing_envelope=None, transport_2d=None, anatomical_attachments=None):
     """Same source IDs/shared arc sampler, explicitly rebuilt at rim resolution."""
     if (meshing_envelope is None)!=(transport_2d is None):
         raise StudioError('Synchronized boundary preparation requires both envelope and native transport')
     if meshing_envelope is not None:meshing_envelope.check('before_regular_boundary_capture')
+    mandatory_check = (lambda: meshing_envelope.check('mandatory_anatomical_source_uv')) if meshing_envelope is not None else None
+    mandatory_work = (lambda amount: meshing_envelope.reserve('work_steps', amount)) if meshing_envelope is not None else None
+    mandatory = anatomical_boundary_requirements(data, anatomical_attachments, check=mandatory_check, work=mandatory_work)
     _, fine, _, maximum = _mesh_config(regular_mesh)
     derived = copy.deepcopy(recipe)
     derived['mesh']['spacing_cm'] = fine
@@ -478,10 +498,11 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None, *,
         meshing_envelope.reserve('sampling_calls',1)
         meshing_envelope.reserve('sampling_point_slots',derived['mesh']['max_vertices'])
         _sampling_cost(data,derived,{},meshing_envelope,
-            lambda:meshing_envelope.check('baseline_sampling_cost'))
+            lambda:meshing_envelope.check('baseline_sampling_cost'), mandatory_source_uv=mandatory)
         meshing_envelope.check('before_baseline_sampling')
     boundaries, seams, seam_reports = prepare_boundaries(data, derived,
-        regular_boundary_spacing_cm=fine)
+        regular_boundary_spacing_cm=fine, mandatory_source_uv=mandatory,
+        mandatory_check=mandatory_check, mandatory_work=mandatory_work)
     gradation=None
     if meshing_envelope is not None:
         from .boundary_gradation import grade_shared_boundaries
@@ -491,6 +512,7 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None, *,
             boundaries,seams,transport_2d=transport_2d,envelope=meshing_envelope)
         seam_reports=gradation['seam_reports']
     source_corner_bindings = _verify_prepared_source_corners(data, boundaries)
+    mandatory_bindings = mandatory_boundary_bindings(boundaries, mandatory, check=mandatory_check, work=mandatory_work)
     for notch in notch_sources:
         notch.update(_bind_source_notch(data,boundaries,seams,notch))
     paired_self_notches = {}
@@ -514,6 +536,9 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None, *,
         'notch_index_space':'PIECE_BOUNDARY_LOCAL',
         'dossier_sha256': digest(dossier) if dossier is not None else None,
         'source_notches': notch_sources, 'ambiguous_source_notches': ambiguous_notches}
+    if anatomical_attachments is not None:
+        result['mandatory_anatomical_boundary_bindings'] = mandatory_bindings
+        result['anatomical_attachments_sha256'] = digest(anatomical_attachments)
     if meshing_envelope is not None:
         result['source_boundary_gradation']=gradation
         meshing_envelope.check('after_source_corner_and_notch_rebinding')

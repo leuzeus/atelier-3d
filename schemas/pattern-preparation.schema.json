@@ -14,6 +14,22 @@
       "type": "string",
       "minLength": 1
     },
+    "anatomical_attachments": {
+      "type": "array", "maxItems": 4096,
+      "items": {
+        "type": "object",
+        "properties": {
+          "piece": {"type": "string", "minLength": 1},
+          "source_uv_cm": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}},
+          "target_world_cm": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}},
+          "tolerance_cm": {"type": "number", "minimum": 0, "maximum": 1},
+          "source_ref": {"type": "string", "minLength": 1}
+        },
+        "required": ["piece", "source_uv_cm", "target_world_cm", "tolerance_cm", "source_ref"],
+        "additionalProperties": false
+      },
+      "description": "Measured anatomical guide points protected through native placement via immutable source triangle supports. They create no physical Cloth pins; binary32 allowance is bounded and reported separately."
+    },
     "regular_mesh": {
       "type": "object",
       "properties": {

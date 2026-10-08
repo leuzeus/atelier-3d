@@ -202,7 +202,7 @@ def placed_point(point, placement):
 
 
 def build_mesh(data, recipe, regular_mesh=None, dossier=None, *,
-               meshing_profile=None, meshing_envelope=None):
+               meshing_profile=None, meshing_envelope=None, anatomical_attachments=None):
     synchronized=meshing_profile is not None
     if not synchronized and meshing_envelope is not None:
         raise StudioError('Meshing envelope requires the explicit synchronized profile')
@@ -219,10 +219,21 @@ def build_mesh(data, recipe, regular_mesh=None, dossier=None, *,
         from a3d.pattern_preparation import prepare_regular_boundaries
         if synchronized:
             boundaries,seams,sampling=prepare_regular_boundaries(data,recipe,regular_mesh,dossier,
-                meshing_envelope=meshing_envelope,transport_2d=lambda p:list(Vector(p)))
-        else:boundaries,seams,sampling=prepare_regular_boundaries(data,recipe,regular_mesh,dossier)
+                meshing_envelope=meshing_envelope,transport_2d=lambda p:list(Vector(p)),
+                anatomical_attachments=anatomical_attachments)
+        else:boundaries,seams,sampling=prepare_regular_boundaries(data,recipe,regular_mesh,dossier,
+                anatomical_attachments=anatomical_attachments)
         reports=sampling['seams']
-    else:boundaries,seams,reports=prepare_boundaries(data,recipe)
+    else:
+        from a3d.pattern_preparation import anatomical_boundary_requirements
+        mandatory=anatomical_boundary_requirements(data,anatomical_attachments)
+        boundaries,seams,reports=prepare_boundaries(data,recipe,mandatory_source_uv=mandatory)
+    from a3d.sewing import mandatory_boundary_bindings
+    mandatory={pid:part['mandatory_source_uv_cm'] for pid,part in boundaries.items() if part.get('mandatory_source_uv_cm')}
+    boundary_bindings=mandatory_boundary_bindings(boundaries,mandatory,
+        check=(lambda:meshing_envelope.check('mandatory_native_boundary_binding')) if synchronized else None,
+        work=(lambda amount:meshing_envelope.reserve('work_steps',amount)) if synchronized else None)
+    native_bindings=[]
     rest,placed,faces=[],[],[]
     panels={};pins={}
     for index,(pid,boundary) in enumerate(boundaries.items()):
@@ -253,6 +264,14 @@ def build_mesh(data, recipe, regular_mesh=None, dossier=None, *,
             "boundary":[offset+mapping[i] for i in range(len(boundary["polygon"]))],
             "boundary_source_arclength_cm":boundary["keys"],
             "edges":{name:[offset+mapping[i] for i in ids] for name,ids in boundary["edges"].items()}}
+        for binding in boundary_bindings:
+            if binding['piece'] != pid:
+                continue
+            native_index=offset+mapping[binding['boundary_vertex']]
+            if rest[native_index][:2] != boundary['polygon'][binding['boundary_vertex']]:
+                raise StudioError('Triangulation or smoothing moved a mandatory anatomical material control: '+pid)
+            native_bindings.append({**binding,'native_vertex':native_index,
+                'index_space':'COMPONENT_MESH_GLOBAL','boundary_index_space':'PIECE_BOUNDARY_LOCAL'})
         for seam in seams.values():
             for side in ("a","b"):
                 if seam["piece_"+side]==pid:seam[side]=[offset+mapping[i] for i in seam[side]]
@@ -264,6 +283,9 @@ def build_mesh(data, recipe, regular_mesh=None, dossier=None, *,
     payload={"version":1,"component_id":data["component_id"],"recipe_mesh_sha256":mesh_recipe_digest(recipe),
         "source_garment_sha256":digest(data),"rest_cm":rest,"placed_cm":placed,"faces":faces,"panels":panels,
         "seams":seams,"pins":pins,"seam_lengths":reports}
+    if anatomical_attachments is not None:
+        payload['mandatory_anatomical_boundary_bindings']=native_bindings
+        payload['anatomical_attachments_sha256']=digest(anatomical_attachments)
     if recipe.get('trial_mode') == 'single_panel':
         payload['trial_mode'] = 'single_panel'
         payload['single_panel_source'] = {
@@ -309,6 +331,9 @@ def subset_mesh(payload, piece_ids):
     if 'source_vertex_cohorts' in payload:
         sub['source_vertex_cohorts']={str(mapping[int(current)]):copy.deepcopy(sources)
                                      for current,sources in payload['source_vertex_cohorts'].items() if int(current) in mapping}
+    if 'mandatory_anatomical_boundary_bindings' in payload:
+        sub['mandatory_anatomical_boundary_bindings']=[{**row,'native_vertex':mapping[row['native_vertex']]}
+            for row in payload['mandatory_anatomical_boundary_bindings'] if row['piece'] in piece_ids]
     sub["pins"]={str(mapping[int(i)]):w for i,w in payload["pins"].items() if int(i) in mapping}
     sub["seams"]={sid:{**s,"pairs":[[mapping[a],mapping[b]] for a,b in s["pairs"]]}
         for sid,s in payload["seams"].items() if s["piece_a"] in piece_ids and s["piece_b"] in piece_ids}

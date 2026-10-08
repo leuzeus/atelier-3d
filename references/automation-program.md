@@ -2883,3 +2883,38 @@ ne remplace pas cette correction. Aucune nouvelle coupe n'attend une décision ;
 la revue artistique du vêtement complet reste requise après construction.
 
 [Preuves, limites et fichiers exacts](automation-local-surface-guard-evidence-20261008.json).
+
+### 2026-10-08 — Correction générique des guides et de leur conservation
+
+La demande de correction du col, du dos, des épaules et des manches produit
+un chemin V2 explicite. Les bandes utilisent des trajets corporels 3D ; les
+attaches des membres utilisent la peau mesurée séparément de l'axe du rig ;
+les enveloppes régionales utilisent les triangles source authentifiés. Le
+couplage optimise la métrique des patrons et les coutures, sans moyenne forcée
+des seuls bords. Les partenaires permanents sont inclus dans la correction.
+Le rôle public `panel` et l'inventaire des régions rendent les mêmes calculs
+utilisables hors du torse, sans faire passer une donnée manquante pour un guide.
+
+La revue indépendante a conduit à conserver les recettes d'embu, contrôler
+les côtés anatomiques, préserver les attaches pendant le couplage et les
+transporter au parcours natif, même pour une pièce sans couplage. Leur contrôle
+est obligatoire même si la correction de placement optionnelle est absente.
+Le maillage dérivé doit conserver les points source requis et les raccords
+homologues ; aucune tolérance anatomique n'absorbe une approximation de courbe.
+
+Le replay portable du col source de 55,2154 cm sur le trajet accepté de
+51,2154 cm conserve les quatre fibres comparables à moins de 0,000001 cm.
+Il reste exploratoire : il ne valide pas leur correspondance d'assemblage,
+le placement global du col, les épaules ou le fitting du manteau. Les sources,
+patrons, corps et runtime installé restent conservés. Aucun Blender lancé.
+
+Voir [le contrat générique et ses limites](generic-anatomical-placement.md).
+La campagne finale sur 503 fichiers figés passe 2 108 tests en 367,979 s,
+sans échec ni SKIP, et quatorze contrats. La revue indépendante est close.
+[Reçu et empreintes](automation-generic-placement-evidence-20261008.json).
+Après qualification logicielle, la prochaine unité est de préparer les
+politiques anatomiques explicites de la cible réelle, installer un build de
+développement vérifié et présenter l'opération native exacte à autoriser.
+Aucune nouvelle variante de coupe n'a été créée dans ce lot. La construction
+complète des quinze textiles et de la boucle, l'enfilage, Cloth, le fitting,
+les mouvements, la revue artistique et la préversion finale restent ouverts.

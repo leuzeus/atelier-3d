@@ -10,7 +10,7 @@ from .dressing import validate_layers, _reference
 
 
 STAGES = ('place', 'correct', 'mount', 'close', 'consolidate', 'relax', 'drape', 'motion')
-ROLES = {'front', 'back', 'side', 'sleeve', 'cuff', 'hood', 'yoke', 'belt', 'lining', 'reinforcement', 'collar', 'inner_front'}
+ROLES = {'front', 'back', 'side', 'sleeve', 'cuff', 'hood', 'yoke', 'belt', 'lining', 'reinforcement', 'collar', 'inner_front', 'panel'}
 LINKS = {'permanent', 'closure', 'detachable', 'free_contact', 'temporary_support'}
 
 

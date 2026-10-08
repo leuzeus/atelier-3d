@@ -13,6 +13,7 @@ from .garment_guide_policy import (
 )
 from .garment_planner import plan_assembly
 from .textile_executor import prepare_component_templates
+from .anatomical_guide_inputs import project_anatomical_references
 
 
 def prepare_project_component_preparation(project, compilation, parameters_path,
@@ -60,11 +61,12 @@ def prepare_project_component_preparation(project, compilation, parameters_path,
         if origin != policy_evidence['native_body_origin']:
             raise StudioError('Native body origin changed during component preparation')
         recipes = _project_seam_recipes(project, policy['components'])
-        source_identity = digest([profile, geometry, geometry_ref, source_data, recipes, origin])
+        references = project_anatomical_references(project, policy['components'])
+        source_identity = digest([profile, geometry, geometry_ref, source_data, recipes, origin, references])
 
         phase = 'GUIDE_RECONSTRUCTION'
         guides, guide_report = reconstruct_guide_policy(compilation, profile, geometry,
-            geometry_ref, source_data, policy, source_seam_recipes=recipes)
+            geometry_ref, source_data, policy, source_seam_recipes=recipes, anatomical_references=references)
         phase = 'ASSEMBLY_PLAN'
         assembly = plan_assembly(compilation['assembly_spec'], capabilities=['coupled_multilayer'])
 
@@ -76,7 +78,8 @@ def prepare_project_component_preparation(project, compilation, parameters_path,
                 raise StudioError('Component preparation mutated its immutable source inputs')
             current = _project_inputs(project, compilation)
             current_recipes = _project_seam_recipes(project, policy['components'])
-            if digest([*current[:4], current_recipes, current[4]]) != source_identity:
+            current_references = project_anatomical_references(project, policy['components'])
+            if digest([*current[:4], current_recipes, current[4], current_references]) != source_identity:
                 raise StudioError('Component preparation source, native body or seam recipe changed')
             if guide_generator_identity() != policy['generator_code_sha256']:
                 raise StudioError('Component preparation guide generator code changed')

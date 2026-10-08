@@ -40,6 +40,7 @@ cette consigne ne modifie pas les permissions MCP de Codex.
 - [Production et validations humaines](references/production.md)
 - [Classification des vêtements et aisance explicite](references/garment-fit-intent.md)
 - [Patronage : mensurations, mise à taille et comparaisons calculées](references/patronage-agent.md)
+- [Placement anatomique générique : guides, coutures et couverture des régions](references/generic-anatomical-placement.md)
 - [Automatisation : runtime et interfaces](references/automation-runtime.md), [preuves et qualification](references/automation-validation.md)
 - [Templates ComfyUI réutilisables](workflows/comfy/README.md)
 - [Architecture et responsabilités](references/architecture.md)

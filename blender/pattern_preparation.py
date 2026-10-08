@@ -6,6 +6,7 @@ import uuid
 from a3d.core import StudioError,atomic_json,contract,digest,inside,read_json,sha
 from blender.pattern_assembly import reference,verified_reference,collision_guard,validate_envelope_review
 from blender.sewing import build_mesh,make_object,mesh_digest,mesh_recipe_digest,context_colliders,simulation_quality
+from a3d.placement_attachments import bind_anatomical_attachments,observe_anatomical_attachments
 
 
 RETIRED_PREPARATIONS=('experimental_prefit','interface_preparation','panel_mount',
@@ -83,6 +84,15 @@ def prepared_receipt(project,obj,payload,recipe,plan_ref):
                 or observed.get('status')!='GEOMETRIC_GATES_PASSED'):
             raise StudioError('Prepared native placement correction changed or was not geometrically admitted')
     spec=read_json(verified_reference(project,record['preparation_spec']))
+    if 'anatomical_attachments' in spec:
+        observed=record.get('anatomical_attachments',{})
+        binding=bind_anatomical_attachments(payload,payload['placed_cm'],spec['anatomical_attachments'])
+        if (observed.get('source_declarations_sha256')!=digest(spec['anatomical_attachments'])
+                or observed.get('status')!='ANATOMICAL_ATTACHMENTS_PRESERVED'
+                or observed.get('final',{}).get('preserved') is not True
+                or observed.get('final',{}).get('candidate_sha256')!=digest(payload['placed_cm'])
+                or not observe_anatomical_attachments(binding,payload['placed_cm'])['preserved']):
+            raise StudioError('Prepared anatomical attachment evidence is missing, changed or not preserved')
     if spec.get('meshing_profile'):
         from a3d.meshing_profile import profile_binding
         observation=record.get('meshing_observation',{})
@@ -228,11 +238,18 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
         problem('NEEDS_CORRECTION','source_pattern',exc)
     payload=None;plan=None;plan_ref=None;obj=None;preform=None;collision=None;statistics=None;dressing=None;layer_migration=None;placement_correction=None
     meshing_observation=None
+    anatomical_binding=None;anatomical_assessment=None
+    if 'anatomical_attachments' in spec:
+        anatomical_assessment={'status':'NOT_EXECUTED_NO_DERIVED_MESH',
+            'source_declarations_sha256':digest(spec['anatomical_attachments']),
+            'qualification':'NONE','physical_pin_created':False}
+    meshing_attachments=({'anatomical_attachments':spec['anatomical_attachments']}
+        if 'anatomical_attachments' in spec else {})
     try:
         if meshing_envelope is not None:
             payload=build_mesh(data,recipe,regular_mesh=spec['regular_mesh'],dossier=dossier,
-                meshing_profile=spec['meshing_profile'],meshing_envelope=meshing_envelope)
-        else:payload=build_mesh(data,recipe,regular_mesh=spec['regular_mesh'],dossier=dossier)
+                meshing_profile=spec['meshing_profile'],meshing_envelope=meshing_envelope,**meshing_attachments)
+        else:payload=build_mesh(data,recipe,regular_mesh=spec['regular_mesh'],dossier=dossier,**meshing_attachments)
         if meshing_envelope is not None:
             meshing_observation={'status':'COMPLETED_MESH_BUILD_ONLY','qualification':'NONE',
                 'work':copy.deepcopy(payload['meshing_work']),'profile':copy.deepcopy(payload['meshing_profile'])}
@@ -309,6 +326,17 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
                 'source_recipe_sha256':digest(recipe),'geometry_not_copied_from_old_triangulation':True}
         else:
             rebind=None;problem('NEEDS_CLARIFICATION','preform','A sourced target preform and explicit support roles are required before mounting')
+        # Anatomical validity belongs to preparation itself, independently of
+        # the optional correction solver. Preserve this original binding across
+        # all later numerical proposals; a later pose must not rebase it.
+        if anatomical_assessment is not None:
+            try:
+                anatomical_binding=bind_anatomical_attachments(payload,payload['placed_cm'],spec['anatomical_attachments'])
+                anatomical_assessment.update(status='ANATOMICAL_ATTACHMENTS_BOUND',binding=anatomical_binding,
+                    entry=observe_anatomical_attachments(anatomical_binding,payload['placed_cm']))
+            except StudioError as exc:
+                anatomical_assessment.update(status='NEEDS_CORRECTION',error=str(exc),stage='ENTRY')
+                problem('NEEDS_CORRECTION','anatomical_attachments',exc)
         try:
             colliders,trees,snapshots=context_colliders(recipe)
             selected={o.name for o in colliders}
@@ -319,7 +347,8 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
                 else:problem('NEEDS_CLARIFICATION','layer_order',selection['reason'])
             inward=[(o,t,s) for o,t,s in zip(colliders,trees,snapshots,strict=True) if o.name in selected]
             collision_plan=copy.deepcopy(plan) if plan else {'collision':{'required':bool(recipe['colliders']),'clearance_cm':0.},'consolidation':{'weld_gap_cm':recipe['limits']['weld_gap_cm']}}
-            if plan and spec.get('placement_correction'):
+            if (plan and spec.get('placement_correction')
+                    and (anatomical_assessment is None or anatomical_binding is not None)):
                 from blender.placement_correction import correct_preparation
                 before_correction=copy.deepcopy(payload['placed_cm'])
                 try:
@@ -377,6 +406,15 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
                     problem(dressing['status'],'placement_enfilage',dressing.get('reason') or 'Sourced dressing geometry is not admitted')
         except StudioError as exc:
             collision={'ok':False,'error':str(exc)};problem('NEEDS_CLARIFICATION','collision_context',exc)
+        if anatomical_binding is not None:
+            try:
+                final=observe_anatomical_attachments(anatomical_binding,payload['placed_cm'])
+                anatomical_assessment.update(status=final['status'],final=final)
+                if not final['preserved']:
+                    problem('NEEDS_CORRECTION','anatomical_attachments','Final preparation moved a measured anatomical attachment')
+            except StudioError as exc:
+                anatomical_assessment.update(status='NEEDS_CORRECTION',error=str(exc),stage='FINAL')
+                problem('NEEDS_CORRECTION','anatomical_attachments',exc)
         preparation_limits={**recipe['mesh'],'min_angle_degrees':max(recipe['mesh']['min_angle_degrees'],spec['regular_mesh'].get('target_min_angle_degrees',15.))}
         try:simulation_quality(payload,payload['placed_cm'],preparation_limits)
         except StudioError as exc:problem('NEEDS_CORRECTION','strict_native_geometry',exc)
@@ -422,6 +460,7 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
         'simulation':'NOT_EXECUTED','fitting':'NOT_QUALIFIED','behavior':'NOT_QUALIFIED',
         'visual_validation':'NOT_EXECUTED','accepted':False,'export_eligible':False}
     if meshing_envelope is not None:record['meshing_observation']=meshing_observation
+    if anatomical_assessment is not None:record['anatomical_attachments']=anatomical_assessment
     from blender.piece_inventory import collect, remember_candidate, save_report
     remember_candidate(project, component_id, obj)
     coverage = collect(project, component_id, focus=obj, previews=True)

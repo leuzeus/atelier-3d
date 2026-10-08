@@ -22,6 +22,181 @@ from .sewing import edge_chain, sample_chain
 SPECIAL_ROLES = {'collar', 'inner_front', 'hood', 'yoke'}
 
 
+def _vector(value, name, *, nonzero=True):
+    if (not isinstance(value, (list, tuple)) or len(value) != 3 or
+            any(type(x) not in (int, float) or not math.isfinite(x) for x in value) or
+            (nonzero and math.fsum(x*x for x in value) <= 1e-20)):
+        raise StudioError('Anatomical guide requires a finite '+name)
+    return list(value)
+
+
+def _fraction(value, name):
+    if type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value <= 1:
+        raise StudioError('Anatomical guide requires an explicit '+name+' in [0, 1]')
+    return value
+
+
+def _declared_anchor(piece, policy):
+    name = policy.get('source_anchor_edge')
+    if name not in piece.get('edges', {}):
+        raise StudioError('Anatomical guide needs an actual named source attachment edge')
+    return sample_chain(edge_chain(piece, name)[1],
+                        _fraction(policy.get('source_anchor_fraction'), 'source attachment fraction'))
+
+
+def _path_reference(references, name, pid):
+    path = references.get('paths', {}).get(name)
+    if not path:
+        raise StudioError('Anatomical path reference is unavailable for '+pid+': '+str(name))
+    return path
+
+
+def _validate_limb_region(reference, semantic, axis_names, pid):
+    """A selected path label cannot silently invert a lateral source part."""
+    region = reference.get('region')
+    side = semantic.get('side')
+    if not isinstance(region, str) or not region:
+        raise StudioError('Limb attachment requires an explicit anatomical region: '+pid)
+    if region.startswith('custom:'):
+        if not region[7:].strip():
+            raise StudioError('Custom limb attachment region must be explicitly named')
+    else:
+        suffix = region.rsplit('.', 1)[-1]
+        if suffix in ('left', 'right') and suffix != side:
+            raise StudioError('Limb attachment body-region side contradicts its source semantic side: '+pid)
+        if semantic.get('role') in ('sleeve', 'cuff') and not region.startswith(('upper_arm.', 'lower_arm.', 'hand.')):
+            raise StudioError('Sleeve or cuff attachment requires an explicitly selected arm/hand region: '+pid)
+    for name in axis_names:
+        suffix = name.rsplit('.', 1)[-1]
+        if suffix in ('left', 'right') and suffix != side:
+            raise StudioError('Limb axis landmark side contradicts its source semantic side: '+pid)
+
+
+def anatomical_attachment_controls(data, frames, references):
+    """Immutable source-UV constraints, distinct from numerical seam anchors.
+
+    Bind a limb's actual named attachment point. A band additionally retains
+    all existing cage controls on its declared attachment edge. An interior
+    edge fraction can use barycentric support; the coupled solver reports that
+    conservative support explicitly instead of pretending it is a mesh vertex.
+    """
+    from .pattern_assembly import _compile_cage, _cage_point
+    from .sewing import segment_distance
+    constraints = []
+    for pid, policy in sorted((references or {}).get('pieces', {}).items()):
+        kind = policy.get('guide_kind')
+        if pid not in frames or kind not in ('PATH_BAND_V1', 'LIMB_ATTACHMENT_V1'):
+            continue
+        piece = data['pieces'][pid]; frame = frames[pid]
+        controls = [_declared_anchor(piece, policy)]
+        if kind == 'PATH_BAND_V1':
+            chain = edge_chain(piece, policy['source_anchor_edge'])[1]
+            controls.extend(uv for uv in frame['uv_cm'] if any(
+                segment_distance(uv, a, b) <= 1e-9 for a, b in zip(chain, chain[1:])))
+        controls = sorted(set(tuple(uv) for uv in controls))
+        compiled = _compile_cage(frame, pid)
+        path_name = policy['path_ref'] if kind == 'PATH_BAND_V1' else policy['attachment_path_ref']
+        path = references['paths'][path_name]
+        for uv in controls:
+            constraints.append({'piece': pid, 'source_uv_cm': list(uv),
+                'target_world_cm': _cage_point(frame, compiled, uv, pid)[0],
+                'tolerance_cm': 1e-7, 'source_ref': 'anatomical-path:'+path['path_sha256']+
+                    '; source-edge:'+policy['source_anchor_edge']})
+    return constraints
+
+
+def anatomical_attachment_residuals(frames, constraints):
+    from .pattern_assembly import _compile_cage, _cage_point
+    compiled = {}; records = []; invalid = []
+    for row in constraints:
+        pid = row['piece']
+        if pid not in compiled:
+            compiled[pid] = _compile_cage(frames[pid], pid)
+        observed = _cage_point(frames[pid], compiled[pid], row['source_uv_cm'], pid)[0]
+        distance = math.dist(observed, row['target_world_cm'])
+        record = {**row, 'observed_world_cm': observed, 'residual_cm': distance,
+                  'status': 'PRESERVED' if distance <= row['tolerance_cm'] else 'ANATOMICAL_ATTACHMENT_DRIFT'}
+        records.append(record)
+        if distance > row['tolerance_cm']:
+            invalid.append(record)
+    return {'status': 'ANATOMICAL_ATTACHMENT_DRIFT' if invalid else 'ANATOMICAL_ATTACHMENTS_PRESERVED',
+        'controls': records, 'violations': len(invalid), 'max_residual_cm': max(
+            (row['residual_cm'] for row in records), default=0.), 'qualification': 'CONSTRAINT_RESIDUALS_ONLY'}
+
+
+def anatomical_band_frame(piece, policy, profile, references, pid, *, subdivisions=8):
+    """Map source material onto an explicitly selected 3D attachment curve.
+
+    Uniform expansion changes the auxiliary path, never the source pattern.
+    Unit transverse fibres preserve material height at every sampled U. An
+    arbitrary nonplanar loop is not developable: its remaining shear/stretch
+    must be measured by the unchanged material gate before it can be admitted.
+    """
+    from .anatomical_placement import path_frames, sample_path
+    reference = _path_reference(references, policy.get('path_ref'), pid)
+    if reference['closed'] is not True:
+        raise StudioError('Path band requires an explicitly closed measured attachment path')
+    axis = policy.get('material_axis')
+    if axis not in ('u', 'v'):
+        raise StudioError('Path band requires its explicit circumferential material axis')
+    along = 0 if axis == 'u' else 1; across = 1-along
+    anchor = _declared_anchor(piece, policy)
+    phase = _fraction(policy.get('path_anchor_fraction'), 'body path anchor fraction')
+    normal = _vector(policy.get('longitudinal_direction_body'), 'band longitudinal direction')
+    width = max(p[along] for p in piece['vertices'])-min(p[along] for p in piece['vertices'])
+    maximum = policy.get('max_path_expansion_ratio')
+    if (type(maximum) not in (int, float) or not math.isfinite(maximum) or not 1 <= maximum <= 2 or
+            width <= 1e-8 or not 1-1e-10 <= width/reference['length_cm'] <= maximum):
+        raise StudioError('Source band circumference lies outside the declared measured-path expansion domain')
+    if policy.get('surface_offset_cm', 0.) != 0:
+        raise StudioError('Path band offset must be expressed by an explicit reviewed path, not an implicit extra ease')
+    points = reference['points_body_cm']
+    samples = sample_path(points, [i/128 for i in range(128)], closed=True)
+    center = [math.fsum(p[k] for p in samples)/len(samples) for k in range(3)]
+    scale = width/reference['length_cm']
+    expanded = [[center[k]+scale*(p[k]-center[k]) for k in range(3)] for p in points]
+    uv, triangles = _source_limb_mesh(piece, subdivisions)
+    fractions = [(phase+(p[along]-anchor[along])/width) % 1. for p in uv]
+    oriented = path_frames(expanded, fractions, closed=True, reference_normal=normal)
+    target = [_world(profile, [frame['point_cm'][k]+(p[across]-anchor[across])*frame['normal'][k]
+                              for k in range(3)]) for p, frame in zip(uv, oriented)]
+    frame = {'source_ref': 'measured-body-profile:'+profile['cache_key']+'; source-piece:'+pid+
+             '; measured-path:'+reference['path_sha256']+'; SOURCE_PATH_BAND_V1',
+             'uv_cm': uv, 'target_cm': target, 'triangles': triangles}
+    return frame, {'piece': pid, 'guide_kind': 'SOURCE_PATH_BAND_V1',
+        'path_sha256': reference['path_sha256'], 'body_path_length_cm': reference['length_cm'],
+        'source_circumference_cm': width, 'auxiliary_path_expansion_ratio': scale,
+        'auxiliary_path_expansion_center_body_cm': center,
+        'path_geometry_policy': 'SOURCE_WIDTH_EXPANSION_OF_MEASURED_3D_SHAPE_NOT_A_NEW_BODY_MEASUREMENT',
+        'path_discretization': 'SOURCE_TRIANGLE_CAGE_SAMPLING_REQUIRES_FINAL_METRIC_AND_CONTACT_CHECKS',
+        'source_anchor_uv_cm': anchor, 'path_anchor_fraction': phase,
+        'longitudinal_direction_body': normal, 'material_height_policy': 'UNIT_TRANSVERSE_FIBRES',
+        'source_contour_sha256': digest(piece), 'source_uv_scaled': False,
+        'body_rescaling': False, 'surface_following': 'ACTUAL_THREE_DIMENSIONAL_PATH',
+        'metric_assessment': 'REQUIRED_NONPLANAR_PATH_MAY_SHEAR',
+        'contact_assessment': 'REQUIRED', 'qualification': 'NONE'}
+
+
+def permanent_component_pieces(data, seeds):
+    """Expand exact permanent graph connectivity, never detachable relations."""
+    if (not isinstance(seeds, list) or not seeds or len(set(seeds)) != len(seeds) or
+            not set(seeds) <= set(data.get('pieces', {}))):
+        raise StudioError('Permanent component expansion needs distinct actual source seed pieces')
+    selected = set(seeds)
+    relations = [s for s in data.get('seams', []) if s.get('kind') == 'permanent']
+    for relation in relations:
+        if any(relation.get('piece_'+side) not in data['pieces'] for side in ('a', 'b')):
+            raise StudioError('Permanent source relation names a nonexistent source piece')
+    while True:
+        previous = set(selected)
+        for relation in relations:
+            pair = {relation['piece_a'], relation['piece_b']}
+            if pair & selected:
+                selected.update(pair)
+        if previous == selected:
+            return sorted(selected)
+
+
 def _source_span(piece, v):
     """Unique material interval at V, including real horizontal boundary stops."""
     hits = []; horizontal = []
@@ -148,7 +323,7 @@ def _paired_limb_boundary(data, pid):
     return seam, records, spans
 
 
-def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8):
+def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8, anatomical_references=None):
     """Seam-bound auxiliary cages for explicit sleeves and cuffs.
 
     Actual source faces receive uniform integer barycentric refinement. Their
@@ -164,20 +339,30 @@ def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8):
         raise StudioError('Limb cage subdivisions must be an explicit integer in 2..16')
     original = digest([data, semantics, profile]); frames = {}; evidence = []; pending = []
     for pid, semantic in sorted(semantics.items()):
-        if semantic.get('role') not in ('sleeve', 'cuff'):
+        policy = (anatomical_references or {}).get('pieces', {}).get(pid, {})
+        attachment = policy.get('guide_kind') == 'LIMB_ATTACHMENT_V1'
+        if semantic.get('role') not in ('sleeve', 'cuff') and not attachment:
             pending.append(pid); continue
         side = semantic.get('side')
-        if side not in ('left', 'right') or semantic.get('longitudinal_uv_axis') != 'v':
+        if side not in (('left', 'right', 'center') if attachment else ('left', 'right')) or semantic.get('longitudinal_uv_axis') != 'v':
             raise StudioError('Limb cage requires an explicit anatomical side and longitudinal material V axis: '+pid)
         piece = data['pieces'][pid]
         uv, triangles = _source_limb_mesh(piece, cage_subdivisions)
         seam, pairs, spans = _paired_limb_boundary(data, pid)
-        shoulder = profile['landmarks'].get('shoulder.'+side, {}).get('point_cm'); wrist = profile['landmarks'].get('wrist.'+side, {}).get('point_cm')
+        axis_names = policy.get('axis_landmarks') if attachment else ['shoulder.'+side, 'wrist.'+side]
+        if (not isinstance(axis_names, list) or len(axis_names) != 2 or
+                any(not isinstance(name, str) or not name for name in axis_names)):
+            raise StudioError('Limb attachment requires explicit proximal/distal axis landmarks: '+pid)
+        if attachment:
+            _validate_limb_region(_path_reference(anatomical_references, policy.get('attachment_path_ref'), pid),
+                                  semantic, axis_names, pid)
+        shoulder, wrist = [profile['landmarks'].get(name, {}).get('point_cm') for name in axis_names]
         if any(not isinstance(point, (list, tuple)) or len(point) != 3 or
                any(type(v) not in (int, float) or not math.isfinite(v) for v in point) for point in (shoulder, wrist)):
             raise StudioError('Limb cages require finite measured shoulder and wrist landmarks')
         downward = unit([b-a for a, b in zip(shoulder, wrist)])
-        forward = [0., 1., 0.]; projection = dot(forward, downward)
+        forward = _vector(policy.get('transverse_direction_body'), 'limb transverse direction') if attachment else [0., 1., 0.]
+        projection = dot(forward, downward)
         transverse = unit([forward[i]-projection*downward[i] for i in range(3)])
         tangent = unit(cross(downward, transverse))
         v_lo = min(p[1] for p in piece['vertices']); v_hi = max(p[1] for p in piece['vertices'])
@@ -197,7 +382,8 @@ def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8):
             sign = 1 if stops['proximal'] > stops['distal'] else -1
             cuff_policy = {'distal_edge': declared['distal'], 'proximal_edge': declared['proximal'],
                 'distal_source_v_cm': stops['distal'], 'proximal_source_v_cm': stops['proximal'],
-                'body_distal_anchor': 'wrist.'+side, 'proximal_direction': 'TOWARD_SOURCE_SHOULDER',
+                'body_distal_anchor': axis_names[1], 'proximal_direction': ('TOWARD_DECLARED_PROXIMAL_AXIS_LANDMARK'
+                    if attachment else 'TOWARD_SOURCE_SHOULDER'),
                 'source_orientation': 'EXPLICIT_NAMED_EDGES', 'source_v_sign': sign}
 
         def center(v):
@@ -221,6 +407,28 @@ def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8):
         frame = {'source_ref': 'measured-body-profile:'+profile['cache_key']+'; source-piece:'+pid+
                  '; source-seam:'+seam['id']+'; SOURCE_PAIRED_LIMB_CAGE',
                  'uv_cm': uv, 'target_cm': target, 'triangles': triangles}
+        attachment_evidence = None
+        if attachment:
+            from .anatomical_placement import sample_path
+            from .pattern_assembly import _compile_cage, _cage_point
+            reference = _path_reference(anatomical_references, policy.get('attachment_path_ref'), pid)
+            fraction = _fraction(policy.get('path_fraction'), 'limb attachment path fraction')
+            anchor_uv = _declared_anchor(piece, policy)
+            target_body = sample_path(reference['points_body_cm'], [fraction], closed=reference['closed'])[0]
+            offset = _vector(policy.get('attachment_offset_body'), 'limb attachment offset', nonzero=False)
+            if math.hypot(*offset) > 100.:
+                raise StudioError('Limb attachment offset exceeds its bounded placement domain')
+            expected = _world(profile, [a+b for a, b in zip(target_body, offset)])
+            observed = _cage_point(frame, _compile_cage(frame, pid), anchor_uv, pid)[0]
+            translation = [b-a for a, b in zip(observed, expected)]
+            frame['target_cm'] = [[a+b for a, b in zip(point, translation)] for point in target]
+            frame['source_ref'] += '; measured-attachment:'+reference['path_sha256']
+            attachment_evidence = {'method': 'SOURCE_ANCHOR_TO_MEASURED_PATH_RIGID_TRANSLATION',
+                'path_sha256': reference['path_sha256'], 'path_fraction': fraction,
+                'source_anchor_uv_cm': anchor_uv, 'target_attachment_world_cm': expected,
+                'translation_world_cm': translation, 'axis_landmarks': list(axis_names),
+                'axis_landmarks_usage': 'ORIENTATION_ONLY_NOT_SKIN_ATTACHMENT',
+                'attachment_offset_body_cm': offset, 'material_metric_changed_by_attachment': False}
         frames[pid] = frame
         evidence.append({'piece': pid, 'role': semantic['role'], 'side': side,
             'guide_kind': 'SOURCE_PAIRED_LIMB_CAGE', 'source_contour_sha256': digest(piece),
@@ -229,12 +437,14 @@ def limb_volume_frames(data, semantics, profile, *, cage_subdivisions=8):
             'source_circumference_domain_cm': [min(spans), max(spans)],
             'source_longitudinal_length_cm': v_hi-v_lo, 'source_v_domain_cm': [v_lo, v_hi],
             'source_guide_axis_cm': [_world(profile, center(v_lo)), _world(profile, center(v_hi))],
-            'shoulder_wrist_axis_length_cm': math.dist(shoulder, wrist),
+            **({'declared_axis_length_cm': math.dist(shoulder, wrist)} if attachment else
+               {'shoulder_wrist_axis_length_cm': math.dist(shoulder, wrist)}),
             'cage_refinement': {'method': 'UNIFORM_BARYCENTRIC_EXISTING_SOURCE_FACES',
                 'subdivisions': cage_subdivisions, 'source_faces': len(piece['faces']),
                 'control_vertices': len(uv), 'control_triangles': len(triangles),
                 'source_topology_changed': False},
             **({'source_longitudinal_anchor_policy': cuff_policy} if cuff_policy else {}),
+            **({'anatomical_attachment': attachment_evidence} if attachment_evidence else {}),
             'source_uv_scaled': False, 'body_rescaling': False,
             'anatomical_homology': 'REVIEW_REQUIRED', 'metric_admission': 'REQUIRED',
             'native_contact_check': 'REQUIRED', 'fitting': 'NOT_EXECUTED'})
@@ -370,7 +580,7 @@ def _planar(piece, anchor_uv, anchor_body, u_axis, v_axis, profile):
              'curve_cm': [point(lo[0], v), point(hi[0], v)]} for v in (lo[1], hi[1])]}
 
 
-def specialised_volume_frames(data, semantics, profile):
+def specialised_volume_frames(data, semantics, profile, *, anatomical_references=None):
     """Source-edge/body-surface guides for collar, inner front, hood and yoke.
 
     ``guide_edges.anchor`` (and optional ``anchor_end``) names actual edges;
@@ -385,7 +595,12 @@ def specialised_volume_frames(data, semantics, profile):
     original = digest([data, semantics, profile]); frames = {}; evidence = []; pending = []
     for pid, semantic in sorted(semantics.items()):
         role = semantic.get('role')
-        if role not in SPECIAL_ROLES:
+        policy = (anatomical_references or {}).get('pieces', {}).get(pid, {})
+        if policy.get('guide_kind') == 'PATH_BAND_V1':
+            frame, record = anatomical_band_frame(data['pieces'][pid], policy, profile, anatomical_references, pid)
+            frames[pid] = frame; evidence.append(record)
+            continue
+        if role not in SPECIAL_ROLES or policy.get('guide_kind') == 'LIMB_ATTACHMENT_V1':
             pending.append(pid); continue
         piece = data['pieces'][pid]
         if not piece.get('vertices') or any(len(p) != 2 or any(not math.isfinite(v) for v in p) for p in piece['vertices']):
@@ -513,7 +728,8 @@ def measured_native_skin_sections(profile, geometry, heights_cm):
 
 
 def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sections=True, skin_sections=None,
-                          *,source_seam_coupling=None,seam_recipe=None):
+                          *,source_seam_coupling=None,seam_recipe=None, anatomical_references=None,
+                          anatomical_geometry=None):
     """Dispatch complete source coverage; return pending unsupported roles.
 
     A missing declaration or impossible native guide produces an actionable
@@ -527,18 +743,37 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
         raise StudioError('Additional skin-section evidence is stale for the approved body/profile/frame')
     if set(semantics) != set(data['pieces']):
         raise StudioError('Garment guide dispatcher requires exact source piece coverage')
+    references = None
+    if anatomical_references is not None:
+        from .anatomical_placement import validate_anatomical_references
+        references = validate_anatomical_references(profile, anatomical_references,
+            geometry=(anatomical_geometry or {}).get('geometry'))
+        if not set(references['pieces']) <= set(data['pieces']):
+            raise StudioError('Anatomical guide policy names a piece outside the actual source')
     frames = {}; reports = []; diagnostics = []
     families = [('torso', {'front', 'back', 'side'}, torso_volume_frames),
                 ('limb', {'sleeve', 'cuff'}, limb_volume_frames),
                 ('belt', {'belt'}, belt_volume_frames),
                 ('specialised', SPECIAL_ROLES, specialised_volume_frames)]
     for name, roles, build in families:
-        if not any(p.get('role') in roles for p in semantics.values()):
+        family_semantics = copy.deepcopy(semantics)
+        for pid, policy in (references or {}).get('pieces', {}).items():
+            kind = policy.get('guide_kind')
+            if kind not in (None, 'PATH_BAND_V1', 'LIMB_ATTACHMENT_V1'):
+                raise StudioError('Unsupported anatomical piece guide kind: '+str(kind))
+            owner = {'PATH_BAND_V1': 'specialised', 'LIMB_ATTACHMENT_V1': 'limb'}.get(kind)
+            if owner is not None and owner != name:
+                family_semantics[pid]['role'] = 'owned_by_explicit_anatomical_guide'
+        extra_kind = {'limb': 'LIMB_ATTACHMENT_V1', 'specialised': 'PATH_BAND_V1'}.get(name)
+        if not any(p.get('role') in roles for p in family_semantics.values()) and not (
+                extra_kind and any(p.get('guide_kind') == extra_kind for p in (references or {}).get('pieces', {}).values())):
             continue
         try:
-            report = (build(data, semantics, profile, upper_blend=upper_blend, surface_sections=surface_sections,skin_sections=skin_sections,
-                            source_cage_budgets=source_seam_coupling['budgets'] if source_seam_coupling else None)
-                      if name == 'torso' else build(data, semantics, profile))
+            report = (build(data, family_semantics, profile, upper_blend=upper_blend, surface_sections=surface_sections,skin_sections=skin_sections,
+                            source_cage_budgets=source_seam_coupling['budgets'] if source_seam_coupling else None,
+                            synchronize_boundaries=not (source_seam_coupling or {}).get('strategy') == 'COUPLED_REST_METRIC_V2')
+                      if name == 'torso' else build(data, family_semantics, profile, anatomical_references=references)
+                      if name in ('limb', 'specialised') else build(data, family_semantics, profile))
         except StudioError as error:
             diagnostics.append({'family': name, 'code': 'GUIDE_INPUT_OR_CAPABILITY_MISSING', 'message': str(error),
                                 'pieces': sorted(pid for pid, row in semantics.items() if row.get('role') in roles),
@@ -547,16 +782,60 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
         if set(frames).intersection(report['panels']):
             raise StudioError('Several guide families own one source piece')
         frames.update(report['panels']); reports.append({'family': name, 'report': report})
+    attachment_controls = anatomical_attachment_controls(data, frames, references)
+    envelope_report = None
+    envelope_policies = {pid: row['surface_envelope'] for pid, row in (references or {}).get('pieces', {}).items()
+                         if 'surface_envelope' in row and pid in frames}
+    if envelope_policies:
+        from .regional_surface_guides import apply_regional_surface_envelopes
+        frames, envelope_report = apply_regional_surface_envelopes(
+            data, frames, profile, anatomical_geometry, envelope_policies)
+        diagnostics.extend({'family': 'regional_surface_envelope', **row} for row in envelope_report['diagnostics'])
+    before_coupling_attachments = anatomical_attachment_residuals(frames, attachment_controls)
+    if before_coupling_attachments['violations']:
+        diagnostics.append({'family': 'anatomical_constraints', 'code': 'SURFACE_AND_ATTACHMENT_CONSTRAINTS_CONFLICT',
+            'violations': before_coupling_attachments['violations'],
+            'message': 'The proposed surface correction conflicts with an immutable measured attachment'})
     coupling_report=None
     if source_seam_coupling is not None:
         from .source_seam_coupling import couple_source_seams
         selected=source_seam_coupling['pieces']
-        if (not isinstance(selected,list)or len(selected)<2 or len(set(selected))!=len(selected)
+        scope = source_seam_coupling.get('piece_scope', 'EXPLICIT')
+        if scope == 'PERMANENT_COMPONENT':
+            selected = permanent_component_pieces(data, selected)
+        elif scope != 'EXPLICIT':
+            raise StudioError('Unsupported source sewing piece scope')
+        missing = sorted(set(selected)-set(frames))
+        if missing and scope == 'PERMANENT_COMPONENT':
+            diagnostics.append({'family': 'source_rigid_alignment', 'code': 'PERMANENT_COMPONENT_GUIDES_MISSING',
+                'pieces': missing, 'message': 'The complete permanent source component needs these missing guides'})
+            selected = [pid for pid in selected if pid in frames]
+        minimum = 1 if source_seam_coupling.get('strategy') == 'COUPLED_REST_METRIC_V2' else 2
+        if (not isinstance(selected,list)or (len(selected)<minimum and not missing) or len(set(selected))!=len(selected)
                 or not set(selected)<=set(frames)):
             raise StudioError('Source-seam coupling requires its explicit distinct prepared source panels')
-        cages,coupling_report=couple_source_seams(data,{pid:frames[pid]for pid in selected},seam_recipe,
-            subdivisions=source_seam_coupling['subdivisions'],budgets=source_seam_coupling['budgets'],semantics=semantics)
+        if before_coupling_attachments['violations']:
+            cages = {}; coupling_report = {'strategy': source_seam_coupling.get('strategy'),
+                'status': 'NOT_EXECUTED_ANATOMICAL_CONSTRAINT_CONFLICT', 'qualification': 'NONE'}
+        elif len(selected) < minimum:
+            cages = {}; coupling_report = {'strategy': source_seam_coupling.get('strategy'),
+                'status': 'NOT_EXECUTED_MISSING_COMPONENT_GUIDES', 'qualification': 'NONE'}
+        else:
+            cages,coupling_report=couple_source_seams(data,{pid:frames[pid]for pid in selected},seam_recipe,
+                subdivisions=source_seam_coupling['subdivisions'],budgets=source_seam_coupling['budgets'],semantics=semantics,
+                **({'anatomical_attachments': [row for row in attachment_controls if row['piece'] in selected]}
+                    if source_seam_coupling.get('strategy') == 'COUPLED_REST_METRIC_V2' else {}),
+                **({key: source_seam_coupling[key] for key in ('strategy', 'relaxation', 'numerical_anchor_edges') if key in source_seam_coupling}))
         frames.update(cages)
+        coupling_report['piece_scope'] = scope
+        coupling_report['missing_component_guides'] = missing
+        if coupling_report.get('strategy') == 'COUPLED_REST_METRIC_V2' and (
+                coupling_report.get('unprocessed_external_relations') or missing):
+            diagnostics.append({'family': 'source_rigid_alignment', 'code': 'PERMANENT_COMPONENT_INCOMPLETE',
+                'pieces': missing, 'message': 'Permanent sewing partners are not all prepared in the current candidate'})
+        elif coupling_report.get('strategy') == 'COUPLED_REST_METRIC_V2' and coupling_report.get('status') != 'PROPOSAL_TARGETS_REACHED':
+            diagnostics.append({'family': 'source_rigid_alignment', 'code': 'COUPLED_MATERIAL_PROPOSAL_INCOMPLETE',
+                'status': coupling_report.get('status'), 'message': 'The measured seam/material proposal has not reached its declared numerical targets'})
         alignment=coupling_report.get('rigid_alignment',{})
         for row in alignment.get('diagnostics',[]):
             diagnostics.append({'family':'source_rigid_alignment',**row})
@@ -565,11 +844,42 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
                 'message':'Rigid seeds cover front attachments only; other permanent relations still require correction'})
     elif seam_recipe is not None:
         raise StudioError('A sewing recipe cannot enable undeclared guide coupling')
+    final_attachments = anatomical_attachment_residuals(frames, attachment_controls)
+    if final_attachments['violations']:
+        diagnostics.append({'family': 'anatomical_constraints', 'code': 'FINAL_ANATOMICAL_ATTACHMENT_DRIFT',
+            'violations': final_attachments['violations'], 'max_residual_cm': final_attachments['max_residual_cm'],
+            'message': 'The final guide no longer retains its measured source-bound anatomical attachment'})
+    final_envelope = None
+    if envelope_policies and coupling_report is not None:
+        # Requery the final geometry, without adopting this second correction.
+        # The metric solve cannot silently spend the body reserve established
+        # before assembly. A changed source-ref on the discarded copy is not
+        # an authorization to project, modify or qualify the final candidate.
+        _, final_envelope = apply_regional_surface_envelopes(
+            data, frames, profile, anatomical_geometry, envelope_policies)
+        violations = [row for row in final_envelope['pieces']
+                      if row['unresolved_controls'] or row['max_displacement_cm'] > 1e-7]
+        if violations:
+            diagnostics.append({'family': 'anatomical_constraints', 'code': 'FINAL_REGIONAL_SURFACE_RESERVE_NOT_PRESERVED',
+                'pieces': [row['piece'] for row in violations],
+                'message': 'Final guide controls require additional regional clearance or lack measured coverage'})
+    coverage = None
+    if references is not None:
+        from .anatomical_placement import region_coverage
+        coverage = region_coverage(references)
+        coverage['prepared_piece_guides'] = [{'piece': pid, 'guide_kind': row.get('guide_kind', 'LEGACY_ROLE_GUIDE'),
+            'prepared': pid in frames, 'surface_envelope_declared': 'surface_envelope' in row}
+            for pid, row in sorted(references['pieces'].items())]
     pending = sorted(set(data['pieces'])-set(frames))
     return {'version': 1, 'status': 'PARTIAL_GUIDES' if pending or any(
-                row.get('family')=='source_rigid_alignment'for row in diagnostics) else 'GARMENT_GUIDES_PREPARED',
+                row.get('family') in ('source_rigid_alignment', 'regional_surface_envelope', 'anatomical_constraints') for row in diagnostics) else 'GARMENT_GUIDES_PREPARED',
             'panels': frames, 'pending_pieces': pending, 'diagnostics': diagnostics, 'families': reports,
             **({'source_seam_coupling':coupling_report}if coupling_report is not None else {}),
+            **({'regional_surface_envelope': envelope_report} if envelope_report is not None else {}),
+            **({'anatomical_attachment_constraints': final_attachments} if attachment_controls else {}),
+            **({'post_coupling_surface_reserve': final_envelope} if final_envelope is not None else {}),
+            **({'anatomical_region_coverage': coverage} if coverage is not None else {}),
+            **({'anatomical_references_sha256': digest(anatomical_references)} if references is not None else {}),
             'source_sha256': digest(data), 'semantics_sha256': digest(semantics),
             'profile_cache_key': profile['cache_key'], 'profile_sha256': digest(profile),
             'source_mutated': False, 'source_uv_scaled': False, 'qualification': 'NONE',

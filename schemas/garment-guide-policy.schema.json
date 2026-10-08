@@ -4,10 +4,10 @@
   "type": "object",
   "properties": {
     "version": {
-      "const": 1
+      "enum": [1, 2]
     },
     "generator": {
-      "const": "GARMENT_VOLUME_FRAMES_V1"
+      "enum": ["GARMENT_VOLUME_FRAMES_V1", "GARMENT_VOLUME_FRAMES_V2"]
     },
     "compiled_sha256": {
       "type": "string",
@@ -137,16 +137,54 @@
             "type": "string",
             "pattern": "^[a-f0-9]{64}$"
           },
+          "anatomical_references_ref": {
+            "type": "object",
+            "properties": {
+              "path": {"type": "string", "minLength": 1},
+              "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+            },
+            "required": ["path", "sha256"],
+            "additionalProperties": false
+          },
+          "anatomical_references_sha256": {
+            "type": "string", "pattern": "^[a-f0-9]{64}$"
+          },
           "source_seam_coupling": {
             "type": "object",
             "properties": {
+              "strategy": {"enum": ["COUPLED_REST_METRIC_V2"]},
+              "piece_scope": {"enum": ["EXPLICIT", "PERMANENT_COMPONENT"]},
+              "numerical_anchor_edges": {
+                "type": "array", "minItems": 1, "maxItems": 256, "uniqueItems": true,
+                "items": {"type": "object", "properties": {
+                  "piece": {"type": "string", "minLength": 1, "maxLength": 100},
+                  "edge": {"type": "string", "minLength": 1, "maxLength": 100}
+                }, "required": ["piece", "edge"], "additionalProperties": false}
+              },
+              "relaxation": {
+                "type": "object",
+                "properties": {
+                  "max_iterations": {"type": "integer", "minimum": 1, "maximum": 1000},
+                  "rigid_iterations": {"type": "integer", "minimum": 0, "maximum": 100},
+                  "max_displacement_cm": {"type": "number", "minimum": 0.000001, "maximum": 100},
+                  "metric_weight": {"type": "number", "minimum": 0.000001, "maximum": 10000},
+                  "seam_weight": {"type": "number", "minimum": 0.000001, "maximum": 1000},
+                  "position_weight": {"type": "number", "minimum": 0, "maximum": 100},
+                  "seam_tolerance_cm": {"type": "number", "minimum": 0.000001, "maximum": 5},
+                  "strain_tolerance": {"type": "number", "minimum": 0.000001, "maximum": 0.5},
+                  "stagnation_iterations": {"type": "integer", "minimum": 1, "maximum": 100},
+                  "improvement_tolerance": {"type": "number", "minimum": 0.000000000001, "maximum": 0.01},
+                  "ease_distribution": {"enum": ["UNIFORM_NORMALIZED_SOURCE_ARC", "ZERO_EASE_ONLY"]}
+                },
+                "additionalProperties": false
+              },
               "pieces": {
                 "type": "array",
                 "items": {
                   "type": "string",
                   "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$"
                 },
-                "minItems": 2,
+                "minItems": 1,
                 "maxItems": 16,
                 "uniqueItems": true
               },

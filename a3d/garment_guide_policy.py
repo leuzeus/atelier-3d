@@ -12,9 +12,11 @@ import zipfile
 
 from .core import ROOT,StudioError,contract,digest,inside,read_json,sha
 from .garment_guides import garment_volume_frames,measured_native_skin_sections
+from .anatomical_guide_inputs import check_anatomical_inputs, project_anatomical_references
 
 
-CODE_SOURCES=('garment_guide_policy','garment_guides','semantic_placement','torso_sections','guide_cage_sampling',
+CODE_SOURCES=('garment_guide_policy','anatomical_guide_inputs','anatomical_placement','regional_surface_guides','assembly_relaxation',
+    'dressing_derivation','body_region_sections','garment_guides','semantic_placement','torso_sections','guide_cage_sampling',
     'source_seam_coupling','guide_stage_metrics','cloth_metrics','rigid_guide_alignment','shoulder_guides','preform_volume','pattern_assembly','anatomy_profile','shoulder_surface','head_surface','contact_geometry','sewing','core')
 
 
@@ -26,7 +28,8 @@ def _owners(compiled):
     return {row['id']:row for row in compiled['components']if row['pipeline']=='PATTERN_SEWN'}
 
 
-def prepare_guide_policy(compiled,profile,geometry,geometry_ref,component_parameters,*,source_seam_recipes=None):
+def prepare_guide_policy(compiled,profile,geometry,geometry_ref,component_parameters,*,source_seam_recipes=None,
+                         anatomical_references=None):
     """Prepare a policy from explicit parameters; pure callers supply trusted inputs."""
     owners=_owners(compiled)
     if set(component_parameters)!=set(owners):
@@ -38,20 +41,28 @@ def prepare_guide_policy(compiled,profile,geometry,geometry_ref,component_parame
     selected={cid for cid,row in component_parameters.items()if 'source_seam_coupling'in row}
     if set(source_seam_recipes)!=selected:
         raise StudioError('Guide source-seam coupling needs exactly its declared complete sewing recipes')
+    anatomical_references={} if anatomical_references is None else anatomical_references
+    reference_components=check_anatomical_inputs(component_parameters,anatomical_references)
     components={}
     for cid,parameters in sorted(component_parameters.items()):
-        if set(parameters)-{'source_seam_coupling'}!={'upper_blend','surface_sections','skin_section_heights_cm'}:
+        if set(parameters)-{'source_seam_coupling','anatomical_references_ref'}!={'upper_blend','surface_sections','skin_section_heights_cm'}:
             raise StudioError('Guide parameters must explicitly declare blend, measured surfaces and skin heights without overrides')
         row={**copy.deepcopy(parameters),'package_source_ref':copy.deepcopy(owners[cid]['package_source_ref'])}
         if cid in selected:
             row['source_seam_recipe_sha256']=digest(source_seam_recipes[cid])
+        if cid in reference_components:
+            from .anatomical_placement import validate_anatomical_references
+            validate_anatomical_references(profile,anatomical_references[cid],geometry=geometry)
+            row['anatomical_references_sha256']=digest(anatomical_references[cid])
         if parameters['skin_section_heights_cm']:
             if not parameters['surface_sections']:
                 raise StudioError('Guide policy skin heights need explicitly enabled surfaces')
             skin=measured_native_skin_sections(profile,geometry,parameters['skin_section_heights_cm'])
             row['skin_sections_sha256']=digest(skin)
         components[cid]=row
-    policy={'version':1,'generator':'GARMENT_VOLUME_FRAMES_V1','compiled_sha256':digest(compiled),
+    modern=bool(reference_components) or any(row.get('source_seam_coupling',{}).get('strategy')=='COUPLED_REST_METRIC_V2'
+        for row in component_parameters.values())
+    policy={'version':2 if modern else 1,'generator':'GARMENT_VOLUME_FRAMES_V2' if modern else 'GARMENT_VOLUME_FRAMES_V1','compiled_sha256':digest(compiled),
         'dossier_ref':copy.deepcopy(compiled['source_ref']),
         'specification_ref':copy.deepcopy(compiled['specification_source_ref']),
         'body_ref':copy.deepcopy(compiled['assembly_spec']['body_ref']),'geometry_ref':copy.deepcopy(geometry_ref),
@@ -59,7 +70,8 @@ def prepare_guide_policy(compiled,profile,geometry,geometry_ref,component_parame
     return contract('garment-guide-policy',policy)
 
 
-def reconstruct_guide_policy(compiled,profile,geometry,geometry_ref,source_data,policy,*,source_seam_recipes=None):
+def reconstruct_guide_policy(compiled,profile,geometry,geometry_ref,source_data,policy,*,source_seam_recipes=None,
+                             anatomical_references=None):
     """Recompute every coordinate with the sole existing generator."""
     contract('garment-guide-policy',policy);owners=_owners(compiled)
     if policy['generator_code_sha256']!=guide_generator_identity():
@@ -78,7 +90,14 @@ def reconstruct_guide_policy(compiled,profile,geometry,geometry_ref,source_data,
     selected={cid for cid,row in policy['components'].items()if 'source_seam_coupling'in row}
     if set(source_seam_recipes)!=selected:
         raise StudioError('Guide source-seam coupling needs exactly its declared complete sewing recipes')
-    before=digest([compiled,profile,geometry,geometry_ref,source_data,policy,source_seam_recipes]);guides={};skins={}
+    anatomical_references={} if anatomical_references is None else anatomical_references
+    reference_components=check_anatomical_inputs(policy['components'],anatomical_references)
+    modern=bool(reference_components) or any(row.get('source_seam_coupling',{}).get('strategy')=='COUPLED_REST_METRIC_V2'
+        for row in policy['components'].values())
+    if (policy['version']!=(2 if modern else 1) or
+            policy['generator']!=('GARMENT_VOLUME_FRAMES_V2' if modern else 'GARMENT_VOLUME_FRAMES_V1')):
+        raise StudioError('Guide generator version does not match its declared anatomical and assembly strategy')
+    before=digest([compiled,profile,geometry,geometry_ref,source_data,policy,source_seam_recipes,anatomical_references]);guides={};skins={}
     for cid,row in sorted(policy['components'].items()):
         if row['package_source_ref']!=owners[cid]['package_source_ref']:
             raise StudioError('Guide policy source package identity changed')
@@ -106,10 +125,18 @@ def reconstruct_guide_policy(compiled,profile,geometry,geometry_ref,source_data,
                 raise StudioError('Guide source-seam recipe changed from its exact declared policy')
         elif 'source_seam_recipe_sha256'in row:
             raise StudioError('Guide policy cannot supply an unrequested source-seam recipe identity')
+        if cid in reference_components:
+            if row.get('anatomical_references_sha256')!=digest(anatomical_references[cid]):
+                raise StudioError('Anatomical guide reports or piece policies changed')
+        elif 'anatomical_references_sha256' in row:
+            raise StudioError('Guide policy cannot supply undeclared anatomical evidence')
         guides[cid]=garment_volume_frames(data,semantics,profile,upper_blend=row['upper_blend'],
             surface_sections=row['surface_sections'],skin_sections=skin,
-            source_seam_coupling=coupling,seam_recipe=recipe)
-    if digest([compiled,profile,geometry,geometry_ref,source_data,policy,source_seam_recipes])!=before:
+            source_seam_coupling=coupling,seam_recipe=recipe,
+            **({'anatomical_references':anatomical_references[cid],
+                'anatomical_geometry':{'geometry':geometry,'triangles':anatomical_references[cid].get('triangles')}}
+               if cid in reference_components else {}))
+    if digest([compiled,profile,geometry,geometry_ref,source_data,policy,source_seam_recipes,anatomical_references])!=before:
         raise StudioError('Guide reconstruction changed immutable source, body or declared policy inputs')
     return guides,{'status':'GUIDE_HYPOTHESES_RECONSTRUCTED','policy_sha256':digest(policy),
         'generator_code_sha256':copy.deepcopy(policy['generator_code_sha256']),
@@ -119,9 +146,10 @@ def reconstruct_guide_policy(compiled,profile,geometry,geometry_ref,source_data,
         'placement':'NOT_QUALIFIED','simulation':'NOT_EXECUTED','acceptance':'NOT_GRANTED'}
 
 
-def verify_guide_policy(compiled,profile,geometry,geometry_ref,source_data,policy,guides,*,source_seam_recipes=None):
+def verify_guide_policy(compiled,profile,geometry,geometry_ref,source_data,policy,guides,*,source_seam_recipes=None,
+                        anatomical_references=None):
     expected,evidence=reconstruct_guide_policy(compiled,profile,geometry,geometry_ref,source_data,policy,
-        source_seam_recipes=source_seam_recipes)
+        source_seam_recipes=source_seam_recipes,anatomical_references=anatomical_references)
     if expected!=guides:
         raise StudioError('Guide coordinates or reports differ from reconstruction of their exact declared source/body/skin/code policy')
     evidence['comparison']='FULL_UNROUNDED_GUIDE_REPORT_IDENTICAL'
@@ -168,7 +196,9 @@ def _project_seam_recipes(project,rows):
 def prepare_project_guide_policy(project,compiled,component_parameters):
     profile,geometry,ref,_,origin=_project_inputs(project,compiled)
     recipes=_project_seam_recipes(project,component_parameters)
-    policy=prepare_guide_policy(compiled,profile,geometry,ref,component_parameters,source_seam_recipes=recipes)
+    references=project_anatomical_references(project,component_parameters)
+    policy=prepare_guide_policy(compiled,profile,geometry,ref,component_parameters,source_seam_recipes=recipes,
+        anatomical_references=references)
     return policy,{'native_body_origin':origin,'qualification':'NONE','admissible_for_fit':False}
 
 
@@ -177,9 +207,13 @@ def verify_project_guides(project,compiled,guides,policy_path):
     policy_sha256=hashlib.sha256(policy_bytes).hexdigest();policy=json.loads(policy_bytes)
     profile,geometry,ref,data,origin=_project_inputs(project,compiled)
     recipes=_project_seam_recipes(project,policy['components'])
-    evidence=verify_guide_policy(compiled,profile,geometry,ref,data,policy,guides,source_seam_recipes=recipes)
+    references=project_anatomical_references(project,policy['components'])
+    evidence=verify_guide_policy(compiled,profile,geometry,ref,data,policy,guides,source_seam_recipes=recipes,
+        anatomical_references=references)
     if _project_seam_recipes(project,policy['components'])!=recipes:
         raise StudioError('Guide source-seam recipe artifact changed during reconstruction')
+    if project_anatomical_references(project,policy['components'])!=references:
+        raise StudioError('Anatomical guide artifact changed during reconstruction')
     if sha(path)!=policy_sha256:raise StudioError('Guide policy artifact changed during source reconstruction')
     evidence.update(policy_ref={'path':policy_path,'sha256':policy_sha256},native_body_origin=origin)
     return evidence

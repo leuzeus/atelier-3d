@@ -374,21 +374,32 @@ def _at_fraction(piece, state, chain, fraction, budget, n):
 
 
 def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=None, clock=time.monotonic, semantics=None,
-                        observe_guide_stages=False):
+                        observe_guide_stages=False, strategy='LEGACY_COHORT_MEAN_V1', relaxation=None,
+                        numerical_anchor_edges=None, anatomical_attachments=None):
     """Return ``(cages, report)`` without changing any supplied source input.
 
     Permanent source boundaries in ``frames`` are paired over the union of
     their normalized original corner/refinement partitions. Opposite chains
     are reversed by the source relation, without an assumption about UV axes.
     Every added control subdivides its actual boundary-supporting triangle.
-    Common targets are the unweighted mean of original proposals in each
-    transitive source cohort. Source recipe tolerances admit the input lengths;
+    Legacy common targets are the unweighted mean of original proposals in
+    each transitive source cohort. COUPLED_REST_METRIC_V2 instead prepares a
+    bounded progressive assembly against immutable material rest lengths.
+    Source recipe tolerances admit the input lengths;
     final metric, contact, anatomical and physical gates remain required.
     Optional guide stage observations describe interpolation only, against
     unchanged source UV; they never admit a regular mesh, Cloth or fitting.
     """
     if type(observe_guide_stages) is not bool:
         raise StudioError('Guide stage observation option must be explicitly boolean')
+    if strategy not in ('LEGACY_COHORT_MEAN_V1', 'COUPLED_REST_METRIC_V2'):
+        raise StudioError('Unsupported versioned source seam coupling strategy')
+    if strategy == 'LEGACY_COHORT_MEAN_V1' and (relaxation is not None or numerical_anchor_edges is not None
+                                              or anatomical_attachments is not None):
+        raise StudioError('Relaxation parameters and numerical anchors require COUPLED_REST_METRIC_V2')
+    if strategy == 'COUPLED_REST_METRIC_V2':
+        from .assembly_relaxation import validate_options
+        relaxation = validate_options(relaxation)
     if type(subdivisions) is not int or not 2 <= subdivisions <= 16:
         raise StudioError('Source seam coupling subdivisions must be an integer in 2..16')
     budget = _Budget(budgets, clock)
@@ -397,11 +408,37 @@ def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=No
     except (TypeError, ValueError, OverflowError) as error:
         raise StudioError('Source seam coupling requires finite JSON source inputs') from error
     admitted = _source(data, frames, seam_recipe, budget)
+    if strategy == 'COUPLED_REST_METRIC_V2':
+        if numerical_anchor_edges is None:
+            numerical_anchor_edges = []
+        if (not isinstance(numerical_anchor_edges, list) or len(numerical_anchor_edges) > 256
+                or any(not isinstance(row, dict) or set(row) != {'piece', 'edge'}
+                    or not isinstance(row.get('piece'), str) or row['piece'] not in frames
+                    or not isinstance(row.get('edge'), str)
+                    or row['edge'] not in data['pieces'][row['piece']]['edges'] for row in numerical_anchor_edges)):
+            raise StudioError('Coupled numerical anchors must name existing selected source piece edges')
+        keys = [(row['piece'], row['edge']) for row in numerical_anchor_edges]
+        if len(set(keys)) != len(keys):
+            raise StudioError('Coupled numerical anchors must be unique source edge identities')
+        if anatomical_attachments is None:
+            anatomical_attachments = []
+        if (not isinstance(anatomical_attachments, list) or len(anatomical_attachments) > 4096
+                or any(not isinstance(row, dict) or set(row) != {
+                    'piece', 'source_uv_cm', 'target_world_cm', 'tolerance_cm', 'source_ref'}
+                    or not isinstance(row.get('piece'), str) or row['piece'] not in frames
+                    or not _vector(row.get('source_uv_cm'), 2)
+                    or not _vector(row.get('target_world_cm'), 3)
+                    or not _finite(row.get('tolerance_cm')) or not 0 <= row['tolerance_cm'] <= 1.
+                    or not isinstance(row.get('source_ref'), str) or not row['source_ref']
+                    for row in anatomical_attachments)):
+            raise StudioError('Coupled anatomical attachments require bounded explicit source UV and measured target points')
     relations = sorted((s for s in data['seams'] if s['kind'] == 'permanent'
         and s['piece_a'] in frames and s['piece_b'] in frames), key=lambda s: s['id'])
     if not relations:
         raise StudioError('Source seam coupling has no permanent relation between its supplied pieces')
-    if any(seam_recipe['seams'][s['id']]['ease_b_over_a'] != 0 for s in relations):
+    if (any(seam_recipe['seams'][s['id']]['ease_b_over_a'] != 0 for s in relations)
+            and (strategy == 'LEGACY_COHORT_MEAN_V1'
+                 or relaxation['ease_distribution'] != 'UNIFORM_NORMALIZED_SOURCE_ARC')):
         raise StudioError('Source seam coupling V1 cannot infer a nonzero source easing distribution')
     matched = {s['piece_'+side] for s in relations for side in ('a', 'b')}
     if matched != set(frames):
@@ -454,7 +491,7 @@ def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=No
     original_proposals = {pid: state['original'] for pid, state in states.items()}
     aligned_proposals = original_proposals
     alignment_report = None
-    if semantics is not None:
+    if semantics is not None and strategy == 'LEGACY_COHORT_MEAN_V1':
         from .rigid_guide_alignment import prepare_role_rigid_seeds
         aligned_proposals, alignment_report = prepare_role_rigid_seeds(
             data, semantics, states, witnesses, budget, subdivisions=subdivisions)
@@ -462,7 +499,7 @@ def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=No
     for key in sorted(parents):
         cohorts.setdefault(root(key), []).append(key)
     targets = {pid: copy.deepcopy(points) for pid, points in aligned_proposals.items()}
-    for cohort in cohorts.values():
+    for cohort in (cohorts.values() if strategy == 'LEGACY_COHORT_MEAN_V1' else ()):
         budget.check()
         try:
             common = [math.fsum(aligned_proposals[pid][index][k] for pid, index in cohort)/len(cohort) for k in range(3)]
@@ -474,8 +511,52 @@ def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=No
             raise StudioError('Source cohort mean cannot be represented by finite world coordinates')
         for pid, index in cohort:
             targets[pid][index] = list(common)
-    source_binding = digest([data, frames, seam_recipe, subdivisions] if semantics is None else
-        [data, frames, seam_recipe, subdivisions, semantics, alignment_report['kernel_code_sha256']])
+    relaxation_report = None
+    if strategy == 'COUPLED_REST_METRIC_V2':
+        from .assembly_relaxation import relax_assembly
+        fixed_controls = {}; attachment_bindings = []; prepared = {}
+        for attachment in anatomical_attachments:
+            budget.check()
+            pid = attachment['piece']; state = states[pid]
+            if pid not in prepared:
+                cage = {'source_ref': frames[pid]['source_ref'], 'uv_cm': state['uv'],
+                    'target_cm': original_proposals[pid], 'triangles': state['triangles']}
+                prepared[pid] = cage, _compile_cage(cage, pid, check_time=budget.check)
+            cage, compiled = prepared[pid]
+            sampled, binding = _cage_point(cage, compiled, attachment['source_uv_cm'], pid, check_time=budget.check)
+            gap = math.dist(sampled, attachment['target_world_cm'])
+            if gap > attachment['tolerance_cm']:
+                raise StudioError('Initial source guide does not satisfy the measured anatomical attachment: '+pid)
+            exact = [i for i, uv in enumerate(state['uv']) if list(uv) == list(attachment['source_uv_cm'])]
+            if len(exact) > 1:
+                raise StudioError('Anatomical attachment has ambiguous exact source cage controls: '+pid)
+            support = exact or [i for i, weight in zip(state['triangles'][binding['cage_triangle']],
+                binding['barycentric_weights'], strict=True) if weight != 0]
+            fixed_controls.setdefault(pid, set()).update(support)
+            attachment_bindings.append({**copy.deepcopy(attachment), **binding,
+                'initial_point_cm': sampled, 'initial_residual_cm': gap,
+                'fixed_cage_control_indices': support,
+                'binding_policy': 'EXACT_SOURCE_CONTROL' if exact else 'CONSERVATIVE_FIXED_BARYCENTRIC_SUPPORT_CONTROLS'})
+        fixed_controls = {pid: sorted(indices) for pid, indices in sorted(fixed_controls.items())}
+        targets, relaxation_report = relax_assembly(
+            states, original_proposals, witnesses, budget, options=relaxation, fixed_controls=fixed_controls)
+        for binding in attachment_bindings:
+            budget.check()
+            pid = binding['piece']
+            face = states[pid]['triangles'][binding['cage_triangle']]
+            point = [math.fsum(weight*targets[pid][i][k] for i, weight in
+                zip(face, binding['barycentric_weights'], strict=True)) for k in range(3)]
+            residual = math.dist(point, binding['target_world_cm'])
+            if residual > binding['tolerance_cm']:
+                raise StudioError('Coupled proposal changed an immutable anatomical attachment: '+pid)
+            binding.update(final_point_cm=point, final_residual_cm=residual,
+                max_fixed_control_displacement_cm=max(math.dist(targets[pid][i], original_proposals[pid][i])
+                    for i in binding['fixed_cage_control_indices']))
+        source_binding = digest([data, frames, seam_recipe, subdivisions, semantics,
+            strategy, relaxation, numerical_anchor_edges, anatomical_attachments, relaxation_report['kernel_code_sha256']])
+    else:
+        source_binding = digest([data, frames, seam_recipe, subdivisions] if semantics is None else
+            [data, frames, seam_recipe, subdivisions, semantics, alignment_report['kernel_code_sha256']])
     cages = {}; refinements = {}; displacements = {}
     for pid, state in states.items():
         budget.check()
@@ -531,6 +612,33 @@ def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=No
             postseed_target_correction_cm=postseed_displacements,
             target_policy='UNWEIGHTED_ROLE_RIGID_SEEDED_PROPOSAL_MEAN_PER_TRANSITIVE_SOURCE_COHORT',
             displacement_policy='MAX_TARGET_CORRECTION_FROM_ORIGINAL_GUIDE_SEPARATE_POSTSEED_CORRECTION')
+    if relaxation_report is not None:
+        external = report['unprocessed_external_relations']
+        selected = set(frames)
+        report.update(version=2, method='SOURCE_PERMANENT_NORMALIZED_PARTITION_COUPLED_REST_METRIC',
+            strategy=strategy, relaxation=relaxation_report,
+            source_binding_sha256=source_binding,
+            target_policy='BOUNDED_RIGID_FIRST_PROGRESSIVE_SOURCE_STITCH_AND_REST_METRIC_RELAXATION',
+            status='PROPOSAL_INCOMPLETE_SOURCE_PARTNERS' if external else relaxation_report['status'],
+            permanent_relation_coverage='INCOMPLETE' if external else 'COMPLETE_SELECTED_COMPONENT',
+            excluded_nonpermanent_relations=[{'id': s['id'], 'kind': s['kind']}
+                for s in sorted(data['seams'], key=lambda s: s['id']) if s['kind'] != 'permanent'
+                and (s['piece_a'] in selected or s['piece_b'] in selected)],
+            unsupported_or_missing_partners=[{'id': s['id'], 'missing_piece_ids': sorted(
+                {s['piece_a'], s['piece_b']}-selected)} for s in sorted(data['seams'], key=lambda s: s['id'])
+                if s['id'] in external],
+            ease_distribution=relaxation['ease_distribution'],
+            numerical_anchor_edges=copy.deepcopy(numerical_anchor_edges),
+            numerical_anchor_scope='SUBSEQUENT_NATIVE_METRIC_RECOVERY_ONLY_NOT_FIXED_DURING_GUIDE_GENERATION',
+            source_seam_recipe=copy.deepcopy(seam_recipe),
+            anatomical_attachments=attachment_bindings,
+            anatomical_attachment_sha256=digest(anatomical_attachments),
+            anatomical_attachment_scope='MEASURED_GUIDE_ATTACHMENT_PRESERVED_DURING_COUPLING_NOT_PHYSICAL_PIN',
+            whole_piece_admission=False, source_rest_metric='IMMUTABLE_ORIGINAL_UV')
+        for row in witnesses:
+            row['declared_ease_b_over_a'] = seam_recipe['seams'][row['source_seam_id']]['ease_b_over_a']
+            row['ease_distribution'] = relaxation['ease_distribution']
+            row['max_proposed_control_gap_cm'] = row.pop('max_common_control_gap_cm')
     if observe_guide_stages:
         from .guide_stage_metrics import observe_guide_stages as observe
         report['guide_stage_metrics'] = observe(states, {
@@ -542,6 +650,11 @@ def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=No
                 'rigid_seed_applied': alignment_report is not None,
                 'rigid_alignment_kernel_code_sha256': (alignment_report['kernel_code_sha256']
                     if alignment_report is not None else None)})
+        if relaxation_report is not None:
+            observed = report['guide_stage_metrics']
+            observed['stage_order'][-1] = 'coupled_rest_metric_proposal'
+            for row in observed['per_piece'].values():
+                row['stages']['coupled_rest_metric_proposal'] = row['stages'].pop('seam_cohort_mean')
     try:
         report = json.loads(canonical(report))
     except (TypeError, ValueError, OverflowError) as error:

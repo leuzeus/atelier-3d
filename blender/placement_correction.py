@@ -11,6 +11,7 @@ from a3d.placement_solver import solve_placement
 from a3d.cloth_metrics import validate_metrics
 from a3d.guide_metric_solver import recover_guide_metric
 from a3d.contact_geometry import cross,dot,norm,sub
+from a3d.placement_attachments import bind_anatomical_attachments,observe_anatomical_attachments
 
 
 def effective_quality(recipe,plan,preparation,specification):
@@ -86,7 +87,10 @@ def correct_preparation(payload,recipe,plan,preparation,colliders,*,anchor_body=
     """Return a disposable candidate and exact observations; do not mutate inputs."""
     from blender.cloth_contacts import build_contact_context
     declared=preparation.get('placement_correction')
-    if declared is None:return None
+    if declared is None:
+        if 'anatomical_attachments' in preparation:
+            bind_anatomical_attachments(payload,payload['placed_cm'],preparation['anatomical_attachments'])
+        return None
     contract('placement-correction',declared)
     before=digest([payload,recipe,plan,preparation])
     specification=copy.deepcopy(declared)
@@ -94,9 +98,38 @@ def correct_preparation(payload,recipe,plan,preparation,colliders,*,anchor_body=
     specification['budgets']['max_displacement_cm']=min(declared['budgets']['max_displacement_cm'],plan['assembly']['max_displacement_cm'])
     specification['budgets']['max_step_cm']=min(declared['budgets']['max_step_cm'],plan['assembly']['max_step_cm'])
     specification['budgets']['max_iterations']=min(declared['budgets']['max_iterations'],plan['assembly']['iterations'])
+    source_guide=copy.deepcopy(payload['placed_cm']);candidate=copy.deepcopy(payload);metric_recovery=None
+    attachments=(bind_anatomical_attachments(payload,source_guide,preparation['anatomical_attachments'])
+        if 'anatomical_attachments' in preparation else None)
+    attachment_stages={}
+    if attachments:
+        specification['protected_indices']=sorted(set(specification.get('protected_indices',[]))|
+            set(attachments['protected_indices']))
+        attachment_stages['entry']=observe_anatomical_attachments(attachments,source_guide)
     context=build_contact_context(payload,colliders,clearance_cm=plan['collision']['clearance_cm'],
         seam_tolerance_cm=plan['consolidation']['weld_gap_cm'],check_self=True)
-    source_guide=copy.deepcopy(payload['placed_cm']);candidate=copy.deepcopy(payload);metric_recovery=None
+
+    def finish(result):
+        if digest([payload,recipe,plan,preparation])!=before:
+            raise StudioError('Native placement correction mutated an immutable source or policy')
+        result.update(origin='NATIVE_MEASURED_CONTACT_CORRECTION',source_package_sha256=payload['package_sha256'],
+            declared_specification_sha256=digest(declared),effective_specification=specification,
+            colliders=[{'object':body['name'],'evaluated_surface_sha256':body['sha256']} for body in context['bodies']],
+            candidate_not_automatically_admitted=True,final_readiness='UNCHANGED_PREPARATION_VALIDATOR_REQUIRED')
+        if attachments:
+            result['anatomical_attachments']={'binding':attachments,'stages':attachment_stages,
+                'final':observe_anatomical_attachments(attachments,result['coordinates_cm'])}
+        return result
+
+    def attachment_refusal(stage,coordinates,rejected):
+        return finish({'version':1,'status':'NEEDS_CORRECTION',
+            'stop_reason':'ANATOMICAL_ATTACHMENT_CHANGED_'+stage,
+            'coordinates_cm':copy.deepcopy(coordinates),'history':[],'iterations':0,
+            'contact_search':'NOT_ADMITTED_ANATOMICAL_ATTACHMENT_CHANGED',
+            'candidate_sha256':digest(coordinates),'source_sha256':digest(payload),
+            'max_displacement_cm':max(math.dist(a,b)for a,b in zip(source_guide,coordinates)),
+            'source_mutated':False,'qualification':'NONE','simulation':'NOT_EXECUTED','fitting':'NOT_EXECUTED',
+            'rejected_stage_result':rejected})
     recovery=preparation.get('metric_recovery')
     anchor_reserve=None;anchor_blocked=False;anchor_applied=False
     if preparation.get('anchor_reserve_correction'):
@@ -106,13 +139,20 @@ def correct_preparation(payload,recipe,plan,preparation,colliders,*,anchor_body=
             anchor_body,specification['quality'],source_guide,specification)
         anchor_applied=anchor_reserve['status']=='ANCHORS_ADMISSIBLE_ONLY'
         anchor_blocked=not anchor_applied and anchor_reserve['status']!='NOT_EXECUTED_INVALID_SOURCE_REST'
-        if anchor_applied:candidate['placed_cm']=copy.deepcopy(anchor_reserve['coordinates_cm'])
+        if anchor_applied:
+            if attachments:
+                observed=observe_anatomical_attachments(attachments,anchor_reserve['coordinates_cm'])
+                attachment_stages['anchor_reserve']=observed
+                if not observed['preserved']:
+                    return attachment_refusal('ANCHOR_RESERVE',source_guide,anchor_reserve)
+            candidate['placed_cm']=copy.deepcopy(anchor_reserve['coordinates_cm'])
     if recovery and not anchor_blocked:
         contract('pattern-preparation',preparation)
         budgets=copy.deepcopy(recovery['budgets'])
         budgets['max_displacement_cm']=min(budgets['max_displacement_cm'],specification['budgets']['max_displacement_cm'])
         # Both numerical recovery and contact correction spend the same eight
         # centimetres (or stricter declared limit) from the original guide.
+        metric_entry=copy.deepcopy(candidate['placed_cm'])
         metric_recovery=recover_guide_metric(candidate,candidate['placed_cm'],specification['quality'],
             recovery['piece_ids'],recovery['protected_edges'],strain_weight=recovery['strain_weight'],
             protected_indices=specification.get('protected_indices',[]),
@@ -120,6 +160,11 @@ def correct_preparation(payload,recipe,plan,preparation,colliders,*,anchor_body=
                 'protected_stop_reference':candidate['placed_cm']} if anchor_applied else {}),
             **({key:copy.deepcopy(recovery[key])for key in ('seam_ids','max_initial_seam_gap_cm','anchor_scope')
                 if key in recovery}),**budgets)
+        if attachments:
+            observed=observe_anatomical_attachments(attachments,metric_recovery['coordinates_cm'])
+            attachment_stages['metric_recovery']=observed
+            if not observed['preserved']:
+                return attachment_refusal('METRIC_RECOVERY',metric_entry,metric_recovery)
         candidate['placed_cm']=copy.deepcopy(metric_recovery['coordinates_cm'])
         source_stops=[]
         for stop in recovery['protected_edges']:
@@ -159,10 +204,9 @@ def correct_preparation(payload,recipe,plan,preparation,colliders,*,anchor_body=
             **({'protected_stop_reference':candidate['placed_cm']} if anchor_applied else {}))
         if metric_recovery:result['metric_recovery']=metric_recovery
     if anchor_reserve:result['anchor_reserve']=anchor_reserve
-    if digest([payload,recipe,plan,preparation])!=before:
-        raise StudioError('Native placement correction mutated an immutable source or policy')
-    result.update(origin='NATIVE_MEASURED_CONTACT_CORRECTION',source_package_sha256=payload['package_sha256'],
-        declared_specification_sha256=digest(declared),effective_specification=specification,
-        colliders=[{'object':body['name'],'evaluated_surface_sha256':body['sha256']} for body in context['bodies']],
-        candidate_not_automatically_admitted=True,final_readiness='UNCHANGED_PREPARATION_VALIDATOR_REQUIRED')
-    return result
+    if attachments:
+        observed=observe_anatomical_attachments(attachments,result['coordinates_cm'])
+        attachment_stages['contact_solver']=observed
+        if not observed['preserved']:
+            return attachment_refusal('CONTACT_SOLVER',candidate['placed_cm'],result)
+    return finish(result)

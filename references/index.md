@@ -62,6 +62,7 @@ le précise le [contrat de production](production.md).
 - [Fiche de fitting mesurée](measured-fitting.md)
 - [Prépositionnement et écarts des coutures](sewing-placement.md)
 - [Couplage des guides par leurs coutures source](source-seam-coupling.md)
+- [Placement anatomique générique et conservation des attaches](generic-anatomical-placement.md)
 - [Reçu des contrôles de couplage et de conservation des coins](automation-source-coupling-evidence-20261004.json)
 - [Récupération métrique des raccords permanents](guide-metric-seam-coupling.md)
 - [Conditionnement borné du maillage dérivé](source-mesh-conditioning.md)

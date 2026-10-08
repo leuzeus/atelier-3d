@@ -188,10 +188,12 @@ def _source_metric_recovery(data, semantics, guide, preform_budget, budgets):
     it neither admits a placement nor changes any final seam/quality gate.
     """
     coupling=guide.get('source_seam_coupling')
+    modern=isinstance(coupling,dict) and coupling.get('method')=='SOURCE_PERMANENT_NORMALIZED_PARTITION_COUPLED_REST_METRIC'
     recoverable=sorted(pid for pid,row in semantics.items()if row.get('role')in('front','back'))
     seams=[]
     if coupling is not None:
-        if (not isinstance(coupling,dict)or coupling.get('method')!='SOURCE_PERMANENT_NORMALIZED_PARTITION_UNION_CAGE'
+        if (not isinstance(coupling,dict)or coupling.get('method') not in (
+                'SOURCE_PERMANENT_NORMALIZED_PARTITION_UNION_CAGE','SOURCE_PERMANENT_NORMALIZED_PARTITION_COUPLED_REST_METRIC')
                 or coupling.get('component_id')!=data['component_id']or coupling.get('source_sha256')!=digest(data)
                 or not isinstance(coupling.get('refinements'),dict)):
             raise StudioError('Metric recovery requires its exact source-bound guide coupling report')
@@ -209,9 +211,14 @@ def _source_metric_recovery(data, semantics, guide, preform_budget, budgets):
                 or len({row['source_seam_id']for row in rows})!=len(expected)):
             raise StudioError('Coupled metric recovery requires every exact internal permanent source relation')
         seams=sorted(expected)
+        if modern:
+            external=[row['id'] for row in data['seams'] if row['kind']=='permanent'
+                and ((row['piece_a'] in recoverable)!=(row['piece_b'] in recoverable))]
+            if external or coupling.get('permanent_relation_coverage')!='COMPLETE_SELECTED_COMPONENT':
+                raise StudioError('V2 metric recovery needs all permanent source partners, including connected limb pieces')
     if not recoverable:return None
     stops=[]
-    for pid in recoverable:
+    for pid in ([] if modern else recoverable):
         row=semantics[pid];edges=row.get('guide_edges',{})
         names=([edges.get('shoulder')]if row.get('role')in('front','back')else
                [edges.get('anchor')]+([edges['anchor_end']]if 'anchor_end'in edges else []))
@@ -223,6 +230,15 @@ def _source_metric_recovery(data, semantics, guide, preform_budget, budgets):
         # their actual seams. The solver verifies all material islands anchored.
         if not seams or row.get('role')in('front','back'):
             stops.extend({'piece':pid,'edge':name}for name in dict.fromkeys(names))
+    if modern:
+        declared=coupling.get('numerical_anchor_edges')
+        if (not isinstance(declared,list) or not declared or len(declared)>256
+                or len({digest(row) for row in declared})!=len(declared)
+                or any(not isinstance(row,dict) or set(row)!={'piece','edge'}
+                    or row['piece'] not in recoverable
+                    or row['edge'] not in data['pieces'][row['piece']]['edges'] for row in declared)):
+            raise StudioError('V2 metric recovery requires explicit source numerical anchors for its body region')
+        stops=copy.deepcopy(declared)
     if not stops:
         raise StudioError('Coupled metric recovery needs explicit torso numerical anchors; no specialised pin is inferred')
     result={'version':1,'piece_ids':recoverable,'protected_edges':stops,
@@ -235,6 +251,20 @@ def _source_metric_recovery(data, semantics, guide, preform_budget, budgets):
         if any(type(value)not in(int,float)or not math.isfinite(value)or not 0<value<=1 for value in guards):
             raise StudioError('Coupled metric alignment requires the actual finite native conversion guards')
         result.update(seam_ids=seams,max_initial_seam_gap_cm=2*max(guards),anchor_scope='permanent_component')
+        if modern:
+            relaxation=coupling.get('relaxation',{})
+            settings=relaxation.get('settings',{})
+            measured=relaxation.get('best',{}).get('max_seam_gap_cm')
+            limit=settings.get('seam_tolerance_cm')
+            if (type(measured) not in (int,float) or not math.isfinite(measured) or measured<0
+                    or type(limit) not in (int,float) or not math.isfinite(limit) or not 0<limit<=5
+                    or measured>limit):
+                raise StudioError('V2 source assembly has not reached its declared seam gap for metric recovery')
+            # This is an entry allowance for the quotient solve, not a final
+            # seam acceptance threshold. Native quality/contact gates remain.
+            result['max_initial_seam_gap_cm']=limit+2*max(guards)
+            if result['max_initial_seam_gap_cm']>2:
+                raise StudioError('V2 entry seam gap exceeds the existing native recovery domain')
     return result
 
 
@@ -270,6 +300,41 @@ def _template_guide_assessment(data, guide):
             'qualification': 'NONE', 'simulation': 'NOT_EXECUTED', 'fitting': 'NOT_EXECUTED'}
 
 
+def _guide_anatomical_attachments(data, guide):
+    """Keep all source attachments, including uncoupled and seam-free pieces."""
+    final = guide.get('anatomical_attachment_constraints')
+    coupling = guide.get('source_seam_coupling') or {}
+    records = []
+    if final is not None:
+        if (not isinstance(final, dict) or final.get('status') != 'ANATOMICAL_ATTACHMENTS_PRESERVED'
+                or final.get('violations') != 0 or not isinstance(final.get('controls'), list)):
+            raise StudioError('Native preparation needs preserved final anatomical attachment controls')
+        records.extend(final['controls'])
+    records.extend(coupling.get('anatomical_attachments', []))
+    if len(records) > 8192:
+        raise StudioError('Anatomical guide attachment coverage exceeds its bounded input budget')
+    fields = ('piece', 'source_uv_cm', 'target_world_cm', 'tolerance_cm', 'source_ref')
+    declarations = {}; locations = {}
+    for row in records:
+        if not isinstance(row, dict) or any(key not in row for key in fields):
+            raise StudioError('Native preparation requires complete source attachment declarations')
+        declared = {key: copy.deepcopy(row[key]) for key in fields}
+        if declared['piece'] not in data['pieces']:
+            raise StudioError('Native anatomical attachment names a missing source piece')
+        key = digest([declared['piece'], declared['source_uv_cm']])
+        if key in locations and locations[key] != declared:
+            raise StudioError('Conflicting anatomical attachment declarations at one source location')
+        locations[key] = declared
+        declarations[digest(declared)] = declared
+    result = [declarations[key] for key in sorted(declarations)]
+    if result:
+        from .garment_guides import anatomical_attachment_residuals
+        measured = anatomical_attachment_residuals(guide['panels'], result)
+        if measured['violations']:
+            raise StudioError('Anatomical attachment drift cannot cross the native preparation boundary')
+    return result
+
+
 def prepare_component_templates(assembly_plan, sources, guides, standard_recipe, dossier, dossier_ref, compiler_inputs=None):
     """Prepare portable native inputs without claiming a native mesh identity.
 
@@ -298,7 +363,18 @@ def prepare_component_templates(assembly_plan, sources, guides, standard_recipe,
             raise StudioError('Source guides lack their exact measured body identity: '+cid)
         recipe = copy.deepcopy(standard_recipe); recipe['component_id'] = cid
         recipe['placements'] = {pid:_guide_seed_placement(piece,guide['panels'][pid],pid) for pid,piece in sorted(data['pieces'].items())}
-        recipe['seams'] = {s['id']:{'kind':s['kind'],'ease_b_over_a':0.,'tolerance_relative':.02} for s in data['seams']}
+        coupling = guide.get('source_seam_coupling') or {}
+        modern = coupling.get('method') == 'SOURCE_PERMANENT_NORMALIZED_PARTITION_COUPLED_REST_METRIC'
+        if modern:
+            source_recipe = coupling.get('source_seam_recipe')
+            if (not isinstance(source_recipe, dict) or source_recipe.get('component_id') != cid
+                    or digest(source_recipe) != coupling.get('seam_recipe_sha256')
+                    or not isinstance(source_recipe.get('seams'), dict)
+                    or set(source_recipe['seams']) != {s['id'] for s in data['seams']}):
+                raise StudioError('V2 preparation requires the exact source sewing recipe bound to its guides')
+            recipe['seams'] = copy.deepcopy(source_recipe['seams'])
+        else:
+            recipe['seams'] = {s['id']:{'kind':s['kind'],'ease_b_over_a':0.,'tolerance_relative':.02} for s in data['seams']}
         recipe['pins']=[]; recipe['trial_pieces']=sorted(data['pieces']); recipe['colliders']=[]
         recipe['no_collision_reason']='NATIVE_BODY_BINDING_REQUIRED_BEFORE_EXECUTION'
         recipe['collision_collection']='A3D.Colliders'
@@ -344,6 +420,8 @@ def prepare_component_templates(assembly_plan, sources, guides, standard_recipe,
                 'max_step_cm':.05,'stagnation_iterations':3,'min_improvement':1e-6,'target_score':1e-6}}
         recovery=_source_metric_recovery(data,semantics,guide,preform_budget,budgets)
         if recovery:spec['metric_recovery']=recovery
+        attachments = _guide_anatomical_attachments(data, guide)
+        if attachments:spec['anatomical_attachments'] = attachments
         contract('pattern-preparation',spec)
         prepared[cid]={'source_ref':copy.deepcopy(source['source_ref']),'source_garment_sha256':digest(data),
             'recipe_template':recipe,'plan_fields':fields,'preparation_template':spec,
@@ -354,6 +432,10 @@ def prepare_component_templates(assembly_plan, sources, guides, standard_recipe,
                 'seam_ease':'ZERO_DECLARED_AND_SOURCE_LENGTH_CHECKED','permanent_links_changed':False},
             'native_bindings_required':['BODY_COLLIDER_SNAPSHOT','NATIVE_REGULAR_MESH_MAP','COLLISION_ENVELOPE_REVIEW'],
             'simulation':'NOT_EXECUTED','qualification':'NONE'}
+        if modern:
+            prepared[cid]['recipe_provenance'].update(
+                seam_ease='EXACT_SOURCE_RECIPE_BOUND_TO_GUIDES',
+                source_seam_recipe_sha256=coupling['seam_recipe_sha256'])
         prepared[cid]['recipe_provenance']['preform_displacement_budget']={'panels':preform_budget['panels'],
             'declared_cm':preform_budget['max_displacement_cm'],'assembly_limit_cm':fields['assembly']['max_displacement_cm'],
             'cloth_limit_cm':recipe['limits']['max_displacement_cm'],

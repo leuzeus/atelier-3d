@@ -84,6 +84,17 @@ adoption. Si la capacité suffit mais le montage est déformé, transmettre le
 diagnostic de guides/placement à l'orchestrateur en conservant les patrons.
 Ne pas déduire un déficit chiffré de coupe d'une pénétration ou d'un timeout.
 
+Pour corriger des guides, employer les [primitives anatomiques génériques](../../references/generic-anatomical-placement.md)
+si elles sont disponibles dans le runtime chargé : trajet 3D pour une bande,
+attache de peau distincte de l'axe d'un membre, enveloppe de triangles source
+pour une région. Déclarer les correspondances et les budgets dans les entrées
+de préparation. Le rôle `panel` permet une pièce d'une autre région corporelle ;
+il n'autorise aucune déduction de géométrie sans données. Lire les références
+manquantes dans `anatomical_region_coverage`. Le couplage V2 conserve les métriques
+source et les attaches déclarées ; un résultat numérique incomplet ou une
+réserve perdue reste à corriger. Ne pas transférer une validation anatomique
+à une correspondance de couture ni au fitting du vêtement.
+
 Restituer les fichiers exacts, les mesures réellement calculées, les limites,
 les changements proposés, les contrôles de raccord et la prochaine action
 admissible. L'adaptation complète du torse ouvert reste non qualifiée ; ne pas
