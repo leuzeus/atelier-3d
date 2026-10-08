@@ -2946,3 +2946,26 @@ projection rasante. Un POC borné fonctionne sur un cas synthétique, sans deven
 une qualification du vêtement ni une dépendance du plugin. Les guides bruts du
 dos doivent également être corrigés avant cette étape.
 Voir [les résultats, captures et limites](automation-band-continuity-20261008.md).
+
+### 2026-10-08 — Transport des paramètres matériels du torse
+
+Le producteur des épaules échantillonnait déjà des U matériels, mais leur
+remplacement ultérieur par les longueurs des polylignes changeait le placement
+et créait des partitions presque confondues. L'option explicite
+`SOURCE_MATERIAL_U_V1` conserve ces U, partitionne les faces source originales
+et passe par les validateurs existants, sans fusion de points ni seuil réduit.
+Le mode historique reste disponible avec ses résultats exacts.
+
+Le replay du noyau réel reproduit les quatre cages du POC : 17 555 contrôles,
+33 596 triangles et 12,937 secondes dans un budget partagé de 120 secondes.
+Ces nombres qualifient la conservation de la source, pas la matière. Les
+étirements restent refusés ; l'écart au guide historique atteint 3,60 cm.
+Les planches face, dos, profil, trois-quarts et gros plans avant/après ont été
+affichées. La poitrine et le haut du dos restent largement occultés par le corps.
+
+Le noyau est générique ; son raccord actuel exige un torse apparié, des sections
+mesurées et un producteur d'épaules, puisque ces seules entrées transportent
+actuellement les U. Les autres cas sont refusés explicitement. Voir
+[le contrat](generic-anatomical-placement.md). Les projections régionales,
+le couplage, les contacts et l'ensemble des gates physiques restent à corriger
+ou à exécuter ; aucune nouvelle décision de coupe n'a été sollicitée.

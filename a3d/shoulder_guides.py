@@ -32,7 +32,11 @@ def material_plane(piece, shoulder_edge, sign, ridge, shoulder_surface, chest):
                    'plane_tangent': tangent, 'plane_normal': normal}
 
 
-def shape_paired_shoulders(data, group, body_frame, panels, report, blend):
+def shape_paired_shoulders(data, group, body_frame, panels, report, blend,
+                           section_parameterization='POLYLINE_ARCLENGTH_V1'):
+    if section_parameterization not in ('POLYLINE_ARCLENGTH_V1', 'SOURCE_MATERIAL_U_V1'):
+        raise StudioError('Unsupported paired shoulder section parameterization')
+    material_parameters = section_parameterization == 'SOURCE_MATERIAL_U_V1'
     if body_frame.get('shoulder_anchor_kind') != 'MEASURED_BODY_SURFACE':
         raise StudioError('Garment shoulder frames require a measured skin anchor, not an internal joint center')
     if not math.isfinite(blend) or not 0 < blend <= 1:
@@ -49,7 +53,7 @@ def shape_paired_shoulders(data, group, body_frame, panels, report, blend):
     start = underarm
     if top <= start:
         raise StudioError('Upper guide has no source longitudinal transition domain')
-    frames = {}
+    frames = {}; parameter_evidence = {}
     for role in ('front','back'):
         pid = group[role]; piece = data['pieces'][pid]
         declared = group['source_edges'][role]
@@ -66,11 +70,16 @@ def shape_paired_shoulders(data, group, body_frame, panels, report, blend):
         maximum_u = max(sign*p[0] for p in piece['vertices'])
         frame = panels[pid]
         old_direction = frame['u_direction']
+        material_sections = []; section_evidence = []
         for row in frame['arc_sections']:
             factor = blend*max(0., min(1., (row['v_cm']-start)/(top-start)))
-            target = []
+            target = []; material_u = []
             for index in range(129):
                 u = maximum_u*index/128
+                if material_parameters:
+                    # Retain the actual material parameter used to produce
+                    # this sample; never recover it from rounded chord sums.
+                    material_u.append(sign*u)
                 old = sample_curve(row['curve_cm'], row['arc_offset_cm']+old_direction*sign*u)
                 new = plane(u, row['v_cm'])
                 if u < neck_u:
@@ -85,11 +94,39 @@ def shape_paired_shoulders(data, group, body_frame, panels, report, blend):
             total = math.fsum(math.dist(a,b) for a,b in zip(target,target[1:]))
             row['curve_cm'] = extend_tangent(target, max(2., maximum_u-total+2.))
             row['arc_offset_cm'] = 0.
-        frame['u_direction'] = sign
+            if material_parameters:
+                curve = row['curve_cm']
+                last_length = math.dist(curve[-3], curve[-2])
+                extension_length = math.dist(curve[-2], curve[-1])
+                if min(last_length, extension_length) <= 0:
+                    raise StudioError('Material shoulder section needs a noncollapsed explicit tangent endpoint')
+                extension_u = material_u[-1]+(material_u[-1]-material_u[-2])*extension_length/last_length
+                if not math.isfinite(extension_u) or (extension_u-material_u[-1])*sign <= 0:
+                    raise StudioError('Material shoulder tangent parameter must be finite and strictly ordered')
+                material_u.append(extension_u)
+                material_sections.append({'v_cm':row['v_cm'], 'material_u_cm':material_u, 'curve_cm':curve})
+                section_evidence.append({'v_cm':row['v_cm'], 'sample_count':129,
+                    'extension_parameter_cm':extension_u, 'extension_length_cm':extension_length,
+                    'last_material_segment_length_cm':last_length})
+        if material_parameters:
+            reference = frame['source_ref']
+            frame.clear()
+            frame.update(source_ref=reference+'; section-parameterization:SOURCE_MATERIAL_U_V1',
+                         sampling_contract='SOURCE_MATERIAL_U_V1', material_sections=material_sections)
+            parameter_evidence[pid] = {'maximum_source_u_cm':maximum_u, 'source_direction':sign,
+                'sample_indices':[0,128], 'sample_denominator':128,
+                'parameter_origin':'ACTUAL_SOURCE_PARAMETERS_USED_BY_SHOULDER_PRODUCER',
+                'extension':'EXPLICIT_TANGENT_ENDPOINT_WITH_LAST_MATERIAL_PARAMETER_RATE',
+                'sections':section_evidence, 'source_uv_scaled':False,
+                'historical_arclength_equivalence':'NOT_CLAIMED'}
+        else:
+            frame['u_direction'] = sign
     if frames['front']['source_shoulder_uv_cm'] != frames['back']['source_shoulder_uv_cm']:
         raise StudioError('Paired shoulder material frames disagree; review source correspondence')
     report.update(shoulder_shaping='MEASURED_MATERIAL_PLANES', upper_blend=blend,
                   shoulder_anchor_kind=body_frame['shoulder_anchor_kind'],
                   upper_material_frames=frames, transition_start_v_cm=start,
                   collision_assessment='REQUIRED', qualification='NONE')
+    if material_parameters:
+        report.update(section_parameterization=section_parameterization, material_parameter_sources=parameter_evidence)
     return panels, report

@@ -109,6 +109,36 @@ raffinement historique des triangles source. La nouvelle partition n'est pas
 une modification de patron, une réparation de collision ou une admission de
 placement. Les résultats des deux modes doivent conserver leur identité propre.
 
+Le paramètre de composant `section_parameterization` distingue deux calculs
+des guides de torse :
+
+- `POLYLINE_ARCLENGTH_V1`, ou son absence, conserve le parcours historique et
+  ses rapports. La distance le long de chaque polyligne reconstruite sert de
+  coordonnée transversale.
+- `SOURCE_MATERIAL_U_V1` transporte les coordonnées U auxquelles le producteur
+  a réellement échantillonné chaque section. Il exige des panneaux devant/dos
+  appariés, les sections de surface et un `upper_blend` strictement positif.
+  Les autres découpages restent explicitement non supportés par ce producteur.
+
+Cette seconde option empêche de remplacer les paramètres matériels par des
+longueurs recalculées après la mise en forme des épaules. Elle peut modifier
+la forme du guide et relève d'une politique V2 distincte. Elle ne change ni
+le patron ni le corps et ne constitue pas une gradation ou un fitting.
+
+Le noyau `material_section_sampling` consomme des sections V croissantes,
+avec des coordonnées U strictement monotones et des cibles 3D explicites. Il
+est indépendant du rôle anatomique ; son raccord au producteur est actuellement
+limité au torse apparié, seul producteur qui transporte ces paramètres. Une
+coordonnée manquante n'est pas déduite et une requête hors domaine est refusée.
+
+La partition coupe les faces source originales aux changements U et V, conserve
+les propriétaires et les frontières et consomme un budget partagé entre pièces.
+Elle ne fusionne pas les points proches et conserve le refus des triangles
+numériquement dégénérés. Le résultat utilise le contrat existant de cage UV/XYZ.
+La cage affine approxime le champ bilinéaire entre sections : l'erreur rapportée
+porte sur les points intérieurs échantillonnés, sans borne continue certifiée.
+Les extrema de matière, contacts et raccords restent des contrôles séparés.
+
 Les guides V2 lient le code, le profil, la pose, la géométrie, les rapports, les
 sources, les recettes et les paramètres. La vérification reconstruit le rapport
 entier sans arrondi ; une durée d’exécution ne fait pas partie de cette identité.

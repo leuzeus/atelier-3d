@@ -166,7 +166,7 @@ def apply_measured_sections(panels, report, group, profile, skin_sections=None):
 
 
 def source_bound_torso_cages(data, panels, *, subdivisions=8, budgets=None, _clock=time.monotonic,
-                             synchronize_boundaries=True):
+                             synchronize_boundaries=True, section_parameterization='POLYLINE_ARCLENGTH_V1'):
     """Synchronize actual permanent torso boundaries in a source-UV cage.
 
     The existing measured-skin/shoulder guide remains the volume hypothesis.
@@ -182,6 +182,10 @@ def source_bound_torso_cages(data, panels, *, subdivisions=8, budgets=None, _clo
     from .source_seam_coupling import _Budget, _evaluator, _chain, _partition_union, _at_fraction
     from .sewing import chain_lengths, edge_chain
 
+    if section_parameterization not in ('POLYLINE_ARCLENGTH_V1', 'SOURCE_MATERIAL_U_V1'):
+        raise StudioError('Unsupported torso cage section parameterization')
+    material_parameters = section_parameterization == 'SOURCE_MATERIAL_U_V1'
+    seed_subdivisions = 1 if material_parameters else subdivisions
     if type(subdivisions) is not int or not 2 <= subdivisions <= 16:
         raise StudioError('Torso cage subdivisions must be an integer in 2..16')
     if type(synchronize_boundaries) is not bool:
@@ -201,18 +205,26 @@ def source_bound_torso_cages(data, panels, *, subdivisions=8, budgets=None, _clo
     if (sum(len(data['pieces'][pid].get('vertices', [])) for pid in panels) > budget.limits['max_source_points']
             or sum(len(data['pieces'][pid].get('faces', [])) for pid in panels) > budget.limits['max_source_triangles']):
         raise StudioError('Torso cage original source budget exhausted')
-    frames = {}; states = {}
+    frames = {}; states = {}; material_sampling = {}
     for pid, frame in sorted(panels.items()):
-        if (not isinstance(frame, dict) or set(frame) != {'source_ref', 'arc_sections', 'u_direction'}
+        frame_keys = ({'source_ref', 'sampling_contract', 'material_sections'} if material_parameters else
+                      {'source_ref', 'arc_sections', 'u_direction'})
+        if (not isinstance(frame, dict) or set(frame) != frame_keys
                 or not isinstance(frame['source_ref'], str) or not frame['source_ref']):
-            raise StudioError('Torso cage needs one complete existing arc guide without a hybrid frame: '+pid)
+            raise StudioError(('Torso cage needs one complete declared material guide without a hybrid frame: ' if material_parameters
+                               else 'Torso cage needs one complete existing arc guide without a hybrid frame: ')+pid)
         piece = data['pieces'][pid]
         if (not isinstance(piece.get('vertices'), list) or not isinstance(piece.get('faces'), list)
                 or any(not isinstance(point, (list, tuple)) or len(point) != 2 for point in piece['vertices'])
                 or any(not isinstance(face, (list, tuple)) for face in piece['faces'])):
             raise StudioError('Torso cage requires actual finite source triangles: '+pid)
-        evaluate = _evaluator(frame, pid, budget)
-        state = states[pid] = section_cage_state(piece, frame, pid, subdivisions, budget, evaluate)
+        if material_parameters:
+            from .material_section_sampling import material_section_cage_state
+            state = states[pid] = material_section_cage_state(piece, frame, pid, budget)
+            material_sampling[pid] = state['sampling_report']
+        else:
+            evaluate = _evaluator(frame, pid, budget)
+            state = states[pid] = section_cage_state(piece, frame, pid, subdivisions, budget, evaluate)
         frames[pid] = {'source_ref':frame['source_ref']+'; source-permanent-torso-cage:'+digest(data),
             'uv_cm':state['uv'], 'target_cm':state['original'], 'triangles':state['triangles']}
 
@@ -243,7 +255,7 @@ def source_bound_torso_cages(data, panels, *, subdivisions=8, budgets=None, _clo
         if reverse:
             indices, points = list(reversed(indices)), list(reversed(points))
         lengths = chain_lengths(points); total = lengths[-1]
-        chain = _chain(piece, name, reverse, states[pid], pid, subdivisions)
+        chain = _chain(piece, name, reverse, states[pid], pid, seed_subdivisions)
         return chain, [length/total for length in lengths], total
 
     for seam in sorted(relations, key=lambda s:s['id']):
@@ -265,7 +277,7 @@ def source_bound_torso_cages(data, panels, *, subdivisions=8, budgets=None, _clo
             budget.check(); pair = []
             for chain in (ca, cb):
                 pid = chain['piece']
-                index, _ = _at_fraction(data['pieces'][pid], states[pid], chain, row['fraction'], budget, subdivisions)
+                index, _ = _at_fraction(data['pieces'][pid], states[pid], chain, row['fraction'], budget, seed_subdivisions)
                 pair.append((pid, index))
             if abs(frames[pair[0][0]]['uv_cm'][pair[0][1]][1]-frames[pair[1][0]]['uv_cm'][pair[1][1]][1]) > 1e-8:
                 raise StudioError('Torso cage cannot infer oblique material V partners: '+seam['id'])
@@ -319,4 +331,70 @@ def source_bound_torso_cages(data, panels, *, subdivisions=8, budgets=None, _clo
         'front_coverage':'NOT_REVIEWED', 'source_mutated':False, 'source_uv_scaled':False,
         'body_changed':False, 'qualification':'NONE', 'metric_assessment':'REQUIRED',
         'contact_assessment':'REQUIRED', 'simulation':'NOT_EXECUTED', 'fitting':'NOT_EXECUTED'}
+    if material_parameters:
+        from bisect import bisect_right
+        from .cloth_metrics import principal_stretches
+        from .pattern_assembly import _compile_arc_sections, _section_point
+        final_metrics = {}; comparisons = {}
+        for pid, frame in sorted(frames.items()):
+            low = math.inf; high = -math.inf; unmeasurable = []
+            for index, face in enumerate(frame['triangles']):
+                budget.check()
+                metric = principal_stretches([frame['uv_cm'][i] for i in face],
+                                            [frame['target_cm'][i] for i in face])
+                if metric is None:
+                    unmeasurable.append(index)
+                else:
+                    low = min(low, metric[0]); high = max(high, metric[1])
+            final_metrics[pid] = {'stage':'AFTER_SOURCE_BOUNDARY_PROCESSING',
+                'principal_range':[low, high] if math.isfinite(low) else None,
+                'unmeasurable_triangle_count':len(unmeasurable), 'unmeasurable_triangle_examples':unmeasurable[:16],
+                'qualification':'NONE', 'acceptance_criteria':'UNCHANGED_DOWNSTREAM_MATERIAL_GATES'}
+            rows = panels[pid]['material_sections']
+            directions = {1 if row['material_u_cm'][-1] > row['material_u_cm'][0] else -1 for row in rows}
+            if len(directions) != 1 or any(row['material_u_cm'][0] != 0. for row in rows):
+                comparisons[pid] = {'status':'NOT_COMPARABLE',
+                    'reason':'HISTORICAL_ZERO_ORIGIN_AND_COMMON_DIRECTION_NOT_ESTABLISHED', 'qualification':'NONE'}
+                continue
+            old_frame = {'source_ref':panels[pid]['source_ref'], 'u_direction':next(iter(directions)),
+                'arc_sections':[{'v_cm':row['v_cm'], 'arc_offset_cm':0., 'curve_cm':row['curve_cm']} for row in rows]}
+            budget.check()
+            try:
+                # This compiler has no budget callback: only historical arc
+                # representability errors are converted to a comparison gap.
+                old_compiled = _compile_arc_sections(old_frame, pid)
+            except StudioError:
+                comparisons[pid] = {'status':'NOT_COMPARABLE',
+                    'reason':'HISTORICAL_ARC_GEOMETRY_NOT_REPRESENTABLE', 'qualification':'NONE'}
+                continue
+            budget.check()
+            positions = [row['v_cm'] for row in old_compiled]; outside = None
+            for index, uv in enumerate(frame['uv_cm']):
+                budget.check()
+                lower = min(len(positions)-2, bisect_right(positions,uv[1])-1)
+                s = old_frame['u_direction']*uv[0]
+                if any(not 0 <= s <= old_compiled[i]['total_length_cm'] for i in (lower,lower+1)):
+                    outside = {'control':index, 'source_uv_cm':uv, 'historical_arc_coordinate_cm':s}
+                    break
+            if outside is not None:
+                comparisons[pid] = {'status':'NOT_COMPARABLE', 'reason':'HISTORICAL_ARC_DOMAIN_DOES_NOT_COVER_SOURCE_CONTROLS',
+                    'first_uncovered_control':outside, 'qualification':'NONE'}
+                continue
+            maximum = 0.; worst = None
+            for index, (uv, target) in enumerate(zip(frame['uv_cm'], originals[pid])):
+                budget.check()
+                previous = _section_point(old_frame,old_compiled,uv,pid)[0]; distance = math.dist(previous, target)
+                if distance > maximum:
+                    maximum = distance
+                    worst = {'control':index, 'source_uv_cm':uv,
+                             'historical_target_cm':previous, 'material_parameter_target_cm':target}
+            comparisons[pid] = {'status':'MEASURED_AT_SOURCE_CONTROLS',
+                'stage':'BEFORE_BOUNDARY_TARGET_SYNCHRONIZATION', 'samples':len(originals[pid]),
+                'maximum_shift_cm':maximum, 'worst_control':worst,
+                'same_mapping_claimed':False, 'qualification':'NONE'}
+        budget.check()
+        report.update(section_parameterization=section_parameterization, source_seed_subdivisions=seed_subdivisions,
+            sampling='ORIGINAL_SOURCE_FACES_PARTITIONED_AT_EXPLICIT_MATERIAL_U_AND_V',
+            material_sampling=material_sampling, final_cage_metrics=final_metrics,
+            historical_arclength_comparison=comparisons)
     return frames, report

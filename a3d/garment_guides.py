@@ -813,15 +813,26 @@ def measured_native_skin_sections(profile, geometry, heights_cm):
     return result
 
 
+def validate_section_parameterization(value, upper_blend, surface_sections):
+    """Require explicit material provenance without changing legacy arc evaluation."""
+    if value not in ('POLYLINE_ARCLENGTH_V1', 'SOURCE_MATERIAL_U_V1'):
+        raise StudioError('Unsupported torso section parameterization')
+    if value == 'SOURCE_MATERIAL_U_V1' and (
+            surface_sections is not True or type(upper_blend) not in (int, float)
+            or not math.isfinite(upper_blend) or not 0. < upper_blend <= 1.):
+        raise StudioError('Source material torso parameters require measured surface sections and a sourced shoulder producer')
+
+
 def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sections=True, skin_sections=None,
                           *,source_seam_coupling=None,seam_recipe=None, anatomical_references=None,
-                          anatomical_geometry=None):
+                          anatomical_geometry=None, section_parameterization='POLYLINE_ARCLENGTH_V1'):
     """Dispatch complete source coverage; return pending unsupported roles.
 
     A missing declaration or impossible native guide produces an actionable
     diagnostic. Existing complete roles may still be examined as partial data;
     pending pieces keep the result inadmissible for whole-garment preparation.
     """
+    validate_section_parameterization(section_parameterization, upper_blend, surface_sections)
     _profile(profile)
     if skin_sections and (skin_sections.get('profile_sha256')!=digest(profile) or
             skin_sections.get('sections_sha256')!=digest({k:v for k,v in skin_sections.items() if k!='sections_sha256'}) or
@@ -836,6 +847,11 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
             geometry=(anatomical_geometry or {}).get('geometry'))
         if not set(references['pieces']) <= set(data['pieces']):
             raise StudioError('Anatomical guide policy names a piece outside the actual source')
+    if section_parameterization == 'SOURCE_MATERIAL_U_V1' and not any(
+            row.get('role') in ('front', 'back', 'side') and
+            (references or {}).get('pieces', {}).get(pid, {}).get('guide_kind') is None
+            for pid, row in semantics.items()):
+        raise StudioError('Source material torso parameters need an actual torso guide family')
     frames = {}; reports = []; diagnostics = []
     families = [('torso', {'front', 'back', 'side'}, torso_volume_frames),
                 ('limb', {'sleeve', 'cuff'}, limb_volume_frames),
@@ -857,7 +873,9 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
         try:
             report = (build(data, family_semantics, profile, upper_blend=upper_blend, surface_sections=surface_sections,skin_sections=skin_sections,
                             source_cage_budgets=source_seam_coupling['budgets'] if source_seam_coupling else None,
-                            synchronize_boundaries=not (source_seam_coupling or {}).get('strategy') == 'COUPLED_REST_METRIC_V2')
+                            synchronize_boundaries=not (source_seam_coupling or {}).get('strategy') == 'COUPLED_REST_METRIC_V2',
+                            **({'section_parameterization':section_parameterization}
+                               if section_parameterization != 'POLYLINE_ARCLENGTH_V1' else {}))
                       if name == 'torso' else build(data, family_semantics, profile, anatomical_references=references)
                       if name in ('limb', 'specialised') else build(data, family_semantics, profile))
         except StudioError as error:

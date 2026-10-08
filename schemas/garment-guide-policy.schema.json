@@ -123,6 +123,9 @@
           "surface_sections": {
             "type": "boolean"
           },
+          "section_parameterization": {
+            "enum": ["POLYLINE_ARCLENGTH_V1", "SOURCE_MATERIAL_U_V1"]
+          },
           "skin_section_heights_cm": {
             "type": "array",
             "items": {

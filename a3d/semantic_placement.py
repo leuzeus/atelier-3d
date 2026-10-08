@@ -14,7 +14,13 @@ from .contact_geometry import dot, cross
 
 
 def torso_volume_frames(data, semantics, profile, upper_blend=0., surface_sections=False, skin_sections=None,
-                        source_cage_budgets=None, synchronize_boundaries=True):
+                        source_cage_budgets=None, synchronize_boundaries=True,
+                        section_parameterization='POLYLINE_ARCLENGTH_V1'):
+    if section_parameterization not in ('POLYLINE_ARCLENGTH_V1', 'SOURCE_MATERIAL_U_V1'):
+        raise StudioError('Unsupported torso section parameterization')
+    material_parameters = section_parameterization == 'SOURCE_MATERIAL_U_V1'
+    if material_parameters and (not surface_sections or not upper_blend):
+        raise StudioError('Source material torso parameters require measured surface sections and a sourced shoulder producer')
     if (profile.get('status') != 'PROFILE_MEASURED' or profile.get('segmentation') != 'EXPLICIT_SOURCE'
             or not profile.get('cache_key')):
         raise StudioError('Semantic placement requires a complete source-bound segmented body profile')
@@ -53,6 +59,8 @@ def torso_volume_frames(data, semantics, profile, upper_blend=0., surface_sectio
 
     for (layer, side), mapping in sorted(groups.items()):
         paired=set(mapping)=={'front','back'}
+        if material_parameters and not paired:
+            raise StudioError('Source material torso parameters currently require actual paired front/back source panels')
         if surface_sections and not paired:
             raise StudioError('Measured surface contours currently require a real paired torso cut')
         if not paired and set(mapping) != {'center', 'front', 'side', 'back'}:
@@ -123,11 +131,12 @@ def torso_volume_frames(data, semantics, profile, upper_blend=0., surface_sectio
                 panels,report=apply_measured_sections(panels,report,group,profile,skin_sections=skin_sections)
             if upper_blend:
                 from .shoulder_guides import shape_paired_shoulders
-                panels,report=shape_paired_shoulders(subset,group,body_frame,panels,report,upper_blend)
+                panels,report=shape_paired_shoulders(subset,group,body_frame,panels,report,upper_blend,
+                    section_parameterization=section_parameterization)
         else:
             panels, report = volume_frames(subset, [group], body_frame, upper_blend=upper_blend)
         for pid, frame in panels.items():
-            for section in frame['arc_sections']:
+            for section in frame['material_sections' if material_parameters else 'arc_sections']:
                 section['curve_cm'] = [world(point) for point in section['curve_cm']]
             frame['source_ref'] += '; source-semantic-layer:'+layer
             frames[pid] = frame
@@ -138,7 +147,7 @@ def torso_volume_frames(data, semantics, profile, upper_blend=0., surface_sectio
     if surface_sections:
         from .torso_sections import source_bound_torso_cages
         frames, boundary_cage = source_bound_torso_cages(data, frames, budgets=source_cage_budgets,
-                                                        synchronize_boundaries=synchronize_boundaries)
+            synchronize_boundaries=synchronize_boundaries, section_parameterization=section_parameterization)
     return {'version': 1, 'status': 'PARTIAL_GUIDES' if pending else 'TORSO_GUIDES_PREPARED',
             'panels': frames, 'pending_pieces': pending, 'groups': diagnostics,
             **({'source_boundary_cage':boundary_cage} if boundary_cage else {}),
