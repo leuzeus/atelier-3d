@@ -2594,3 +2594,58 @@ sans relâcher leurs empreintes ni l’état évalué du corps. Aucun nouveau Cl
 fitting, mouvement, PASS artistique ou release finale n’est accordé.
 
 [Reçu natif, candidat et restauration](automation-native-mesh-300-evidence-20261007.json).
+
+### 2026-10-07 — Volume du cou : correspondance incomplète confirmée
+
+Le contrôle du code et du guide source-bound distingue la longueur approuvée
+de base du cou (51,2154 cm + 4 cm) de la section transversale de 42,9001 cm
+utilisée pour le guide initial. Le guide reprend centre/aspect/altitude de cette
+seule section, la largeur source de 55,2154 cm et sa hauteur de 7 cm. Le chemin
+3D inférieur approuvé agit par la longueur du patron ; sa forme réelle n’est
+pas consommée par cette fonction. Le raccord après ajustement rigide crée une
+déformation : une paire V0/V7 à la même abscisse se retrouve séparée de 8,5531 cm.
+
+Un helper de diagnostic générique mesure quinze contours d’obstacle sur la
+zone verticale du guide actuel depuis la géométrie native authentifiée : treize
+MEASURED et deux NOT_QUALIFIED. Ces contours ne deviennent ni des tours
+anatomiques ni une définition du bord supérieur. Préparer la correspondance
+complète et sa revue, puis les contrôles métriques et de contact, reste requis.
+Aucun patron, corps, état Blender ou SQLite n’est modifié par ce diagnostic.
+
+[Limite du guide et données nécessaires](garment-neck-volume.md),
+[preuves du col](automation-collar-volume-diagnostic-evidence-20261007.json).
+
+### 2026-10-07 — Cache corporel local qualifié et complément dimensionnel intégré
+
+Le cache privé de validation des artefacts est limité à un appel de correction.
+Le décodage initial reste strict ; les octets des deux fichiers sont lus et
+hachés avant/après chaque mesure, les identités du binding et le corps évalué
+restent contrôlés. La création paresseuse intervient dans la mesure encadrée
+par l’horloge ; les erreurs initiales restent NEEDS_MEASUREMENT. Le P2 de
+compatibilité détecté en revue indépendante est corrigé ; aucun autre P1/P2.
+71 tests ciblés passent sous Python 3.11 et 3.13. Le profil portable réel avec
+gardes donne une extrapolation modeste de 0,414 / 1,179 s sur 114 frontières,
+création déduite ; l’estimation initiale de sept secondes est abandonnée.
+Le patch ne résout pas à lui seul le budget natif, les ancrages ou le col ;
+il n’est pas encore installé ni exécuté dans Blender.
+
+Le [complément dimensionnel demandé](automation-dimensional-addendum.md) est
+intégré aux lots L1/L4/L5 : corps → aisance → trajet de couture → capacité →
+écart → homologie, séparation déficit de matière / défaut de placement, et
+mesures guide initial / rigidité / couplage / récupération. Les cas d’épaule
+inclinée, col de même longueur mais relief différent et devant ouvert sont
+requis. La source et le corps approuvés restent la référence.
+
+Une nouvelle fiche MCP est calculée depuis le dossier adopté actuel et le
+package SHA3ba1ffe6, sans transférer la fiche historique v11. Huit trajets
+restent manquants ; la portée des anciennes décisions numériques doit être
+réconciliée avec le dossier courant. La ligne historique de cou horizontal
+42,90 cm + 6 cm est explicitement exclue du tableau complémentaire, puisque
+le repère de base accepté vise 51,2154 + 4 cm. Le tableau actuel de 26 lignes
+remesure les arêtes nommées ; le bas du col fournit 55,2154 cm, écart nominal
+zéro. Carrures, longueurs, pentes et couverture restent sans verdict de taille
+quand leurs trajets homologues manquent. L’observation de déformation après
+chaque transformation est développée séparément ; aucun nouvel essai natif
+n’est envoyé tant que son objectif de vérification n’est pas fixé.
+
+[Tests, revue et profil du cache](automation-body-artifact-cache-evidence-20261007.json).
