@@ -10,6 +10,7 @@ No missing piece, side, grain axis or source contour is manufactured here.
 """
 import copy
 import math
+from fractions import Fraction
 
 from .anatomy_profile import unit
 from .contact_geometry import cross, dot
@@ -258,13 +259,20 @@ def _source_limb_mesh(piece, subdivisions):
     # A key uses integer barycentric source weights. Adjacent source faces
     # therefore share exactly the same UV control vertices at their common edge.
     controls = {}; triangles = []
+    # Preserve the exact binary64 material source until the final conversion.
+    # fsum(source * weight) cannot recover rounding already introduced by
+    # each multiplication; on oblique boundaries that can put a control off
+    # its source segment even though its integer barycentric identity is right.
+    exact_vertices = [tuple(Fraction(value) for value in point) for point in vertices]
     for face in sorted(faces, key=lambda f: tuple(sorted(f))):
         grid = {}
         for i in range(subdivisions+1):
             for j in range(subdivisions+1-i):
                 weights = (subdivisions-i-j, i, j)
                 key = tuple(sorted((index, weight) for index, weight in zip(face, weights) if weight))
-                controls[key] = [math.fsum(vertices[index][k]*weight for index, weight in key)/subdivisions for k in (0, 1)]
+                if key not in controls:
+                    controls[key] = [float(sum(exact_vertices[index][k]*weight for index, weight in key)/subdivisions)
+                                     for k in (0, 1)]
                 grid[i, j] = key
         for i in range(subdivisions):
             for j in range(subdivisions-i):

@@ -12,6 +12,27 @@ from a3d.source_seam_coupling import _Budget, _evaluator, _prepare_piece
 from a3d.torso_sections import source_bound_torso_cages
 
 
+def concave_sleeve_source():
+    # Exact material coordinates from the approved source-row-grading-v3
+    # sleeve. This regression fixture has two concave underarm transitions;
+    # anatomical targets and project state are deliberately outside this test.
+    vertices = [[3.5, 0], [18, 0], [32.5, 0], [34.25, 12.800328],
+        [40.71995117084247, 21.496071279843697], [36, 25.600655],
+        [35.168403, 25.785596], [34.180556, 26.296903], [33.046875, 27.069303],
+        [31.777778, 28.037523], [30.383681, 29.136289], [28.875, 30.300328],
+        [27.262153, 31.464367], [25.555556, 32.563133], [23.765625, 33.531352],
+        [21.902778, 34.303752], [19.977431, 34.815059], [18.0, 35.0],
+        [16.022569, 34.815059], [14.097222, 34.303752], [12.234375, 33.531352],
+        [10.444444, 32.563133], [8.737847, 31.464367], [7.125, 30.300328],
+        [5.616319, 29.136289], [4.222222, 28.037523], [2.953125, 27.069303],
+        [1.819444, 26.296903], [0.831597, 25.785596], [0.0, 25.600655],
+        [-4.719951170842471, 21.496071279843697], [1.75, 12.800328]]
+    faces = [[31, 0, 1], [31, 1, 2], [31, 2, 3], [3, 4, 31], [4, 5, 31]]
+    faces += [[31, i, i+1] for i in range(5, 28)]
+    faces += [[29, 30, 28], [30, 31, 28]]
+    return {'vertices': vertices, 'faces': faces, 'edges': {}}
+
+
 def fixture():
     piece = {'vertices':[[0., 0.], [4., 0.], [4., 12.], [0., 12.]],
         'faces':[[0, 1, 2], [0, 2, 3]], 'edges':{'side':[1, 2], 'left':[3, 0]}}
@@ -29,6 +50,67 @@ def build(piece, frame, *, n=8, budgets=None, clock=lambda:0.):
 
 
 class GuideCageSampling(unittest.TestCase):
+    def test_concave_source_refinement_has_exact_barycentric_rounding_and_boundary(self):
+        from fractions import Fraction
+        from a3d.guide_cage_sampling import validated_cage_state, _rounded_source_segment
+        from a3d.source_seam_coupling import _refinement_keys
+        piece = concave_sleeve_source(); before = digest(piece); n = 8
+        uv, faces = _source_limb_mesh(piece, n)
+        keys = _refinement_keys(piece, n, _Budget({}, lambda: 0.))
+        for key, index in keys.items():
+            expected = [float(sum(Fraction(piece['vertices'][i][k])*weight
+                                  for i, weight in key)/n) for k in (0, 1)]
+            self.assertEqual(uv[index], expected)
+        cage = {'source_ref': 'concave-source-regression', 'uv_cm': uv,
+                'target_cm': [[*point, 0.] for point in uv], 'triangles': faces}
+        state = validated_cage_state(piece, cage, 'sleeve-left', n,
+                                     _Budget({}, lambda: 0.), lambda point: [*point, 0.])
+        self.assertEqual(state['uv'], uv)
+        self.assertEqual(state['triangles'], faces)
+        self.assertEqual(len(state['segments']), len(piece['vertices']))
+        for (a, b), controls in state['segments'].items():
+            self.assertEqual(len(controls), n+1)
+            self.assertTrue(all(_rounded_source_segment(uv[index], piece['vertices'][a],
+                                                       piece['vertices'][b]) for _, index in controls))
+        self.assertEqual(digest(piece), before)
+        reordered = copy.deepcopy(piece); reordered['faces'].reverse()
+        self.assertEqual(_source_limb_mesh(reordered, n), (uv, faces))
+        self.assertEqual(_source_limb_mesh(json.loads(json.dumps(piece)), n), (uv, faces))
+
+    def test_old_weighted_rounding_is_still_refused_on_concave_source_boundary(self):
+        from a3d.guide_cage_sampling import validated_cage_state
+        from a3d.source_seam_coupling import _refinement_keys
+        piece = concave_sleeve_source(); n = 8; uv, faces = _source_limb_mesh(piece, n)
+        key = ((6, 3), (7, 5)); index = _refinement_keys(piece, n, _Budget({}, lambda: 0.))[key]
+        previous = [math.fsum(piece['vertices'][i][k]*weight for i, weight in key)/n for k in (0, 1)]
+        self.assertNotEqual(uv[index], previous)
+        uv[index] = previous
+        cage = {'source_ref': 'historical-rounded-control', 'uv_cm': uv,
+                'target_cm': [[*point, 0.] for point in uv], 'triangles': faces}
+        with self.assertRaisesRegex(StudioError, 'original source segment once'):
+            validated_cage_state(piece, cage, 'sleeve-left', n,
+                                 _Budget({}, lambda: 0.), lambda point: [*point, 0.])
+
+    def test_tapered_oblique_source_with_nonbinary_subdivision_retains_exact_corners(self):
+        from a3d.guide_cage_sampling import validated_cage_state, _rounded_source_segment
+        piece = {'vertices': [[35.168403, 25.785596], [35.168503, 25.785696],
+                              [34.180556, 26.296903]], 'faces': [[0, 1, 2]], 'edges': {}}
+        before = digest(piece)
+        for n in (3, 8, 11):
+            with self.subTest(subdivisions=n):
+                uv, faces = _source_limb_mesh(piece, n)
+                cage = {'source_ref': 'tapered-source', 'uv_cm': uv,
+                        'target_cm': [[*point, 0.] for point in uv], 'triangles': faces}
+                state = validated_cage_state(piece, cage, 'taper', n,
+                                             _Budget({}, lambda: 0.), lambda point: [*point, 0.])
+                for point in piece['vertices']:
+                    self.assertIn(point, uv)
+                for (a, b), controls in state['segments'].items():
+                    self.assertEqual(len(controls), n+1)
+                    self.assertTrue(all(_rounded_source_segment(uv[i], piece['vertices'][a],
+                                                               piece['vertices'][b]) for _, i in controls))
+        self.assertEqual(digest(piece), before)
+
     def test_v_partition_reduces_causal_sampling_defect_and_preserves_raw_metric(self):
         piece, frame = fixture()
         frame['arc_sections'][1]['v_cm'] = 5.1
