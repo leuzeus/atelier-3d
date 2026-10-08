@@ -2969,3 +2969,10 @@ actuellement les U. Les autres cas sont refusés explicitement. Voir
 [le contrat](generic-anatomical-placement.md). Les projections régionales,
 le couplage, les contacts et l'ensemble des gates physiques restent à corriger
 ou à exécuter ; aucune nouvelle décision de coupe n'a été sollicitée.
+
+Le commit 70282c5 passe 2 157 tests sans SKIP et quatorze contrats sur un export
+immuable. La compilation publique conserve l'état à la révision 100 et refuse
+les guides incomplets du manteau. Le diagnostic isole maintenant le refus des
+pas matière aux contraintes actives, l'interpolation des manches et les chemins
+d'épaule validés mais non consommés par le torse. Voir
+[les observations, captures et preuves](automation-material-sections-20261008.md).
