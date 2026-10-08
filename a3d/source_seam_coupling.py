@@ -373,7 +373,8 @@ def _at_fraction(piece, state, chain, fraction, budget, n):
         'source_corner_vertex_id': None, 'cage_control_index': index}
 
 
-def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=None, clock=time.monotonic, semantics=None):
+def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=None, clock=time.monotonic, semantics=None,
+                        observe_guide_stages=False):
     """Return ``(cages, report)`` without changing any supplied source input.
 
     Permanent source boundaries in ``frames`` are paired over the union of
@@ -383,7 +384,11 @@ def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=No
     Common targets are the unweighted mean of original proposals in each
     transitive source cohort. Source recipe tolerances admit the input lengths;
     final metric, contact, anatomical and physical gates remain required.
+    Optional guide stage observations describe interpolation only, against
+    unchanged source UV; they never admit a regular mesh, Cloth or fitting.
     """
+    if type(observe_guide_stages) is not bool:
+        raise StudioError('Guide stage observation option must be explicitly boolean')
     if type(subdivisions) is not int or not 2 <= subdivisions <= 16:
         raise StudioError('Source seam coupling subdivisions must be an integer in 2..16')
     budget = _Budget(budgets, clock)
@@ -526,6 +531,17 @@ def couple_source_seams(data, frames, seam_recipe, *, subdivisions=8, budgets=No
             postseed_target_correction_cm=postseed_displacements,
             target_policy='UNWEIGHTED_ROLE_RIGID_SEEDED_PROPOSAL_MEAN_PER_TRANSITIVE_SOURCE_COHORT',
             displacement_policy='MAX_TARGET_CORRECTION_FROM_ORIGINAL_GUIDE_SEPARATE_POSTSEED_CORRECTION')
+    if observe_guide_stages:
+        from .guide_stage_metrics import observe_guide_stages as observe
+        report['guide_stage_metrics'] = observe(states, {
+            'original_guide': original_proposals, 'role_rigid_seed': aligned_proposals,
+            'seam_cohort_mean': targets}, budget, provenance={
+                'source_sha256': report['source_sha256'], 'input_guide_sha256': report['input_guide_sha256'],
+                'seam_recipe_sha256': report['seam_recipe_sha256'], 'source_binding_sha256': source_binding,
+                'source_refs': {pid: frame['source_ref'] for pid, frame in sorted(frames.items())},
+                'rigid_seed_applied': alignment_report is not None,
+                'rigid_alignment_kernel_code_sha256': (alignment_report['kernel_code_sha256']
+                    if alignment_report is not None else None)})
     try:
         report = json.loads(canonical(report))
     except (TypeError, ValueError, OverflowError) as error:

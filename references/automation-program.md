@@ -2649,3 +2649,36 @@ chaque transformation est développée séparément ; aucun nouvel essai natif
 n’est envoyé tant que son objectif de vérification n’est pas fixé.
 
 [Tests, revue et profil du cache](automation-body-artifact-cache-evidence-20261007.json).
+
+### 2026-10-07 — Déformation localisée entre rigidité et raccord
+
+Le noyau générique `guide_stage_metrics` réutilise les métriques matière existantes
+pour observer les trois cages à UV/topologie identiques : guide initial, seed
+rigide, moyenne de cohortes de couture. Son option désactivée conserve les
+cages et le rapport existants. Activée, elle reste dans le budget partagé et
+conserve comptes et extrema complets, avec au plus 32 témoins dégénérés par
+pièce/étape et une troncature explicitement signalée. La revue indépendante
+ne relève aucun P1/P2 ; 68 tests ciblés passent.
+
+Le rejeu purement logiciel des entrées exactes produit les mêmes cages que les
+guides et le plan liés à l’essai 0704. Le témoin matériel du col vaut
+7,0 → 7,0 → 8,5531 cm : la déformation apparaît lors du raccord par moyenne,
+après la transformation rigide. Le rapport standard est réduit de 153,717 MB
+(prototype conservé) à 2,149 MB sans perdre les extrema, comptes, empreintes
+de coordonnées ou ce témoin. La durée observée du rejeu compact est 11,531 s
+sous budget 60 s ; aucune comparaison de vitesse native n’est déduite. Les
+cages très fines ne servent pas à juger la taille ou la qualité REST physique.
+Contacts et récupération du maillage régulier restent non exécutés dans ce
+rejeu. Ces correctifs source ne sont pas encore installés ni exécutés dans
+Blender ; le runtime connecté reste 0704.
+
+Deux interfaces de racine de bras sont préparées par le MCP actuel depuis le
+corps natif exact : gauche 66,5836 cm, droite 66,4568 cm. La planche source
+à quatre vues est inspectée et présentée pour revue de ces seuls repères.
+Ils ne fixent pas une position de couture, une aisance ou une modification
+de patron ; une épaule tombante exige sa propre correspondance. La revue
+humaine de ces repères est acceptée le 7 octobre : décisions gauche
+4227c2f5-c41e-4b85-8d8b-3beccc673331 et droite
+58aec1c4-f9c9-4ef9-8535-38e199795b39. Corps et patrons restent inchangés.
+
+[Tests et rejeu des étapes](automation-guide-stage-observation-evidence-20261007.json).
