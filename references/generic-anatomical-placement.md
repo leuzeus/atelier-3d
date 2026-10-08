@@ -77,6 +77,38 @@ Une phase ne corrige pas un parcours inversé. Les repères et le sens doivent
 venir des bords, coutures et trajets mesurés du projet ; leur choix reste une
 proposition de montage tant que le candidat n'a pas été examiné.
 
+Le champ transversal d'une bande est également explicite :
+
+- `transverse_field: SEGMENT_ORTHOGONAL_V1` conserve le calcul historique : la
+  direction déclarée est projetée perpendiculairement à chaque segment du trajet.
+  Aux coins d'une polyligne, elle peut changer brusquement. Ce mode ne garantit
+  donc pas la continuité d'une bande de hauteur non nulle.
+- `transverse_field: BODY_DIRECTION_CONSTANT_V1` conserve la même direction
+  corporelle unitaire sur tout le trajet. La base mesurée et les longueurs des
+  fibres sont conservées, y compris dans un référentiel tourné. Le champ est
+  continu aux coins ; il peut toutefois introduire du cisaillement et ne dispense
+  pas du contrôle métrique de chaque triangle. Une direction parallèle à un
+  segment échantillonné est refusée.
+
+L'absence du paramètre conserve le comportement et le rapport historiques.
+Une bande continue ne suffit pas si ses triangles traversent plusieurs ruptures
+du paramétrage : leur interpolation affine peut encore déformer la matière.
+La longueur de quelques fibres témoins ne remplace pas cette mesure complète.
+
+`cage_sampling: PATH_KNOT_PARTITION_V1` découpe les triangles matériels aux
+changements de segment du trajet, sur l'axe matière déclaré. Ce mode exige le
+champ `BODY_DIRECTION_CONSTANT_V1`. Il change le maillage de contrôle dérivé,
+sans déplacer le contour source ni changer les coutures du patron. Les points
+partagés sont calculés rationnellement et arrondis une seule fois ; le validateur
+existant vérifie les frontières, les propriétaires et la couverture des faces.
+Le budget limite le temps, les contrôles et les triangles ; les cellules
+dégénérées restent refusées. Les extrema d'étirement restent à mesurer.
+
+`cage_sampling: SOURCE_TRIANGLE_GRID_V1`, ou l'absence du paramètre, conserve le
+raffinement historique des triangles source. La nouvelle partition n'est pas
+une modification de patron, une réparation de collision ou une admission de
+placement. Les résultats des deux modes doivent conserver leur identité propre.
+
 Les guides V2 lient le code, le profil, la pose, la géométrie, les rapports, les
 sources, les recettes et les paramètres. La vérification reconstruit le rapport
 entier sans arrondi ; une durée d’exécution ne fait pas partie de cette identité.

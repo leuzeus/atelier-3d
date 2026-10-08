@@ -151,7 +151,8 @@ def sample_path(points, fractions, *, closed):
     return [point for point, _, _ in _samples(points, fractions, closed)]
 
 
-def path_frames(points, fractions, *, closed, reference_normal):
+def path_frames(points, fractions, *, closed, reference_normal,
+                transverse_field='SEGMENT_ORTHOGONAL_V1'):
     """Orient fibres from a declared reference field, not an inferred body up.
 
     The explicit direction is projected normal to each sampled tangent. At an
@@ -159,12 +160,23 @@ def path_frames(points, fractions, *, closed, reference_normal):
     A parallel direction is unsupported and refused, rather than choosing a
     fallback axis. This is not a smooth/parallel-transport or offset-surface
     construction; curves with sharp corners still need metric/contact checks.
+    BODY_DIRECTION_CONSTANT_V1 instead retains the declared unit direction at
+    every sample. It is continuous across path corners but is not generally
+    orthogonal to the tangent, so shear must still be measured. The returned
+    binormal is their cross product; a parallel field is explicitly refused.
     """
+    if transverse_field not in ('SEGMENT_ORTHOGONAL_V1', 'BODY_DIRECTION_CONSTANT_V1'):
+        raise StudioError('Anatomical path needs a supported explicit transverse field')
     normal_ref = _unit(reference_normal)
     output = []
     for point, tangent, distance in _samples(points, fractions, closed):
-        projection = _dot(normal_ref, tangent)
-        normal = _unit([normal_ref[i]-projection*tangent[i] for i in range(3)])
+        if transverse_field == 'BODY_DIRECTION_CONSTANT_V1':
+            normal = list(normal_ref)
+            if math.hypot(*_cross(tangent, normal)) <= 1e-10:
+                raise StudioError('Constant anatomical transverse field is parallel to the path tangent')
+        else:
+            projection = _dot(normal_ref, tangent)
+            normal = _unit([normal_ref[i]-projection*tangent[i] for i in range(3)])
         output.append({'point_cm': point, 'tangent': tangent, 'normal': normal,
                        'binormal': _cross(tangent, normal), 'arclength_cm': distance})
     return output

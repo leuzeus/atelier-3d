@@ -125,6 +125,42 @@ def anatomical_attachment_residuals(frames, constraints):
             (row['residual_cm'] for row in records), default=0.), 'qualification': 'CONSTRAINT_RESIDUALS_ONLY'}
 
 
+def _path_knot_partition(piece, axis, cuts, pid, evaluate, budget, source_ref):
+    """Partition original material faces with exact rational shared identities."""
+    from .guide_cage_sampling import _strips, _ears, validated_cage_state
+    _source_limb_mesh(piece, 1)
+    source = [tuple(Fraction(value) for value in point) for point in piece['vertices']]
+    rows = sorted(set(Fraction(value) for value in cuts))
+    controls = {}; uv = []; triangles = []; owners = []
+    source_corners = {point: list(original) for point, original in zip(source, piece['vertices'])}
+
+    def control(point):
+        if point not in controls:
+            budget.reserve(1, 0)
+            controls[point] = len(uv)
+            uv.append(source_corners.get(point, [float(value) for value in point]))
+        return controls[point]
+
+    for source_id, face in sorted(enumerate(piece['faces']), key=lambda row: tuple(sorted(row[1]))):
+        budget.check()
+        for cell in _strips([source[i] for i in face], axis, rows, budget):
+            for triangle in _ears(cell, budget):
+                budget.reserve(0, 1)
+                triangles.append([control(point) for point in triangle]); owners.append(source_id)
+    targets = []
+    for point in uv:
+        budget.check(); targets.append(evaluate(point))
+    frame = {'source_ref': source_ref, 'uv_cm': uv, 'target_cm': targets, 'triangles': triangles}
+    state = validated_cage_state(piece, frame, pid, 1, budget, evaluate,
+                                 reserved=True, source_faces=owners)
+    return frame, {'cut_axis': 'u' if axis == 0 else 'v', 'path_knot_cuts_cm': list(cuts),
+        'control_vertices': len(uv), 'control_triangles': len(triangles),
+        'triangle_source_face_indices': state['triangle_source_faces'],
+        'source_uv_scaled': False, 'source_topology_changed': False,
+        'source_boundary_validation': 'EXACT_SOURCE_SEGMENTS_COVERED_ONCE',
+        'budgets': dict(budget.limits), 'qualification': 'NONE'}
+
+
 def anatomical_band_frame(piece, policy, profile, references, pid, *, subdivisions=8):
     """Map source material onto an explicitly selected 3D attachment curve.
 
@@ -159,14 +195,50 @@ def anatomical_band_frame(piece, policy, profile, references, pid, *, subdivisio
     center = [math.fsum(p[k] for p in samples)/len(samples) for k in range(3)]
     scale = width/reference['length_cm']
     expanded = [[center[k]+scale*(p[k]-center[k]) for k in range(3)] for p in points]
-    uv, triangles = _source_limb_mesh(piece, subdivisions)
-    fractions = [(phase+path_direction*(p[along]-anchor[along])/width) % 1. for p in uv]
-    oriented = path_frames(expanded, fractions, closed=True, reference_normal=normal)
-    target = [_world(profile, [frame['point_cm'][k]+(p[across]-anchor[across])*frame['normal'][k]
-                              for k in range(3)]) for p, frame in zip(uv, oriented)]
-    frame = {'source_ref': 'measured-body-profile:'+profile['cache_key']+'; source-piece:'+pid+
-             '; measured-path:'+reference['path_sha256']+'; SOURCE_PATH_BAND_V1',
-             'uv_cm': uv, 'target_cm': target, 'triangles': triangles}
+    transverse_field = policy.get('transverse_field', 'SEGMENT_ORTHOGONAL_V1')
+    sampling = policy.get('cage_sampling', 'SOURCE_TRIANGLE_GRID_V1')
+    if sampling not in ('SOURCE_TRIANGLE_GRID_V1', 'PATH_KNOT_PARTITION_V1'):
+        raise StudioError('Path band requires a supported explicit cage sampling mode')
+    source_ref = ('measured-body-profile:'+profile['cache_key']+'; source-piece:'+pid+
+                  '; measured-path:'+reference['path_sha256']+'; SOURCE_PATH_BAND_V1')
+    partition = None
+    if sampling == 'PATH_KNOT_PARTITION_V1':
+        import time
+        from .source_seam_coupling import _Budget
+        if transverse_field != 'BODY_DIRECTION_CONSTANT_V1':
+            raise StudioError('Path-knot band partition requires BODY_DIRECTION_CONSTANT_V1')
+        # A constant direction parallel to any segment collapses that complete
+        # material strip, even if no control happened to sample its interior.
+        lengths = [math.dist(a, b) for a, b in zip(expanded, expanded[1:]+expanded[:1])]
+        total = math.fsum(lengths); cumulative = 0.; knots = []
+        for length in lengths:
+            knots.append(cumulative/total); cumulative += length
+        path_frames(expanded, [(fraction+length/(2*total)) % 1.
+                    for fraction, length in zip(knots, lengths)], closed=True,
+                    reference_normal=normal, transverse_field=transverse_field)
+        lower = min(p[along] for p in piece['vertices']); upper = max(p[along] for p in piece['vertices'])
+        cuts = sorted(set(anchor[along]+path_direction*(fraction-phase+wrap)*width
+                          for fraction in knots for wrap in (-1, 0, 1)
+                          if lower < anchor[along]+path_direction*(fraction-phase+wrap)*width < upper))
+
+        def evaluate(point):
+            fraction = (phase+path_direction*(point[along]-anchor[along])/width) % 1.
+            row = path_frames(expanded, [fraction], closed=True, reference_normal=normal,
+                              transverse_field=transverse_field)[0]
+            return _world(profile, [row['point_cm'][k]+(point[across]-anchor[across])*row['normal'][k]
+                                    for k in range(3)])
+
+        frame, partition = _path_knot_partition(piece, along, cuts, pid, evaluate,
+                                                _Budget(None, time.monotonic),
+                                                source_ref+'; PATH_KNOT_PARTITION_V1')
+    else:
+        uv, triangles = _source_limb_mesh(piece, subdivisions)
+        fractions = [(phase+path_direction*(p[along]-anchor[along])/width) % 1. for p in uv]
+        oriented = path_frames(expanded, fractions, closed=True, reference_normal=normal,
+                               transverse_field=transverse_field)
+        target = [_world(profile, [row['point_cm'][k]+(p[across]-anchor[across])*row['normal'][k]
+                                  for k in range(3)]) for p, row in zip(uv, oriented)]
+        frame = {'source_ref': source_ref, 'uv_cm': uv, 'target_cm': target, 'triangles': triangles}
     return frame, {'piece': pid, 'guide_kind': 'SOURCE_PATH_BAND_V1',
         'path_sha256': reference['path_sha256'], 'body_path_length_cm': reference['length_cm'],
         'source_circumference_cm': width, 'auxiliary_path_expansion_ratio': scale,
@@ -174,6 +246,9 @@ def anatomical_band_frame(piece, policy, profile, references, pid, *, subdivisio
         'path_geometry_policy': 'SOURCE_WIDTH_EXPANSION_OF_MEASURED_3D_SHAPE_NOT_A_NEW_BODY_MEASUREMENT',
         'path_discretization': 'SOURCE_TRIANGLE_CAGE_SAMPLING_REQUIRES_FINAL_METRIC_AND_CONTACT_CHECKS',
         'source_anchor_uv_cm': anchor, 'path_anchor_fraction': phase, 'path_direction': path_direction,
+        **({'transverse_field': transverse_field} if 'transverse_field' in policy else {}),
+        **({'cage_sampling': sampling} if 'cage_sampling' in policy else {}),
+        **({'path_knot_partition': partition} if partition is not None else {}),
         'longitudinal_direction_body': normal, 'material_height_policy': 'UNIT_TRANSVERSE_FIBRES',
         'source_contour_sha256': digest(piece), 'source_uv_scaled': False,
         'body_rescaling': False, 'surface_following': 'ACTUAL_THREE_DIMENSIONAL_PATH',
