@@ -2918,3 +2918,17 @@ développement vérifié et présenter l'opération native exacte à autoriser.
 Aucune nouvelle variante de coupe n'a été créée dans ce lot. La construction
 complète des quinze textiles et de la boucle, l'enfilage, Cloth, le fitting,
 les mouvements, la revue artistique et la préversion finale restent ouverts.
+
+### 2026-10-08 — Reprise logicielle, raffinement source et aperçus refusés
+
+Le runtime 0801 est confirmé après redémarrage. L'adoption inchangée dispose
+d'un parcours de revalidation explicite ; le sens du col, l'arrondi des contrôles
+matériels et le transport des diagnostics sont corrigés. Le commit 83723ab passe
+2 127 tests et quatorze contrats. Le stage 0802 est préparé, pas installé.
+
+Le candidat portable à huit itérations reste refusé. Ses vues sont affichées
+sans masquer les occultations. Conformément à la nouvelle consigne utilisateur,
+chaque candidat doit désormais être accompagné de captures, même s'il est refusé,
+avec gros plans avant/après, statut, pièces présentes et origine des images.
+La correction géométrique du col, du dos, des épaules et des manches reste ouverte.
+Voir [les observations et le point de reprise](automation-replay-preview-20261008.md).
