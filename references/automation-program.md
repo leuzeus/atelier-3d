@@ -5,6 +5,12 @@ Plan approuvé par l'utilisateur le 3 octobre 2026. Base : branche
 version 0.7.0-rc.2. Le programme est suivi ici pendant l'implémentation.
 
 **État courant — 7 octobre, après l'essai 0704 :** le runtime connecté 0704
+est désormais périmé après l'installation locale vérifiée de 0705 : son ancien
+cache est absent et son rechargement est requis. Le build 0705 contient le code
+cc69fec, qualifié par 1 996 tests, zéro SKIP et quatorze contrats. Ses 719 fichiers
+sont vérifiés octet par octet ; la préversion finale reste non publiée.
+
+Le runtime 0704, avant cette installation,
 a exécuté le maillage des dix pièces du manteau sous budget 300 s. Le maillage
 source passe son seuil d'angle de 15°, mais le placement est refusé : contacts,
 déformation métrique et réserve d'ancrages incomplète. Le checkpoint est restauré ;
@@ -2787,3 +2793,32 @@ n'est changée par ce correctif. La qualification intégrée suivante porte sur
 un nouvel export Git exact ; la tentative échouée est conservée séparément.
 
 [Échec observé et correction de provenance](automation-guide-dependency-recovery-evidence-20261007.json).
+
+### 2026-10-07 — Qualification intégrée et installation locale 0705
+
+L'export immuable cc69fecb79c34f3baae3ad51d062266f606e254d passe 1 996 tests,
+zéro SKIP, en 384,204 s et quatorze contrats. La source reste inchangée.
+L'échec précédent est conservé. Le build local 0.7.0-rc.2.dev.2026100705 est
+préparé depuis cet export, puis installé avec le CLI réellement utilisé par
+l'application. Le CLI npm initial avait refusé la sous-commande `plugin add`
+avant toute installation ; son stderr est conservé séparément. La copie native
+de 719 fichiers correspond exactement au stage ; les stages sur G: restent
+conservés et aucune confiance de hook n'est automatisée.
+
+Le MCP connecté conserve 0704 et constate son cache absent. Le rechargement
+de l'application doit être explicitement autorisé, puis le runtime 0705
+réellement vérifié. La tâche Windows validée est Ready, seulement prévisualisée.
+Le point de reprise et la scène du mannequin seul sont conservés sur G: ;
+aucune opération Blender n'est en attente. La table dimensionnelle V2 reprend
+les deux trajets d'épaule acceptés, sans calculer un écart de coupe lorsque
+leur correspondance à l'épaule du manteau manque.
+
+Après rechargement : réconcilier les dépendances et régénérer les politiques
+de guides pour le code courant, puis développer le producteur borné de
+contraintes de peau et une représentation admissible. Le solveur portable
+n'a pas été appliqué au manteau entier. Placement admis, quinze textiles et
+boucle, enfilage, Cloth, fitting, mouvement, revue artistique et livraison
+finale restent à réaliser. Aucune nouvelle coupe n'attend une décision dans
+ce lot ; les revues du candidat complet restent requises.
+
+[Qualification, installation et point de reprise](automation-body-path-constrained-installation-evidence-20261007.json).
