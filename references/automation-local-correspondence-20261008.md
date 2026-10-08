@@ -46,6 +46,28 @@ dans le reçu. Le noyau appartient à la fermeture de code de la politique
 publique ; sa modification invalide cette politique. Le contrôle géométrique
 reste une hypothèse de préparation, sans admission de fitting.
 
+Le commit exact `f4b91f6c3dd330aa9531ee3633432d298d9deade` passe 2 199 tests,
+aucun SKIP, en 435,396 secondes et 14 contrats JSON sur un export immuable.
+La revue indépendante conserve huit comparaisons historiques strictement
+identiques lorsque le mode est absent.
+
+Son replay réel génère les deux manches et les deux manchettes en 5,313 s ;
+génération et audit prennent 7,594 s. Les manchettes gardent leurs 20 cm et
+un résidu d'ancrage distal nul. Leur extrémité opposée reste à 4,83677 et
+4,85041 cm du coude. La variation de métrique par rotation reste sous
+4 × 10⁻¹⁴ ; les cages et les attaches des manches sont exactement inchangées.
+
+Le roulis choisi par la direction transverse déclarée diffère du POC de
+rotation minimale d'environ +1,0849° et −1,0803°. L'écart maximal des points
+est de 0,0874 et 0,0870 cm ; une fois ce roulis expliqué, le résidu est sous
+3 × 10⁻¹⁴ cm. Ce sont des candidats distincts : les contacts des sections du
+POC ne sont pas transférés au replay produit. Reçus et captures réelles :
+`program-segment-axis-product-replay-v1/`. Le reçu historique de suite complète
+en attente reste conservé ; un lien séparé le rattache à la qualification du
+même commit après son achèvement.
+Le [manifeste de preuves](automation-local-correspondence-evidence-20261008.json)
+lie les reçus numériques, la validation et les captures affichées.
+
 ## Limites observées sur les membres
 
 La rotation ne suffit pas. À V10, une section de manchette offre 27 cm de

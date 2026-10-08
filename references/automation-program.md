@@ -3032,3 +3032,24 @@ des épaules, la métrique des tubes et les raccords restent à traiter. Aucune
 nouvelle variante de coupe n'attend une revue humaine dans ce lot ; la revue
 artistique du futur vêtement complet reste ouverte. Aucune preuve des coupons
 ou des seules têtes de manches ne devient une acceptation du vêtement complet.
+
+### 2026-10-08 — Axe local explicite et continuation de surface
+
+Le mode `LIMB_SEGMENT_AXIS_V1` corrige une autre limite du producteur : choisir
+l'axe du segment corporel concerné sans inventer une attache sur la peau. Le
+profil, les extrémités matérielles et l'extrémité ancrée sont explicites. Aucun
+étirement ne force la seconde extrémité à rejoindre un repère ; son résidu est
+mesuré. Le code f4b91f6 passe 52 tests ciblés et la revue indépendante ; huit
+comparaisons historiques restent exactement identiques sans le nouveau mode.
+La suite intégrée du même commit passe 2 199 tests sans SKIP en 435,396 secondes
+et quatorze contrats. Le replay réel génère quatre guides en 5,313 secondes ;
+génération et audit prennent 7,594 secondes. Les manchettes conservent leurs
+20 cm et leur repère distal ; leur extrémité opposée reste à 4,84/4,85 cm du
+coude, sans compensation par étirement. Les manches et leurs attaches restent
+exactement identiques. Aucune admission de contact ou de fitting n'en découle.
+
+L'essai combiné précédent est refusé au budget de 120 secondes. Son meilleur
+état et ses captures sont conservés ; le haut du torse reste largement dans
+le corps. Le POC de continuation résout séparément quatre requêtes issues des
+cibles col–torse, sans les déplacer, mais n'est pas une carte de l'intérieur.
+Voir [le contrat, les mesures et les limites](automation-local-correspondence-20261008.md).
