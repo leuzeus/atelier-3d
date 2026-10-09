@@ -193,7 +193,11 @@ artistique humaine n'est enregistrée.
 
 Cette réussite locale ne qualifie pas les raccords au torse, les auto-contacts,
 le vêtement entier, Cloth ou le fitting. Le helper scientifique est figé et
-reste distinct du runtime du plugin.
+reste distinct du runtime du plugin. Ses copies identiques et leurs quatorze
+tests numériques sont versionnés dans
+[`experiments/anatomical-placement`](../experiments/anatomical-placement/README.md),
+hors archive distribuée. Aucun nom de pièce ou coordonnée de ce manteau n'est
+codé dans ces helpers ; le domaine dense borné est explicitement documenté.
 
 ## Garde générique des attaches fixes
 
@@ -210,6 +214,13 @@ Blender. Après correction de cette correspondance, le replay 02 détecte
 exactement les deux conflits initiaux et vérifie les quinze points de la
 variante. Les sources et le refus initial restent conservés. Ce résultat ne
 qualifie aucune surface textile.
+
+Après la revue et le durcissement des entrées entières, le replay 03 exécute
+le code final `ab064d5` sur les deux listes exactes : treize points vérifiés et
+deux conflits pour l'original ; quinze points vérifiés pour la variante. Les
+durées respectives sont 7,016 et 7,703 secondes. Le code intégré passe
+**2 285 tests, aucun SKIP, et quatorze contrats** sur son export immuable ;
+88 tests ciblés et la revue indépendante couvrent les parcours affectés.
 
 Un autre essai initialise cinq panneaux plans hors du corps entier. Le
 contrôle de 35 762 triangles ne trouve aucune paire dans la réserve, mais les
@@ -242,9 +253,63 @@ de la longueur du chemin du checkout, et quatre attentes de digest des membres
 historiques ne les remplacent pas. Aucune fusion ni préversion finale ne
 résulte de ce travail.
 
-La prochaine correction porte sur le couplage du col 06 et des cinq panneaux
-partenaires, avec prévention des effondrements et contacts portés par les
-triangles. Les coutures restent des relations entre variables, sans transformer
-le col entier en nouvelle attache anatomique fixe.
+La prochaine correction porte sur le couplage variable du col et des cinq
+panneaux partenaires, avec prévention des effondrements et contacts portés
+par les triangles. Le résultat et les refus de la préparation sont détaillés
+ci-dessous. Les coutures restent des relations entre variables, sans
+transformer le col entier en nouvelle attache anatomique fixe.
 Les quinze pièces, la boucle, l'enfilage, Cloth, le fitting, le mouvement et la
 revue artistique restent des acceptations séparées à exécuter.
+
+## Coin commun du col et couplage des partenaires
+
+Le candidat local suivant ferme une égalité imposée par les deux coutures
+source du devant intérieur : les contrôles 1 et 403 du col aboutissent au même
+point matériel du partenaire. Cette égalité est éliminée dans les variables du
+solveur ; les UV, les triangles, les identités et les bords libres restent
+distincts. Aucune couture ni attache anatomique nouvelle n'est créée.
+
+Le fichier `torso-coupling-from-collar06/corner-closure-probe/attempt-01/`
+contient ce candidat, SHA `2c4177afc73c7a4c5526a073254face2ebc590bb100f7f7b4e8c40f4b0fb1e6c`.
+En 23,766 secondes, il conserve les treize attaches, les 929 triangles entre
+0,9901030340 et 1,0199920449, zéro intersection et zéro déficit de réserve.
+Le déplacement maximal depuis le véritable original est 4,266803 cm ; la
+distance minimale au corps est 0,3010000021 cm pour une réserve inchangée
+de 0,3000000026 cm. La revue indépendante recalcule la matière à 70 chiffres
+et les contacts du fichier sauvegardé. Elle est favorable pour ce col seul.
+Sa nouvelle planche utilise les mêmes caméras que l'image avant correction.
+
+`prepared-v3-corner-closed/solver-input.json` relie ce col aux cinq partenaires
+par 355 supports bilatéraux sur six coutures. Le conflit de coin et les
+violations conditionnelles de chemins du col 06 ont disparu. Les 32 requêtes
+anatomiques du devant intérieur restent sans domaine régional déclaré ; leurs
+supports de couture existent. Aucune région n'a été devinée pour combler ce
+manque. L'ensemble représente 19 599 contrôles et 36 691 triangles : le QR
+dense global demanderait environ 93,54 Go selon l'estimation dimensionnelle.
+
+Trois diagnostics supplémentaires délimitent le prochain solveur :
+
+| Calcul | Résultat mesuré | Conclusion limitée |
+|---|---|---|
+| Alignement rigide depuis les bords du col | Les cinq pièces gardent leur métrique, mais leurs déplacements atteignent 107,93 à 219,16 cm et des intersections subsistent. | Refus : un bord seul ne contraint pas une orientation convenable du panneau entier. |
+| Bandes matérielles de 20 cm avec contour du bloc immobile | Quatre panneaux présentent des distances imposées dépassant de 2,35 à 4,34 cm la borne de 102 % d'un chemin matériel. | Refus de ces sous-problèmes figés, confirmé indépendamment. Ce n'est pas une impossibilité des patrons lorsque les contours numériques peuvent bouger. |
+| Devant intérieur, bande locale sans contradiction détectée | Les 32 écarts au col sont inférieurs à 0,000001 cm, mais 553 triangles échouent à la métrique et 98 paires passent sous la réserve. | Refus après calcul : la fermeture des correspondances ne compense pas une matière invalide. |
+
+Les propositions, reçus et refus sont conservés sous
+`torso-coupling-from-collar06/`. Aucun n'est devenu le candidat canonique.
+Le solveur doit permettre au col et aux panneaux de se déformer ensemble,
+avec un déplacement réparti dans les pièces plutôt qu'un contour local figé.
+Il doit contrôler en même temps les supports anatomiques, les coutures, les
+gradients matériels, la limite de déplacement et les contacts triangle-corps.
+
+Un facteur creux LSMR expérimental évite les équations normales. Sur un pas du
+col réel, il diffère du QR dense de 0,000008506 cm au maximum ; sa stationnarité
+recalculée diffère toutefois de l'estimation interne LSMR. Ce premier test
+numérique ne qualifie ni une boucle de récupération ni le problème couplé.
+La convergence, les résidus sur triangles fins et les contacts restent à
+valider avant de l'utiliser pour les pièces entières.
+
+Les helpers et leurs 25 tests numériques sont versionnés dans
+`experiments/anatomical-placement/`, hors archive du plugin. Les tests unitaires
+passent ; les refus du cas réel restent des refus. Le runtime public testé
+est toujours celui de `ab064d5` et n'a pas été réinstallé pendant cette étape.

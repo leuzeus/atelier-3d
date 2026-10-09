@@ -3105,3 +3105,27 @@ captures avant/après sont affichées ; les refus précédents restent disponibl
 La garde générique des points fixes est intégrée comme option publique avant
 le couplage. Le torse, les épaules, les coutures avec le col et l'acceptation
 du vêtement entier restent à résoudre, sans transfert de cette réussite locale.
+
+Le commit intégré `ab064d5` passe 2 285 tests sans SKIP et quatorze contrats sur
+un export immuable ; 88 tests ciblés et la revue indépendante couvrent la garde
+des attaches. Le replay produit final retrouve deux conflits sur les cibles
+initiales et vérifie les quinze cibles de la variante séparée. Les helpers
+scientifiques génériques et leurs quatorze tests sont versionnés hors runtime.
+Les [empreintes des preuves](automation-joint-placement-evidence-20261008.json)
+permettent de retrouver les fichiers réellement contrôlés.
+
+Le col suivant conserve ces contrôles et satisfait son coin commun dérivé des
+coutures source. La revue indépendante confirme 929 triangles dans la plage
+2 %, treize attaches exactes et aucune paire sous la réserve corporelle.
+Les 355 correspondances des cinq partenaires sont préparées sur ce fichier.
+Les placements partenaires restent refusés : l'alignement rigide déplace trop
+les pièces, quatre blocs locaux figés sont incompatibles avec la matière, et
+le devant intérieur raccordé déforme trop ses triangles. Les refus sont
+conservés, sans changement des patrons ou du mannequin. Les 25 tests des
+helpers scientifiques passent ; ils ne qualifient pas le vêtement.
+
+L4–L5 demeurent partiels. La reprise porte sur un solveur creux de déformation
+conjointe laissant mobiles les contours numériques des blocs et le col hors
+ses attaches. Le facteur LSMR exploratoire est testé sur un pas, sans preuve
+de convergence de cette boucle. Aucun essai natif, Cloth, fitting, montage
+complet ou revue artistique n'a été exécuté dans ce prolongement.

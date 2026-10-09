@@ -283,3 +283,9 @@ La qualification sur la scène complète reste à exécuter : placement des quin
 pièces, boucle, contacts, enfilage, Cloth, fitting, mouvement et revue artistique.
 Le build source et le runtime installé sont des identités distinctes. Aucune
 exécution Blender ni installation ne résulte de ces tests portables.
+
+La [garde des attaches fixes](fixed-attachment-clearance.md) peut être déclarée
+avant le couplage. Elle mesure la réserve du collider exact sur les cibles
+immobiles et refuse les incompatibilités avant la correction des panneaux.
+Son succès reste une condition nécessaire ponctuelle ; il ne qualifie pas
+les surfaces, les coutures ou le fitting.
