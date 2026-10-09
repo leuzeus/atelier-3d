@@ -16,7 +16,7 @@ from .garment_guides import (garment_volume_frames,measured_native_skin_sections
 from .anatomical_guide_inputs import check_anatomical_inputs, project_anatomical_references
 
 
-CODE_SOURCES=('garment_guide_policy','anatomical_guide_inputs','anatomical_placement','regional_surface_guides','assembly_relaxation','active_metric_constraints',
+CODE_SOURCES=('garment_guide_policy','anatomical_guide_inputs','anatomical_placement','attachment_clearance','attachment_guide_guard','regional_surface_guides','assembly_relaxation','active_metric_constraints',
     'dressing_derivation','body_region_sections','garment_guides','limb_surface_sampling','limb_axis_binding','semantic_placement','torso_sections','guide_cage_sampling','material_section_sampling',
     'source_seam_coupling','source_boundary_bindings','surface_path_continuation','guide_stage_metrics','cloth_metrics','rigid_guide_alignment','shoulder_guides','preform_volume','pattern_assembly','anatomy_profile','shoulder_surface','head_surface','contact_geometry','sewing','core')
 
@@ -32,13 +32,21 @@ def _owners(compiled):
 def _recipe_components(rows):
     selected = set()
     for cid, row in rows.items():
+        if 'attachment_clearance' in row:
+            from .attachment_guide_guard import validate_attachment_guard_policy
+            clearance = row['attachment_clearance']
+            if not isinstance(clearance, dict) or not isinstance(clearance.get('recipe_ref'), dict):
+                raise StudioError('Attachment guard requires an exact source recipe reference')
+            validate_attachment_guard_policy({key: value for key, value in clearance.items() if key != 'recipe_ref'})
+            if 'anatomical_references_ref' not in row:
+                raise StudioError('Attachment guard requires declared anatomical reference files')
         if 'source_boundary_bindings' in row:
             from .source_boundary_bindings import validate_current_boundary_policy
             boundary = row['source_boundary_bindings']
             if not isinstance(boundary, dict) or not isinstance(boundary.get('recipe_ref'), dict):
                 raise StudioError('Source boundary inspection requires an exact source recipe reference')
             validate_current_boundary_policy({key: value for key, value in boundary.items() if key != 'recipe_ref'})
-        references = [row[key]['recipe_ref'] for key in ('source_seam_coupling', 'source_boundary_bindings') if key in row]
+        references = [row[key]['recipe_ref'] for key in ('source_seam_coupling', 'source_boundary_bindings', 'attachment_clearance') if key in row]
         if references:
             if any(ref != references[0] for ref in references[1:]):
                 raise StudioError('Guide coupling and boundary inspection must share one exact source recipe reference')
@@ -65,7 +73,7 @@ def prepare_guide_policy(compiled,profile,geometry,geometry_ref,component_parame
     reference_components=check_anatomical_inputs(component_parameters,anatomical_references)
     components={}
     for cid,parameters in sorted(component_parameters.items()):
-        if set(parameters)-{'source_seam_coupling','source_boundary_bindings','anatomical_references_ref','section_parameterization','limb_parameterization'}!={'upper_blend','surface_sections','skin_section_heights_cm'}:
+        if set(parameters)-{'source_seam_coupling','source_boundary_bindings','attachment_clearance','anatomical_references_ref','section_parameterization','limb_parameterization'}!={'upper_blend','surface_sections','skin_section_heights_cm'}:
             raise StudioError('Guide parameters must explicitly declare blend, measured surfaces and skin heights without overrides')
         validate_section_parameterization(parameters.get('section_parameterization','POLYLINE_ARCLENGTH_V1'),
             parameters['upper_blend'],parameters['surface_sections'])
@@ -164,6 +172,8 @@ def reconstruct_guide_policy(compiled,profile,geometry,geometry_ref,source_data,
             **({'limb_parameterization':row['limb_parameterization']} if 'limb_parameterization'in row else {}),
             **({'source_boundary_bindings': {key: value for key, value in row['source_boundary_bindings'].items() if key != 'recipe_ref'}}
                if 'source_boundary_bindings' in row else {}),
+            **({'attachment_clearance': {key: value for key, value in row['attachment_clearance'].items() if key != 'recipe_ref'}}
+               if 'attachment_clearance' in row else {}),
             **({'anatomical_references':anatomical_references[cid],
                 'anatomical_geometry':{'geometry':geometry,'triangles':anatomical_references[cid].get('triangles')}}
                if cid in reference_components else {}))
@@ -216,7 +226,7 @@ def _project_seam_recipes(project,rows):
     selected=_recipe_components(rows)
     for cid,row in rows.items():
         if cid in selected:
-            consumer=row.get('source_seam_coupling', row.get('source_boundary_bindings'))
+            consumer=next(row[key] for key in ('source_seam_coupling', 'source_boundary_bindings', 'attachment_clearance') if key in row)
             ref=consumer['recipe_ref'];path=inside(project.root,ref['path'])
             data=path.read_bytes()
             if hashlib.sha256(data).hexdigest()!=ref['sha256']:

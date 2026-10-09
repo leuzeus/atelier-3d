@@ -3088,3 +3088,20 @@ images avant/après ont été affichées avec le corps opaque ; les refus sont
 conservés. Le travail se poursuit sur la récupération de métrique et les
 contraintes de contact, sans déduire une impossibilité des patrons.
 Voir [le bilan, les preuves et les limites](automation-joint-placement-20261008.md).
+
+La validation intégrée de `c063d15` passe 2 256 tests sans SKIP et quatorze
+contrats. Un calcul isolé répare la matière des 929 triangles du col à 2 %, en
+conservant les treize attaches, mais ses contacts restent refusés. Un audit
+supplémentaire démontre que les deux attaches dérivées des manches sont sous
+la réserve de 3 mm. Une variante calculée ajoute 0,7 mm dans leur direction
+déclarée, conserve les repères et recertifie les deux distances contre tout le
+corps. Cette variante n'est pas adoptée.
+
+Le candidat isolé col 06 atteint ensuite matière et contacts simultanément :
+929 triangles entre 0,9901752636 et 1,0198719840, zéro intersection ou déficit
+de réserve, treize attaches exactes et déplacement maximal de 4,233245 cm.
+Le recalcul indépendant du fichier sauvegardé confirme ces résultats. Les
+captures avant/après sont affichées ; les refus précédents restent disponibles.
+La garde générique des points fixes est intégrée comme option publique avant
+le couplage. Le torse, les épaules, les coutures avec le col et l'acceptation
+du vêtement entier restent à résoudre, sans transfert de cette réussite locale.

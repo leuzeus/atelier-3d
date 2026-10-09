@@ -900,7 +900,8 @@ def validate_section_parameterization(value, upper_blend, surface_sections):
 def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sections=True, skin_sections=None,
                           *,source_seam_coupling=None,seam_recipe=None, anatomical_references=None,
                           anatomical_geometry=None, section_parameterization='POLYLINE_ARCLENGTH_V1',
-                          limb_parameterization='SOURCE_ROW_CIRCUMFERENCE_V1', source_boundary_bindings=None):
+                          limb_parameterization='SOURCE_ROW_CIRCUMFERENCE_V1', source_boundary_bindings=None,
+                          attachment_clearance=None):
     """Dispatch complete source coverage; return pending unsupported roles.
 
     A missing declaration or impossible native guide produces an actionable
@@ -972,6 +973,19 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
             raise StudioError('Several guide families own one source piece')
         frames.update(report['panels']); reports.append({'family': name, 'report': report})
     attachment_controls = anatomical_attachment_controls(data, frames, references)
+    attachment_clearance_report = None
+    attachment_clearance_blocked = False
+    if attachment_clearance is not None:
+        from .attachment_guide_guard import inspect_fixed_attachment_reserve
+        if references is None or seam_recipe is None:
+            raise StudioError('Attachment clearance requires declared anatomical references and a source recipe')
+        attachment_clearance_report = inspect_fixed_attachment_reserve(
+            data, attachment_controls, profile, anatomical_geometry, seam_recipe, attachment_clearance)
+        attachment_clearance_blocked = attachment_clearance_report['status'] != 'ALL_TARGET_CLEARANCES_VERIFIED'
+        if attachment_clearance_blocked:
+            diagnostics.append({'family': 'anatomical_constraints', 'code': 'FIXED_ATTACHMENT_BODY_RESERVE_CONFLICT',
+                'message': 'A fixed source-bound target contradicts the declared body collider reserve',
+                'conflicts': attachment_clearance_report['clearance']['conflict_count']})
     envelope_report = None
     envelope_policies = {pid: row['surface_envelope'] for pid, row in (references or {}).get('pieces', {}).items()
                          if 'surface_envelope' in row and pid in frames}
@@ -1003,7 +1017,10 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
         if (not isinstance(selected,list)or (len(selected)<minimum and not missing) or len(set(selected))!=len(selected)
                 or not set(selected)<=set(frames)):
             raise StudioError('Source-seam coupling requires its explicit distinct prepared source panels')
-        if before_coupling_attachments['violations']:
+        if attachment_clearance_blocked:
+            cages = {}; coupling_report = {'strategy': source_seam_coupling.get('strategy'),
+                'status': 'NOT_EXECUTED_FIXED_ATTACHMENT_CLEARANCE_CONFLICT', 'qualification': 'NONE'}
+        elif before_coupling_attachments['violations']:
             cages = {}; coupling_report = {'strategy': source_seam_coupling.get('strategy'),
                 'status': 'NOT_EXECUTED_ANATOMICAL_CONSTRAINT_CONFLICT', 'qualification': 'NONE'}
         elif len(selected) < minimum:
@@ -1031,7 +1048,7 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
         if alignment.get('status')=='PARTIAL_ROLE_SEEDS_PREPARED':
             diagnostics.append({'family':'source_rigid_alignment','code':'PARTIAL_SOURCE_RELATION_ALIGNMENT',
                 'message':'Rigid seeds cover front attachments only; other permanent relations still require correction'})
-    elif seam_recipe is not None and source_boundary_bindings is None:
+    elif seam_recipe is not None and source_boundary_bindings is None and attachment_clearance is None:
         raise StudioError('A sewing recipe cannot enable undeclared guide coupling')
     final_attachments = anatomical_attachment_residuals(frames, attachment_controls)
     if final_attachments['violations']:
@@ -1076,6 +1093,7 @@ def garment_volume_frames(data, semantics, profile, upper_blend=1., surface_sect
             **({'source_seam_coupling':coupling_report}if coupling_report is not None else {}),
             **({'regional_surface_envelope': envelope_report} if envelope_report is not None else {}),
             **({'anatomical_attachment_constraints': final_attachments} if attachment_controls else {}),
+            **({'attachment_clearance': attachment_clearance_report} if attachment_clearance_report is not None else {}),
             **({'post_coupling_surface_reserve': final_envelope} if final_envelope is not None else {}),
             **({'anatomical_region_coverage': coverage} if coverage is not None else {}),
             **({'anatomical_references_sha256': digest(anatomical_references)} if references is not None else {}),

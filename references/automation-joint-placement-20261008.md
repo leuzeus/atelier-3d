@@ -28,6 +28,11 @@ historique `680ea40`. Deux régressions de revue sont corrigées : respect d'un
 petit budget de déplacement même sous la tolérance de résidu, et refus d'un
 quotient non représentable au lieu d'une correction infinie.
 
+Le commit exact `c063d15c0d7dd159dde8308194c291edfa212952` passe ensuite la
+validation intégrée sur export immuable : **2 256 tests, aucun SKIP, 14 contrats**.
+Les reçus sont dans `program-joint-boundary-integrated-validation-v1/` ; ils
+qualifient ce code logiciel sur l'environnement testé, pas le vêtement.
+
 ## Comparaison réelle des correspondances
 
 Le producteur est exécuté avant et après l'essai 02 sur les mêmes supports,
@@ -91,6 +96,126 @@ avant/après. Le col change effectivement de position, mais le haut du dos et
 les emmanchures restent dans le corps. Une amélioration de certains raccords
 ne devient pas une acceptation du candidat.
 
+## Correction isolée de la matière du col
+
+Le solveur local/global à factorisation QR récupère la métrique du col en
+43,188 secondes, après 8 700 itérations. Les 929 triangles sont dans l'intervalle
+`[0,98 ; 1,02]`, avec des extrema de 0,989572 et 1,019933. Les treize attaches
+sont strictement conservées, ainsi que les UV et la triangulation ; le
+déplacement maximal est de 4,427263 cm, sous la borne de 20 cm. Une vérification
+indépendante à 70 chiffres depuis les valeurs binaires enregistrées confirme
+le verdict. Le noyau métrique produit confirme aussi les 929 mesures et la
+couverture des treize faces source.
+
+Le candidat est une graine géométrique distincte, conservée dans
+`collar-feasibility/attempt-02-longer-qr/`. Les captures avant/après sont dans
+`collar-feasibility/preview/`. Il n'est pas admis : les intersections du col
+passent de 59 paires sur 38 faces à 110 paires sur 61 faces. Les plis visibles
+ne constituent aucune décision artistique humaine. La récupération de matière
+doit maintenant être combinée à des contacts portés par les faces.
+
+La revue du helper a identifié deux limites de généralisation : délai terminal
+non recontrôlé, et distance UV droite utilisée comme condition nécessaire sur
+un domaine potentiellement concave. Une nouvelle version préserve le helper
+d'origine, contrôle les délais et la taille des matrices, et utilise des
+chemins d'arêtes source. La réussite du candidat initial reste rattachée à son
+code et à son délai réel ; elle n'est pas transférée à un nouveau solve.
+
+## Contradiction des attaches dérivées et réserve corrigée
+
+L'audit des quinze points fixes est nécessaire avant un nouveau couplage.
+Les treize points du col sont à plus de 0,424 cm du corps. Les deux points de
+manche sont à 0,2480228 et 0,2496064 cm : ils contredisent la réserve de collision
+de 0,3000000026077032 cm lorsqu'ils restent immobiles. Ce constat utilise des
+témoins rationnels sur les triangles corporels fermés et ne dépend pas d'une
+classification intérieur/extérieur.
+
+Ces deux points proviennent du calcul `trajet + attachment_offset_body`. Une
+nouvelle proposition conserve le trajet, sa fraction, le point source et la
+direction du décalage ; elle ajoute **0,07 cm** à ce décalage. Les distances
+obtenues sont **0,3058948 et 0,3078479 cm**. La certification de distance couvre
+les 21 160 triangles corporels pour chaque cible, avec une marge numérique
+explicite de 0,001 cm au-delà de la réserve. La recherche bornée ne prétend pas
+trouver un déplacement minimal.
+
+La variante `anatomy-poc/attachment-clearance-variant-v1/` traduit rigidement
+les deux cages de manches et fournit une nouvelle liste de quinze contraintes,
+dont les treize contraintes du col sont identiques. La métrique est remesurée
+après les arrondis et les nouvelles cibles réellement sauvegardées sont
+recertifiées. Les anciennes cages et contraintes restent intactes ; aucune
+adoption canonique, décision humaine ou opération Blender n'est enregistrée.
+
+## Diagnostic de progression ciblé
+
+L'audit informatif demandé par les instructions de session réutilise ces
+preuves. Il distingue les buts du couplage des guides (2 % et 0,05 cm, déclarés
+dans `public-band-continuity-preview-v1/guide-policy.json`) des contrôles natifs
+de préparation et d'assemblage. Ces valeurs n'ont pas été inventées par le
+dernier prototype et aucune borne approuvée n'est modifiée pour le faire passer.
+
+Le blocage prioritaire est technique : protéger la métrique réelle pendant la
+correction des contacts, après vérification de compatibilité des attaches.
+Les résultats logiciels, métriques locaux et contacts restent séparés. Le
+vêtement complet n'a pas exécuté son acceptation. Le diagnostic ne déclenche
+aucune réforme des règles ni répétition de la suite logicielle inchangée.
+
+## Col : matière et réserve satisfaites simultanément
+
+Le candidat isolé 06 conserve les treize attaches exactes, les UV, les
+triangles et les treize faces source. Les **929 triangles** respectent
+l'intervalle `[0,98 ; 1,02]`, avec des extrema de **0,9901752636 et
+1,0198719840**. Le déplacement maximal depuis la cage initiale véritable est
+**4,2332445108 cm**, sous la borne de 20 cm. Le dernier calcul prend
+**32,906 secondes** sur les 90 autorisées.
+
+Le contrôle indépendant du candidat sauvegardé couvre les 929 triangles
+contre les 21 160 triangles corporels, sans réutiliser le BVH ou les rejets SAT
+du solveur : 3 372 tests fins, **aucune intersection, aucun déficit de réserve
+et aucune paire indéterminée**. Le minimum couvert est **0,3010000024792438 cm**
+pour une réserve physique inchangée de **0,3000000026077032 cm**. Un recalcul
+métrique à 70 chiffres confirme les bornes. La revue ne trouve pas de bloqueur
+dans cette portée locale.
+
+La correction combine une récupération métrique QR et des contraintes
+scalaires portées par les triangles réellement rencontrés. La bande
+d'activation de 0,05 cm maintient les contacts proches pendant la correction
+de matière ; une marge de calcul de 0,001 cm évite de viser exactement la
+frontière numérique. Aucune de ces valeurs ne réduit la réserve du contrôle
+final. L'essai 05, qui la manque de moins de 1e-10 cm sur trois paires, demeure
+refusé et conservé avec les essais précédents.
+
+Le candidat est dans `collar-feasibility/attempt-06-computation-margin/`, SHA
+`0e0a1f0d6e82353dbc5f3627273ac16c12bf8d95ea0ffa907485b6ec8d65169d`.
+La revue est dans `collar-feasibility/review-contact-06/`. Les planches de
+`contact-final-preview/final-before/` et `final-after/` ont les mêmes caméras et
+un corps opaque. Elles montrent aussi des plis au dos : aucune décision
+artistique humaine n'est enregistrée.
+
+Cette réussite locale ne qualifie pas les raccords au torse, les auto-contacts,
+le vêtement entier, Cloth ou le fitting. Le helper scientifique est figé et
+reste distinct du runtime du plugin.
+
+## Garde générique des attaches fixes
+
+Le [contrôle public optionnel](fixed-attachment-clearance.md) vérifie les
+cibles contre le corps entier avant le couplage. Le noyau de vérification et
+de proposition fonctionne en Python standard, sans NumPy ni SciPy. Une cible
+incompatible conserve son témoin et empêche le lancement du couplage ; une
+proposition sur un rayon déclaré ne modifie pas les données canoniques.
+
+Le premier replay réel a été refusé car le wrapper comparait à tort deux
+formats d'empreinte géométrique. Le profil utilise les centimètres en pleine
+précision ; le collider utilise les mètres arrondis, comme `mesh_digest` de
+Blender. Après correction de cette correspondance, le replay 02 détecte
+exactement les deux conflits initiaux et vérifie les quinze points de la
+variante. Les sources et le refus initial restent conservés. Ce résultat ne
+qualifie aucune surface textile.
+
+Un autre essai initialise cinq panneaux plans hors du corps entier. Le
+contrôle de 35 762 triangles ne trouve aucune paire dans la réserve, mais les
+devants nécessitent 27,60 et 27,17 cm de déplacement, au-delà des 20 cm
+déclarés. Cette proposition demeure refusée ; la réserve seule ne suffit pas.
+
 ## Preuves et reprise
 
 Toutes les preuves sont sous `work/garment-automation-v1/` sur G: :
@@ -117,7 +242,9 @@ de la longueur du chemin du checkout, et quatre attentes de digest des membres
 historiques ne les remplacent pas. Aucune fusion ni préversion finale ne
 résulte de ce travail.
 
-La prochaine correction porte sur la récupération de métrique avant couplage,
-la prévention des effondrements et les contacts portés par les triangles.
+La prochaine correction porte sur le couplage du col 06 et des cinq panneaux
+partenaires, avec prévention des effondrements et contacts portés par les
+triangles. Les coutures restent des relations entre variables, sans transformer
+le col entier en nouvelle attache anatomique fixe.
 Les quinze pièces, la boucle, l'enfilage, Cloth, le fitting, le mouvement et la
 revue artistique restent des acceptations séparées à exécuter.
