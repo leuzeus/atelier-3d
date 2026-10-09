@@ -1,0 +1,205 @@
+{
+  "date": "2026-10-07",
+  "scope": "GENERIC_GUIDE_STAGE_OBSERVATIONS_AND_EXACT_SOURCE_REPLAY",
+  "option": "couple_source_seams(observe_guide_stages=True)",
+  "default_behavior_and_prior_report_preserved": true,
+  "software": {
+    "scope": "OFFLINE_CODE_CONTRACT_AND_BOUNDED_GUIDE_CAGE_REGRESSIONS",
+    "status": "PASS",
+    "command": "python -m unittest tests.test_guide_stage_metrics tests.test_source_seam_coupling tests.test_rigid_guide_alignment tests.test_cloth_metrics -v",
+    "cwd": "G:/projets/atelier-3d/work/garment-automation-v1/source",
+    "observed_tests": 68,
+    "observed_test_duration_seconds": 0.436,
+    "suite_counts": {
+      "tests.test_guide_stage_metrics": 10,
+      "tests.test_source_seam_coupling": 16,
+      "tests.test_rigid_guide_alignment": 33,
+      "tests.test_cloth_metrics": 9
+    },
+    "log_summary": "Ran 68 tests in 0.436s\nOK\n",
+    "log_origin": "SUMMARY_TRANSCRIBED_FROM_SUCCESSFUL_TOOL_RESULT_NO_ADDITIONAL_TEST_EXECUTION",
+    "source_code_sha256": {
+      "a3d/guide_stage_metrics.py": "bddc0ab9ae6549641224a5b02f31a9636f71475cba74a03530e7e1352e81eb5b",
+      "a3d/source_seam_coupling.py": "0cf9e3b5f3d82730dc8231b13aff2c4bc6fc3d597f44999b400008e448dd244f",
+      "tests/test_guide_stage_metrics.py": "8e9e9329910a11bd1e5c438b7d4f3aa35f42d3dad1ee7d0247e2c60dffc58741"
+    },
+    "additional_checks": {
+      "git_diff_check": "PASS",
+      "py_compile": "PASS"
+    },
+    "bounded_output_test": "50 source-singular triangles per stage measured completely, 32 deterministic witnesses retained per piece/stage",
+    "Blender": "NOT_EXECUTED",
+    "SQLite": "NOT_ACCESSED",
+    "contact": "NOT_EXECUTED",
+    "regular_mesh_metric_recovery": "NOT_EXECUTED",
+    "simulation": "NOT_EXECUTED",
+    "fitting": "NOT_EXECUTED",
+    "qualification": "NONE"
+  },
+  "independent_review": {
+    "P1_P2": [],
+    "review_scope": "STATIC_METRICS_BUDGETS_PROVENANCE_AND_COMPACT_OUTPUT",
+    "tests_reexecuted_by_reviewer": false
+  },
+  "exact_replay": {
+    "source_code_sha256": {
+      "guide_stage_metrics": "bddc0ab9ae6549641224a5b02f31a9636f71475cba74a03530e7e1352e81eb5b",
+      "source_seam_coupling": "0cf9e3b5f3d82730dc8231b13aff2c4bc6fc3d597f44999b400008e448dd244f",
+      "cloth_metrics": "c090dfe6ce9025168541f09321ec3597bfa56ce6bf7b0c6dddd795cde8ca49f3",
+      "rigid_guide_alignment": "65d2c26e15a07ad4844f337f5ebd56a75a2ca77aa7dfa8b0a4b493902eacb2bb",
+      "test_guide_stage_metrics": "8e9e9329910a11bd1e5c438b7d4f3aa35f42d3dad1ee7d0247e2c60dffc58741",
+      "replay_helper": "c8bb00eee461afc2b534d8c8b3ca733ebf8f7b6d63ae8980d2dc85edfc6ad023"
+    },
+    "checks": {
+      "immutable_inputs_unchanged": true,
+      "exact_saved_guide_cages_match": true,
+      "exact_native_bound_plan_cages_match": true,
+      "exact_prior_report_match_except_diagnostics": true
+    },
+    "elapsed_seconds": 11.531000000075437,
+    "source_sha256": "185fedefa56841bff99707a8014811a7eef7c3da54f02e5b06611129e7392fd9",
+    "input_guide_sha256": "f39e4378846478819106ff20b28e2a251416b21ddb4b42bc20f351aa7ef0ae66",
+    "seam_recipe_sha256": "325dbf98b4b3f66f9b4ec0a5a9e84aec1aaa5a7a93663529d9986d26a5e8cde9",
+    "control_pair_witness": {
+      "original_guide": {
+        "piece": "collar",
+        "indices": [
+          251,
+          471
+        ],
+        "source_uv_cm": [
+          [
+            27.607707315582203,
+            0.0
+          ],
+          [
+            27.607707315582207,
+            7.0
+          ]
+        ],
+        "source_length_cm": 7.0,
+        "target_cm": [
+          [
+            -0.005265000000000075,
+            5.550634491963002,
+            153.47056622279464
+          ],
+          [
+            -0.005265000000003628,
+            5.550634491963002,
+            160.47056622279464
+          ]
+        ],
+        "placed_chord_cm": 7.0,
+        "scope": "EXPLICIT_GUIDE_CONTROL_PAIR_CHORD_NOT_FULL_HEIGHT_PHYSICAL_QUALIFICATION"
+      },
+      "role_rigid_seed": {
+        "piece": "collar",
+        "indices": [
+          251,
+          471
+        ],
+        "source_uv_cm": [
+          [
+            27.607707315582203,
+            0.0
+          ],
+          [
+            27.607707315582207,
+            7.0
+          ]
+        ],
+        "source_length_cm": 7.0,
+        "target_cm": [
+          [
+            -0.0018423370471838637,
+            3.181975604068069,
+            151.96993136589066
+          ],
+          [
+            -0.005418790912547925,
+            1.2914418772050347,
+            158.70980298459165
+          ]
+        ],
+        "placed_chord_cm": 6.999999999999997,
+        "scope": "EXPLICIT_GUIDE_CONTROL_PAIR_CHORD_NOT_FULL_HEIGHT_PHYSICAL_QUALIFICATION"
+      },
+      "seam_cohort_mean": {
+        "piece": "collar",
+        "indices": [
+          251,
+          471
+        ],
+        "source_uv_cm": [
+          [
+            27.607707315582203,
+            0.0
+          ],
+          [
+            27.607707315582207,
+            7.0
+          ]
+        ],
+        "source_length_cm": 7.0,
+        "target_cm": [
+          [
+            -0.0036275906099301155,
+            4.932383774550272,
+            150.97035460382668
+          ],
+          [
+            -0.005418790912547925,
+            1.2914418772050347,
+            158.70980298459165
+          ]
+        ],
+        "placed_chord_cm": 8.5531001599869,
+        "scope": "EXPLICIT_GUIDE_CONTROL_PAIR_CHORD_NOT_FULL_HEIGHT_PHYSICAL_QUALIFICATION"
+      }
+    },
+    "report_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-stage-observation-summary-v1\\report.json",
+      "sha256": "8e18637fc2fb1622f0b11ad4f2dbb628170680d455f1ca1d9236a9fd1750275d",
+      "bytes": 2149192
+    },
+    "summary_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-stage-observation-summary-v1\\summary.json",
+      "sha256": "f2825ecab6d303fdf38c4e766c4e6e476adc33317823356c28c5576ded60d40a"
+    },
+    "source_mutated": false
+  },
+  "output": {
+    "complete_triangle_evaluation": true,
+    "max_degenerate_witnesses_per_piece_stage": 32,
+    "complete_counts_and_extrema": true,
+    "historical_proto_preserved": true,
+    "prototype_equivalence": {
+      "historical_prototype_preserved": true,
+      "historical_prototype_report_ref": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-stage-observation-v1\\report.json",
+        "sha256": "72a5b43bedb6e666594175123d087ec89b67f8a1afbfde595841ef368f5caa2a",
+        "bytes": 153717327
+      },
+      "compact_report_ref": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-stage-observation-summary-v1\\report.json",
+        "sha256": "8e18637fc2fb1622f0b11ad4f2dbb628170680d455f1ca1d9236a9fd1750275d",
+        "bytes": 2149192
+      },
+      "same_stage_coordinate_hashes": true,
+      "same_complete_degenerate_counts": true,
+      "same_extrema_values_and_source_provenance": true,
+      "same_explicit_control_pair_witness": true,
+      "compact_extrema_add_placed_triangle_provenance": true,
+      "qualification": "NONE"
+    },
+    "diagnostic_scope": "GUIDE_CAGE_INTERPOLATION_NOT_PHYSICAL_REST_MESH"
+  },
+  "contact": "NOT_EXECUTED",
+  "regular_mesh_metric_recovery": "NOT_EXECUTED",
+  "cloth": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "native_execution": false,
+  "connected_runtime": "0704_UNCHANGED_NEW_PATCH_NOT_INSTALLED",
+  "qualification": "NONE"
+}

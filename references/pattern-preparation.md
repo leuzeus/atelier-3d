@@ -1,5 +1,9 @@
 # Préparer PATTERN_SEWN avant l'assemblage
 
+Le profil synchronisé déclare son [budget de calcul](meshing-time-budgets.md)
+pour le composant complet. Une durée différente exige des entrées séparées
+et l'autorisation native exacte ; elle ne modifie pas les critères de qualité.
+
 Après un refus ou une absence de pièces, suivre [la reprise ciblée](preparation-recovery.md) :
 identifier la cause, proposer une correction ou la production des éléments
 manquants ; si la technique approuvée dépasse le support du logiciel, expliquer

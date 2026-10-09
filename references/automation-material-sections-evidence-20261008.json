@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "source_commit": "70282c523d290e03830708b5304db661032ef8c8",
+  "software": {
+    "tests": 2157,
+    "skipped": 0,
+    "test_seconds": 444.768,
+    "contracts": 14,
+    "immutable_export": true
+  },
+  "canonical_revision": 100,
+  "source_epoch": "19ca533d1eabf37df59bf934d22925001a464a71bddc7cba9e3b6366a2a6f640",
+  "human_decisions_changed": false,
+  "compilation": "REFUSED_COMPONENT_TEMPLATES",
+  "guides": "PARTIAL_GUIDES",
+  "rendered_coat_pieces": 10,
+  "guide_inventory": 15,
+  "metrics_scope": "10_EXPLICIT_COAT_CAGES_MEASURED_5_OTHER_GUIDES_NOT_MEASURED_BY_THIS_HELPER",
+  "native_execution": false,
+  "installed_runtime": "0.7.0-rc.2.dev.2026100801",
+  "runtime_changed": false,
+  "garment_qualification": "NONE",
+  "pending_human_cutting_review": false,
+  "artistic_review": "PENDING_FUTURE_COMPLETE_CANDIDATE",
+  "files": [
+    {
+      "path": "program-material-sections-validation-v1/validation.json",
+      "sha256": "fee588b8de40093a05d5ad54817582c7558f05ef9e88b6c6bf15282db7ac59ab"
+    },
+    {
+      "path": "program-material-sections-validation-v1/tests-receipt.json",
+      "sha256": "3d38e1a752b21938460831c84bd3bee729093f6f8907ecd2c83ba76a76778d6b"
+    },
+    {
+      "path": "program-material-sections-validation-v1/contracts-receipt.json",
+      "sha256": "d55b7a3f65ac862ecaa2964d177d75d35ec4c1483949b6a1d0e7b32c1d79cbf1"
+    },
+    {
+      "path": "program-material-sections-v1/revalidation/receipt.json",
+      "sha256": "ec0f2f19aa211b14ea081f0eda5f1c63a3fe6922afda3c42d8b1216f77409077"
+    },
+    {
+      "path": "program-material-sections-v1/compilation/receipt.json",
+      "sha256": "ae25b3233b70e0f706fc2b59172abc33b71190ae2fbfe2927b82f7244dde8f7a"
+    },
+    {
+      "path": "program-material-sections-v1/compilation/result.json",
+      "sha256": "940b3a1443b140f407cf97a72b2260bc43122cfcae0fd7de1b01526251a57b03"
+    },
+    {
+      "path": "program-material-sections-v1/assembly-metrics.json",
+      "sha256": "5153f2503566875e85f7a809f0793cb81b9b0b8be4278ac87024c374ddacd1e0"
+    },
+    {
+      "path": "program-material-sections-v1/preview/assembly-readable/manifest.json",
+      "sha256": "eea6d754196598eca43369bed7a4ce5dddd1ba6652becf915dbf82a67b37d357"
+    },
+    {
+      "path": "program-material-sections-v1/preview/assembly-readable/board-overview.png",
+      "sha256": "796137d36a2419d346a7d3a474dec56ffc2b143a0cab5ba98d728512fc087a83"
+    },
+    {
+      "path": "program-material-sections-v1/preview/assembly-readable/board-details.png",
+      "sha256": "885ea35b57aa45ece355faee60b0d03926c9d71d86c3bfcb2bf76e6e6050eb5f"
+    },
+    {
+      "path": "program-portable-anatomical-0802-v2/torso-default-golden-6d0110d-v1/report.json",
+      "sha256": "5426cdbc04247eb3c689c8ef13f5ae726ef21479c8e37eca648a49fa913d7fc1"
+    },
+    {
+      "path": "program-reviewed-design-main-v1/execution-project/preparation/anatomical-placement-0801-v1/material-section-kernel-replay-v1/report.json",
+      "sha256": "ba0be2e43284d35a04ce7709cbec9769b6fff30f4ba13035240420d6458071c0"
+    },
+    {
+      "path": "program-reviewed-design-main-v1/execution-project/preparation/anatomical-placement-0801-v1/material-coupling-without-envelope-v1/report.json",
+      "sha256": "9335b744ad02476bddab5cd982c2640206dcd7288cb46bbec3c1b2eee6f05da3"
+    },
+    {
+      "path": "program-reviewed-design-main-v1/execution-project/preparation/anatomical-placement-0801-v1/material-coupling-without-envelope-v1/preview/best/manifest.json",
+      "sha256": "d9434bc533fb34f048d6646e47d73bf8f4cef0bca9a32d9df55b03a1cad00acf"
+    },
+    {
+      "path": "program-reviewed-design-main-v1/execution-project/preparation/anatomical-placement-0801-v1/limb-initial-interpolation-causes-v1/report.json",
+      "sha256": "bb234405a7124a0a7ecfb2bcee531eb67b8f2494db3c83ce748d73703a65e599"
+    },
+    {
+      "path": "program-rest-metric-search-diagnostic-v1/report.json",
+      "sha256": "54d8aba43df5813de9f8e5abc9934cff82b97ea6bea5f112477664af8a9f0fc9"
+    },
+    {
+      "path": "program-portable-anatomical-0802-v2/upper-attachment-provenance-v1/report.json",
+      "sha256": "8b786aa9a9020ee499b8aa3b6c8576535e0067dea54efae429798e807dbe2358"
+    }
+  ]
+}

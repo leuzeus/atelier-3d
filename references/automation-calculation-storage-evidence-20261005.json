@@ -1,0 +1,373 @@
+{
+  "version": 1,
+  "date": "2026-10-05",
+  "status": "SOFTWARE_PORTABLE_AND_REAL_CALCULATION_STORAGE_RESULTS_DISTINCT_SCOPES",
+  "purpose": "TEST_ONLY",
+  "qualification": "NONE",
+  "product_admission": "NONE",
+  "metrics": {
+    "software_commit": "57109e07b0e448badaf5a6cf4eae011ab50bcd7a",
+    "publication_status_at_evidence_capture": "LOCAL_COMMIT_NOT_YET_PUSHED",
+    "module_sha256": "334504b7e79553cd2e529cb4a7ef1258c4a0ab8a8cb708767668c9098cf7b884",
+    "targeted_tests": 92,
+    "new_tests": 18,
+    "independent_probes": 9,
+    "numeric_cases": 12,
+    "scope": "PRIVATE_FRESH_COMPILER_STATE_AFFINE_METRICS_ONLY",
+    "domain_freshness": "CALLER_PRECONDITION_NOT_REVALIDATED",
+    "budget": "SAME_REAL_FIELD_BUDGET_NO_RESET_NO_REFUND",
+    "receipt": "COMPACT_CHECKPOINT_BEFORE_RETURN_GUARDS",
+    "real_collar_metrics": "NOT_EXECUTED",
+    "contacts_displacement_stops": "NOT_ASSESSED"
+  },
+  "compact": {
+    "software_commit": "7b703b5e4b935bd19dfcf3992db76b78eb917526",
+    "targeted_tests": 129,
+    "independent_probes": 15,
+    "full_legacy_results_exact": 12,
+    "scope": "PORTABLE_STORAGE_ONLY",
+    "public_V1_consumer_implicit": false,
+    "source67_build_includes_compact": false
+  },
+  "native_v2_real": {
+    "source_commit": "0f18f0b1e17748fc8f3723108904f2b3d3b51e5c",
+    "source_identity_sha256": "259d3b361f75feef7133a6156b62d72d2b58e74705e23952a290821eb753e031",
+    "calculation_status": "MESH_BUILD_COMPLETED_ONLY",
+    "host_evidence_status": "INCOMPLETE_OUTPUT_BUDGET",
+    "host_output_refusal": "HOST_OUTPUT_NODE_OR_DEPTH_BUDGET",
+    "full_payload_present": false,
+    "cause_uniqueness": "NOT_ESTABLISHED",
+    "per_piece_quality": "ABSENT_PAYLOAD_NOT_QUALIFIED",
+    "native_elapsed_last_checkpoint_seconds": 53.58042770001339,
+    "native_capture_and_mesh_budget_seconds": 90.0,
+    "external_elapsed_seconds": 59.84408450004412,
+    "external_watchdog_seconds": 120.0,
+    "native_exit_code": 2,
+    "input_value_hashes_equal": true,
+    "native_work": {
+      "capture_nodes": 123459,
+      "capture_bytes": 1312470,
+      "output_nodes": 112177,
+      "output_bytes": 1237909,
+      "work_steps": 88368803,
+      "sampling_calls": 4,
+      "sampling_point_slots": 120000,
+      "fraction_requests": 44,
+      "attempted_insertions": 220,
+      "native_cdt_calls": 28,
+      "native_remesh_attempts": 18,
+      "native_point_slots": 52557
+    },
+    "runtime_scope": "ISOLATED_BLENDER_NOT_CONNECTED_PLUGIN"
+  },
+  "pending": {
+    "real_collar_compact_v2": "COMPILED_AND_STORED_ONLY_NOT_PRODUCT_QUALIFIED",
+    "native_v3": "EXECUTED_CALCULATION_ONLY_STORAGE_INCOMPLETE",
+    "metrics_on_real_collar": "NOT_EXECUTED",
+    "complete_sourced_surfaces": "NOT_QUALIFIED",
+    "material_constraints": "NOT_QUALIFIED",
+    "placement": "NOT_ADMITTED",
+    "Cloth": "NOT_EXECUTED",
+    "fitting": "NOT_QUALIFIED",
+    "artistic_review": "NOT_EXECUTED",
+    "complete_15_textiles_and_buckle": "NOT_ACCEPTED",
+    "final_prerelease": "NOT_PUBLISHED",
+    "installation": "NOT_PERFORMED",
+    "stdout_physical_accounting": "ROOT_BINARY_TRANSPORT_CORRECTION_REQUIRED",
+    "native_compact_storage": "SEPARATE_UNIT_TO_EXAMINE_NOT_QUALIFIED"
+  },
+  "automatic_retry": false,
+  "source_patterns_changed": false,
+  "approved_body_changed": false,
+  "historical_tests_not_transferred": true,
+  "references": {
+    "metrics_author_frozen": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-metrics-v1\\FROZEN.json",
+      "sha256": "8641ca66b3ea5f841495a0964837cee24fc1725fecdc2df79c7660abcd3c6af8",
+      "bytes": 3467
+    },
+    "metrics_author_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-metrics-v1\\receipt.json",
+      "sha256": "324423ce3adea15390009e0040d6c09923b7a7a30ded198504113ad5abf65bc3",
+      "bytes": 1981
+    },
+    "metrics_review_frozen": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-metrics-review-v1\\FROZEN.json",
+      "sha256": "57da5b44dc20fccdc7d68a79a3d39df931867b859361c06f0fac385bd072047d",
+      "bytes": 3653
+    },
+    "metrics_review_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-metrics-review-v1\\receipt.json",
+      "sha256": "c7b3ef6c8a5da18f435e269ad9f7852e6db9417d5d6840b07386b2ef94dfc661",
+      "bytes": 1299
+    },
+    "compact_author_frozen": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-compact-v1\\FROZEN.json",
+      "sha256": "40e1dbd703c90779be1b7a6a8aa9fc2618fe71c5ee07e4c60c0b147a7ff7fe12",
+      "bytes": 59102
+    },
+    "compact_author_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-compact-v1\\receipt.json",
+      "sha256": "2dc42c1bf7bd67c6599df5af391f86a7d091f6edc1c81d3cfa59afc59543d7c5",
+      "bytes": 2194
+    },
+    "compact_review_frozen": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-compact-review-v1\\FROZEN.json",
+      "sha256": "4f1c46d90f3613b2ebe051b7a112b0d7fcf392ce65640fd842e3a8fa1513d7bf",
+      "bytes": 58952
+    },
+    "compact_review_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-compact-review-v1\\receipt.json",
+      "sha256": "9aecadd0b78baa5c2088d38ea3ae1a369c62eef368f8cde9507b7cf384f58d04",
+      "bytes": 2074
+    },
+    "compact_published_evidence": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\references\\automation-material-surface-compact-evidence-20261005.json",
+      "sha256": "99aa80444620efce1255639f040a582319a0a29d8ef70020a19b2e62a9c2c359",
+      "bytes": 3116
+    },
+    "source67_published_evidence": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\references\\automation-synchronized-meshing-evidence-20261005.json",
+      "sha256": "c3db784072643cfd92995e3e024bbb4d55056a5703047d1d5db3147f7fbe2e6e",
+      "bytes": 22506
+    },
+    "native_v2_frozen": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-synchronized-profile-result-v2\\FROZEN.json",
+      "sha256": "ac53dffa25beaa3e77b25992c502a639c286ef11c274e0710e8e58b1f553eb49",
+      "bytes": 1079
+    },
+    "native_v2_summary": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-synchronized-profile-result-v2\\summary.json",
+      "sha256": "3c5a4bcdef935a77131c53ea30fb450855347d0cd8c07ed2fc641b69d5f55101",
+      "bytes": 1889
+    },
+    "native_v2_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-synchronized-profile-result-v2\\native\\receipt.json",
+      "sha256": "26c8691ec78e7d9d922008f16e0146895f3b2b0a8bd148bd78d24ad002405432",
+      "bytes": 5358
+    },
+    "native_v2_launch_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-synchronized-profile-result-v2\\launch-receipt.json",
+      "sha256": "04c5927a435b17dc31554a0ecdae9bb8bd097cc7d0ef29eef84c1c2006a48edb",
+      "bytes": 4859
+    },
+    "collar_preflight_v2_review_frozen": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-compact-preflight-review-v2\\FROZEN.json",
+      "sha256": "85ae1f6fd952bd425733de71c717efca60de12acfae7628a001cb38d8fa18715",
+      "bytes": 40470
+    },
+    "collar_preflight_v2_review_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-compact-preflight-review-v2\\receipt.json",
+      "sha256": "3eeba935c92f178af4ed6f8b9e0e7d7675ed2cf42423a2e3c892cca3e56641f1",
+      "bytes": 1567
+    },
+    "collar_host_review_v2_FAIL_frozen": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-compact-host-review-v2\\FROZEN.json",
+      "sha256": "637199e407e58863a0c7404b5547a3b6dcec13c78e64fdf45b4f70295445650a",
+      "bytes": 3460
+    },
+    "collar_host_review_v2_FAIL_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-compact-host-review-v2\\receipt.json",
+      "sha256": "fd268c0749990c92b0668940ec444bbac7af2f4b7ff1de6bb5e91ac91dc74303",
+      "bytes": 1226
+    },
+    "collar_host_review_v3_frozen": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-compact-host-review-v3\\FROZEN.json",
+      "sha256": "3e2469d3ca66382a653770cf0ab0055fdc51ad7f28cc2163a93dbc5cf0956ccc",
+      "bytes": 3478
+    },
+    "collar_host_review_v3_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-compact-host-review-v3\\receipt.json",
+      "sha256": "83d6201c25b72476e2f9f15860927462db01d771f265cc6f8d05c7977861cefc",
+      "bytes": 1177
+    },
+    "native_v3_author_frozen": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-synchronized-profile-preflight-v3\\FROZEN.json",
+      "sha256": "951a37086cfea58eeff2a156425d6f600d67dabff937afe195b660618f26dd54",
+      "bytes": 4003
+    },
+    "native_v3_author_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-synchronized-profile-preflight-v3\\receipt.json",
+      "sha256": "cdf5e80e4324a7387938ccb055536a1512e6c07a8ee9539cad788e19dc591c0e",
+      "bytes": 4045
+    },
+    "collar_compact_real_v2_frozen": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-compact-result-v2\\FROZEN.json",
+      "sha256": "2a28c2c3a933f50d6158dfefb68dec6ce4efd8ea1d2e10aaa2b0015000847330",
+      "bytes": 1180
+    },
+    "collar_compact_real_v2_launch_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-compact-result-v2\\launch-receipt.json",
+      "sha256": "bafe5f014653919e26ea91b286d9071ff1ca0a5e532bf45e6bb215b20da8cd01",
+      "bytes": 5366
+    },
+    "collar_compact_real_v2_result": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-compact-result-v2\\candidate-output\\result.json",
+      "sha256": "65f6e1e2eab0a3b08060a02958a576663ce7e2b105a65c0bbc5f4f17c690f1b7",
+      "bytes": 7171072
+    },
+    "collar_compact_real_v2_summary": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-compact-result-v2\\summary.json",
+      "sha256": "3b1bca7bfadaca4560f835076a35ecb23f4f34cc19721120f1afe53c382d6c6c",
+      "bytes": 2078
+    },
+    "collar_compact_real_v2_protected_before": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-compact-result-v2\\protected-before.json",
+      "sha256": "ccb1fb65b58b7b34b761cce68d446987d7285aebdbd615edab4b70c0fe668bdc",
+      "bytes": 161079
+    },
+    "collar_compact_real_v2_protected_after": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-compact-result-v2\\protected-after.json",
+      "sha256": "ccb1fb65b58b7b34b761cce68d446987d7285aebdbd615edab4b70c0fe668bdc",
+      "bytes": 161079
+    },
+    "collar_compact_real_v2_stdout": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-compact-result-v2\\stdout.log",
+      "sha256": "47bcd4c3b6320c52aae65143f630d829c393f501f2152a12b40ad91cad18975e",
+      "bytes": 2155
+    },
+    "native_v3_real_frozen": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-synchronized-profile-result-v3\\FROZEN.json",
+      "sha256": "43b152f3f813caf00884efa53db0479c8c338db6d80860bfb441446a0bc2a5f2",
+      "bytes": 1079
+    },
+    "native_v3_real_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-synchronized-profile-result-v3\\native\\receipt.json",
+      "sha256": "de1d0abf4d0c54d2815dc09eed93f3e80a05ed612e0af1b9fd39b4a877a9cf8f",
+      "bytes": 5358
+    },
+    "native_v3_real_launch_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-synchronized-profile-result-v3\\launch-receipt.json",
+      "sha256": "dac245934a56e32de46c0e5c5a632cfc63fb335bedd26f579bf4af437336842d",
+      "bytes": 4862
+    },
+    "native_v3_real_summary": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-synchronized-profile-result-v3\\summary.json",
+      "sha256": "d9e5aabb9d261d5247940c480bea604d8b84e0589905eb27d294df7968956668",
+      "bytes": 2105
+    }
+  },
+  "collar_compact_real_v2": {
+    "status": "PORTABLE_TRIAL_TERMINALLY_ATTESTED",
+    "saved_status": "COMPILED_TEST_ONLY",
+    "qualification": "NONE",
+    "admission": "NONE",
+    "candidate_id": "portable-current-collar-free-field-A-compact-v2",
+    "run_id": "portable-current-collar-free-field-A-compact-v2-run1",
+    "request_sha256": "0c0964ecca533e6d4d4da272b2901c6749bbc1583b7e07461a0bc2d4f0e4d4ca",
+    "helper_sha256": "0d9d4c72299ee48d5ae5e6c0aebd6ffae2fc6104334b4378e06144f0277da5e1",
+    "saved_result_bytes": 7171072,
+    "saved_result_sha256": "65f6e1e2eab0a3b08060a02958a576663ce7e2b105a65c0bbc5f4f17c690f1b7",
+    "real_compiler_calls": 1,
+    "single_budget_instance": true,
+    "input_counts": {
+      "source": {
+        "vertices": 15,
+        "faces": 13
+      },
+      "carrier": {
+        "vertices": 125,
+        "faces": 192
+      },
+      "reference": {
+        "vertices": 743,
+        "faces": 1098
+      }
+    },
+    "samples": 751,
+    "marks": 7,
+    "relations": 7,
+    "geometry_table_rows": {
+      "reference_carrier": 5178,
+      "source_carrier": 586,
+      "source_reference_carrier": 5526
+    },
+    "pair_checks": 1922721,
+    "fraction_operations": 117830,
+    "ledger_aggregate_output_nodes": 267903,
+    "ledger_aggregate_output_bytes": 7173226,
+    "saved_result_includes_LF": true,
+    "attestation_JSON_plus_LF_ledger_bytes": 2154,
+    "physical_stdout_log_bytes": 2155,
+    "ledger_log_scope_distinct": true,
+    "checkpoint_after_saved_hash_before_attestation_encoding_seconds": 51.625,
+    "caller_deadline_seconds": 60.0,
+    "host_seconds": 51.76472520001698,
+    "external_watchdog_seconds": 75.0,
+    "protected_files": 661,
+    "inputs_preserved": true,
+    "scope": "REAL_PORTABLE_COMPILATION_AND_STORAGE_ONLY",
+    "domains_metrics_contacts_fitting": "NOT_QUALIFIED",
+    "metrics_module_used": false,
+    "native_Blender": "NOT_EXECUTED",
+    "summary_field_name_correction": "BEFORE_SUMMARY_WRITE_RESULT_AND_ATTESTATION_UNCHANGED",
+    "physical_output_result_plus_stdout_bytes": 7173227,
+    "physical_transport_exact_byte_accounting": false,
+    "transport_finding": {
+      "id": "STDOUT_LEDGER_LF_PHYSICAL_CRLF_MISMATCH",
+      "status": "OPEN_CORRECTION_REQUIRED",
+      "ledger_stdout_bytes": 2154,
+      "physical_stdout_bytes": 2155,
+      "ledger_result_plus_stdout_bytes": 7173226,
+      "physical_result_plus_stdout_bytes": 7173227,
+      "single_stdout_JSON_line": true,
+      "physical_ending": "CRLF",
+      "stdout_sha256": "47bcd4c3b6320c52aae65143f630d829c393f501f2152a12b40ad91cad18975e",
+      "same_semantic_attestation": true,
+      "compiler_and_saved_result_affected": false,
+      "no_global_exact_transport_PASS": true,
+      "next_action": "ROOT_BINARY_STDOUT_AND_HOST_CONTROL_CORRECTION_SEPARATE_NO_PATTERN_OR_BUDGET_CHANGE"
+    }
+  },
+  "native_v3_real": {
+    "source_commit": "0f18f0b1e17748fc8f3723108904f2b3d3b51e5c",
+    "source_identity_sha256": "259d3b361f75feef7133a6156b62d72d2b58e74705e23952a290821eb753e031",
+    "request_sha256": "f9d8913b9d8e87acc5e26f50df336eb5abc14766ea5d2a1d3cb9ae6a3879cf48",
+    "calculation_status": "MESH_BUILD_COMPLETED_ONLY",
+    "host_evidence_status": "INCOMPLETE_OUTPUT_BUDGET",
+    "host_output_refusal": "HOST_OUTPUT_NODE_OR_DEPTH_BUDGET",
+    "full_payload_present": false,
+    "per_piece_quality": "ABSENT_PAYLOAD_NOT_QUALIFIED",
+    "cause_uniqueness": "NOT_ESTABLISHED",
+    "serializer": "ONE_PASS_TAGGED_NATIVE_DTO_V3",
+    "counting_correction_sufficient": false,
+    "native_elapsed_last_checkpoint_seconds": 53.34650169999804,
+    "native_capture_and_mesh_budget_seconds": 90.0,
+    "external_elapsed_seconds": 59.094218600017484,
+    "external_watchdog_seconds": 120.0,
+    "native_exit_code": 2,
+    "native_work": {
+      "capture_nodes": 123459,
+      "capture_bytes": 1312470,
+      "output_nodes": 112177,
+      "output_bytes": 1237907,
+      "work_steps": 88368803,
+      "sampling_calls": 4,
+      "sampling_point_slots": 120000,
+      "fraction_requests": 44,
+      "attempted_insertions": 220,
+      "native_cdt_calls": 28,
+      "native_remesh_attempts": 18,
+      "native_point_slots": 52557
+    },
+    "piece_ids_with_observed_work": [
+      "back-left",
+      "back-right",
+      "collar",
+      "cuff-left",
+      "cuff-right",
+      "front-left",
+      "front-right",
+      "inner-front",
+      "sleeve-left",
+      "sleeve-right"
+    ],
+    "input_value_hash_before": "cb04e590fdaad2b31bf6505763548c70be450f53284bc2caf87694797661f762",
+    "input_value_hash_after": "cb04e590fdaad2b31bf6505763548c70be450f53284bc2caf87694797661f762",
+    "essential_work_counts_equal_v2": true,
+    "complete_mesh_equality_to_v2": "NOT_ESTABLISHED_WITHOUT_FULL_PAYLOAD",
+    "previous_v2_preserved": true,
+    "runtime_scope": "ISOLATED_BLENDER_NOT_CONNECTED_PLUGIN",
+    "next_step": "SEPARATE_NATIVE_COMPACT_REPRESENTATION_TO_EXAMINE_WITH_CAPS_UNCHANGED"
+  }
+}

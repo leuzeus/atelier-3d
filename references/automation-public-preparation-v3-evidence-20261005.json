@@ -1,0 +1,219 @@
+{
+  "scope": "ACTUAL_RELOADED_RUNTIME_AND_PUBLIC_PREPARATION_ONLY",
+  "project_id": "44f03e6c-dc68-4adb-85b9-e30f88b1aeaa",
+  "software_code_commit": "18dbde47950ebb9ece6c2946e8971c32bbb98881",
+  "build_source_commit": "8b4a375ca49e7e4db6330e918edbfe09515f51e3",
+  "runtime": {
+    "status": "PASS",
+    "version": "0.7.0-rc.2.dev.2026100503",
+    "root": "C:\\Users\\leuz9\\.codex\\plugins\\cache\\atelier-3d-local\\atelier-3d\\0.7.0-rc.2.dev.2026100503",
+    "source_sha256": "646d457d1091520e02c25a357c52e649fd90b379ce05e053776dff8b8696789a",
+    "schema_files": 52
+  },
+  "pipeline": {
+    "admitted": true,
+    "stage": "RECONSTRUCTING",
+    "issues": [],
+    "scope": "Current stage prerequisites only; each transition/operation performs its own additional admission.",
+    "next": "Resolve listed issues, then follow references/lifecycle-guards.md for the current stage. Failed/interrupted Blender mutations require restore_checkpoint before continuing."
+  },
+  "compilation": {
+    "status": "READY_TO_PLAN",
+    "textiles": 15,
+    "rigid_parts": 1
+  },
+  "component_preparation": {
+    "version": 1,
+    "status": "SOURCE_PREPARATION_TEMPLATES_READY",
+    "artifacts": {
+      "guide_policy": {
+        "path": "preparation/public-source-preparation-v3/guide-policy.json",
+        "sha256": "d927439522f74b9f4c7836ca332f84a6da2e5f69579e1296d61607defa90aca4"
+      },
+      "guides": {
+        "path": "preparation/public-source-preparation-v3/guides.json",
+        "sha256": "43eb5587d201db505c44f2896a5944afa8dbbb4fcaa1abc7624eea9cc3745593"
+      },
+      "assembly_plan": {
+        "path": "preparation/public-source-preparation-v3/assembly-plan.json",
+        "sha256": "3e44352ed8b0a851f0ffabbf744c76fd6e874d993832d41e7887763f23ce32be"
+      },
+      "templates": {
+        "path": "preparation/public-source-preparation-v3/component-templates.json",
+        "sha256": "6630a1d5039fe4d0f7ff1a7a3a6f7bb6d2c230939c13036c42f9e4282e926ef9"
+      },
+      "guide_report": {
+        "path": "preparation/public-source-preparation-v3/guide-report.json",
+        "sha256": "fbc25aa2ebbf62be0c73b122aebf65835035b5f3b51fcf07f168de1b95e363bf"
+      }
+    },
+    "diagnostics": [
+      {
+        "component_id": "garment.coat",
+        "category": "guide_placement",
+        "assessment": "NEEDS_CORRECTION",
+        "guide_assessment": {
+          "status": "NEEDS_CORRECTION",
+          "source_guide_status": "PARTIAL_GUIDES",
+          "alignment_status": "PARTIAL_ROLE_SEEDS_PREPARED",
+          "proposal_scope": "PARTIAL_TEST_ONLY",
+          "whole_piece_admission": false,
+          "diagnostics": [
+            {
+              "family": "source_rigid_alignment",
+              "code": "PARTIAL_SOURCE_RELATION_ALIGNMENT",
+              "message": "Rigid seeds cover front attachments only; other permanent relations still require correction"
+            }
+          ],
+          "qualification": "NONE",
+          "simulation": "NOT_EXECUTED",
+          "fitting": "NOT_EXECUTED"
+        }
+      }
+    ],
+    "parameters_ref": {
+      "path": "preparation/guide-parameters-composed-v1.json",
+      "sha256": "3bb37e08779032b40d0fbd1b7da53746993c7406f0a5af2e928bf40536d41f9a"
+    },
+    "compiler_inputs": {
+      "assembly_plan_ref": {
+        "path": "preparation/public-source-preparation-v3/assembly-plan.json",
+        "sha256": "3e44352ed8b0a851f0ffabbf744c76fd6e874d993832d41e7887763f23ce32be"
+      },
+      "guides_ref": {
+        "path": "preparation/public-source-preparation-v3/guides.json",
+        "sha256": "43eb5587d201db505c44f2896a5944afa8dbbb4fcaa1abc7624eea9cc3745593"
+      },
+      "production_spec_ref": {
+        "path": "preparation/production-metadata-composed-v1.json",
+        "sha256": "73640c7c46bf413a8c8cc31af3f0f1f4ee620b74eb9530c11635ec3a3d800799"
+      },
+      "standard_recipe_ref": {
+        "path": "preparation/standard-sewing-recipe.json",
+        "sha256": "d2ee821cb57990b25470f50a95e48bdf43d2cc37c67614c413b39db7cd4082a9"
+      },
+      "dossier_ref": {
+        "path": ".a3d/evidence/reviewed-pattern-composition-dossier.json",
+        "sha256": "620457742c3038ed981976ccb641558a269a8e042d651c3bbee3d01039c01711"
+      }
+    },
+    "native_body_origin": {
+      "event_id": 23,
+      "receipt": {
+        "path": ".a3d/runs/native/attempt.8c48bcd1ae1249c5a97011bc95ec61f4.json",
+        "sha256": "65589246127ab5c6008d1869822d227e44a5c39bd42ca34708500c332d7ec969"
+      },
+      "run_id": "run.74b32ba8748a452a93e1983fa1664357",
+      "unit_id": "bodycontext",
+      "attempt_id": "attempt.8c48bcd1ae1249c5a97011bc95ec61f4"
+    },
+    "body_ref": {
+      "path": ".a3d/outputs/body-target-7538c9a47520482ca744f85c201f6529/profile.json",
+      "sha256": "50f40c8999caed1e2e908da3eeb9a94d883a4ea2f3fdf6f15f3a4fd633bf437a"
+    },
+    "geometry_ref": {
+      "path": ".a3d/outputs/body-target-7538c9a47520482ca744f85c201f6529/geometry.json",
+      "sha256": "ad81aa69409ab4b2220152f68c1c12c90e475ba6b24613e33d5eb142d54de0c7"
+    },
+    "qualification": "NONE",
+    "planning_capability": {
+      "coupled_multilayer": "PROPOSAL_ONLY",
+      "native_path": "NOT_QUALIFIED"
+    },
+    "placement": "NOT_QUALIFIED",
+    "simulation": "NOT_EXECUTED",
+    "fitting": "NOT_EXECUTED",
+    "acceptance": "NOT_GRANTED",
+    "source_mutated": false,
+    "native_bindings_required": [
+      "BODY_COLLIDER_SNAPSHOT",
+      "NATIVE_REGULAR_MESH_MAP",
+      "COLLISION_ENVELOPE_REVIEW"
+    ]
+  },
+  "exact_pure_comparison": {
+    "method": "Compare canonical digests after reading physical JSON in Python, preserving float and signed-zero representations",
+    "policy_sha256": "5ae99337042c75b09891291d3030c8fec42949c9f59121b02c1200fae1e91567",
+    "guides_sha256": "d8cd37e400176703d05c7e003d4ff3024f4f607c687370b6843a59179690f4f2",
+    "status": "POLICY_AND_FULL_GUIDES_IDENTICAL",
+    "public_guide_report": "Contains additional native origin evidence; not claimed identical to pure diagnostic report."
+  },
+  "scene_summary": {
+    "status": "ok",
+    "result": {
+      "status": "ok",
+      "filepath": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\blender\\working-recovered-f6e077dcc6134de09cde3774057afb1f.blend",
+      "is_saved": true,
+      "is_dirty": false,
+      "age_seconds": 4495,
+      "file_size_bytes": 479681,
+      "backups": []
+    }
+  },
+  "objects_summary": {
+    "status": "ok",
+    "result": {
+      "status": "ok",
+      "scene_name": "Scene",
+      "active_workspace": "Layout",
+      "active_object": null,
+      "object_mode": null,
+      "camera_object": null,
+      "collections": [
+        {
+          "name": "Scene Collection",
+          "exclude": false,
+          "hide_viewport": false,
+          "objects": [
+            {
+              "name": "A3D.BodyTarget.MainMale180",
+              "type": "MESH",
+              "parent": null,
+              "data_name": "A3D.BodyTargetMesh.7538c9a47520482ca744f85c201f6529",
+              "selected": false,
+              "visible": true,
+              "hide_viewport": false
+            }
+          ],
+          "children": []
+        }
+      ]
+    }
+  },
+  "run": {
+    "id": "run.1a4b661f07cc4215abf1535c70529df8",
+    "status": "AWAITING_CONFIRMATION",
+    "attempt_id": "attempt.2dd7013e4b5e416e9f25ab302e68533e",
+    "specification": {
+      "path": "preparation/native-source-binding-run-v2.json",
+      "sha256": "3a08a50a4599d28bf11b4361b3ba34639300af1cc1aa933ea0c08699e7b0fc07"
+    },
+    "operation": "bind_component_preparations",
+    "arguments": {
+      "body_geometry_ref": {
+        "path": ".a3d/outputs/body-target-7538c9a47520482ca744f85c201f6529/geometry.json",
+        "sha256": "ad81aa69409ab4b2220152f68c1c12c90e475ba6b24613e33d5eb142d54de0c7"
+      },
+      "body_object": "A3D.BodyTarget.MainMale180",
+      "output_directory": "preparation/native-source-bindings-v2",
+      "policy_path": "preparation/public-source-preparation-v3/guide-policy.json",
+      "templates_path": "preparation/public-source-preparation-v3/component-templates.json"
+    },
+    "code_sha256": "6ddfe8cb6101f790e6788b473ea8e1a065f99a22faf64062351d43afaf33952b",
+    "executed": false,
+    "execution_permission": "PENDING_SEPARATE_HUMAN_REPLY",
+    "code_path": "preparation/native-source-binding-run-step-v2.py"
+  },
+  "fit_preflight": {
+    "status": "FIT_METADATA_REQUIRED",
+    "qualification": "NONE",
+    "fitting": "NOT_EXECUTED",
+    "acceptance": "NOT_GRANTED"
+  },
+  "qualification": "NOT_GRANTED",
+  "placement": "NOT_EXECUTED",
+  "simulation": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "artistic_acceptance": "NOT_GRANTED",
+  "next": "Authorize the exact native binding V2; preserve the prior failed run and its checkpoint recovery."
+}

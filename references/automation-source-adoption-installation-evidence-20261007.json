@@ -1,0 +1,91 @@
+{
+  "date": "2026-10-07",
+  "scope": "SOFTWARE_AND_LOCAL_INSTALLATION_ONLY",
+  "code_commit": "c1f1386e4533459f6f6a090a37c98384595136ee",
+  "software": {
+    "status": "PASS",
+    "tests": 1932,
+    "skipped": 0,
+    "test_seconds": 374.956,
+    "contracts": 14,
+    "validation_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-source-adoption-full-validation-v1\\validation.json",
+      "sha256": "6800b1a71b1554e67b6bc7ca59fab752c6cb4c376cb932693a4e956361b015de"
+    },
+    "git_archive_sha256": "62bd07376aa3b9ed67ec3497d0f67b40616129f476a9ada2f9fc56cca67dd495",
+    "source_unchanged": true,
+    "native_execution": false
+  },
+  "input_replay": {
+    "status": "PASS",
+    "receipt_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-source-revision-probe-v6\\receipt.json",
+      "sha256": "96f84857b697b73cfa18e05e8e461c0d25ec30fbad8b59da751b97a164b5be20"
+    },
+    "manifest_ref": {
+      "path": "preparation/reviewed-source-revision-v6/revision.json",
+      "sha256": "c7009f5081d5ea01eb13e0ce12239dd06b02d1b73dc7ba9adb5ec3fae476c781"
+    },
+    "elapsed_seconds": 28.39000000001397,
+    "source_epoch": "19ca533d1eabf37df59bf934d22925001a464a71bddc7cba9e3b6366a2a6f640",
+    "code_matches_export_and_stage": true,
+    "canonical_database_unchanged": true,
+    "source_adoption": "NOT_EXECUTED"
+  },
+  "installation": {
+    "status": "PASS_EXACT_NATIVE_INSTALLED_COPY",
+    "version": "0.7.0-rc.2.dev.2026100702",
+    "files": 688,
+    "method": "NATIVE_CODEX_PLUGIN_ADD",
+    "cli_version": "0.162.0-alpha.2",
+    "preparation_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-source-adoption-local-build-v1\\installation-preparation.json",
+      "sha256": "8551e97db2d2b68ff0ba4f9e6155e233a239862207b6fd113d832328303ad82c"
+    },
+    "native_result_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-source-adoption-local-build-v1\\native-install-result.json",
+      "sha256": "bf5eee4205ecda910c7fbd1bfa87c9259716837ff9c386efe1e91efeff6ab167"
+    },
+    "verification_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-source-adoption-installed-verification-v1\\installation-verification.json",
+      "sha256": "c2fe8da73c23d479ad2ad413d63e882861bad9849f4512090e9ff3d45d414a8b"
+    },
+    "source_archive_sha256": "42ef6838c535c9dbb679dc15b1138eac0e3af8589b252480ec4efaa1a0b894b2",
+    "previous_stages_preserved": true,
+    "hook_trust_scripted": false
+  },
+  "connected_runtime": {
+    "status": "PASS_CONNECTED_RUNTIME_CURRENT_TURN",
+    "observed_before_install": "0.7.0-rc.2.dev.2026100701",
+    "after_install": "OLD_0701_PROCESS_REFERENCES_REPLACED_CACHE",
+    "doctor_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-source-adoption-local-build-v1\\connected-runtime-after-install.json",
+      "sha256": "0fb3b716f92b8c04e8e63e437ae319f0fffea31e96e9a49cac411ba54b9746b8"
+    },
+    "doctor_is_error": true,
+    "new_source_adoption_tool": "AVAILABLE_VERIFIED",
+    "previous_observation_status": "RESTART_REQUIRED",
+    "current_version": "0.7.0-rc.2.dev.2026100702",
+    "current_root": "C:\\Users\\leuz9\\.codex\\plugins\\cache\\atelier-3d-local\\atelier-3d\\0.7.0-rc.2.dev.2026100702",
+    "current_tools_sha256": "4f50bd2b920b9e1fc57a461242eab46c898e95ef16801396616667ef1f495870",
+    "current_doctor_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-source-adoption-installed-verification-v1\\connected-runtime-current-turn.json",
+      "sha256": "6b6ee22f5d5b0ddffab9130ff3e599238082ee93fa8921752bda4ec55f307259"
+    },
+    "application_restart_between_turns": "NOT_ESTABLISHED",
+    "restart_required_now": false
+  },
+  "next_native_mcp_request_ref": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\source-adoption-request-v1\\request.json",
+    "sha256": "d70a0f25165ef2f1b1cb211e42500a9c2f2816b2b70c1db0fecc8b3fb7685d7c"
+  },
+  "real_project": {
+    "stage": "RECONSTRUCTING",
+    "source_adoption": "NOT_EXECUTED",
+    "Blender_execution": false,
+    "fitting": "NOT_EXECUTED",
+    "artistic_acceptance": "NOT_GRANTED",
+    "final_prerelease": "NOT_PUBLISHED",
+    "new_cutting_review_pending": false
+  }
+}

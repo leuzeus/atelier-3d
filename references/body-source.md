@@ -1,5 +1,11 @@
 # Corps cible issu d'un fichier Blender existant — 0.6.4
 
+Pour chaque mannequin ajouté à un vêtement, suivre d'abord
+[la préparation du corps cible](garment-body-target.md). La sélection et
+l'inspection ci-dessous conservent une base inspectable ; le corps doit
+ensuite être dimensionné selon les cibles du vêtement et remesuré avant
+son admission au fitting. Cette règle vaut aussi pour les bases du catalogue.
+
 Le choix du corps appartient à l'utilisateur. Ne pas le remplacer par une
 enveloppe de collision historique ou déduire son anatomie de sa hauteur.
 Un squelette ajouré peut avoir des sections ouvertes, absentes ou multiples :

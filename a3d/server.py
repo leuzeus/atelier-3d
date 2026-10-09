@@ -56,6 +56,12 @@ class Server:
                 result = {"content": [{"type": "text", "text": json.dumps(value, ensure_ascii=False, allow_nan=False)}], "structuredContent": value, "isError": False}
             except (StudioError, FileNotFoundError, FileExistsError, KeyError, ValueError) as exc:
                 result = {"content": [{"type": "text", "text": str(exc)}], "isError": True}
+                if isinstance(exc, StudioError) and hasattr(exc, 'preparation_phase'):
+                    # Keep the original refusal text and expose the known phase
+                    # from initial component preparation to the MCP caller.
+                    result['structuredContent'] = {'error': str(exc),
+                        'preparation_phase': exc.preparation_phase,
+                        'diagnostic': exc.diagnostic}
             except Exception as exc:
                 print(f"Tool failed: {type(exc).__name__}", file=sys.stderr)
                 result = {"content": [{"type": "text", "text": f"Internal failure: {type(exc).__name__}"}], "isError": True}

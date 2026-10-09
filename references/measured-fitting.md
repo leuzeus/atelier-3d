@@ -7,6 +7,11 @@ englobante d'un mannequin ne constituent pas un tour fini.
 
 ## Fiche de mesures
 
+Déclarer d'abord [la catégorie, l'intention de coupe et l'aisance](garment-fit-intent.md).
+Un vêtement ample nécessite des cibles de volume et de mouvement explicites,
+distinctes des réserves de collision. Les mesures d'un devant ouvert conservent
+leur couverture et leurs recouvrements ; elles ne deviennent pas un tour fermé.
+
 Préparer `templates/fitting-plan.json` dans le dossier du projet. Le template est
 volontairement incomplet : il doit retourner NOT_QUALIFIED. Le plugin prépare
 les données techniques ; il ne demande pas à l'utilisateur de remplir un formulaire.

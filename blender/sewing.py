@@ -60,31 +60,65 @@ def triangulate(boundary, recipe, regular_mesh=None):
     ids=list(range(len(polygon)))
     if signed_area(polygon)<0:ids.reverse()
     refinement=recipe['mesh'].get('quality_refinement');added=0;passes=0;refusal=None;best=None;rejected_candidate=None
+    conditioning_history=[];smoothing=None;coordinates=None
     if regular_mesh:
         refinement={**(refinement or {'max_passes':8,'max_added_vertices':4000}),
             'target_min_angle_degrees':max(regular_mesh.get('target_min_angle_degrees',15.),
                 recipe['mesh']['min_angle_degrees'],(refinement or {}).get('target_min_angle_degrees',0.))}
-    def angle(face):
-        lengths=[distance(verts[a],verts[b]) for a,b in zip(face,face[1:]+face[:1])]
+    def angle(face,points_override=None):
+        values=verts if points_override is None else points_override
+        lengths=[distance(values[a],values[b]) for a,b in zip(face,face[1:]+face[:1])]
         if min(lengths)<1e-10:return 0.
         return min(math.degrees(math.acos(max(-1.,min(1.,(x*x+y*y-z*z)/(2*x*y)))))
             for x,y,z in ((lengths[0],lengths[1],lengths[2]),(lengths[1],lengths[2],lengths[0]),(lengths[2],lengths[0],lengths[1])))
+    def exact_source_coordinates(vertices,triangles,origins):
+        mapping={j:i for i,inputs in enumerate(origins) for j in inputs}
+        if any(i not in mapping for i in range(len(polygon))) or len({mapping[i] for i in range(len(polygon))})!=len(polygon):
+            raise StudioError("Triangulator collapsed a boundary anchor")
+        if any(distance(vertices[mapping[i]],polygon[i])>1e-4 for i in range(len(polygon))):
+            raise StudioError("Triangulator moved a boundary anchor")
+        if any(len(f)!=3 for f in triangles):raise StudioError("Constrained triangulation did not produce triangles")
+        restored=[list(v) for v in vertices]
+        for source_index,point in enumerate(polygon):restored[mapping[source_index]]=list(point)
+        if any(signed_area([vertices[i] for i in face])*signed_area([restored[i] for i in face])<=0
+               for face in triangles):
+            raise StudioError("Exact source anchor restoration inverted or collapsed a derived triangle")
+        return restored,mapping
+
     while True:
         verts,edges,faces,orig,_,_=delaunay_2d_cdt(points,[],[ids],1,1e-6,True)
         if not refinement:break
-        bad=[f for f in faces if angle(f)<refinement['target_min_angle_degrees']]
         if regular_mesh:
-            measured_angle=min((angle(f) for f in faces),default=0.)
-            measured_edge=min((distance(verts[a],verts[b]) for f in faces for a,b in zip(f,f[1:]+f[:1])),default=0.)
+            from a3d.mesh_refinement import improve_interior
+            raw_angle=min((angle(f) for f in faces),default=0.)
+            anchors={i for i,inputs in enumerate(orig) if any(j<len(polygon) for j in inputs)}
+            # Judge complete candidates, not an intermediate CDT result. Each
+            # candidate has the same bounded smoothing and fixed source anchors.
+            improved,smoothing=improve_interior([list(v) for v in verts],faces,anchors,
+                target_angle=refinement['target_min_angle_degrees'],min_edge=recipe['mesh']['min_edge_cm'],
+                max_displacement=regular_mesh['min_spacing_cm']*.5)
+            verts=[Vector(p) for p in improved]
+            coordinates,mapping=exact_source_coordinates(verts,faces,orig)
+            measured_angle=min((angle(f,coordinates) for f in faces),default=0.)
+            measured_edge=min((distance(coordinates[a],coordinates[b]) for f in faces for a,b in zip(f,f[1:]+f[:1])),default=0.)
+            conditioning={'passes':passes,'added_vertices':added,'raw_cdt_min_angle_degrees':raw_angle,
+                'conditioned_min_angle_degrees':measured_angle,'conditioned_min_edge_cm':measured_edge,
+                'interior_smoothing':smoothing,'exact_source_anchors_restored':True}
+            conditioning_history.append(conditioning)
             if best and (measured_angle<best['min_angle_degrees']-1e-7 or
                     measured_edge<min(best['min_edge_cm'],recipe['mesh']['min_edge_cm'])-1e-9):
-                rejected_candidate={'min_angle_degrees':measured_angle,'min_edge_cm':measured_edge,
-                    'added_vertices':added,'passes':passes}
+                rejected_candidate={**conditioning,'min_angle_degrees':measured_angle,'min_edge_cm':measured_edge}
+                conditioning['decision']='ROLLED_BACK_AFTER_CONDITIONING'
                 verts,edges,faces,orig=best['triangulation']
+                coordinates,mapping=best['coordinates'],best['mapping']
+                smoothing=best['smoothing']
                 added,passes=best['added_vertices'],best['passes']
                 refusal='NON_MONOTONIC_REFINEMENT_ROLLED_BACK';break
+            conditioning['decision']='BEST_CONDITIONED_CANDIDATE_PRESERVED'
             best={'triangulation':(verts,edges,faces,orig),'min_angle_degrees':measured_angle,
-                'min_edge_cm':measured_edge,'added_vertices':added,'passes':passes}
+                'min_edge_cm':measured_edge,'added_vertices':added,'passes':passes,
+                'coordinates':coordinates,'mapping':mapping,'smoothing':smoothing}
+        bad=[f for f in faces if angle(f,coordinates if regular_mesh else None)<refinement['target_min_angle_degrees']]
         if not bad:break
         if passes>=refinement['max_passes']:
             if regular_mesh:
@@ -129,34 +163,29 @@ def triangulate(boundary, recipe, regular_mesh=None):
                 refusal='VERTEX_BUDGET_EXHAUSTED';break
             raise StudioError('Derived mesh refinement exceeds the declared vertex budget')
         points.extend(insert);added+=len(insert);passes+=1
+    coordinates,mapping=exact_source_coordinates(verts,faces,orig)
     if regular_mesh:
-        from a3d.mesh_refinement import improve_interior
-        anchors={i for i,inputs in enumerate(orig) if any(j<len(polygon) for j in inputs)}
-        improved,smoothing=improve_interior([list(v) for v in verts],faces,anchors,
-            target_angle=refinement['target_min_angle_degrees'],min_edge=recipe['mesh']['min_edge_cm'],
-            max_displacement=regular_mesh['min_spacing_cm']*.5)
-        verts=[Vector(p) for p in improved]
-        if smoothing['target_reached']:refusal=None
+        # Use the exact returned material coordinates, including restored source
+        # anchors, for success. A smoothing report alone cannot grant this gate.
+        final_angle=min((angle(f,coordinates) for f in faces),default=0.)
+        final_edge=min((distance(coordinates[a],coordinates[b]) for f in faces for a,b in zip(f,f[1:]+f[:1])),default=0.)
+        if faces and final_angle>=refinement['target_min_angle_degrees'] and final_edge>=recipe['mesh']['min_edge_cm']:refusal=None
         elif refusal is None:refusal='INTERIOR_QUALITY_TARGET_NOT_REACHED'
         boundary['preparation_refinement']={'status':'NEEDS_CORRECTION' if refusal else 'TARGET_REACHED',
             'refusal':refusal,'target_min_angle_degrees':refinement['target_min_angle_degrees'],
-            'min_angle_degrees':min((angle(f) for f in faces),default=0.),'passes':passes,'added_vertices':added,
+            'min_angle_degrees':final_angle,'min_edge_cm':final_edge,'passes':passes,'added_vertices':added,
             'max_passes':refinement['max_passes'],'max_added_vertices':refinement['max_added_vertices'],
             'source_anchors_changed':False,'rejected_candidate':rejected_candidate,
             'interior_smoothing':smoothing,
+            'conditioning_policy':'BOUNDED_SMOOTHING_AND_EXACT_ANCHOR_RESTORATION_BEFORE_MONOTONE_COMPARISON',
+            'conditioning_history':conditioning_history,
             'best_safe_candidate_preserved':True,
-            'bad_faces':[list(f) for f in faces if angle(f)<refinement['target_min_angle_degrees']]}
-    mapping={j:i for i,inputs in enumerate(orig) for j in inputs}
-    if any(i not in mapping for i in range(len(polygon))) or len({mapping[i] for i in range(len(polygon))})!=len(polygon):
-        raise StudioError("Triangulator collapsed a boundary anchor")
-    if any(distance(verts[mapping[i]],polygon[i])>1e-4 for i in range(len(polygon))):
-        raise StudioError("Triangulator moved a boundary anchor")
-    if any(len(f)!=3 for f in faces):raise StudioError("Constrained triangulation did not produce triangles")
+            'bad_faces':[list(f) for f in faces if angle(f,coordinates)<refinement['target_min_angle_degrees']]}
     # CDT faces are CCW. Preserve the source boundary's orientation, corrected by
     # the explicit seam graph rather than by arbitrary proximity of panels.
     if bool(boundary["flip"]) ^ (signed_area(boundary["source"])<0):
         faces=[list(reversed(f)) for f in faces]
-    return [list(v) for v in verts],faces,mapping
+    return coordinates,faces,mapping
 
 
 def placed_point(point, placement):
@@ -172,16 +201,60 @@ def placed_point(point, placement):
     return list(rotation@Vector(local)+Vector(placement["position_cm"]))
 
 
-def build_mesh(data, recipe, regular_mesh=None, dossier=None):
+def build_mesh(data, recipe, regular_mesh=None, dossier=None, *,
+               meshing_profile=None, meshing_envelope=None, anatomical_attachments=None):
+    synchronized=meshing_profile is not None
+    if not synchronized and meshing_envelope is not None:
+        raise StudioError('Meshing envelope requires the explicit synchronized profile')
+    if synchronized:
+        from a3d.meshing_profile import create_envelope,validate_profile,verify_inventory,verify_envelope,profile_binding
+        from mathutils import Vector
+        if not regular_mesh:raise StudioError('Synchronized meshing requires regular mesh settings')
+        validate_profile(meshing_profile,data['component_id'],recipe,regular_mesh)
+        if meshing_envelope is None:
+            meshing_envelope=create_envelope(meshing_profile,data['component_id'],recipe,regular_mesh)
+        verify_envelope(meshing_profile,data['component_id'],recipe,regular_mesh,meshing_envelope)
+        verify_inventory(meshing_profile,data,meshing_envelope)
     if regular_mesh:
         from a3d.pattern_preparation import prepare_regular_boundaries
-        boundaries,seams,sampling=prepare_regular_boundaries(data,recipe,regular_mesh,dossier)
+        if synchronized:
+            boundaries,seams,sampling=prepare_regular_boundaries(data,recipe,regular_mesh,dossier,
+                meshing_envelope=meshing_envelope,transport_2d=lambda p:list(Vector(p)),
+                anatomical_attachments=anatomical_attachments)
+        else:boundaries,seams,sampling=prepare_regular_boundaries(data,recipe,regular_mesh,dossier,
+                anatomical_attachments=anatomical_attachments)
         reports=sampling['seams']
-    else:boundaries,seams,reports=prepare_boundaries(data,recipe)
+    else:
+        from a3d.pattern_preparation import anatomical_boundary_requirements
+        mandatory=anatomical_boundary_requirements(data,anatomical_attachments)
+        boundaries,seams,reports=prepare_boundaries(data,recipe,mandatory_source_uv=mandatory)
+    from a3d.sewing import mandatory_boundary_bindings
+    mandatory={pid:part['mandatory_source_uv_cm'] for pid,part in boundaries.items() if part.get('mandatory_source_uv_cm')}
+    boundary_bindings=mandatory_boundary_bindings(boundaries,mandatory,
+        check=(lambda:meshing_envelope.check('mandatory_native_boundary_binding')) if synchronized else None,
+        work=(lambda amount:meshing_envelope.reserve('work_steps',amount)) if synchronized else None)
+    native_bindings=[]
     rest,placed,faces=[],[],[]
     panels={};pins={}
     for index,(pid,boundary) in enumerate(boundaries.items()):
-        verts,local_faces,mapping=triangulate(boundary,recipe,regular_mesh)
+        if synchronized:
+            from blender.bounded_pattern_meshing import triangulate as bounded_triangulate,ConditionedPointRefusal
+            meshing_envelope.check('before_piece:'+pid)
+            maximum=min(recipe['mesh']['max_vertices'],regular_mesh['max_vertices'])
+            future=sum(len(row['polygon'])for name,row in boundaries.items()if name not in panels and name!=pid)
+            available=maximum-len(rest)-future
+            if available<20:raise StudioError('Component vertex budget leaves no supported per-piece mesh allocation')
+            local_regular={**regular_mesh,'max_vertices':available}
+            boundary['piece_id']=pid
+            try:
+                verts,local_faces,mapping=bounded_triangulate(boundary,recipe,local_regular,envelope=meshing_envelope)
+            except ConditionedPointRefusal as cause:
+                error=StudioError('Synchronized native meshing refused: '+str(cause))
+                error.reason=cause.reason;error.status='REFUSED';error.diagnostic=cause.diagnostic
+                error.bounded_meshing_partial=getattr(cause,'bounded_meshing_partial',None)
+                raise error from cause
+            meshing_envelope.check('after_piece:'+pid)
+        else:verts,local_faces,mapping=triangulate(boundary,recipe,regular_mesh)
         offset=len(rest)
         rest.extend([[v[0],v[1],index*1000.] for v in verts])
         placed.extend(placed_point(v,recipe["placements"][pid]) for v in verts)
@@ -191,6 +264,14 @@ def build_mesh(data, recipe, regular_mesh=None, dossier=None):
             "boundary":[offset+mapping[i] for i in range(len(boundary["polygon"]))],
             "boundary_source_arclength_cm":boundary["keys"],
             "edges":{name:[offset+mapping[i] for i in ids] for name,ids in boundary["edges"].items()}}
+        for binding in boundary_bindings:
+            if binding['piece'] != pid:
+                continue
+            native_index=offset+mapping[binding['boundary_vertex']]
+            if rest[native_index][:2] != boundary['polygon'][binding['boundary_vertex']]:
+                raise StudioError('Triangulation or smoothing moved a mandatory anatomical material control: '+pid)
+            native_bindings.append({**binding,'native_vertex':native_index,
+                'index_space':'COMPONENT_MESH_GLOBAL','boundary_index_space':'PIECE_BOUNDARY_LOCAL'})
         for seam in seams.values():
             for side in ("a","b"):
                 if seam["piece_"+side]==pid:seam[side]=[offset+mapping[i] for i in seam[side]]
@@ -202,6 +283,9 @@ def build_mesh(data, recipe, regular_mesh=None, dossier=None):
     payload={"version":1,"component_id":data["component_id"],"recipe_mesh_sha256":mesh_recipe_digest(recipe),
         "source_garment_sha256":digest(data),"rest_cm":rest,"placed_cm":placed,"faces":faces,"panels":panels,
         "seams":seams,"pins":pins,"seam_lengths":reports}
+    if anatomical_attachments is not None:
+        payload['mandatory_anatomical_boundary_bindings']=native_bindings
+        payload['anatomical_attachments_sha256']=digest(anatomical_attachments)
     if recipe.get('trial_mode') == 'single_panel':
         payload['trial_mode'] = 'single_panel'
         payload['single_panel_source'] = {
@@ -217,6 +301,11 @@ def build_mesh(data, recipe, regular_mesh=None, dossier=None):
         exc.garment_payload=payload
         raise
     payload.update(quality=quality,full_rest_area_cm2=quality['rest_area_cm2'])
+    if synchronized:
+        meshing_envelope.check('after_complete_mesh_quality')
+        payload['meshing_profile']=profile_binding(meshing_profile)
+        payload['meshing_work']=meshing_envelope.snapshot()
+        meshing_envelope.check('terminal_complete_mesh_build')
     return payload
 
 
@@ -242,6 +331,9 @@ def subset_mesh(payload, piece_ids):
     if 'source_vertex_cohorts' in payload:
         sub['source_vertex_cohorts']={str(mapping[int(current)]):copy.deepcopy(sources)
                                      for current,sources in payload['source_vertex_cohorts'].items() if int(current) in mapping}
+    if 'mandatory_anatomical_boundary_bindings' in payload:
+        sub['mandatory_anatomical_boundary_bindings']=[{**row,'native_vertex':mapping[row['native_vertex']]}
+            for row in payload['mandatory_anatomical_boundary_bindings'] if row['piece'] in piece_ids]
     sub["pins"]={str(mapping[int(i)]):w for i,w in payload["pins"].items() if int(i) in mapping}
     sub["seams"]={sid:{**s,"pairs":[[mapping[a],mapping[b]] for a,b in s["pairs"]]}
         for sid,s in payload["seams"].items() if s["piece_a"] in piece_ids and s["piece_b"] in piece_ids}
@@ -471,9 +563,18 @@ def apply_physics(obj,payload,recipe,phase,colliders):
         ('tension_damping','compression_damping','shear_damping','bending_damping')})
     assigned['air_damping']=profile['air_damping']*damping_scale
     contacts={'distance_min':profile['collision_distance_cm']/100,'self_distance_min':profile['self_distance_cm']/100}
-    if any(not math.isclose(getattr(settings,k),v,rel_tol=1e-5,abs_tol=1e-9) for k,v in assigned.items()) or any(
-        not math.isclose(getattr(collision,k),v,rel_tol=1e-5,abs_tol=1e-9) for k,v in contacts.items()):
-        raise StudioError('Blender clamped stiffness, damping or contact distances; revise the technical recipe')
+    mismatches=[]
+    for owner,expected in ((settings,assigned),(collision,contacts)):
+        for key,value in expected.items():
+            observed=getattr(owner,key)
+            if not math.isclose(observed,value,rel_tol=1e-5,abs_tol=1e-9):
+                rna=owner.bl_rna.properties[key]
+                mismatches.append({'parameter':key,'expected':value,'observed':observed,
+                    'rna_hard_min':getattr(rna,'hard_min',None),'rna_hard_max':getattr(rna,'hard_max',None)})
+    if mismatches:
+        error=StudioError('Blender clamped stiffness, damping or contact distances; revise the technical recipe: '+repr(mismatches))
+        error.physical_parameter_mismatches=mismatches
+        raise error
     return cloth,calculated,collection
 
 
@@ -574,12 +675,15 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
     initial_gap=max((distance(start[a],start[b]) for a,b in pairs),default=0.)
     history=[];maximum_displacement=0.;coords=start;frame=0;final_quality=None
     previous=None;previous_frame=None;evaluated_frame=0;motion=None;final_checks=None
-    contact=None;context=None
+    contact=None;context=None;monitor=None
     try:
         from blender.cloth_contacts import build_contact_context,check_contacts,check_motion
         from a3d.cloth_metrics import face_sources
         source_metrics=face_sources(payload)
         profile=recipe['phases'][phase]
+        if profile.get('execution_control'):
+            from a3d.simulation_control import ConvergenceMonitor
+            monitor=ConvergenceMonitor(profile['execution_control'],profile['fps'],profile['frames'],recipe['limits']['max_seam_gap_cm'])
         policy=payload.get('pattern_assembly',{}).get('contact_policy',{})
         clearance=policy.get('clearance_cm',0.)
         context=build_contact_context(payload,colliders,clearance_cm=clearance,
@@ -595,6 +699,11 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
             'contact_scope':'STATIC_COLLIDERS_DISCRETE_LINEAR_INTERVAL_SAMPLES_NOT_EXHAUSTIVE_CCD',
             'motion_max_step_cm':contact_step,'motion_max_subdivisions':128,
             'temporary_supports_active':payload.get('pattern_assembly',{}).get('temporary_supports_active','NOT_RECORDED')}
+        permanent_continuity=None
+        if payload.get('rest_mode')=='assembled_3d' and any(seam['kind']=='permanent' for seam in payload['seams'].values()):
+            from a3d.pattern_assembly import verify_permanent_continuity
+            permanent_continuity=verify_permanent_continuity(payload,recipe['limits']['weld_gap_cm'])
+            evidence['permanent_continuity']=permanent_continuity
         if payload.get('rest_mode')=='assembled_3d' and (expected['settings']['use_sewing_springs'] or
                 evidence['temporary_supports_active'] is True):
             raise StudioError('Continuous relaxation requires zero sewing springs and no temporary supports')
@@ -602,6 +711,7 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
         if not contact['ok']:
             raise contact_refusal(contact,initial=True)
         for frame in range(1,recipe["phases"][phase]["frames"]+1):
+            if monitor:monitor.before_frame()
             previous=coords;previous_frame=evaluated_frame
             bpy.context.scene.frame_set(frame)
             # Explicit depsgraph evaluation on EVERY frame, not just frame_set or
@@ -630,6 +740,8 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
             if not contact['ok']:
                 raise contact_refusal(contact)
             if maximum_displacement>recipe["limits"]["max_displacement_cm"]:raise StudioError("Cloth displacement budget exceeded; diagnose the local case")
+            if monitor and monitor.observe(frame,coords,gap,True):break
+        if monitor:monitor.require_convergence()
         verify_physics(obj,expected)
         quality_error=None
         try:final_quality=simulation_quality(payload,coords,recipe['mesh'])
@@ -643,8 +755,15 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
                 'violations':getattr(quality_error,'quality_violations',[])},
             'penetration':{'measured_cm':penetration,'limit_cm':recipe['limits']['max_penetration_cm'],
                 'status':'FAIL' if penetration>recipe['limits']['max_penetration_cm'] else 'PASS'},
-            'seams':{'measured_max_gap_cm':final_gap,'limit_cm':recipe['limits']['max_seam_gap_cm'],
-                'status':'FAIL' if pairs and final_gap>recipe['limits']['max_seam_gap_cm'] else 'PASS'}}
+            'seams':{'measured_max_gap_cm':final_gap if pairs else None,'limit_cm':recipe['limits']['max_seam_gap_cm'],
+                'status':('FAIL' if final_gap>recipe['limits']['max_seam_gap_cm'] else 'PASS') if pairs else 'CONTINUITY_VERIFIED' if permanent_continuity else 'NOT_APPLICABLE',
+                'active_pair_count':len(pairs),
+                'source_seam_kinds':{sid:seam['kind'] for sid,seam in payload['seams'].items()},
+                'scope':'ACTIVE_PERMANENT_AND_EXPLICIT_TEMPORARY_PAIRS',
+                'reason':None if pairs else 'EXPLICIT_PERMANENT_SOURCE_UNIONS_VERIFIED' if permanent_continuity else 'NO_ACTIVE_SEWING_PAIRS_IN_SOURCE_SCOPE',
+                'permanent_continuity':permanent_continuity}}
+        if not pairs and any(seam['kind']=='permanent' for seam in payload['seams'].values()) and not permanent_continuity:
+            raise StudioError('Permanent source sewing cannot be qualified without actual mapped pairs')
         if quality_error:raise quality_error
         if maximum_displacement<recipe["limits"]["min_movement_cm"]:
             raise StudioError("No measured cloth response; a successful API call is not a simulation")
@@ -654,6 +773,7 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
         if pairs and initial_gap>recipe["limits"]["max_seam_gap_cm"] and final_gap>=initial_gap*.95:
             raise StudioError("No measured sewing improvement")
         return coords,{"simulation":"PASS","phase":phase,"mass":mass,"executed":expected,"frames":history,"final_quality":final_quality,"final_checks":final_checks,
+            'execution_control':monitor.report() if monitor else {'mode':'FIXED_FRAME_BUDGET','convergence':'NOT_QUALIFIED'},
             'validation_contract':evidence,'final_contact':final_contact,
             "max_penetration_cm":penetration,"initial_gap_cm":initial_gap,"final_gap_cm":final_gap,
             "centroid_start_cm":[sum(p[k] for p in start)/len(start) for k in range(3)],
@@ -680,7 +800,9 @@ def simulate_object(obj,payload,recipe,phase,colliders,trees,save_progress=None,
                 geometry=failure_geometry(payload,coords,start,recipe,penetrations)
                 geometry['motion']=motion_metrics(payload,coords,start,evaluated_frame,previous,previous_frame,
                     recipe['limits']['max_displacement_cm'])
-                save_diagnostic({'error':str(exc),'frame':frame,'expected_execution':expected,'executed':observed,'frames':history,'final_quality':final_quality,'final_checks':final_checks,
+                save_diagnostic({'error':str(exc),'frame':evaluated_frame,'requested_frame':frame,'expected_execution':expected,'executed':observed,'frames':history,'final_quality':final_quality,'final_checks':final_checks,
+                    'simulation_outcome':getattr(exc,'simulation_outcome','FAIL'),
+                    'execution_control':monitor.report() if monitor else {'mode':'FIXED_FRAME_BUDGET','convergence':'NOT_QUALIFIED'},
                     'contact':getattr(exc,'contact_report',contact),
                     'geometry':geometry})
             except Exception as diagnostic_error:
@@ -842,7 +964,11 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope,purpose='fit
     from blender.operations import working
     project,session=working(project_root)
     obj,payload,recipe=managed_inputs(project,component_id,recipe_path)
+    from a3d.physics_admission import require_recipe_fit_intent
+    require_recipe_fit_intent(project, recipe)
     context,colliders,trees=preflight(obj,payload,recipe)
+    from blender.physics_admission import require_native_recipe_fit_intent
+    fit_admission = require_native_recipe_fit_intent(project, recipe, colliders, payload)
     from blender.piece_inventory import require_live
     require_live(project, component_id)
     from blender.fitting import recipe_fit
@@ -929,7 +1055,7 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope,purpose='fit
             lambda rows:atomic_json(progress_path,{'frames':rows}),save_diagnostic)
         if context_colliders(recipe)[2]!=context['colliders']:
             raise StudioError('Auxiliary mannequin pose changed during simulation')
-        report.update(binding=binding,scope=scope,component_id=component_id,recipe_path=recipe_path,recipe_sha256=digest(recipe),
+        report.update(fit_intent_admission=fit_admission,binding=binding,scope=scope,component_id=component_id,recipe_path=recipe_path,recipe_sha256=digest(recipe),
             context=context,package_sha256=payload['package_sha256'],trial_pieces=recipe['trial_pieces'],placement=placement_ref,
             fitting=fitting,fitting_tacks=payload_for_run.get('fitting_tacks',[]),
             qualification='CONSTRUCTION_FITTING_ONLY' if payload_for_run.get('fitting_tacks') else 'PHYSICS_ONLY')
@@ -957,15 +1083,16 @@ def simulate_sewn(project_root,component_id,recipe_path,phase,scope,purpose='fit
             'mass':report['mass'],'final_gap_cm':report['final_gap_cm'],'visual_validation':'NOT_EXECUTED'}
     except BaseException as exc:
         if scope=='full':counters['full_failures']+=1;atomic_json(counter_path,counters)
-        atomic_json(attempt_dir/'failure.json',{'error':str(exc),'scope':scope,'binding':binding,'simulation':'FAIL',
-            'execution_stage':execution_stage,'backend_probe_simulation':'FAIL' if execution_stage=='backend_probe' else 'PASS' if scope=='local' else 'NOT_EXECUTED',
-            'garment_simulation':'NOT_EXECUTED' if execution_stage=='backend_probe' else 'FAIL',
+        outcome=getattr(exc,'simulation_outcome','FAIL')
+        atomic_json(attempt_dir/'failure.json',{'error':str(exc),'scope':scope,'binding':binding,'simulation':outcome,
+            'execution_stage':execution_stage,'backend_probe_simulation':outcome if execution_stage=='backend_probe' else 'PASS' if scope=='local' else 'NOT_EXECUTED',
+            'garment_simulation':'NOT_EXECUTED' if execution_stage=='backend_probe' else outcome,
             'diagnostic':diagnostic_ref,'placement':placement_ref,'notes':getattr(exc,'__notes__',[])})
         if scope=='local':
             # Latest qualification is a projection; immutable prior attempt
             # results remain on disk, but a newer failed local cannot admit full.
-            atomic_json(local_path,{'binding':binding,'simulation':'FAIL','execution_stage':execution_stage,
-                'diagnostic':diagnostic_ref,'garment_simulation':'NOT_EXECUTED' if execution_stage=='backend_probe' else 'FAIL'})
+            atomic_json(local_path,{'binding':binding,'simulation':outcome,'execution_stage':execution_stage,
+                'diagnostic':diagnostic_ref,'garment_simulation':'NOT_EXECUTED' if execution_stage=='backend_probe' else outcome})
         raise
     finally:
         if scope=='local':
@@ -979,6 +1106,13 @@ def freeze_sewn(project_root,component_id,recipe_path):
     from blender.operations import working
     project,session=working(project_root)
     obj,payload,recipe=managed_inputs(project,component_id,recipe_path)
+    if recipe.get('physics_purpose') == 'TEST_ONLY':
+        raise StudioError('TEST_ONLY physics cannot become a production frozen fitting result')
+    from a3d.physics_admission import require_recipe_fit_intent
+    require_recipe_fit_intent(project, recipe)
+    from blender.physics_admission import require_native_recipe_fit_intent
+    colliders, _, _ = context_colliders(recipe)
+    fit_admission = require_native_recipe_fit_intent(project, recipe, colliders, payload)
     if payload.get('rest_mode')=='assembled_3d':
         from blender.pattern_assembly import freeze_continuous
         return freeze_continuous(project,session,obj,payload,recipe)
@@ -1006,7 +1140,7 @@ def freeze_sewn(project_root,component_id,recipe_path):
         'vertices_after':len(vertices),'explicit_unions':count,'mapping':mapping,
         'preserved_links':[sid for sid,s in payload['seams'].items() if s['kind']!='permanent'],
         'source_simulation_report':report_path.relative_to(project.root).as_posix(),'source_simulation_sha256':sha(report_path),
-        'visual_validation':'NOT_EXECUTED'}
+        'fit_intent_admission':fit_admission,'visual_validation':'NOT_EXECUTED'}
     atomic_json(project.data/'blender/sewing'/(component_id+'-frozen.json'),receipt)
     bpy.ops.wm.save_as_mainfile(filepath=session['working'],check_existing=False)
     return {k:v for k,v in receipt.items() if k!='mapping'}

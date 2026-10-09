@@ -1,0 +1,29 @@
+{
+  "source_commit": "17e19ea34f826827558dfb472ce3d2103fd7c284",
+  "git_archive_sha256": "c3f82fa4ee2fed9aa8e5799bb3e6ddd40d7396f8d1840b4c354f3616a19fb7b2",
+  "validator_sha256": "d0c490d08ae8f14425ee1f342afee9340490c6d63ffe9a05819190554f1ce276",
+  "native_execution": false,
+  "qualification": "NONE",
+  "installed_runtime_changed": false,
+  "status": "PASS",
+  "source_directory": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-collar-pattern-source-full-validation-v1\\source",
+  "tests_receipt_sha256": "5223954f12de25b4847f2031cf95bb3901a2deea18acd7d9cdc9e9c7ac1651bc",
+  "contracts_receipt_sha256": "388780ecf785446982d6484db6eb65d3c24cb36086e75cdf3cb279a42a4f6e7e",
+  "unittest_log_sha256": "8fc2d814bf617e86dad6009cda06b2ddcd1c09f5249a39766c2edc2add7f7f10",
+  "contracts_log_sha256": "c103412537739b27ec7ed6d2d97f551aac61fe267a0028ea686761e37916e8d6",
+  "source_unchanged": true,
+  "tests": 1900,
+  "skipped": 0,
+  "scope": "SOFTWARE_EXPORT_ONLY_NO_GARMENT_ACCEPTANCE",
+  "test_seconds": 275.089,
+  "contracts": 14,
+  "validation_receipt": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-collar-pattern-source-full-validation-v1\\validation.json",
+    "sha256": "894cb1cd11de8ae6d547f04871d66d8449cec4a11e66e34364b4a2273442458b"
+  },
+  "subsequent_changes": "DOCUMENTATION_AND_EVIDENCE_ONLY_THROUGH_2c21327",
+  "subsequent_verified_head": "2c213274dae8f4b3b04a981816020fa2602d2d0f",
+  "new_revision_preparation_code": "REQUIRES_SEPARATE_SOFTWARE_VALIDATION",
+  "target_pattern_review": "HUMAN_APPROVED_2026_10_07",
+  "fitted_garment": "NOT_QUALIFIED"
+}

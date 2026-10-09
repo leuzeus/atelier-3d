@@ -1,0 +1,105 @@
+{
+  "date": "2026-10-06",
+  "status": "NATIVE_MESH_REFUSAL_RECOVERED_GRID_CODE_TARGETED_PASS",
+  "scope": "CODE_AND_PORTABLE_SOURCE_FIXTURES_NOT_GARMENT_ACCEPTANCE",
+  "native": {
+    "version": "0.7.0-rc.2.dev.2026100507",
+    "run_id": "run.613b83aa54c04e07b1e3cb8146b63087",
+    "attempt_id": "attempt.f97f4f217d48404ca2ff9f1aaf0866d3",
+    "execution_authorized": true,
+    "execution": "RETURNED",
+    "readiness": "NEEDS_CORRECTION",
+    "elapsed_seconds": 171.25716989999637,
+    "meshing_budget_seconds": 90,
+    "reason": "DEADLINE_EXHAUSTED",
+    "last_phase": "bounded_meshing:after_interior_grid",
+    "receipt": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-reviewed-design-main-v1/execution-project/.a3d/blender/pattern-preparation/attempt-b6d9167737cd4cf29e6320ec05330c80/receipt.json",
+      "sha256": "c069601e4ae8eec0dd16355cb97c42f8d34892c7a5a43f212ca2dd3d73be1f2d"
+    },
+    "attempted_work": {
+      "work_steps": 88414239,
+      "native_cdt_calls": 16,
+      "native_remesh_attempts": 10,
+      "native_point_slots": 34362,
+      "attempted_insertions": 145
+    },
+    "derived_mesh": null,
+    "anchor_reserve": "NOT_EXECUTED",
+    "placement": "NOT_EXECUTED",
+    "native_duration_not_attributed_to_grid_alone": true
+  },
+  "recovery": {
+    "execution_authorized": true,
+    "status": "SUCCEEDED_RESTORATION_ONLY",
+    "result": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-restart507-verification-v1/recovery-execution-result.json",
+      "sha256": "3fe7245d5654fe9f323c89f0d46d992cc4ca14ce82b93147dacae429e4be7de9"
+    },
+    "checkpoint": {
+      "path": ".a3d/checkpoints/pre-a75c708d0c094266af53ef4e7a78ccf7.blend",
+      "sha256": "bd8ba73ae98ce00456c9f85ccbf485c7347b06b844dbdb9af03b22b88e9e4f34"
+    },
+    "working": {
+      "path": ".a3d/blender/working-recovered-1d3848fe68f44927919be66e43870d77.blend",
+      "sha256": "e293b388e42c2676e21b72431eb74dbf7c379fe754c6b38e6757fc61782751d2"
+    },
+    "body": "ACCEPTED_BODY_ONLY",
+    "historical_refusals_preserved": true,
+    "qualification": "NOT_GRANTED"
+  },
+  "code_sha256": {
+    "a3d/interior_grid_queries.py": "132019f08c16d6d90db69b78431f6079820f8d6fe70f3ae2e08a2a54ceff1bea",
+    "a3d/pattern_preparation.py": "07807adf24dd11362e5a239c6fc5b456cb20c7734d55de55c79df10108dff9e9",
+    "a3d/board_contract.py": "481cf70c5a615e74a3452e9ff66b89f040fd55071257cfc26568b924b7e98ef9",
+    "blender/bounded_pattern_meshing.py": "dae0d425440fc5ab23b38c21c69b5ffd87edd96a4266e31664bf6134cf9a7c46",
+    "blender/pattern_preparation.py": "096def287dde7eb9bb0996d1c9eb7c054a602ee7cf8b563b366df30e7f52e100"
+  },
+  "targeted": [
+    {
+      "python": "3.11",
+      "tests": 109,
+      "seconds": 3.471,
+      "status": "PASS",
+      "log": {
+        "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-bounded-grid-integration-validation-v1/python311-final-v2.log",
+        "sha256": "91fc30ba187780e852198ec507a5c53eb9085410c65b7c657d819562d3683ee0"
+      }
+    },
+    {
+      "python": "3.13",
+      "tests": 109,
+      "seconds": 3.516,
+      "status": "PASS",
+      "log": {
+        "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-bounded-grid-integration-validation-v1/python313-final-v2.log",
+        "sha256": "fa109c7113f82648a03f5bb960984e792c5ffcc63b0959d4f4542cbd9cddf7f4"
+      }
+    }
+  ],
+  "benchmark": {
+    "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-regular-grid-source-benchmark-v4/receipt.json",
+    "sha256": "bb85ab76cb5658f185d21a070f8282c8020cb166a5f44c51da52037202593b70",
+    "scope": "PORTABLE_BASELINE_SOURCE_BOUNDARIES_NOT_NATIVE_GRADED_MAP",
+    "pieces": 10,
+    "seeds": 13369,
+    "exact_points_and_geometric_reports": true,
+    "legacy_grid_seconds": 18.583810699987225,
+    "indexed_grid_seconds": 3.339518400025554,
+    "native_gain": "NOT_MEASURED"
+  },
+  "independent_review": {
+    "reviewer": "/root/anchor_reserve_kernel",
+    "mode": "READ_ONLY",
+    "integer_norm_overflow_finding": "CLOSED_AFTER_CORRECTION",
+    "remaining_blockers": 0
+  },
+  "source_patterns_changed": false,
+  "accepted_body_changed": false,
+  "code_installed": false,
+  "cloth": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "visual_review": "NO_COMPLETE_CANDIDATE_PRODUCED",
+  "cutting_review": "NO_NEW_PATTERN_VARIANT",
+  "qualification": "NONE"
+}

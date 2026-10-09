@@ -1,0 +1,431 @@
+{
+  "type": "object",
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "source_ref": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "body_ref": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "pieces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "component_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "enum": [
+              "front",
+              "back",
+              "side",
+              "sleeve",
+              "cuff",
+              "hood",
+              "yoke",
+              "belt",
+              "lining",
+              "reinforcement",
+              "collar",
+              "inner_front",
+              "panel"
+            ]
+          },
+          "side": {
+            "enum": [
+              "left",
+              "right",
+              "center"
+            ]
+          },
+          "layer": {
+            "type": "string",
+            "minLength": 1
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "longitudinal_uv_axis": {
+            "enum": [
+              "u",
+              "v"
+            ]
+          },
+          "subrole": {
+            "enum": [
+              "opening_strip"
+            ]
+          },
+          "guide_edges": {
+            "type": "object",
+            "properties": {
+              "side": {
+                "type": "string",
+                "minLength": 1
+              },
+              "hem": {
+                "type": "string",
+                "minLength": 1
+              },
+              "center": {
+                "type": "string",
+                "minLength": 1
+              },
+              "neck": {
+                "type": "string",
+                "minLength": 1
+              },
+              "shoulder": {
+                "type": "string",
+                "minLength": 1
+              },
+              "anchor": {
+                "type": "string",
+                "minLength": 1
+              },
+              "anchor_end": {
+                "type": "string",
+                "minLength": 1
+              },
+              "opening": {
+                "type": "string",
+                "minLength": 1
+              },
+              "distal": {
+                "type": "string",
+                "minLength": 1
+              },
+              "proximal": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "source_ref": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "path",
+              "sha256"
+            ],
+            "additionalProperties": false
+          },
+          "guide_surface_offset_cm": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 20
+          }
+        },
+        "required": [
+          "id",
+          "component_id",
+          "role",
+          "side",
+          "layer",
+          "edges",
+          "source_ref"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "permanent",
+              "closure",
+              "detachable",
+              "free_contact",
+              "temporary_support"
+            ]
+          },
+          "piece_a": {
+            "type": "string",
+            "minLength": 1
+          },
+          "edge_a": {
+            "type": "string",
+            "minLength": 1
+          },
+          "piece_b": {
+            "type": "string",
+            "minLength": 1
+          },
+          "edge_b": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_ref": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "path",
+              "sha256"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "piece_a",
+          "edge_a",
+          "piece_b",
+          "edge_b",
+          "source_ref"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "uniqueItems": true
+    },
+    "layers": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "source_ref": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "additionalProperties": false
+        },
+        "mode": {
+          "enum": [
+            "single",
+            "ordered"
+          ]
+        },
+        "interaction": {
+          "const": "one_way_declared"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "enum": [
+                  "body",
+                  "garment"
+                ]
+              },
+              "panels": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 0
+              },
+              "colliders": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 0
+              },
+              "source_ref": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                },
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "additionalProperties": false
+              },
+              "outward_normal_sign": {
+                "enum": [
+                  -1,
+                  1
+                ],
+                "description": "Sourced exterior orientation required to measure ordering against an external garment collider."
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "panels",
+              "colliders",
+              "source_ref"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "inside_to_outside": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "minItems": 0
+        }
+      },
+      "required": [
+        "version",
+        "source_ref",
+        "mode",
+        "interaction",
+        "nodes",
+        "inside_to_outside"
+      ],
+      "additionalProperties": false,
+      "description": "Explicit directed acyclic inner-to-outer order; named panels/colliders must be partitioned. One-way collision interaction is an approximation, not bidirectional cloth qualification."
+    },
+    "budgets": {
+      "type": "object",
+      "properties": {
+        "max_frames": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "max_iterations": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "max_seconds": {
+          "type": "number",
+          "maximum": 3600,
+          "minimum": 0.001
+        },
+        "max_displacement_cm": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_strain_relative": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "max_frames",
+        "max_iterations",
+        "max_seconds",
+        "max_displacement_cm",
+        "max_strain_relative"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "version",
+    "source_ref",
+    "body_ref",
+    "pieces",
+    "links",
+    "layers",
+    "budgets"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Source-bound automatic garment assembly inputs"
+}

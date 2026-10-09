@@ -1,6 +1,125 @@
 # Historique
 
-## Non publié
+## En développement — programme d'automatisation, 2026-10-04
+
+- Placement anatomique V2 : trajets 3D pour bandes, attaches de peau distinctes
+  des axes des membres et enveloppes de triangles source. Rôle générique
+  `panel`, inventaire des régions disponibles/manquantes, couplage de la
+  métrique matière et des coutures avec partenaires permanents complets.
+  Recettes d'embu et contraintes anatomiques conservées dans les entrées
+  natives. Les contrôles portables ne qualifient pas le fitting du manteau ;
+  voir [le contrat et ses limites](references/generic-anatomical-placement.md).
+
+- Rôle Patronage distribué avec le plugin et profil de sous-agent Codex fourni.
+  `studio_prepare_patronage_review` recompile les sources, authentifie le corps
+  et la décision numérique disponible, remesure sections et chemins matière,
+  puis génère la fiche et ses preuves. Les trajets ouverts ne produisent aucun
+  déficit de tour fermé. Les ajustements du torse restent à développer ;
+  aucune adoption de patron, simulation ou acceptation de fitting n'est créée.
+
+- Requêtes de grille intérieure indexées sur les segments source exacts ;
+  contrôle coopératif de la grille et de la simplicité sous l'enveloppe commune.
+  Diagnostics d'échec par pièce, sans snapshot terminal fictif ni candidat
+  natif sérialisé. Tests et benchmark source portables ; essai natif corrigé
+  encore non exécuté.
+
+- Diagnostic exact des refus de placement et proposition de maillage dérivé
+  synchronisé sans modification des patrons ou diminution des seuils.
+- Réserve optionnelle des stops mesurée contre le corps natif exact avant
+  protection, par translation commune des composants permanents. Budget
+  original partagé entre réserve, récupération métrique et contacts ; pins
+  physiques conservés. Domaine borné et refus documentés dans
+  [la reprise de placement](references/placement-recovery.md). Essai du vêtement
+  réel encore non exécuté ; aucun fitting déduit des tests portables.
+
+- Périmètres corporels, normalisations de courbes et projections de guides
+  calculés avec une sommation explicite
+  commune au Python de préparation et à celui de Blender. Les empreintes
+  strictes restent exigées ; les politiques dérivées sont régénérées après
+  changement de code, avec conservation du corps et des patrons approuvés.
+- Journal persistant de runs, reprise aux frontières et réconciliation ComfyUI
+  avec variantes sourcées ; une soumission incertaine ne crée pas de double job.
+- Compilation des 15 textiles et de la boucle, guides sourcés, récupération
+  métrique puis placement borné, exécution de groupes et continuité permanente.
+- Classification du vêtement et aisance explicites, mesures corporelles
+  supplémentaires et propositions de chemins homologues. Admission physique
+  de production liée au corps, aux patrons et aux cibles numériques revues.
+- Politiques de guides reconstructibles depuis les sources exactes, ancres UV
+  conservées et projections de runs archivées sans réécrire les anciens reçus.
+- Proposition de gradation bornée à partir d'une décision d'aisance humaine,
+  comparaison des variantes et conservation matérielle des crans. Cages UV
+  communes au placement et aux mesures, raccords internes du torse synchronisés
+  depuis leurs vrais bords source ; contacts et fitting encore à vérifier.
+- Couplage explicite du devant intérieur et du col aux quatre pièces du torse,
+  avec recette source hachée, union des paramètres de bords et subdivision des
+  seules faces source. Conservation exacte des coins des patrons lors de la
+  préparation régulière ; les conflits de précision ou qualité sont refusés.
+- Récupération métrique commune par cohortes de vrais raccords permanents,
+  alignement initial borné et précontrôle des appuis fixes impossibles. Les
+  pins, sources et seuils finaux restent protégés ; le solveur de contacts
+  suivant conserve son contrôle d'écart distinct.
+- Phase du col calculée depuis les milieux de ses vrais bords dans son domaine
+  périodique. Mode d'ancrage des composantes cousues explicite : les appuis
+  déclarés sont conservés, les repères UV de placement ne créent pas de pins.
+  Les îlots sans appui sont refusés après construction du graphe réel.
+- Arrêt avant optimisation lorsque l'angle ou l'aire UV source immuable ne
+  satisfait pas les limites finales. Chaque candidat CDT est lissé sous ses
+  bornes puis comparé après restauration exacte des ancres. Le diagnostic des
+  six pièces réelles atteint 15,438° au col ; son placement reste refusé.
+- Composition pure des pièces d'une variante revue : données hors périmètre
+  et ordre original conservés exactement, différences incidentes exclues et
+  rapportées. Le consommateur canonique de décisions reste à intégrer.
+- Enfilage depuis des prises source, corps/colliders animés, rendus de clips,
+  finition/UV/LOD, attachement rigide, export et réimportation contrôlés.
+- Limites : les essais mécaniques et de livraison sont des cas de test.
+  Les épaules et le haut du torse du manteau principal restent refusés ;
+  aisance ample numérique et deux patrons de manches acceptés, couverture
+  du torse ouvert à préciser.
+  Construction physique, enfilage, drapé, fitting, mouvements et revue artistique
+  complets restent requis. Aucune nouvelle release ou installation finale.
+
+## 0.7.0-rc.2 — 2026-10-03, stature codée et repères de surface
+
+- Préparation systématique du corps cible dès l'ajout d'un mannequin pour un
+  vêtement : mensurations prévues, variante séparée, mesures et revue.
+- Calcul déterministe de stature en cm avec conservation du plan des pieds,
+  de la topologie et de l'original, transformation des repères et nouveau
+  profil mesuré. Les variantes à 180 cm sont vérifiées dans Blender et relues.
+- Guide du haut du torse utilisant la peau mesurée aux épaules, distincte des
+  centres articulaires. Refus d'un profil, cadre ou pose modifié, d'une
+  triangulation incomplète, mal orientée ou d'un corps ouvert. Sections réelles
+  du torse et bords nommés de patrons conservés.
+- Limites : réglage indépendant de poitrine/taille/hanches non implémenté,
+  contacts des quatre panneaux de torse encore refusés, Cloth et fitting
+  complets des 15 pièces non qualifiés. Les mesures des variantes ne prouvent
+  ni la compatibilité de coupe ni l'enfilage. Les PASS des coupons ne sont
+  pas transférés. Aucune nouvelle installation Codex revendiquée.
+
+## 0.7.0-rc.1 — 2026-10-03, préversion textile
+
+- Catalogue hors ligne de deux bases réalistes CC0 de Dan Ulrich, import et
+  sélection explicites, adaptateurs anatomiques mesurés et rig préparatoire.
+- Planificateur séparant groupes cousus, couches spatiales, fermetures,
+  attaches amovibles et contacts libres, avec provenance et refus explicites.
+- Guides sémantiques du torse, des membres et d’une ceinture source unique ;
+  patrons et métriques conservés. Corrections rigides bornées, dont mouvements
+  coordonnés évalués atomiquement, sans assouplir les seuils.
+- Simulation sur coupon couplé, contrôle de convergence et conservation des
+  budgets incomplets ; réponses MCP compactes liées aux reçus complets et
+  empreintes des modules chargés.
+- Documentation réorganisée issue de la PR 21 intégrée dans cette branche.
+- Limites : fitting complet non qualifié, intersections du haut du torse encore
+  présentes, guides du col/devant intérieur/capuche/empiècements et orchestration
+  complète à terminer. Le rig est préparatoire, sans contrôles indépendants de
+  mensurations. Les PASS des coupons ne valent pas acceptation du vêtement.
+- Cette préversion GitHub est publiée depuis la branche isolée ; aucune
+  nouvelle installation Codex ni qualification artistique n’est revendiquée.
+  [Contrat et limites](references/garment-automation.md).
+
+## Notes historiques du correctif 0.6.9
+
+Ces notes conservent l’état au moment de leurs essais, avant publication
+de 0.6.9. Elles ne décrivent pas le statut de publication actuel.
 
 - Correctif local 0.6.9 : essai explicite `single_panel` pour une pièce source
   unique sans couture permanente, avec provenance liée aux empreintes et

@@ -5,6 +5,7 @@ Seam parameters are normalized arc lengths on the original named boundary, not
 indices guessed from proximity in a placed garment.
 """
 import math
+import copy
 from .core import StudioError, contract, digest
 
 
@@ -24,7 +25,16 @@ def chain_lengths(points):
 
 def sample_chain(points, t):
     lengths = chain_lengths(points)
-    target = min(1., max(0., t)) * lengths[-1]
+    parameter = min(1., max(0., t))
+    # An exact normalized source stop denotes the source vertex itself. Re-
+    # interpolating it can introduce subtraction noise (including nonzero UV
+    # where the source coordinate is zero) and a different binary32 boundary.
+    # No proximity or tolerance turns an ordinary sample into a source corner.
+    if lengths[-1]:
+        for point, stop in zip(points, lengths):
+            if parameter == stop / lengths[-1]:
+                return list(point)
+    target = parameter * lengths[-1]
     for i in range(len(points) - 1):
         if target <= lengths[i + 1] + 1e-9:
             f = (target - lengths[i]) / (lengths[i + 1] - lengths[i])
@@ -225,6 +235,13 @@ def validate_recipe(data, recipe):
         if any(s.get('kind', recipe['seams'][s['id']]['kind']) == 'permanent'
                or recipe['seams'][s['id']]['kind'] == 'permanent' for s in data['seams']):
             raise StudioError('Single-panel trial cannot contain or hide a permanent source seam')
+    elif recipe.get('trial_mode') == 'seam_free':
+        selected = recipe['trial_pieces']
+        if len(selected) < 2 or len(set(selected)) != len(selected) or set(selected) != set(data['pieces']):
+            raise StudioError('Seam-free trial requires every panel of the complete source component exactly once')
+        if any(s.get('kind', recipe['seams'][s['id']]['kind']) == 'permanent'
+               or recipe['seams'][s['id']]['kind'] == 'permanent' for s in data['seams']):
+            raise StudioError('Seam-free trial cannot contain or hide a permanent source seam')
     else:
         if set(recipe["trial_pieces"]) - data["pieces"].keys() or len(set(recipe["trial_pieces"])) < 2:
             raise StudioError("Local trial needs at least two declared panels")
@@ -299,27 +316,147 @@ def permanent_support_groups(payload):
     return sorted(group for group in groups.values() if len(group) > 1)
 
 
-def prepare_boundaries(data, recipe, seam_parameters=None):
+def _mandatory_uv_work(check, work, count):
+    if work is not None and count:
+        work(count)
+    if check is not None:
+        check()
+
+
+def _bounded_uv_rows(rows, check, work):
+    """Debit before each bounded chunk, including scans preceding sampling."""
+    for index, row in enumerate(rows):
+        if index % 64 == 0:
+            _mandatory_uv_work(check, work, min(64, len(rows)-index))
+        yield row
+
+
+def _source_uv_scale(points, check=None, work=None):
+    value = 1.
+    for point in _bounded_uv_rows(points, check, work):
+        value = max(value, *(abs(x) for x in point))
+    return value
+
+
+def _boundary_uv_tolerance(point, scale):
+    return 64*math.ulp(max(scale, *(abs(x) for x in point)))
+
+
+def source_uv_chain_parameters(points, requested, *, check=None, work=None, require_all=False):
+    """Inverse actual source arcs within float64 arithmetic resolution only."""
+    if not requested:
+        return []
+    scale = _source_uv_scale(points, check, work)
+    lengths = [0.]; result = []
+    for index in _bounded_uv_rows(range(len(points)-1), check, work):
+        a, b = points[index:index+2]
+        lengths.append(lengths[-1]+distance(a, b))
+    for point in _bounded_uv_rows(requested, check, work):
+        tolerance = _boundary_uv_tolerance(point, scale)
+        values = []
+        for index in _bounded_uv_rows(range(len(points)-1), check, work):
+            a, b = points[index:index+2]
+            size = lengths[index+1]-lengths[index]
+            if size <= 0:
+                raise StudioError('Mandatory source UV cannot bind a collapsed source edge')
+            direction = [y-x for x, y in zip(a, b)]
+            t = sum((point[k]-a[k])*direction[k] for k in range(2))/(size*size)
+            if -tolerance/size <= t <= 1+tolerance/size:
+                t = max(0., min(1., t))
+                projected = [a[k]+t*direction[k] for k in range(2)]
+                if math.dist(point, projected) <= tolerance:
+                    value = (lengths[index]+t*size)/lengths[-1]
+                    if not any(abs(value-existing)*lengths[-1] <= tolerance for existing in values):
+                        values.append(value)
+        if require_all and not values:
+            raise StudioError('Mandatory anatomical source UV is not on an actual source boundary; interior insertion is unsupported')
+        result.extend(values)
+    _mandatory_uv_work(check, work, len(result))
+    return sorted(set(result))
+
+
+def mandatory_source_uv_inputs(data, requests, *, check=None, work=None):
+    """Required boundary controls, never interior insertion or a cut change."""
+    if requests is None:
+        return {}
+    if (not isinstance(requests, dict) or not set(requests) <= set(data['pieces']) or
+            any(not isinstance(rows, list) for rows in requests.values()) or
+            sum(len(rows) for rows in requests.values()) > 4096):
+        raise StudioError('Mandatory source UV controls require bounded existing source pieces')
+    result = {}
+    for pid, rows in sorted(requests.items()):
+        for point in _bounded_uv_rows(rows, check, work):
+            if (not isinstance(point, (list, tuple)) or len(point) != 2 or
+                    any(type(x) not in (int, float) or not math.isfinite(x) for x in point)):
+                raise StudioError('Mandatory source UV controls must be finite two-dimensional material coordinates')
+        points = data['pieces'][pid]['vertices']
+        _mandatory_uv_work(check, work, len(rows)+len(points))
+        closed = points+points[:1]
+        result[pid] = [list(point) for point in sorted(set(tuple(row) for row in rows))]
+        source_uv_chain_parameters(closed, result[pid], check=check, work=work, require_all=True)
+    return result
+
+
+def mandatory_boundary_bindings(boundaries, requests, *, check=None, work=None):
+    """Verify every required material point survived sampling without merging."""
+    records = []
+    for pid, rows in sorted(requests.items()):
+        part = boundaries[pid]
+        scale = _source_uv_scale(part['source'], check, work)
+        used = {}
+        for point in _bounded_uv_rows(rows, check, work):
+            tolerance = _boundary_uv_tolerance(point, scale)
+            matches = [i for i in _bounded_uv_rows(range(len(part['polygon'])), check, work)
+                       if math.dist(part['polygon'][i], point) <= tolerance]
+            if len(matches) != 1 or (matches[0] in used and used[matches[0]] != point):
+                raise StudioError('Mandatory anatomical source UV was lost or merged by boundary sampling: '+pid)
+            index = matches[0]; used[index] = point
+            records.append({'piece': pid, 'source_uv_cm': list(point),
+                'actual_boundary_uv_cm': list(part['polygon'][index]), 'boundary_vertex': index,
+                'source_perimeter_key_cm': part['keys'][index],
+                'numeric_source_residual_cm': math.dist(part['polygon'][index], point),
+                'index_space': 'PIECE_BOUNDARY_LOCAL'})
+    return records
+
+
+def prepare_boundaries(data, recipe, seam_parameters=None, regular_boundary_spacing_cm=None,
+                       mandatory_source_uv=None, mandatory_check=None, mandatory_work=None):
     reports, flips = validate_recipe(data, recipe)
-    seam_parameters = {} if seam_parameters is None else seam_parameters
+    seam_parameters = {} if seam_parameters is None else copy.deepcopy(seam_parameters)
     if not isinstance(seam_parameters, dict) or set(seam_parameters) - {s['id'] for s in data['seams']}:
         raise StudioError('Extra boundary parameters must reference existing source seam IDs')
     for sid, values in seam_parameters.items():
         if not isinstance(values, (list, tuple)) or any(type(t) not in (int, float) or not math.isfinite(t) or not 0 <= t <= 1 for t in values):
             raise StudioError('Extra seam parameters must be finite normalized source arc lengths: ' + sid)
+    mandatory = mandatory_source_uv_inputs(data, mandatory_source_uv, check=mandatory_check, work=mandatory_work)
     spacing = recipe["mesh"]["spacing_cm"]
     error = recipe["mesh"]["max_boundary_error_cm"]
     samples, seam_samples, covered = {}, {}, {}
     for pid, piece in data["pieces"].items():
         points = piece["vertices"]
         perimeter = chain_lengths(points + points[:1])
-        samples[pid] = {"source":points, "perimeter":perimeter, "points":{}}
+        samples[pid] = {"source":points, "perimeter":perimeter, "points":{}, "point_sources":{}}
         covered[pid] = set()
 
     def put(pid, chain, t):
         piece = data["pieces"][pid]
         pts = [piece["vertices"][i] for i in chain]
         lengths = chain_lengths(pts)
+        # Only the exact authored arc fraction identifies a source vertex.
+        # A neighbouring interpolated sample can share the established storage
+        # key, but cannot overwrite that vertex's exact material coordinates.
+        source_vertex = next((index for index, stop in zip(chain, lengths)
+                              if t == stop / lengths[-1]), None)
+        if source_vertex is not None:
+            perimeter = samples[pid]["perimeter"]
+            key = round(perimeter[source_vertex] % perimeter[-1], 8)
+            if abs(key-perimeter[-1])<1e-8:key=0.
+            provenance = samples[pid]['point_sources'].get(key)
+            if provenance is not None and provenance['kind']=='SOURCE_VERTEX' and provenance['source_vertex']!=source_vertex:
+                raise StudioError('Distinct source vertices exceed boundary key precision: ' + pid)
+            samples[pid]['points'][key] = list(piece['vertices'][source_vertex])
+            samples[pid]['point_sources'][key] = {'kind':'SOURCE_VERTEX','source_vertex':source_vertex}
+            return key
         target = t * lengths[-1]
         for j, (a,b) in enumerate(zip(chain, chain[1:])):
             if target <= lengths[j+1] + 1e-8:
@@ -331,30 +468,57 @@ def prepare_boundaries(data, recipe, seam_parameters=None):
                 s = (perimeter[index]+along*(perimeter[index+1]-perimeter[index])) % perimeter[-1]
                 key = round(s, 8)
                 if abs(key-perimeter[-1])<1e-8:key=0.
-                samples[pid]["points"][key] = sample_chain(pts,t)
+                provenance = samples[pid]['point_sources'].get(key)
+                if provenance is None or provenance['kind']!='SOURCE_VERTEX':
+                    samples[pid]["points"][key] = sample_chain(pts,t)
+                    samples[pid]['point_sources'][key] = {'kind':'SOURCE_ARC_INTERPOLATION',
+                        'source_chain':list(chain),'source_parameter':t}
                 return key
         raise StudioError("Boundary sampling failed")
 
-    paired_chains, parameters = {}, {}
+    paired_chains, parameters, required_parameters = {}, {}, {}
     for seam in data["seams"]:
         pa, pb = seam["piece_a"], seam["piece_b"]
         ca, a, _ = edge_chain(data["pieces"][pa], seam["edge_a"])
         cb, b, _ = edge_chain(data["pieces"][pb], seam["edge_b"])
         if seam["orientation"] == "reverse":
             cb, b = list(reversed(cb)), list(reversed(b))
-        ts = sorted(set(resample_parameters([a,b],spacing,error)) | set(seam_parameters.get(seam['id'], [])))
+        additional = source_uv_chain_parameters(a, mandatory.get(pa, []), check=mandatory_check, work=mandatory_work) + source_uv_chain_parameters(
+            b, mandatory.get(pb, []), check=mandatory_check, work=mandatory_work)
+        if additional:
+            seam_parameters[seam['id']] = sorted(set(seam_parameters.get(seam['id'], [])) | set(additional))
+        sampled = set(resample_parameters([a,b],spacing,error))
+        count = max(1, math.ceil(max(chain_lengths(points)[-1] for points in (a,b))/spacing))
+        grid = {i/count for i in range(count+1)}
+        required = (sampled-grid) | {0.,1.} | set(seam_parameters.get(seam['id'], []))
+        ts = sorted(sampled | required)
         # Preserve named-edge endpoints used by pin groups, while carrying every
         # inserted parameter to both sides of this seam.
         for pid, chain, points in ((pa,ca,a),(pb,cb,b)):
             lengths = chain_lengths(points)
+            # The exact source perimeter origin is also part of the existing
+            # regular corner postcheck, even on a straight cyclic subdivision.
             endpoints = {i for e in data["pieces"][pid]["edges"].values() for i in (e[0],e[-1])}
-            ts = sorted(set(ts) | {lengths[j]/lengths[-1] for j,i in enumerate(chain) if i in endpoints})
+            if regular_boundary_spacing_cm is not None:endpoints.add(0)
+            stops = {lengths[j]/lengths[-1] for j,i in enumerate(chain) if i in endpoints}
+            required.update(stops)
+            # An exact source corner coinciding with a grid sample remains a
+            # source constraint, never an optional point eligible for removal.
+            required.update(t for t in sampled if any(abs(t-s/lengths[-1]) < 1e-14 for s in lengths))
+            ts = sorted(set(ts) | stops)
         paired_chains[seam['id']] = ((pa, ca), (pb, cb))
         parameters[seam['id']] = ts
+        required_parameters[seam['id']] = sorted(required)
         for pid, chain in ((pa,ca),(pb,cb)):
             covered[pid].update(tuple(sorted((a,b))) for a,b in zip(chain,chain[1:]))
     from .shared_seam_sampling import shared_parameters
-    parameters = shared_parameters(data['pieces'], paired_chains, parameters)
+    sampling_report = None
+    if regular_boundary_spacing_cm is None:
+        parameters = shared_parameters(data['pieces'], paired_chains, parameters)
+    else:
+        from .pattern_preparation import regular_shared_parameters
+        parameters, sampling_report = regular_shared_parameters(data['pieces'], paired_chains,
+            parameters, required_parameters, regular_boundary_spacing_cm, error)
     for seam in sorted(data['seams'], key=lambda item: item['id']):
         sid = seam['id']
         (pa, ca), (pb, cb) = paired_chains[sid]
@@ -389,7 +553,13 @@ def prepare_boundaries(data, recipe, seam_parameters=None):
                 continue
             if any(tuple(sorted((a,b))) in covered[pid] for a,b in zip(chain,chain[1:])):
                 raise StudioError("Overlapping source boundary declarations")
-            ts=resample_parameters([[piece["vertices"][i] for i in chain]],spacing,error)
+            points = [piece["vertices"][i] for i in chain]
+            ts=resample_parameters([points],spacing,error)
+            if regular_boundary_spacing_cm is not None:
+                from .pattern_preparation import regular_chain_parameters
+                ts = regular_chain_parameters(points,ts,regular_boundary_spacing_cm,error)
+            ts = sorted(set(ts) | set(source_uv_chain_parameters(points, mandatory.get(pid, []),
+                                                                   check=mandatory_check, work=mandatory_work)))
             for t in ts:put(pid,chain,t)
         keys=sorted(samples[pid]["points"])
         polygon=[samples[pid]["points"][s] for s in keys]
@@ -397,6 +567,9 @@ def prepare_boundaries(data, recipe, seam_parameters=None):
         if len(polygon)<3 or abs(signed_area(polygon))<1e-6 or not simple_polygon(polygon):
             raise StudioError("Invalid derived boundary")
         samples[pid].update(keys=keys,polygon=polygon,flip=flips[pid],source_sha256=digest(piece["vertices"]))
+        samples[pid]['sample_provenance']=[dict(samples[pid]['point_sources'][key],
+            source_perimeter_key_cm=key,derived_boundary_vertex=index,
+            index_space='PIECE_BOUNDARY_LOCAL') for index,key in enumerate(keys)]
         edge_ids={}
         for name in piece["edges"]:
             chain,points,sign=edge_chain(piece,name)
@@ -405,10 +578,15 @@ def prepare_boundaries(data, recipe, seam_parameters=None):
             edge_ids[name]=[i for along,i in selected if along<=length+1e-6 or total-along<1e-6]
             edge_ids[name].sort(key=lambda i:0 if total-((keys[i]-start)*sign)%total<1e-6 else ((keys[i]-start)*sign)%total)
         samples[pid]["edges"]=edge_ids
+        if sampling_report is not None:
+            samples[pid]['regular_sampling_report'] = sampling_report
+        if mandatory.get(pid):
+            samples[pid]['mandatory_source_uv_cm'] = copy.deepcopy(mandatory[pid])
     for seam in seam_samples.values():
         for side in ("a","b"):
             lookup={v:i for i,v in enumerate(samples[seam["piece_"+side]]["keys"])}
             seam[side]=[lookup[k] for k in seam[side]]
+    mandatory_boundary_bindings(samples, mandatory, check=mandatory_check, work=mandatory_work)
     return samples,seam_samples,reports
 
 

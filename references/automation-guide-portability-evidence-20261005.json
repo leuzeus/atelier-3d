@@ -1,0 +1,158 @@
+{
+  "scope": "SOFTWARE_AND_PURE_GUIDE_PORTABILITY_ONLY",
+  "code_commit": "18dbde47950ebb9ece6c2946e8971c32bbb98881",
+  "project_id": "44f03e6c-dc68-4adb-85b9-e30f88b1aeaa",
+  "software": {
+    "status": "PASS",
+    "full_suite": {
+      "tests": 1558,
+      "seconds": 190.091,
+      "log": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-portability-tests-v3.log",
+        "sha256": "e832206f69a6d8eb505cb3a548c3842048d9d5cff1fa378b31622287311d07b0"
+      }
+    },
+    "contracts": {
+      "passed": 14,
+      "receipt": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-portability-contracts-v2.json",
+        "sha256": "c103412537739b27ec7ed6d2d97f551aac61fe267a0028ea686761e37916e8d6"
+      }
+    },
+    "regression_tests": {
+      "tests/test_anatomy_sum_portability.py": "c4fc79dd6b04195e87b34d9d847a08157cb5d21b7838965d8eaf58f89c9f4738",
+      "tests/test_guide_sum_portability.py": "b16b5d0824862ae77fe50e9ed81f49274a3fc31a5ea2fb6833cb234d9b39ed4e"
+    },
+    "preserved_initial_test_failure": {
+      "log": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-portability-tests-v1.log",
+        "sha256": "2747dd646106d726afd9adfa255f842e1043b20d3368770fb36cdb822b09e0be"
+      },
+      "cause": "Initial 97-point fixture was not sensitive to float accumulation; corrected to 47 points before final suite."
+    }
+  },
+  "pure_cross_python": {
+    "status": "PASS_FULL_UNROUNDED_GUIDE_REPORT_IDENTICAL",
+    "comparison": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-python-portability-v1\\comparison-v3.json",
+      "sha256": "89af20bcb71a9ec28ca11af0faaaf26a0942ceb7c3ee13f7f459e9f6c8c38b5b"
+    },
+    "runtime_receipts": {
+      "python311-v3": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-python-portability-v1\\python311-v3\\receipt.json",
+        "sha256": "51dd200eb2cc0b593300a89b4a55970c41dad19d8e71350198efcb523f69e7dd"
+      },
+      "python313-v3": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-python-portability-v1\\python313-v3\\receipt.json",
+        "sha256": "61f5a49ba5324da3f286d8429f78b416d5f379d06da39ed8143dc1d86237a424"
+      }
+    },
+    "python_versions": [
+      "3.11.0 (main, Oct 24 2022, 18:26:48) [MSC v.1933 64 bit (AMD64)]",
+      "3.13.13 (main, May  8 2026, 12:37:03) [MSC v.1944 64 bit (AMD64)]"
+    ],
+    "artifacts": {
+      "derived-policy.json": {
+        "byte_identical": true,
+        "counts_by_root": {},
+        "counts_by_type": {},
+        "difference_count": 0,
+        "first_100_differences": [],
+        "full_unrounded_json_identical": true,
+        "sha256": [
+          "5ae99337042c75b09891291d3030c8fec42949c9f59121b02c1200fae1e91567",
+          "5ae99337042c75b09891291d3030c8fec42949c9f59121b02c1200fae1e91567"
+        ]
+      },
+      "guides.json": {
+        "byte_identical": true,
+        "counts_by_root": {},
+        "counts_by_type": {},
+        "difference_count": 0,
+        "first_100_differences": [],
+        "full_unrounded_json_identical": true,
+        "sha256": [
+          "d8cd37e400176703d05c7e003d4ff3024f4f607c687370b6843a59179690f4f2",
+          "d8cd37e400176703d05c7e003d4ff3024f4f607c687370b6843a59179690f4f2"
+        ]
+      },
+      "reconstruction-report.json": {
+        "byte_identical": true,
+        "counts_by_root": {},
+        "counts_by_type": {},
+        "difference_count": 0,
+        "first_100_differences": [],
+        "full_unrounded_json_identical": true,
+        "sha256": [
+          "efb28185090ea94c8ca19e8d28f446b3988992f35ae1045043901e095c6f3008",
+          "efb28185090ea94c8ca19e8d28f446b3988992f35ae1045043901e095c6f3008"
+        ]
+      }
+    },
+    "generator_code_sha256": {
+      "anatomy_profile": "700149494e09b2a80c0e46fb5b6a1bcc72d3f6a00b573dd6c29f8ded26a7793b",
+      "contact_geometry": "75a61e95443fc4b27bb4356232799c7f3dfbcd292b1c832bf26738f1e0d222f7",
+      "core": "469481522a435053ed36aec44ca40723563136af201394226147749c5e8b7e0d",
+      "garment_guide_policy": "2ab6f3903e31b4a66bf0cda5eea19c59fe127f8978a5a7ed53353ee7fb827211",
+      "garment_guides": "17d3b7b91360ecc3f077c3202a4ce2c876093549c5de5ee8cef068ae89cc49f8",
+      "guide_cage_sampling": "deb639561935d4554c6933f6212a1063dc7487bb1cf62b15bf484aa59ac94a71",
+      "head_surface": "20b8bcc091f6e11de855949f69bb0c2d4f4c14d72eef1c1af596cb32cfc01e0f",
+      "pattern_assembly": "cad6a9dc7177df9dd3a324abbf04ca53977dea389690098bac916911d058e015",
+      "preform_volume": "5c375d0a8ddb9e3cec2e3950635d222c6ad6a4d4acff12aec4b0fd766cdebb01",
+      "rigid_guide_alignment": "65d2c26e15a07ad4844f337f5ebd56a75a2ca77aa7dfa8b0a4b493902eacb2bb",
+      "semantic_placement": "2be03016cabb069343a98992e58a66adafd7b0128b12b661aaaa891bc996bb25",
+      "sewing": "f7d85540382ae840cda3fb3fe621363b241ed1bff1ecf345736da8b29cacf132",
+      "shoulder_guides": "6e9f4ac77ed5b6fbbccbd565aca9e6cc0b9283a473f026f4c0704b048300ca39",
+      "shoulder_surface": "851105df8a00f2faacb91314da33e74e30fcf7821022e2732a12506ab391eba7",
+      "source_seam_coupling": "f2f2d486f25d98a5e83db34feae162a8a0612f22d1e308f54c3979dee808b587",
+      "torso_sections": "6c18c95501ec8dc06809995da7dd22e1dc199a6115e7923417fa8c3be8d45ecf"
+    },
+    "exact_source_files": {
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\evidence\\reviewed-pattern-composition-dossier.json": "620457742c3038ed981976ccb641558a269a8e042d651c3bbee3d01039c01711",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\outputs\\body-target-7538c9a47520482ca744f85c201f6529\\geometry.json": "ad81aa69409ab4b2220152f68c1c12c90e475ba6b24613e33d5eb142d54de0c7",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\outputs\\body-target-7538c9a47520482ca744f85c201f6529\\profile.json": "50f40c8999caed1e2e908da3eeb9a94d883a4ea2f3fdf6f15f3a4fd633bf437a",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\packages\\belt-v1.garmentpkg": "5817ea66475ffa40f4c27277499c9f7cdd3b89f1565f68ba510b643dc85d13b8",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\packages\\hood-yoke-v1.garmentpkg": "d2cbf768f1ec2fc83613c929308e2f27c5675cd4ad6e5d371246729ecc40080c",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\native-source-v8\\garment.coat\\recipe.json": "d964146818a95b16df4165524bd8e3106f0e28292b4704a7e9dd827508e04584",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\production-metadata-composed-v1.json": "73640c7c46bf413a8c8cc31af3f0f1f4ee620b74eb9530c11635ec3a3d800799",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\public-source-preparation-v2\\assembly-plan.json": "3e44352ed8b0a851f0ffabbf744c76fd6e874d993832d41e7887763f23ce32be",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\public-source-preparation-v2\\component-templates.json": "55eac8b65b768cacd706df746c660c0d6c806fef319fdac0eac0ca7a7751d41f",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\public-source-preparation-v2\\guide-policy.json": "7c29a2cb8b073d78fe6517d50177c8483ed5ed2e7fce1d14a782abc0a3462def",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\public-source-preparation-v2\\guides.json": "82b20a5391e06c82c8910c9cdd41b7d0e4079f917ea9d8a6a82abf8932a2156f",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\public-source-preparation-v2\\tool-result.json": "dd6e303a1a47e8d42eeb8f53270caa2a2a97061b185712ed4a2d77bd5bc2275f",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\standard-sewing-recipe.json": "d2ee821cb57990b25470f50a95e48bdf43d2cc37c67614c413b39db7cd4082a9",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\variants\\ease-variant-dense-v2\\packages\\garment.coat.garmentpkg": "771eddd4dec57f4c938d8b16932ee0a3757c9cc9b5c73ea8675bf2a2f9742bad"
+    },
+    "components": [
+      "garment.belt",
+      "garment.coat",
+      "garment.hood-yoke"
+    ],
+    "previous_comparisons": [
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-python-portability-v1\\comparison-v1.json",
+        "sha256": "9d2676b5354d2cc15e65760570d2ad4612eb4001e6416a6500484d9721632ae6"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-python-portability-v1\\comparison-v2.json",
+        "sha256": "fba91e28f7e0a40034b32d62a495b4bc853463b9383518cd6ddf237eae40d2af"
+      }
+    ],
+    "method": "Real source modules and internal validators; official source recompilation in memory; no Project, DB or Blender.",
+    "captured_public_result": "Historical tool-result numeric encoding is not the exact compiled JSON; official source recompilation matches policy digest."
+  },
+  "independent_review": {
+    "status": "NO_CONFIRMED_P2_OR_HIGHER",
+    "scope": "Read-only numeric diff, strict policy identity and source preservation; not native validation."
+  },
+  "native_binding": "NEW_CANDIDATE_NOT_EXECUTED",
+  "previous_refusal": "automation-native-binding-refusal-20261005.json",
+  "body_and_patterns": "PRESERVED_APPROVED_SOURCE_FILES",
+  "qualification": "NONE",
+  "placement": "NOT_EXECUTED",
+  "simulation": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "acceptance": "NOT_GRANTED",
+  "next_request": "preparation/public-source-preparation-request-v3.json",
+  "next": "Install fresh local build, reload runtime, regenerate public policy/guides, prepare new exact binding and request its separate permission."
+}

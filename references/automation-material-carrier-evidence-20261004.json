@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "status": "PORTABLE_UV_CONTRACT_INTEGRATED_AFTER_INDEPENDENT_REVIEW",
+  "commit": "1322725feda51e38ffeb4ecc414087d8d851b5eb",
+  "purpose": "TEST_ONLY",
+  "qualification": "NONE",
+  "product_admission": "NONE",
+  "format": "MATERIAL_SAMPLE_CARRIER_V1",
+  "production_callers_changed": false,
+  "legacy_schema_or_validator_changed": false,
+  "physical_mesh": false,
+  "is_installable": false,
+  "supported_scope": "EXACT_LOCAL_UV_DOMAIN_COVERAGE_AND_DISTINCT_SAMPLE_SUPPORT",
+  "source_files": {
+    "a3d/material_sample_carrier.py": {
+      "bytes": 34588,
+      "sha256": "5f835d253b70218cb300f62f13ae8f4663ad5ee9ca0d1319bd32cf6840126f01"
+    },
+    "references/material-sample-carrier.md": {
+      "bytes": 9107,
+      "sha256": "38b568537bb91013f345f4646f2f986f4ad24cd2198a4d480ad0914c437d8bb8"
+    },
+    "tests/test_material_sample_carrier.py": {
+      "bytes": 21926,
+      "sha256": "85701701e9ea70948af6225c4dd45b0855b7cd86c52ae6338b74c1a4313a63a7"
+    }
+  },
+  "validation": {
+    "new_tests": 39,
+    "targeted_tests": {
+      "errors": 0,
+      "failures": 0,
+      "seconds": 0.8119999999762513,
+      "status": "PASS",
+      "tests": 55
+    },
+    "independent_tests": {
+      "errors": 0,
+      "failures": 0,
+      "seconds": 1.2810000000172295,
+      "status": "PASS",
+      "tests": 21
+    },
+    "exact_rational_witness_assertions": 7886,
+    "collar_replay_seconds": 10.39100000000326,
+    "replay_substantive_output_exact": true,
+    "replay_counters_exact": true,
+    "preserved_files": 132
+  },
+  "collar_provenance": {
+    "arc_lengths_measured": false,
+    "carrier_faces_preserved": 192,
+    "carrier_vertices_preserved": 125,
+    "checks_scope": "IMMUTABLE_LOCAL_AND_EXTERNAL_REFERENCE_PROVENANCE_NOT_COUPLED_GEOMETRY_OR_3D",
+    "distinct_mark_samples_preserved": 8,
+    "field_3d_representability": "NOT_QUALIFIED",
+    "historical_samples_preserved": 743,
+    "native_executed": false,
+    "qualification": "NONE",
+    "relation_sample_references_preserved": 736,
+    "source_faces_preserved": 13,
+    "source_mark_ids_preserved": 7,
+    "source_package_sha256": "771eddd4dec57f4c938d8b16932ee0a3757c9cc9b5c73ea8675bf2a2f9742bad",
+    "source_relations_preserved": 7,
+    "source_vertices_preserved": 15,
+    "status": "PASS"
+  },
+  "limits": [
+    "elapsed_seconds starts after bounded precheck/input digest",
+    "quadratic geometry bounded by work budget; maximum-input performance untested",
+    "arc fractions declared only",
+    "no production caller or solver consumes this format"
+  ],
+  "SKIP": [
+    "measured normalized arc",
+    "coupled external geometry",
+    "3D field representability",
+    "3D constraint feasibility",
+    "production integration",
+    "metric recovery",
+    "Blender native",
+    "contacts",
+    "Cloth",
+    "fitting",
+    "movement",
+    "installation",
+    "artistic acceptance"
+  ],
+  "scene_mutations": "NONE",
+  "sqlite_connected": false,
+  "Cloth": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "artistic_review": "NOT_PERFORMED",
+  "final_prerelease": "NOT_PUBLISHED",
+  "installation": "NOT_PERFORMED",
+  "references": {
+    "program-material-sample-carrier-v1/FROZEN.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-sample-carrier-v1\\FROZEN.json",
+      "sha256": "3c2e1e7e4efa6030ef18afbcd4859e799208cae262c4aee8f63542ed3907678e"
+    },
+    "program-material-sample-carrier-v1/receipt.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-sample-carrier-v1\\receipt.json",
+      "sha256": "50d4dd34271a7ec794fe2ded0612c746fc41ab7b588207862cc1bf2454938f4e"
+    },
+    "program-material-sample-carrier-v1/report.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-sample-carrier-v1\\report.json",
+      "sha256": "406ea4aa80f4d7c8f8bb6958518dd100cbb6345dcf6e1476728131ede5a6d86f"
+    },
+    "program-material-sample-carrier-review-v1/FROZEN.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-sample-carrier-review-v1\\FROZEN.json",
+      "sha256": "2e41bc9c6ab4c3e997a7519d9b825f10b0a686f29395e1ee4b5a11ca21f3a2c3"
+    },
+    "program-material-sample-carrier-review-v1/receipt.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-sample-carrier-review-v1\\receipt.json",
+      "sha256": "e529c914111d83665a8112e70c8f4b602e32402722fde3537a9fe01d98c79f71"
+    },
+    "program-material-sample-carrier-review-v1/report.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-sample-carrier-review-v1\\report.json",
+      "sha256": "3a075b1b9a3a34126a5d4f6e8c904c203266da73c72c24a37f83521b20083558"
+    }
+  }
+}

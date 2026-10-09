@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "date": "2026-10-04",
+  "status": "DEVELOPMENT_INTEGRATION_CHECKED",
+  "code_commit": "12e3dc2ad118f32e94dead6dfd2c3ed41d243598",
+  "tested_snapshot": {
+    "identity_sha256": "2bee3c9b90f19fe3c64dd71c01bbb590d861d6d6151eaf6a64947bb64d93ec3a",
+    "file_count": 461
+  },
+  "committed_code_files_verified": 359,
+  "committed_code_sha256": "58ac23b699fdeadfa7d725c7375df1308ee9cb0f725fe3d946c7c72c4cdff9a9",
+  "portable": {
+    "status": "PASS",
+    "tests": 795,
+    "seconds": 105.566,
+    "scope": "PORTABLE_ONLY",
+    "receipt_ref": {
+      "path": "program-portable-source37-v1/receipt.json",
+      "sha256": "d053ceb434685cb197ecbf058a9ee2c2708a07bb42326db9dd9fce27e678c928"
+    },
+    "log_ref": {
+      "path": "program-portable-source37-v1/tests.log",
+      "sha256": "c8ce651b3390fdfb2c90b72c08258dd2d1d82c57641ff6cda735b066f088ebda"
+    }
+  },
+  "contracts": {
+    "status": "PASS",
+    "validator": "PowerShell Test-Json",
+    "templates_and_fixtures": 14,
+    "current_inputs": 7,
+    "receipt_ref": {
+      "path": "program-portable-source37-v1/contracts.json",
+      "sha256": "c103412537739b27ec7ed6d2d97f551aac61fe267a0028ea686761e37916e8d6"
+    },
+    "additional_ref": {
+      "path": "program-portable-source37-v1/additional-contracts.json",
+      "sha256": "981f01c2b71c77d7cc84d33a12e518da45b98ffef9119a29ecbdca25ba4bd879"
+    }
+  },
+  "native_textile": {
+    "status": "PASS",
+    "seconds": 40.094,
+    "purpose": "TEST_ONLY",
+    "scope": "GROUP_MECHANICS_PRODUCTION_REFUSALS_AND_JOURNAL_RECONCILIATION",
+    "receipt_ref": {
+      "path": "program-native-textile-v14/receipt.json",
+      "sha256": "5f10cf02443b57f73b93161dec290ffb255fc2ebfc1dd8f4be7074595999a68c"
+    },
+    "result_ref": {
+      "path": "program-native-textile-v14/result.json",
+      "sha256": "7711833d2918e7d643f9b593a8fba9b6762432144921a3db53670fad998b8a75"
+    }
+  },
+  "main_public_measurements": {
+    "status": "FIT_PREFLIGHT_INCOMPLETE",
+    "seconds": 33.938,
+    "source_guides": "FULL_GUIDE_REPORT_IDENTICAL",
+    "paths_proposed": 6,
+    "upper_arm_paths": "NON_HOMOLOGOUS_REFUSED",
+    "database_preserved": true,
+    "body_changed": false,
+    "receipt_ref": {
+      "path": "program-main-fit-public-measurements-v3/receipt.json",
+      "sha256": "3c396f453ef614ae66b3c08c95ae2d89de1d5ecebca789a26481ef799046ed9e"
+    },
+    "report_ref": {
+      "path": "program-main-fit-public-measurements-v3/report.json",
+      "sha256": "fe623962e8533f39b1d517a506e3d1af84168a1c25ac4a03d82e4159eb00789e"
+    }
+  },
+  "human_decisions": {
+    "body": "MAIN_MALE_180_ANATOMY_ACCEPTED",
+    "silhouette": "RELAXED_COAT_ACCEPTED",
+    "numeric_ease": "PROPOSED_PENDING_REVIEW",
+    "pattern_variant": "NOT_APPROVED"
+  },
+  "main_placement": "NEEDS_CORRECTION",
+  "main_cloth": "NOT_EXECUTED",
+  "main_dressing": "NOT_EXECUTED",
+  "main_fitting": "NOT_QUALIFIED",
+  "main_garment_motion": "NOT_EXECUTED",
+  "main_artistic_acceptance": "NOT_GRANTED",
+  "final_release": "NOT_PUBLISHED",
+  "new_installation": "NOT_EXECUTED",
+  "qualification": "DEVELOPMENT_SOFTWARE_ONLY",
+  "acceptance": "NOT_GRANTED"
+}

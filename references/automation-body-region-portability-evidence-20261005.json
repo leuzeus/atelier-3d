@@ -1,0 +1,67 @@
+{
+  "scope": "PORTABLE_NUMERICAL_QUALIFICATION_ONLY",
+  "source_files_sha256": {
+    "a3d/body_region_sections.py": "4f65370885aff0123390f49eb82ac438101817a67caaa239792e4114beaaf2e0",
+    "tests/test_body_region_sum_portability.py": "046c4e0c1e49c761a65273af7c4bbac6dbad4d1f33b8057177c5398f9815c52c"
+  },
+  "source_lf_only": true,
+  "new_full_results_byte_identical": true,
+  "new_full_supplement_sha256": "f3131c888adc462921ff6b6b2911eef5286c70254f058dd6dc9350457565b4a4",
+  "new_cache_key": "cb719e778cef45b8f3f10b96fe9964a3c8c9f87a7249a6d723034dc95a380e08",
+  "baseline_python311_metrics_points_planes_status_exact": true,
+  "baseline_comparison_excluded_only": [
+    "cache_key",
+    "measurement_code_sha256"
+  ],
+  "previous_cache_key": "f000778cd3c1f0d4c8e26b1224f335e815025d65d17a7ad24462ffc799cc1f55",
+  "canonical_supplement_preserved": true,
+  "canonical_database_preserved": true,
+  "tests": {
+    "python311": {
+      "run": 26,
+      "passed": true,
+      "failures": 0,
+      "errors": 0
+    },
+    "python313": {
+      "run": 26,
+      "passed": true,
+      "failures": 0,
+      "errors": 0
+    }
+  },
+  "old_supplement_descriptor": {
+    "python311": {
+      "status": "REFUSED",
+      "type": "StudioError",
+      "message": "Body region supplement differs from actual canonical source remeasurement"
+    },
+    "python313": {
+      "status": "REFUSED",
+      "type": "StudioError",
+      "message": "Body region supplement differs from actual canonical source remeasurement"
+    }
+  },
+  "input_sha256": {
+    "preparation/body-region-policy-current-v1.json": "02a00cab0fdc53c9b6bff0df25399f959b38ab5e5d05a95f539153b85d321c56",
+    "preparation/body-region-policy-options-current-v1.json": "daf8e9540063c39bacdaee4f6954d1a6360c3a0721cf37349978adf5675b21a8",
+    "preparation/body-region-supplement-current-v1.json": "4ce17bf1b826e45a6f37cfd7ae9120182ceb21f70790cd643cd572362cd8a30c",
+    "preparation/public-source-preparation-v3/guide-policy.json": "d927439522f74b9f4c7836ca332f84a6da2e5f69579e1296d61607defa90aca4"
+  },
+  "proof_files_sha256": {
+    "probe.py": "9c12e4c6ed7199cb04ddd8ee8f2d9e49e38573fa1b6452fbb0cc467e32dcab09",
+    "python311-receipt.json": "be6afb16136f6dc7a97ba873cd270d169f07df9b8e562c0296fcd5a3a4fe28cd",
+    "python311-supplement.json": "f3131c888adc462921ff6b6b2911eef5286c70254f058dd6dc9350457565b4a4",
+    "python311-tests.log": "df854b1d23f550e721256cdd45799af1de643dabd469d166929c05da797fbbeb",
+    "python313-receipt.json": "c0b7e37bb58261f8b983dcb39f99f4f29712a2e2d8a0c285c3c5a45b09bd0410",
+    "python313-supplement.json": "f3131c888adc462921ff6b6b2911eef5286c70254f058dd6dc9350457565b4a4",
+    "python313-tests.log": "c28dc19a02fb468d281c09a182201d66ee24adf979060fb69e1efe93068e5832"
+  },
+  "review": "INDEPENDENT_NO_P2_CONFIRMED",
+  "native": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "installation": "NOT_EXECUTED",
+  "qualification": "NONE",
+  "portability_scope": "TWO_PERIMETER_ACCUMULATIONS_ONLY_OTHER_FLOAT_SUMS_UNCHANGED",
+  "worker_evidence_sha256": "ffdee293c7df121fd437533a7a3dad7b44e8b5b801d3953257d5127afbfd246c"
+}

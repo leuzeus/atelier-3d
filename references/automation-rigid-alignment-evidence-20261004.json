@@ -1,0 +1,154 @@
+{
+  "version": 1,
+  "status": "RIGID_SOURCE_GUIDE_SEED_REVIEWED_AND_INTEGRATED",
+  "qualification": "NONE",
+  "code_commit": "7996345cad64a9c2cefa8bc15ab333d95ee42886",
+  "code_sources_sha256": {
+    "a3d/rigid_guide_alignment.py": "6452dc49cb763503a4dcad680bdc7469672802f0de24def50e8aff14ab0f464d",
+    "a3d/source_seam_coupling.py": "f2f2d486f25d98a5e83db34feae162a8a0612f22d1e308f54c3979dee808b587",
+    "a3d/garment_guides.py": "d0faef597a463a5ab213ebf261ce5fb8c3510eb20b28a7f8ae1e4e5083d9f33b",
+    "tests/test_rigid_guide_alignment.py": "f8d183407ed14175996e4b745fed2385a7a2507698c532b1b84961ddc236b814",
+    "references/rigid-guide-alignment.md": "ef3a1283f2edfef8eb4cb1191d71cfa39383bad308f7a39b6fd0baca56e4ffdc",
+    "a3d/garment_guide_policy.py": "2ab6f3903e31b4a66bf0cda5eea19c59fe127f8978a5a7ed53353ee7fb827211",
+    "tests/test_garment_guide_policy.py": "34f97a4757ce25e59488cd75607a6add918e657d6a3c4de920550138c62785d4",
+    "tests/portable_production_preparation_diagnostic.py": "18c9467c6e3954d54a018fe50a626f0b4657d940e5d3b1dddd196a370e2fbf20"
+  },
+  "source59_identity_sha256": "100242e3ead8b566c0d958b4924c4cd80c2d320bd52b127c9b918eb21c6bf4dc",
+  "source59_files_count": 509,
+  "portable": {
+    "tests": 1072,
+    "test_seconds": 192.915,
+    "launch_seconds": 194.34299999999348,
+    "log_sha256": "99f5e747d3fac630a3000563e19d4856e9e7eab0efe1de17a2d3a31335c84d8c",
+    "sources_preserved": true,
+    "contracts_passed": 14,
+    "scope": "CODE_ONLY"
+  },
+  "independent": {
+    "targeted_tests": 81,
+    "independent_probes": 9,
+    "substantive_replay_reproduced": true,
+    "findings": []
+  },
+  "alignment": {
+    "role": "inner_front",
+    "partner_role": "front",
+    "before": {
+      "controls": 34,
+      "max_gap_cm": 20.151140956147106,
+      "weighted_rms_gap_cm": 15.512011931333172
+    },
+    "after": {
+      "controls": 34,
+      "max_gap_cm": 1.0649990095143902,
+      "weighted_rms_gap_cm": 0.8754596137217477
+    },
+    "rotation_determinant": 1.0000000000000009,
+    "rotations": 10,
+    "max_rotations": 64,
+    "max_seed_displacement_cm": 34.630316358234204,
+    "scope": "FRONT_ATTACHMENTS_ONLY",
+    "whole_piece_admission": false,
+    "source_uv_scaled": false,
+    "body_changed": false
+  },
+  "auxiliary_inner_front_metrics": {
+    "original_precoupling_guide": {
+      "faces": 1694,
+      "invalid_material_faces": 0,
+      "min_principal_stretch": 0.999999855428276,
+      "max_principal_stretch": 1.0000002021266226,
+      "rms_principal_deviation_from_one": 5.925802319928069e-09,
+      "faces_outside_observed_production_point9_to_one1": 0,
+      "scope": "AUXILIARY_SOURCE_CAGE_TRIANGLES_NOT_NATIVE_GARMENT_QUALIFICATION"
+    },
+    "rigid_seed_proposal": {
+      "faces": 1694,
+      "invalid_material_faces": 0,
+      "min_principal_stretch": 0.9999998351336921,
+      "max_principal_stretch": 1.0000001918537793,
+      "rms_principal_deviation_from_one": 6.7461593510134096e-09,
+      "faces_outside_observed_production_point9_to_one1": 0,
+      "scope": "AUXILIARY_SOURCE_CAGE_TRIANGLES_NOT_NATIVE_GARMENT_QUALIFICATION"
+    },
+    "integrated_source57_baseline_coupled": {
+      "faces": 1694,
+      "invalid_material_faces": 0,
+      "min_principal_stretch": 0.08031087202090488,
+      "max_principal_stretch": 88.94224240872911,
+      "rms_principal_deviation_from_one": 2.9539363726253436,
+      "faces_outside_observed_production_point9_to_one1": 142,
+      "scope": "AUXILIARY_SOURCE_CAGE_TRIANGLES_NOT_NATIVE_GARMENT_QUALIFICATION"
+    },
+    "new_seeded_coupled": {
+      "faces": 1694,
+      "invalid_material_faces": 0,
+      "min_principal_stretch": 0.0680408264121268,
+      "max_principal_stretch": 63.66350862448123,
+      "rms_principal_deviation_from_one": 2.529666926221423,
+      "faces_outside_observed_production_point9_to_one1": 142,
+      "scope": "AUXILIARY_SOURCE_CAGE_TRIANGLES_NOT_NATIVE_GARMENT_QUALIFICATION"
+    }
+  },
+  "historical_triangle_stretches_on_new_cages": {
+    "source57_coupled": [
+      0.6487204060087904,
+      21.775849664304236
+    ],
+    "new_seeded_coupled": [
+      0.9866380122653162,
+      1.8630161016348572
+    ]
+  },
+  "references": [
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-rigid-guide-alignment-v1\\FROZEN.json",
+      "sha256": "5554c82a6691f0c26f01d8db71d1105ba58270f1535cac0bd0b9d1c1bc99d5b3"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-rigid-guide-alignment-v1\\replay-final-v2.json",
+      "sha256": "ee7cad017d6409bcd16e7bfbbc937371e58e0939de1c1d35652aa731644e2d9b"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-rigid-guide-alignment-v1\\targeted-validation.json",
+      "sha256": "38d5f0d4d418fbd1ac299e11a40d64ef0c66d419f3b912af711740a76544d079"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-rigid-guide-alignment-review-v1\\FROZEN.json",
+      "sha256": "58ea23f8c020a9cca5f48e02d5b7e18066bc624dcf6cafe0e9162c413af38156"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-rigid-guide-alignment-review-v1\\replay-review.json",
+      "sha256": "11fc9af5a3b40f7b05b4ca5f6c05bbc0feac6c476add7ec53ea84c4233a20e4f"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source59-v1\\launch-receipt.json",
+      "sha256": "3fcecb6f03be28254986eb3dc1a8ed946d076aaab9a70f8a978eef38f29e49e3"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source59-v1\\tests.log",
+      "sha256": "99f5e747d3fac630a3000563e19d4856e9e7eab0efe1de17a2d3a31335c84d8c"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source59-v1\\contracts.json",
+      "sha256": "c103412537739b27ec7ed6d2d97f551aac61fe267a0028ea686761e37916e8d6"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v59\\capture.json",
+      "sha256": "836394d53c34b00e20e963064b5dcd2c85fbe777b6d12ec13d2c246a72a72604"
+    }
+  ],
+  "limits": [
+    "Remaining collar and other metrics are explicitly unqualified.",
+    "Cage metrics are not physical regular15-degree mesh or native fitting gates.",
+    "Portable production diagnostic without explicit coupling does not exercise this new branch."
+  ],
+  "native_regular_mesh": "NOT_QUALIFIED",
+  "contacts": "NOT_QUALIFIED",
+  "cloth": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "artistic_review": "NOT_EXECUTED",
+  "whole_garment": "NOT_ADMITTED",
+  "final_release": "NOT_PUBLISHED",
+  "new_installation": "NOT_PERFORMED"
+}

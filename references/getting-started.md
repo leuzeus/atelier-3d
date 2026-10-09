@@ -69,7 +69,7 @@ Ne pas publier ce dossier ni le déplacer après installation. Le script ne modi
 pas les caches de Codex et n'accorde aucune confiance aux hooks.
 
 Relancer la conversation ou recharger la connexion MCP si elle conserve l'ancienne
-version. Vérifier le nom et la version du serveur ainsi que les 29 outils. Examiner
+version. Vérifier le nom et la version du serveur ainsi que les 32 outils. Examiner
 les six définitions de hooks dans l'interface native avant de les approuver.
 Un serveur déjà attaché à une ancienne conversation ne se recharge pas forcément
 lorsqu'une nouvelle version est installée.
@@ -185,7 +185,8 @@ projet. Adapter les exemples de contrats sous `tests/fixtures` ; leurs images
 uniformes ne sont pas des références de production.
 
 L'archive portable inclut sources, contrats, skills, documentation et licence,
-avec inventaire et empreintes. Elle exclut la configuration machine et les assets.
+avec inventaire et empreintes. Elle inclut seulement les deux bases anatomiques CC0 explicitement vérifiées
+du catalogue ; elle exclut la configuration machine et les autres assets.
 Elle ne remplace pas la préparation du profil local et refuse l'écrasement d'une
 archive existante.
 

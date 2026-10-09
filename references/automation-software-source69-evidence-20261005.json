@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "date": "2026-10-05",
+  "status": "SOFTWARE_SOURCE69_TESTED_AND_LOCAL_BUILD_VERIFIED",
+  "purpose": "DEVELOPMENT_ONLY",
+  "qualification": "NONE",
+  "product_admission": "NONE",
+  "tested_commit": "21509d9061d40ffce0f05601e0cd91c7169fad46",
+  "source_identity_sha256": "6093680d6999253a06dda470e058e90b6e6c2b2f19cbb0101065dcb8061411bc",
+  "source_files_count": 583,
+  "tests": 1511,
+  "contracts": 14,
+  "actual_test_seconds": 215.119,
+  "actual_launch_seconds": 216.43125419999706,
+  "package": {
+    "path": "program-local-build-source69-v1/atelier-3d-development-source69.zip",
+    "bytes": 3193964,
+    "sha256": "f0d90b30c98dfa298ad90353baab35b1e6bf6bb6921d0b8676a7100efdda4132"
+  },
+  "declared_plugin_version": "0.7.0-rc.2",
+  "proofs": [
+    {
+      "path": "program-runtime-source-v69/capture.json",
+      "bytes": 64116,
+      "sha256": "eff76ba4e2718a3763e397a3e28c7da84bfbf8fbc7e4e1f35c233a2b22678d4d"
+    },
+    {
+      "path": "program-portable-source69-v1/FROZEN.json",
+      "bytes": 1985,
+      "sha256": "fe85c1f4f896deb0cf6e5d546fca56ebe56e0c47ff2081270235062d771f86d0"
+    },
+    {
+      "path": "program-portable-source69-v1/summary.json",
+      "bytes": 1167,
+      "sha256": "b5da9e54d555bca7f6c80e6d873d1bf1ba1ab5d158cb0cdfad3158e4ce3f97bb"
+    },
+    {
+      "path": "program-portable-source69-v1/launch-receipt.json",
+      "bytes": 739,
+      "sha256": "c4a1fc0a3b3aa0a2ebbccc67d51f24fe139d1494a59b4babbda1eda36e09c196"
+    },
+    {
+      "path": "program-portable-source69-v1/tests.log",
+      "bytes": 270474,
+      "sha256": "db351f8583d0f58cbfbabc16bd24839c7a1d9181cd2a17e2317c53aca987aa42"
+    },
+    {
+      "path": "program-portable-source69-v1/contracts.json",
+      "bytes": 1417,
+      "sha256": "276964e10f6aebd95e0fc9b0896f96506cc7301cabf9647558761cc47ae45160"
+    },
+    {
+      "path": "program-portable-source69-v1/contracts-launch-receipt.json",
+      "bytes": 535,
+      "sha256": "3e6ab4a2c94a5d3f363f2b82f86cbc6492331ff5cccaf800f9072e2dc21a7233"
+    },
+    {
+      "path": "program-local-build-source69-v1/receipt.json",
+      "bytes": 4440,
+      "sha256": "11136632ebb620528d8a5748a5505a55bb8d6c1a648808ef0ede21f2ff184039"
+    },
+    {
+      "path": "program-test-source69-v1.py",
+      "bytes": 5350,
+      "sha256": "e27c966d02323e00451edcd90fb2f26175e5b90e9069fb96e28b9ce3bba04975"
+    },
+    {
+      "path": "program-build-source69-v1.py",
+      "bytes": 8950,
+      "sha256": "6d40141c608685ed6dde5abeb529d0227ffac7cc31e48f4300b0a96f24c20d00"
+    },
+    {
+      "path": "program-git-export-v69/FROZEN.json",
+      "bytes": 141993,
+      "sha256": "847c7b1ccd26d15c834cf5d234d76e60e32af9e6c2e67617e7ee2fe5e5427a19"
+    },
+    {
+      "path": "program-runtime-source-v69/FROZEN.json",
+      "bytes": 143141,
+      "sha256": "d1ec76e8439e8094a3e77cfdf1fb593e5442e41d31ffa4cf6a94c9e970d9a7d6"
+    }
+  ],
+  "preservation_scope": "CAPTURED_GIT_EXPORT_AND_TEST_SNAPSHOT_BEFORE_AFTER_ONLY",
+  "old_source68_proofs": "PRESERVED_WITH_ORIGINAL_SCOPE",
+  "native_storage_v6": "PENDING_SEPARATE_REVIEW_AND_REAL_RUN",
+  "NOT_QUALIFIED": [
+    "NATIVE_MESH_RESULT",
+    "PLACEMENT",
+    "CONTACTS",
+    "CLOTH",
+    "FITTING",
+    "GARMENT_ACCEPTANCE"
+  ],
+  "final_prerelease": "NOT_PUBLISHED",
+  "installation": "NOT_PERFORMED",
+  "connected_runtime": "NOT_RELOADED",
+  "automatic_retry": false
+}

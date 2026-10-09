@@ -1,0 +1,153 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "component_id",
+    "piece_id",
+    "purpose",
+    "source_receipt",
+    "object_name",
+    "anchor_name",
+    "front_view",
+    "anchor_map_ref",
+    "clips",
+    "geometry_tolerance_cm",
+    "budgets"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "purpose": {
+      "enum": [
+        "TEST_ONLY",
+        "GARMENT_CANDIDATE"
+      ]
+    },
+    "source_receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "anchor_map_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "clips": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "target_receipt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9._-]*$"
+          },
+          "target_receipt": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "sha256"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          }
+        }
+      }
+    },
+    "geometry_tolerance_cm": {
+      "type": "number",
+      "minimum": 1e-08,
+      "maximum": 0.001
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_seconds",
+        "max_samples",
+        "max_normal_turn_degrees"
+      ],
+      "properties": {
+        "max_seconds": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 3600
+        },
+        "max_samples": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 20000
+        },
+        "max_normal_turn_degrees": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 90
+        }
+      }
+    },
+    "component_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "piece_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "object_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "anchor_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "front_view": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

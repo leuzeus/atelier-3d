@@ -1,0 +1,114 @@
+{
+  "date": "2026-10-07",
+  "scope": "AUTHENTICATED_BODY_PATH_REVIEW_PUBLIC_HANDLER_OPTION",
+  "software": {
+    "status": "PASS",
+    "command": "python -m unittest tests.test_body_surface_path_review tests.test_body_source_paths -v",
+    "observed_tests": 30,
+    "observed_seconds": 3.115,
+    "source_sha256": {
+      "a3d/body_source_paths.py": "c17e1428ce418ed0e6a6731c91a7167bfa4ef7ab6d1632e02e7c0f6dbe7261a4",
+      "tests/test_body_surface_path_review.py": "3b7c21f0e670e54e4ecd5b87d0de917300ab4009fabb47be110f5fbcccf946b2",
+      "a3d/body_surface_paths.py": "91ad08c6454a77addf003008d4581e66cad4e5b6f361588d1ce6fc9c929327b3"
+    },
+    "test_environment": "IDENTICAL_TARGETED_TESTS_ESCALATED_AFTER_WINDOWS_SANDBOX_WINERROR5_ON_SYNTHETIC_TEMP_PATH_RESOLVE",
+    "scope": "AUTHENTICATED_SOURCE_REVIEW_FACADE_OPTIONAL_OPEN_PATHS_AND_SOURCE_SNAPSHOT_DEADLINE_REGRESSION",
+    "real_body_replay": "NOT_EXECUTED_COORDINATOR_OWNS_PREPARATION",
+    "specification_validation": "PASS",
+    "independent_review": "P2_SOURCE_SNAPSHOT_DEADLINE_RESOLVED_NO_NEW_P1_P2_READ_ONLY_REVIEW",
+    "qualification": "NONE"
+  },
+  "independent_review": {
+    "P1_P2": [],
+    "resolved": "CHILD_DEADLINE_INCLUDES_SOURCE_SNAPSHOT_AND_PUBLICATION",
+    "tests_reexecuted_by_reviewer": false
+  },
+  "actual_body_replay": {
+    "status": "RETURNED",
+    "seconds": 1.9039814000716433,
+    "method": "EXACT_PUBLIC_HANDLER_DEVELOPMENT_PROCESS",
+    "result_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-body-surface-facade-replay-v1\\result.json",
+      "sha256": "ebf4994c6028afa8ec195bf5a9617a3faecf6e268b493b4010963718475d8ed6"
+    },
+    "receipt_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-body-surface-facade-replay-v1\\receipt.json",
+      "sha256": "0ea2c43de3d6e8158b369ecaea8b109dd7e030c7026cfb84a49af40b24030fe2"
+    },
+    "originals_unchanged": true,
+    "source_unchanged": true,
+    "artifacts": {
+      "source-paths.json": {
+        "path": "preparation/body-surface-path-review-v1/source-paths.json",
+        "sha256": "73a8b74153fc1060a9092a1d839ab57fd2382716e3744fd1079bac8e4f71c844"
+      },
+      "surface-paths.svg": {
+        "path": "preparation/body-surface-path-review-v1/surface-paths.svg",
+        "sha256": "c379b3aee128ff2c792b9d9dcaad864ff34b764a7ef8c4d5365c03a34e90819a"
+      },
+      "surface-paths.json": {
+        "path": "preparation/body-surface-path-review-v1/surface-paths.json",
+        "sha256": "53c5b808157a86d824c40952ecf349275baa96591f7ce457cce2de53b1c2f929"
+      },
+      "projections.svg": {
+        "path": "preparation/body-surface-path-review-v1/projections.svg",
+        "sha256": "7e38a9781d99f309d901ec0ec829ba04cd95c1e7136a73b66f2ffeb57c8d1058"
+      },
+      "report.md": {
+        "path": "preparation/body-surface-path-review-v1/report.md",
+        "sha256": "d5e31ef8ef72c9eeea41205f691e44b7edd113f24030f7cecee7f168cc21c1c0"
+      },
+      "report.json": {
+        "path": "preparation/body-surface-path-review-v1/report.json",
+        "sha256": "d1126352da8cc2f2b54ae599c173e34acc0183613b2d9213bebef4f5658fdfca"
+      }
+    },
+    "equivalence": {
+      "status": "EXACT_GEOMETRY_REPRODUCED",
+      "checks": {
+        "same_identity": true,
+        "same_body_frame": true,
+        "same_path_ids": true,
+        "same_exact_path_geometry_and_metrics": true
+      },
+      "previous": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-body-surface-path-qualified-v1\\report.json",
+        "sha256": "cf8d20951ef64f0241f67631ff9147cd755ca3605d2eb3e63df20c3dc41ad4d0"
+      },
+      "current": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\body-surface-path-review-v1\\surface-paths.json",
+        "sha256": "53c5b808157a86d824c40952ecf349275baa96591f7ce457cce2de53b1c2f929"
+      },
+      "scope": "BODY_GEOMETRY_AND_MEASURED_PATH_EQUIVALENCE_ONLY",
+      "gate_transferred": false,
+      "qualification": "NONE",
+      "paths": [
+        {
+          "id": "shoulder.surface-proposal-left",
+          "edge_arclength_cm": 13.168021155342775,
+          "endpoint_chord_cm": 9.484400158864908,
+          "vertical_drop_cm": 2.067840099334717
+        },
+        {
+          "id": "shoulder.surface-proposal-right",
+          "edge_arclength_cm": 13.187844567779743,
+          "endpoint_chord_cm": 9.47541613378188,
+          "vertical_drop_cm": 2.0615458488464355
+        }
+      ]
+    },
+    "projection_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-body-surface-facade-replay-v1\\surface-paths.png",
+      "sha256": "3efd5b6fea7a8b39fce7682002a6c032d5f497ae18e99ad6c2e4607754419fa7"
+    }
+  },
+  "native_Blender_execution": false,
+  "connected_mcp": false,
+  "connected_runtime": "0704_UNCHANGED_NEW_OPTION_NOT_INSTALLED",
+  "body_profile_changed": false,
+  "database_changed": false,
+  "human_gate_transferred": false,
+  "patterns_changed": false,
+  "fitting": "NOT_EXECUTED",
+  "qualification": "NONE"
+}

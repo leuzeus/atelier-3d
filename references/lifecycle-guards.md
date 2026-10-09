@@ -31,6 +31,13 @@ Dans les rapports de reconstruction, d'étape et de livraison, `check_evidence` 
 
 Chaque mutation contrôlée écrit un checkpoint et une opération en cours dans SQLite. Si elle échoue ou est interrompue, les mutations et transitions suivantes sont refusées. Inspecter, puis demander `studio_blender_operation` avec `operation=restore_checkpoint`, `arguments={}` et transmettre son code exact à Blender. La restauration conserve l'ancienne scène sur disque, ouvre le checkpoint et crée une nouvelle copie de travail. Une restauration d'assemblage invalide son reçu ; préparer et faire revoir le plan pour le nouveau fichier de travail. Si Blender a été reconnecté à une autre scène, réouvrir explicitement la copie de travail du projet avant cette restauration.
 
+Pour un run réellement retourné mais `NEEDS_CORRECTION` ou `INCOMPLETE`, le
+pending est normalement retiré. Utiliser alors `restore_checkpoint` avec les
+identités exactes `run_id` et `attempt_id`, sans chemin libre de checkpoint.
+Le reçu et la frontière native sont authentifiés ; une nouvelle copie est
+sauvegardée sans admission du candidat refusé. La permission Blender reste
+distincte. Lire les [contrats de restauration et de rejeu](run-recovery.md).
+
 Pour `run_script` avec `purpose=simulate`, fournir également `simulation_plan`, chemin relatif vers `simulation.schema.json`. Déclarer `max_frames`, intervalle, qualité, composant et collisions. Le plan référence aussi `sewing_recipe` et `phase`. Le dispatcher exige un essai local natif correspondant, applique les paramètres de la recette et vérifie le résultat physique ; une reconstruction déjà acceptée reste immuable. Il n'effectue pas de bake implicite. Les scripts restent du Python de confiance : ce contrat n'est ni un limiteur de temps d'exécution ni un bac à sable contre un script malveillant.
 
 ## Compatibilité et limites

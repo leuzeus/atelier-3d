@@ -25,6 +25,192 @@ def parse_code(code):
 
 def admit_operation(project, operation, arguments):
     state = project.state()
+    if operation == 'bind_component_preparations':
+        from .lifecycle import no_pending_operation
+        from .core import digest
+        from .dressing import _reference
+        from .production_dossier import compile_project_dossier
+        from .garment_guide_policy import _project_inputs
+        no_pending_operation(state)
+        expected = {'templates_path', 'body_object', 'body_geometry_ref', 'output_directory', 'policy_path'}
+        if set(arguments) not in (expected, expected | {'envelope_review'}):
+            raise StudioError('Unexpected/missing source preparation binding arguments')
+        if state['stage'] != 'RECONSTRUCTING':
+            raise StudioError('Source preparation binding requires active reconstruction')
+        require_board(project, state)
+        if not isinstance(arguments['body_object'], str) or not arguments['body_object']:
+            raise StudioError('Source preparation binding requires the explicit measured body object')
+        output = inside(project.root, arguments['output_directory'], False)
+        if output.exists() and not (output.is_dir() and (output/'binding.json').is_file()):
+            raise StudioError('Native preparation binding stopped before its boundary; preserve it and choose a fresh output directory')
+        templates = read_json(inside(project.root, arguments['templates_path']))
+        if (templates.get('status') != 'SOURCE_PREPARATION_TEMPLATES_READY'
+                or templates.get('prepared_sha256') != digest({k:v for k,v in templates.items() if k!='prepared_sha256'})):
+            raise StudioError('Source preparation binding requires exact complete proposal templates')
+        inputs = templates.get('compiler_inputs', {})
+        if set(inputs) != {'assembly_plan_ref', 'guides_ref', 'production_spec_ref', 'standard_recipe_ref', 'dossier_ref'}:
+            raise StudioError('Source preparation binding requires all compiler input references')
+        for ref in [*inputs.values(), arguments['body_geometry_ref']]:
+            _reference(ref)
+            if sha(inside(project.root, ref['path'])) != ref['sha256']:
+                raise StudioError('Source preparation binding input changed: '+ref['path'])
+        policy = read_json(inside(project.root, arguments['policy_path']))
+        compiled = compile_project_dossier(project, inputs['dossier_ref']['path'], inputs['production_spec_ref']['path'])
+        _, _, geometry_ref, _, _ = _project_inputs(project, compiled)
+        if (templates['body_ref'] != compiled['assembly_spec']['body_ref']
+                or arguments['body_geometry_ref'] != geometry_ref
+                or policy.get('compiled_sha256') != digest(compiled)
+                or policy.get('body_ref') != templates['body_ref'] or policy.get('geometry_ref') != geometry_ref):
+            raise StudioError('Source preparation binding belongs to another current source or native body')
+        owners = {row['id'] for row in compiled['components'] if row['pipeline']=='PATTERN_SEWN'}
+        if set(templates.get('components', {})) != owners:
+            raise StudioError('Source preparation binding must cover all exact textile components')
+        declared = {name for node in compiled['assembly_spec']['layers']['nodes']
+                    if node['kind'] == 'body' for name in node['colliders']}
+        if declared != {arguments['body_object']}:
+            raise StudioError('Native collider identity differs from the explicit source layer graph')
+        if output.exists():
+            previous = read_json(output/'binding.json')
+            if (previous.get('status') != 'NATIVE_PREPARATION_INPUTS_BOUND'
+                    or previous.get('templates') != {'path': arguments['templates_path'],
+                                                     'sha256': sha(inside(project.root, arguments['templates_path']))}
+                    or previous.get('body_ref') != templates['body_ref']
+                    or previous.get('body_geometry_ref') != geometry_ref
+                    or previous.get('collider', {}).get('object') != arguments['body_object']
+                    or previous.get('guide_reconstruction', {}).get('policy_ref') != {
+                        'path': arguments['policy_path'], 'sha256': sha(inside(project.root, arguments['policy_path']))}):
+                raise StudioError('Persisted native preparation binding differs from its exact source or body')
+            ref = previous.get('run_specification'); _reference(ref)
+            if sha(inside(project.root, ref['path'])) != ref['sha256']:
+                raise StudioError('Persisted native preparation run specification changed')
+        for cid in sorted(owners):
+            _, component = project.ready(cid)
+            package = {key: component['package'][key] for key in ('path', 'sha256')}
+            source = next(row for row in compiled['components'] if row['id'] == cid)['package_source_ref']
+            if source != package or templates['components'][cid].get('source_ref') != package:
+                raise StudioError('Preparation source package differs from canonical approved component')
+        if 'envelope_review' in arguments:
+            ref = arguments['envelope_review']; _reference(ref)
+            if sha(inside(project.root, ref['path'])) != ref['sha256']:
+                raise StudioError('Source preparation binding envelope review changed')
+        return
+    if operation == 'introduce_body_target':
+        from .lifecycle import no_pending_operation
+        from .body_context import body_context_descriptor
+        no_pending_operation(state)
+        if set(arguments) != {'context_path'}:
+            raise StudioError('Unexpected/missing measured body context arguments')
+        if state['stage'] != 'RECONSTRUCTING':
+            raise StudioError('Measured body introduction requires active garment reconstruction')
+        require_board(project, state)
+        body_context_descriptor(project, arguments['context_path'])
+        return
+    if operation in ('inspect_reconstructed_part', 'prepare_reconstructed_part', 'run_garment_motion', 'attach_reconstructed_part', 'run_dressing_program'):
+        from .lifecycle import no_pending_operation
+        no_pending_operation(state)
+        if state['stage'] == 'COMPLETE': raise StudioError('Completed project is immutable')
+        if set(arguments) != {'profile_path'}:
+            raise StudioError('Unexpected/missing native candidate profile arguments')
+        if operation in ('inspect_reconstructed_part', 'prepare_reconstructed_part'):
+            from .part_preparation import part_descriptor
+            part_descriptor(project, arguments['profile_path'], normalize=operation == 'prepare_reconstructed_part')
+        elif operation == 'attach_reconstructed_part':
+            from .rigid_attachment import rigid_attachment_descriptor
+            rigid_attachment_descriptor(project, arguments['profile_path'])
+        elif operation == 'run_dressing_program':
+            from .dressing_paths import dressing_execution_descriptor
+            dressing_execution_descriptor(project, arguments['profile_path'])
+        else:
+            from .garment_motion import motion_inputs
+            motion_inputs(project, arguments['profile_path'])
+        return
+    if operation in ('export_blender_animation', 'prepare_asset_finishing', 'compose_animated_delivery', 'render_motion_review'):
+        from .lifecycle import no_pending_operation
+        no_pending_operation(state)
+        if set(arguments) != {'profile_path'}:
+            raise StudioError('Unexpected/missing asset delivery profile arguments')
+        if operation == 'export_blender_animation':
+            from .export_profiles import export_descriptor
+            export_descriptor(project, arguments['profile_path'])
+        elif operation == 'prepare_asset_finishing':
+            from .asset_finishing import finishing_descriptor
+            finishing_descriptor(project, arguments['profile_path'])
+        elif operation == 'render_motion_review':
+            from .review_motion import review_motion_descriptor
+            review_motion_descriptor(project, arguments['profile_path'])
+        else:
+            from .animated_delivery import animated_delivery_descriptor
+            animated_delivery_descriptor(project, arguments['profile_path'])
+        return
+    if operation in ('run_material_bench', 'inspect_dressing_plan'):
+        from .lifecycle import no_pending_operation
+        no_pending_operation(state)
+        if state['stage'] == 'COMPLETE': raise StudioError('Completed project is immutable')
+        if operation == 'run_material_bench':
+            from .material_bench import _load_compiled
+            if set(arguments) != {'bench_path', 'output_dir'}:
+                raise StudioError('Unexpected/missing material benchmark arguments')
+            _load_compiled(project, arguments['bench_path'])
+            if inside(project.root, arguments['output_dir'], False).exists():
+                raise StudioError('Material benchmark output must be a new directory')
+        else:
+            from .dressing import _compiled_dressing
+            if set(arguments) != {'component_id', 'recipe_path', 'dressing_path'}:
+                raise StudioError('Unexpected/missing dressing inspection arguments')
+            if state['stage'] != 'RECONSTRUCTING': raise StudioError('Dressing inspection requires active reconstruction')
+            require_board(project, state)
+            _, component = project.ready(arguments['component_id'])
+            if component['route']['selected'] != 'PATTERN_SEWN' or component['stage'] == 'RECONSTRUCTED':
+                raise StudioError('Dressing inspection requires an unaccepted sewn component')
+            document = _compiled_dressing(project, arguments['dressing_path'])
+            if (document['component_id'] != arguments['component_id']
+                    or document['bindings']['recipe']['path'] != arguments['recipe_path']):
+                raise StudioError('Dressing operation differs from its exact compiled target')
+        return
+    if operation in ('advance_textile_program', 'transition_textile_group'):
+        from .lifecycle import no_pending_operation
+        from .textile_executor import load_textile_program, require_textile_program_admission, STAGES
+        from blender.textile_executor import _source_relations
+        expected = {'program_path'} if operation == 'advance_textile_program' else {'program_path','group_id','stage'}
+        if set(arguments) != expected: raise StudioError('Unexpected/missing textile program arguments')
+        no_pending_operation(state)
+        if state['stage'] != 'RECONSTRUCTING': raise StudioError('Textile execution requires active reconstruction')
+        require_board(project, state)
+        specification, compiled = load_textile_program(project, arguments['program_path'])
+        assembly = read_json(inside(project.root, specification['assembly_plan_ref']['path']))
+        require_textile_program_admission(project, specification, assembly)
+        _source_relations(state, assembly)
+        for component in specification['components']:
+            project.ready(component['component_id'])
+        if operation == 'transition_textile_group':
+            if arguments['stage'] not in STAGES: raise StudioError('Unknown textile group stage')
+            if arguments['group_id'] not in {row['group']['id'] for row in compiled['groups']}:
+                raise StudioError('Unknown source-bound textile group')
+        return
+    if operation in ('prepare_body_motion', 'render_asset_review'):
+        from .lifecycle import no_pending_operation
+        no_pending_operation(state)
+        if operation == 'prepare_body_motion':
+            from blender.body_motion import prepare_motion_inputs
+            if set(arguments) != {'body_target_receipt_path', 'motion_profile_path'}:
+                raise StudioError('Unexpected/missing body motion arguments')
+            if state['stage'] == 'COMPLETE': raise StudioError('Completed project is immutable')
+            prepare_motion_inputs(project, **arguments)
+        else:
+            from .delivery import delivery_profile
+            if set(arguments) != {'profile_path'}: raise StudioError('Unexpected/missing review arguments')
+            delivery_profile(project, arguments['profile_path'])
+        return
+    if operation == 'prepare_body_target':
+        from .body_target import target_descriptor
+        from .lifecycle import no_pending_operation
+        if set(arguments) != {'selection_path', 'target_path'}:
+            raise StudioError('Unexpected/missing body target operation arguments')
+        if state['stage'] == 'COMPLETE':
+            raise StudioError('Completed project is immutable')
+        no_pending_operation(state)
+        target_descriptor(project, **arguments)
+        return
     if operation not in ("prepare", "start_clean_construction", "recover_clean_construction", "inspect_body_source", "prepare_body_reference", "prepare_fitting_envelope", "prepare_fitting_pose", "introduce_fitting_context", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "verify_legacy_import", "garment", "assemble", "run_script", "restore_checkpoint", "simulate_sewn", "freeze_sewn", "apply_sewn_result", "prepare_sewn_stage", "transition_pattern_assembly", "prepare_pattern_assembly"):
         raise StudioError("Unknown guarded Blender operation")
     required = {"prepare": set(), "resume": set(), "inspect": set(),
@@ -85,6 +271,8 @@ def admit_operation(project, operation, arguments):
             raise StudioError('Legacy checkpoint recovery requires an existing receipt path')
     if operation == "run_script" and arguments.get("purpose") == "simulate":
         required = required | {"simulation_plan"}
+    if operation == 'restore_checkpoint' and arguments:
+        required = {'run_id', 'attempt_id'}
     if set(arguments) != required:
         raise StudioError("Unexpected/missing operation arguments")
     from .lifecycle import no_pending_operation
@@ -96,6 +284,10 @@ def admit_operation(project, operation, arguments):
         (inspect_rejection if operation == 'inspect_garment_failure' else inspect_failure)(project, **arguments)
         return
     if operation == "restore_checkpoint":
+        if arguments:
+            from .runs import returned_run_recovery
+            returned_run_recovery(project, **arguments)
+            return
         pending = state.get("pending_blender_operation")
         if not pending:
             raise StudioError("No interrupted operation to recover")
@@ -232,6 +424,12 @@ def admit_operation(project, operation, arguments):
             raise StudioError('Temporary fitting tacks qualify a construction trial only; remove them and pass a new local before full/freeze')
         if operation == "simulate_sewn" and (arguments["phase"] not in ("mount", "drape") or arguments["scope"] not in ("local", "full")):
             raise StudioError("Unknown sewing phase or scope")
+        if operation == 'freeze_sewn' and recipe.get('physics_purpose') == 'TEST_ONLY':
+            raise StudioError('TEST_ONLY body physics cannot become a production frozen fitting result')
+        if operation in ('simulate_sewn', 'freeze_sewn') or (operation == 'transition_pattern_assembly' and
+                arguments['stage'] in ('mount', 'relax', 'drape')):
+            from .physics_admission import require_recipe_fit_intent
+            require_recipe_fit_intent(project, recipe)
         return
     if operation in ("garment", "verify_legacy_import"):
         if state["stage"] != "RECONSTRUCTING":

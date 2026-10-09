@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "status": "MATERIAL_SURFACE_TRACES_V1_INTEGRATED_PORTABLE_REVIEWED",
+  "format": "MATERIAL_SURFACE_TRACES_V1",
+  "commit": "9748d3f07f1450fec7ab66a5b1ecc644c97576bd",
+  "qualification": "NONE",
+  "product_admission": "NONE",
+  "behavior": {
+    "complete_exact_UV_path_observed": true,
+    "candidate_fresh_previous_separated": true,
+    "all_supplied_affine_breaks_retained": true,
+    "rational_square_verified_length_brackets": true,
+    "historical_bounds_transferred_to_continuous_lengths": false,
+    "without_explicit_same_quantity_band": "MEASURED_NO_ACCEPTANCE_BOUND",
+    "partner_continuous_transport": "NOT_IMPLEMENTED",
+    "implicit_pins": 0,
+    "hard_rows_added": 0,
+    "common_budget_and_absolute_deadline_within_call": true,
+    "cross_API_budget_qualified": false,
+    "production_consumer_changed": false
+  },
+  "validation": {
+    "targeted_tests": 130,
+    "new_tests": 23,
+    "independent_probes": 7,
+    "independent_assertions": 614,
+    "independent_preserved_inputs": 79,
+    "tests_on_exact_frozen_copy": true,
+    "full_integrated_suite_after_this_commit": "NOT_YET_EXECUTED"
+  },
+  "fixture_scope": "SYNTHETIC_PROVIDED_FIELDS_NOT_THE_REAL_SIX_CAGES",
+  "development_package": "NO_NEW_PACKAGE_FOR_THIS_COMMIT",
+  "remaining": {
+    "real_six_cages": "NOT_COMPILED",
+    "current_12_362_6_surface_traces": "NOT_EXECUTED",
+    "continuous_partner_transport": "NOT_IMPLEMENTED",
+    "surface_optimizer": "NOT_IMPLEMENTED",
+    "placement": "NOT_ADMITTED",
+    "metric_contacts": "NOT_QUALIFIED",
+    "Cloth": "NOT_EXECUTED",
+    "fitting": "NOT_EXECUTED",
+    "art": "NOT_REVIEWED",
+    "release": "NOT_PUBLISHED",
+    "installation": "NOT_PERFORMED"
+  },
+  "references": {
+    "program-material-surface-traces-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-traces-v1\\FROZEN.json",
+        "sha256": "68f00d49ebf1c0e59b38d722ac090e652732153f40400a83be9568238c47eaae"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-traces-v1\\receipt.json",
+        "sha256": "1280fa078d67e5b80c39720057a94595472426049414a1e7ed8d9f5f2066d8ac"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-traces-v1\\report.md",
+        "sha256": "9016b1fa547aadccc60cb8c6d3e22d4a9a93280dba1e937a2b25ef8b9b1f476f"
+      }
+    },
+    "program-material-surface-traces-review-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-traces-review-v1\\FROZEN.json",
+        "sha256": "29e59e10a376dc885d7891c89f0b8c02a62b26534ca1b245337e76dbb9932bb9"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-traces-review-v1\\receipt.json",
+        "sha256": "f53bdf4eaa321b7eec9731671ff34a096af72fbde6314641fe78586e8c7a986e"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-traces-review-v1\\report.md",
+        "sha256": "a1c7ce04e3ea59cd4b92c963feae36da6980390baaa33ecacdf1095a06c11830"
+      }
+    }
+  }
+}

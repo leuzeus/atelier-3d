@@ -1,0 +1,207 @@
+{
+  "version": 1,
+  "status": "NATIVE_GRADED_BOUNDARY_HYPOTHESIS_REFUSED_AND_REVIEWED",
+  "purpose": "TEST_ONLY",
+  "qualification": "NONE",
+  "product_admission": "NONE",
+  "batch_comparison": {
+    "cause": "NUMERIC_KEYS_BECOME_JSON_TEXT_WITH_CHANGED_SERIALIZATION_ORDER",
+    "numeric_key_types": [
+      "int",
+      "float"
+    ],
+    "changed_numeric_key_representations": 4632,
+    "exact_scalars_compared": 78853,
+    "scalar_or_type_tolerance": "NONE",
+    "native_diagnosis_CDT_calls": 0
+  },
+  "preparation": {
+    "full_pieces": 10,
+    "full_relations": 24,
+    "old_controls_preserved": 2236,
+    "new_fractions": 40,
+    "initial_charged_controls": 80,
+    "local_ordinal_shifts": 877,
+    "charges": {
+      "front-left": 9,
+      "front-right": 9,
+      "back-left": 11,
+      "back-right": 11,
+      "inner-front": 0,
+      "collar": 4,
+      "sleeve-left": 18,
+      "sleeve-right": 18,
+      "cuff-left": 0,
+      "cuff-right": 0
+    },
+    "all_values_types_source_owners_and_order_exact_to_reviewed_V2": true
+  },
+  "native_cases": {
+    "sleeve-left": {
+      "baseline_min_angle_degrees": 5.961773941461179,
+      "baseline_matches_previous_bytes": true,
+      "graded_min_angle_degrees": 1.8347928317139015,
+      "graded_min_edge_cm": 0.010898330670839828,
+      "quality": "NEEDS_CORRECTION",
+      "initial_charged_boundary_insertions": 18,
+      "work": {
+        "cdt_calls": 2,
+        "remesh_attempts": 1,
+        "attempted_insertions": 35,
+        "max_cdt_calls": 9,
+        "max_remesh_attempts": 8,
+        "max_attempted_insertions": 4000,
+        "max_points": 30000,
+        "last_cdt_input_sha256": "11cbd2ed9d7c08bc3e2abd577f03a5ce5c9591aba25129ca924a7fdd7f032847",
+        "rollback_refunds_attempted_work": false
+      },
+      "terminal_refusal": {
+        "reason": "CUMULATIVE_DISPLACEMENT_BUDGET_EXCEEDED",
+        "input_id": 755,
+        "displacement_cm": 0.6223280676596357,
+        "max_displacement_cm": 0.5
+      },
+      "best_safe_candidate_preserved": true,
+      "source_anchors_exact": true
+    },
+    "sleeve-right": {
+      "baseline_min_angle_degrees": 6.2700672789677965,
+      "baseline_matches_previous_bytes": true,
+      "graded_min_angle_degrees": 1.6995324117002442,
+      "graded_min_edge_cm": 0.010898330670839828,
+      "quality": "NEEDS_CORRECTION",
+      "initial_charged_boundary_insertions": 18,
+      "work": {
+        "cdt_calls": 2,
+        "remesh_attempts": 1,
+        "attempted_insertions": 35,
+        "max_cdt_calls": 9,
+        "max_remesh_attempts": 8,
+        "max_attempted_insertions": 4000,
+        "max_points": 30000,
+        "last_cdt_input_sha256": "86e27253d852fa68eb8836fce76ea1ba9b6276ad99f0f9b44c265b723a6291f6",
+        "rollback_refunds_attempted_work": false
+      },
+      "terminal_refusal": {
+        "reason": "CUMULATIVE_DISPLACEMENT_BUDGET_EXCEEDED",
+        "input_id": 755,
+        "displacement_cm": 0.6297371906326678,
+        "max_displacement_cm": 0.5
+      },
+      "best_safe_candidate_preserved": true,
+      "source_anchors_exact": true
+    },
+    "front-left": {
+      "baseline_min_angle_degrees": 4.552743079737584,
+      "baseline_matches_previous_bytes": true,
+      "graded_min_angle_degrees": 0.7150628042200204,
+      "graded_min_edge_cm": 0.010898330561834733,
+      "quality": "NEEDS_CORRECTION",
+      "initial_charged_boundary_insertions": 9,
+      "work": {
+        "cdt_calls": 2,
+        "remesh_attempts": 1,
+        "attempted_insertions": 16,
+        "max_cdt_calls": 9,
+        "max_remesh_attempts": 8,
+        "max_attempted_insertions": 4000,
+        "max_points": 30000,
+        "last_cdt_input_sha256": "728e99911cbf3899afdccb8e5993bb62dc67dc240584184779f84b465d538127",
+        "rollback_refunds_attempted_work": false
+      },
+      "terminal_refusal": {
+        "reason": "CUMULATIVE_DISPLACEMENT_BUDGET_EXCEEDED",
+        "input_id": 2207,
+        "displacement_cm": 0.5916429435453076,
+        "max_displacement_cm": 0.5
+      },
+      "best_safe_candidate_preserved": true,
+      "source_anchors_exact": true
+    }
+  },
+  "independent_review": {
+    "saved_replays_measured": 6,
+    "baseline_meshes_byte_exact": 3,
+    "files_preserved": 2702,
+    "source_and_rollback_verified": true
+  },
+  "established_cause": {
+    "first_refused_IDs_are_existing_initial_grid_points": true,
+    "permanent_birth_references_are_correct": true,
+    "CDT2_preserves_their_previous_coordinates_exactly": true,
+    "per_call_conditioner_references_current_entry": true,
+    "second_conditioner_exceeds_cumulative_birth_budget": true,
+    "terminal_insertion_stagnation": false,
+    "patron_impossibility_proved": false
+  },
+  "next_unit": "OPTIONAL_PERMANENT_DISPLACEMENT_REFERENCE_IN_INTERIOR_CONDITIONER",
+  "unchanged_product_kernel_sha256": "24372dc8e3e2d9b608a125697cfea2a45c3f2de0253d984a62ae0caf46e3badc",
+  "scene_mutations": "NONE",
+  "Cloth": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "artistic_review": "NOT_PERFORMED",
+  "final_prerelease": "NOT_PUBLISHED",
+  "installation": "NOT_PERFORMED",
+  "references": {
+    "program-native-graded-boundaries-v2/FROZEN.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-boundaries-v2\\FROZEN.json",
+      "sha256": "c7ca14ce4e3868224e329f5314c528ce57605cd65cb9c220103008be97ec328c"
+    },
+    "program-native-graded-native-comparison-review-v1/FROZEN.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-native-comparison-review-v1\\FROZEN.json",
+      "sha256": "f0ea4e105b9d44cc62d3c9629929c1a67d45546e266ced74426a20a98da0b718"
+    },
+    "program-native-graded-native-comparison-review-v1/receipt.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-native-comparison-review-v1\\receipt.json",
+      "sha256": "0fc0c872979b13af25cda921b930fe3d61198335c7c355c8143afa0129ca621c"
+    },
+    "program-native-graded-native-comparison-review-v1/report.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-native-comparison-review-v1\\report.json",
+      "sha256": "1750f095ddc32ecfb0db07c820c84b638e5f304fd287510616a6888be7a5c35e"
+    },
+    "program-native-graded-boundaries-v3/FROZEN.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-boundaries-v3\\FROZEN.json",
+      "sha256": "0286748c5202a84046187471330939072bb5e47a2c473ef576b0911ad049c102"
+    },
+    "program-native-graded-v3-preflight-review-v1/FROZEN.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-v3-preflight-review-v1\\FROZEN.json",
+      "sha256": "50361b90ce78a26b0a734c9249251ed3ee86d163a04f26faa285ee7d40485b76"
+    },
+    "program-native-graded-v3-preflight-review-v1/receipt.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-v3-preflight-review-v1\\receipt.json",
+      "sha256": "8eb79685be6d3c6f55f6b86c566159c23d87d72b8d5132d73d4d5c89a939c486"
+    },
+    "program-native-graded-v3-preflight-review-v1/report.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-v3-preflight-review-v1\\report.json",
+      "sha256": "61583e4f0ebf9d0e7fba3597e60d3ebc4ba39f8ebdbfd0fad3138df2d4aab3c7"
+    },
+    "program-native-graded-boundaries-result-review-v1/FROZEN.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-boundaries-result-review-v1\\FROZEN.json",
+      "sha256": "150671b97e41132046bf30e2431be01d8fd64a7e636bf46eaedc5eb9a1c70850"
+    },
+    "program-native-graded-boundaries-result-review-v1/receipt.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-boundaries-result-review-v1\\receipt.json",
+      "sha256": "97eab97eb963b035b2c0cddd148e7463d0b9c953739b18294ba8475ef85835b5"
+    },
+    "program-native-graded-boundaries-result-review-v1/report.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-boundaries-result-review-v1\\report.json",
+      "sha256": "421fec7b8801d9141708062685fba6abecd128fe6ea42428126597f0817d9a10"
+    },
+    "native/receipt.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-boundaries-v3\\output-v1\\receipt.json",
+      "sha256": "fea3fcae98aa2581adc00e1e094672340c341fbf2dfd5a201f0440d465210d84"
+    },
+    "native/graded-boundaries-conditioned-sleeve-left-result.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-boundaries-v3\\output-v1\\graded-boundaries-conditioned-sleeve-left-result.json",
+      "sha256": "d1940c8e29c2ee4a32814dc25e675e20fcfff1ce841379b48385620c7eab9344"
+    },
+    "native/graded-boundaries-conditioned-sleeve-right-result.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-boundaries-v3\\output-v1\\graded-boundaries-conditioned-sleeve-right-result.json",
+      "sha256": "7c7f9bc79fc60678ecf0e3c1412cfbb3b28c9f4b8f9bc2a5582b77c5ec446cc6"
+    },
+    "native/graded-boundaries-conditioned-front-left-result.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-boundaries-v3\\output-v1\\graded-boundaries-conditioned-front-left-result.json",
+      "sha256": "5bb67ab11b2f02980880718f2a554ee2f542f89311cd791c487cc3c844bd82a0"
+    }
+  }
+}

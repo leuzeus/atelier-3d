@@ -163,6 +163,58 @@ def _section_point(frame, compiled, uv, pid):
              'arc_samples': bindings, 'u_direction': frame.get('u_direction', 1)})
 
 
+def _compile_cage(frame, pid, check_time=None):
+    """Validate the existing explicit cage once for placement and measurement."""
+    uv = frame.get('uv_cm'); target = frame.get('target_cm'); triangles = frame.get('triangles')
+    if (not isinstance(uv, list) or not isinstance(target, list) or len(uv) != len(target)
+            or len(uv) < 3 or not isinstance(triangles, list) or not triangles):
+        _refuse('Preform cage UV and target counts differ or are missing: ' + pid, 'placement')
+    for points, size in ((uv, 2), (target, 3)):
+        if any(not isinstance(p, (list, tuple)) or len(p) != size
+               or any(type(v) not in (int, float) or not math.isfinite(v) for v in p) for p in points):
+            _refuse('Preform cage requires finite source UV and world targets: ' + pid, 'placement')
+    compiled = []; faces = set()
+    for triangle_id, triangle in enumerate(triangles):
+        if check_time is not None:
+            check_time()
+        if (not isinstance(triangle, (list, tuple)) or len(triangle) != 3
+                or any(type(i) is not int or not 0 <= i < len(uv) for i in triangle)
+                or len(set(triangle)) != 3):
+            _refuse('Invalid preform cage triangle: ' + pid, 'placement')
+        key = tuple(sorted(triangle))
+        if key in faces:
+            _refuse('Duplicate preform cage triangle: ' + pid, 'placement')
+        faces.add(key)
+        a, b, c = [uv[i] for i in triangle]
+        denominator = (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])
+        if abs(denominator) < 1e-10:
+            _refuse('Collapsed source-UV preform cage triangle: ' + pid, 'placement')
+        compiled.append((triangle_id, triangle, a, b, c, denominator))
+    return compiled
+
+
+def _cage_point(frame, compiled, uv, pid, check_time=None):
+    """The same barycentric correspondence is used in both consumers."""
+    if len(uv) != 2 or any(type(v) not in (int, float) or not math.isfinite(v) for v in uv):
+        _refuse('Cage evaluation needs finite source material UV: ' + pid, 'placement')
+    candidates = []
+    for triangle_id, triangle, a, b, c, denominator in compiled:
+        if check_time is not None:
+            check_time()
+        beta = ((uv[0]-a[0])*(c[1]-a[1])-(uv[1]-a[1])*(c[0]-a[0]))/denominator
+        gamma = ((b[0]-a[0])*(uv[1]-a[1])-(b[1]-a[1])*(uv[0]-a[0]))/denominator
+        bary = [1-beta-gamma, beta, gamma]
+        if min(bary) >= -1e-8 and max(bary) <= 1+1e-8:
+            target = [math.fsum(w*frame['target_cm'][j][k] for w, j in zip(bary, triangle)) for k in range(3)]
+            candidates.append((triangle_id, bary, target))
+    if not candidates:
+        _refuse('Derived source UV is outside its explicit preform cage: ' + pid, 'placement')
+    if any(math.dist(candidates[0][2], c[2]) > 1e-6 for c in candidates[1:]):
+        _refuse('Ambiguous overlapping preform cage correspondence: ' + pid, 'placement')
+    triangle_id, bary, target = candidates[0]
+    return target, {'cage_triangle': triangle_id, 'barycentric_weights': bary}
+
+
 def validate_plan(payload, plan):
     contract('pattern-assembly', plan)
     if payload.get('rest_mode') == 'assembled_3d':
@@ -182,14 +234,7 @@ def validate_plan(payload, plan):
             section_parameterizations[pid] = _compile_arc_sections(frame, pid)
             continue
         if 'uv_cm' in frame:
-            if len(frame['uv_cm']) != len(frame['target_cm']):
-                _refuse('Preform cage UV and target counts differ: ' + pid, 'placement')
-            for triangle in frame['triangles']:
-                if len(set(triangle)) != 3 or any(i >= len(frame['uv_cm']) for i in triangle):
-                    _refuse('Invalid preform cage triangle: ' + pid, 'placement')
-                a, b, c = [frame['uv_cm'][i] for i in triangle]
-                if abs((b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])) < 1e-10:
-                    _refuse('Collapsed source-UV preform cage triangle: ' + pid, 'placement')
+            section_parameterizations[pid] = _compile_cage(frame, pid)
             continue
         u, v = frame['u_axis'], frame['v_axis']
         if abs(_dot(u, u)-1) > 1e-7 or abs(_dot(v, v)-1) > 1e-7 or abs(_dot(u, v)) > 1e-7:
@@ -249,22 +294,7 @@ def preform_coordinates(payload, plan, native_evaluator=None):
             elif 'arc_sections' in frame:
                 coords[index], binding = _section_point(frame, validation['section_parameterizations'][pid], uv, pid)
             elif 'uv_cm' in frame:
-                candidates = []
-                for triangle_id, triangle in enumerate(frame['triangles']):
-                    a, b, c = [frame['uv_cm'][i] for i in triangle]
-                    denominator = (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])
-                    beta = ((uv[0]-a[0])*(c[1]-a[1])-(uv[1]-a[1])*(c[0]-a[0]))/denominator
-                    gamma = ((b[0]-a[0])*(uv[1]-a[1])-(b[1]-a[1])*(uv[0]-a[0]))/denominator
-                    bary = [1-beta-gamma, beta, gamma]
-                    if min(bary) >= -1e-8 and max(bary) <= 1+1e-8:
-                        target = [sum(w*frame['target_cm'][j][k] for w, j in zip(bary, triangle)) for k in range(3)]
-                        candidates.append((triangle_id, bary, target))
-                if not candidates:
-                    _refuse('Derived source UV is outside its explicit preform cage: ' + pid, 'placement')
-                if any(math.dist(candidates[0][2], c[2]) > 1e-6 for c in candidates[1:]):
-                    _refuse('Ambiguous overlapping preform cage correspondence: ' + pid, 'placement')
-                triangle_id, bary, coords[index] = candidates[0]
-                binding = {'cage_triangle': triangle_id, 'barycentric_weights': bary}
+                coords[index], binding = _cage_point(frame, validation['section_parameterizations'][pid], uv, pid)
             else:
                 coords[index] = [frame['origin_cm'][k] + (uv[0]-uv0[0])*frame['u_axis'][k]
                                  + (uv[1]-uv0[1])*frame['v_axis'][k] for k in range(3)]
@@ -570,10 +600,98 @@ def consolidate(payload, coords, plan):
         'source_rest_mode': 'immutable_source_uv_per_face', 'simulation_rest_mode': 'assembled_3d',
         'quality': result['quality'], 'preserved_links': [sid for sid, s in payload['seams'].items() if s['kind'] != 'permanent'],
         'requires': ['continuous_cloth_relaxation', 'body_fitting', 'behaviour_qualification', 'artistic_review']}
+    if any(seam['kind']=='permanent' for seam in payload['seams'].values()):
+        source={key:copy.deepcopy(payload[key]) for key in ('version','component_id','source_garment_sha256',
+            'rest_cm','faces','panels','seams')}
+        for key in ('trial_mode','single_panel_source','source_vertex_indices','source_rest_triangles_cm',
+                    'source_face_pieces','source_face_vertex_ids'):
+            if key in payload:source[key]=copy.deepcopy(payload[key])
+        proof={'version':1,'scope':'EXPLICIT_SOURCE_PERMANENT_UNIONS','source':source,
+            'source_mapping_sha256':map_digest(payload),'result_mapping_sha256':map_digest(result),
+            'coordinates_before_cm':copy.deepcopy(coords),'plan_sha256':digest(plan),
+            'verified_weld_gap_cm':tolerance,'observed_pair_gap_cm':_gap(coords,_pairs(payload)),
+            'explicit_unions':count,'qualification':'GEOMETRY_ONLY'}
+        proof['proof_sha256']=digest(proof)
+        result['permanent_consolidation']=proof
+        report['permanent_continuity']=verify_permanent_continuity(result,tolerance)
     if single_panel:
         report.update(operation='SINGLE_PANEL_NO_OP', sewing_executed=False,
             welding_executed=False, closure_behavior='NOT_QUALIFIED', verified_weld_gap_cm=None)
     return result, report
+
+
+def verify_permanent_continuity(payload,weld_limit_cm):
+    """Reconstruct explicit source unions; a consolidated flag is insufficient.
+
+    This is geometry evidence. It does not transfer the earlier Cloth result
+    or waive the current frame, contact, metric and movement checks.
+    """
+    permanent={sid:seam for sid,seam in payload['seams'].items() if seam['kind']=='permanent'}
+    if not permanent:return None
+    proof=payload.get('permanent_consolidation')
+    if payload.get('rest_mode')!='assembled_3d' or not isinstance(proof,dict):
+        _refuse('Permanent continuity requires its exact source consolidation proof')
+    if (proof.get('version')!=1 or proof.get('scope')!='EXPLICIT_SOURCE_PERMANENT_UNIONS'
+            or proof.get('qualification')!='GEOMETRY_ONLY'
+            or proof.get('proof_sha256')!=digest({k:v for k,v in proof.items() if k!='proof_sha256'})):
+        _refuse('Permanent consolidation proof changed or has an unsupported scope')
+    source=proof['source'];coords=proof['coordinates_before_cm'];tolerance=proof['verified_weld_gap_cm']
+    if (not math.isfinite(tolerance) or tolerance<0 or tolerance>weld_limit_cm+1e-8
+            or source['component_id']!=payload['component_id']
+            or source['source_garment_sha256']!=payload['source_garment_sha256']
+            or map_digest(source)!=proof['source_mapping_sha256']
+            or payload.get('source_mapping_sha256')!=proof['source_mapping_sha256']
+            or map_digest(payload)!=proof['result_mapping_sha256']):
+        _refuse('Permanent consolidation source, current map or weld budget changed')
+    _coordinates(source,coords)
+    source_permanent={sid:seam for sid,seam in source['seams'].items() if seam['kind']=='permanent'}
+    if set(source['seams'])!=set(payload['seams']) or set(source_permanent)!=set(permanent) or not _pairs(source):
+        _refuse('Permanent continuity lost actual source sewing pairs')
+    for group in permanent_support_groups(source):
+        if max(math.dist(coords[a],coords[b]) for a in group for b in group)>tolerance:
+            _refuse('Permanent source cohort exceeds its verified weld tolerance')
+    vertices,faces,mapping,count=weld_permanent(coords,source['faces'],source['seams'],tolerance)
+    if (payload['faces']!=faces or len(payload['rest_cm'])!=len(vertices)
+            or payload.get('source_vertex_map')!={str(old):new for old,new in mapping.items()}
+            or proof['explicit_unions']!=count
+            or proof['observed_pair_gap_cm']!=_gap(coords,_pairs(source))):
+        _refuse('Permanent continuity does not match the reconstructed explicit source unions')
+    source_ids=source.get('source_vertex_indices',list(range(len(coords))))
+    cohorts={str(new):[] for new in range(len(vertices))}
+    for old,new in mapping.items():cohorts[str(new)].append(source_ids[old])
+    if payload.get('source_vertex_cohorts')!=cohorts:
+        _refuse('Permanent continuity source vertex cohorts changed')
+    for old,new in mapping.items():
+        if math.dist(coords[old],payload['rest_cm'][new])>tolerance+1e-8:
+            _refuse('Consolidated rest vertex lies outside its explicit source cohort tolerance')
+    panels=copy.deepcopy(source['panels'])
+    for panel in panels.values():
+        panel['indices']=sorted({mapping[index] for index in panel['indices']})
+        panel['boundary']=[mapping[index] for index in panel['boundary']]
+        panel['edges']={name:[mapping[index] for index in ids] for name,ids in panel['edges'].items()}
+    if payload['panels']!=panels:
+        _refuse('Permanent continuity source panel boundaries or support edges changed')
+    for sid,seam in source['seams'].items():
+        current=payload['seams'].get(sid)
+        expected=copy.deepcopy(seam);expected['pairs']=[[mapping[a],mapping[b]] for a,b in seam['pairs']]
+        if seam['kind']=='permanent':expected['consolidated']=True
+        if current!=expected:
+            _refuse('Permanent continuity source seam mapping or relation kind changed: '+sid)
+        if seam['kind']=='permanent' and any(a!=b for a,b in current['pairs']):
+            _refuse('A permanent source pair is still open after consolidation: '+sid)
+        if seam['kind']!='permanent' and any(a!=b and mapping[a]==mapping[b] for a,b in seam['pairs']):
+            _refuse('A source opening or detachable relation was consolidated: '+sid)
+    source_metrics=face_sources(source);current_metrics=face_sources(payload)
+    keys=('source_rest_triangles_cm','source_face_pieces','source_face_vertex_ids')
+    if source_metrics['binding_issues'] or current_metrics['binding_issues'] or any(source_metrics[k]!=current_metrics[k] for k in keys):
+        _refuse('Permanent continuity lost exact source face material coordinates')
+    _vertex_manifold(payload['faces'])
+    return {'status':'CONTINUITY_VERIFIED','scope':'EXPLICIT_PERMANENT_SOURCE_PAIRS_AND_SHARED_CURRENT_VERTICES',
+        'proof_sha256':proof['proof_sha256'],'source_mapping_sha256':proof['source_mapping_sha256'],
+        'result_mapping_sha256':proof['result_mapping_sha256'],'source_permanent_pair_count':len(_pairs(source)),
+        'explicit_unions':count,'verified_weld_gap_cm':tolerance,'observed_before_weld_gap_cm':proof['observed_pair_gap_cm'],
+        'measured_current_gap_cm':_gap(payload['placed_cm'],_pairs(payload)),
+        'qualification':'GEOMETRY_ONLY','current_physics_validation_required':True}
 
 
 def migrate_legacy_receipt(receipt):

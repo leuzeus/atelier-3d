@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "date": "2026-10-05",
+  "status": "PORTABLE_CODEC_V3_REVIEWED_REAL_PAYLOAD_NOT_EXECUTED",
+  "purpose": "TEST_ONLY",
+  "qualification": "NONE",
+  "product_admission": "NONE",
+  "source_files": {
+    "a3d/native_diagnostic_arrays.py": {
+      "path": "source/a3d/native_diagnostic_arrays.py",
+      "bytes": 29668,
+      "sha256": "616d4f9bd1658523d669290e9934e05e525dcaae92ad4259e763853bd2d57038"
+    },
+    "tests/test_native_diagnostic_arrays.py": {
+      "path": "source/tests/test_native_diagnostic_arrays.py",
+      "bytes": 30076,
+      "sha256": "b9946008002d52af2f3a023a4d98c15574ad311463b4242bd0d9001851761e56"
+    },
+    "references/native-diagnostic-arrays.md": {
+      "path": "source/references/native-diagnostic-arrays.md",
+      "bytes": 12736,
+      "sha256": "2e17d4eb3091c620e2615943f1c854268eb05a3b210e5cf67a6cbe9d75142b3e"
+    }
+  },
+  "author_receipt": {
+    "status": "CANDIDATE_PORTABLE_TESTED_PENDING_INDEPENDENT_REVIEW",
+    "qualification": "NONE",
+    "admission": "NONE",
+    "owned_files": {
+      "a3d/native_diagnostic_arrays.py": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-diagnostic-arrays-v3\\candidate\\a3d\\native_diagnostic_arrays.py",
+        "sha256": "616d4f9bd1658523d669290e9934e05e525dcaae92ad4259e763853bd2d57038",
+        "bytes": 29668
+      },
+      "tests/test_native_diagnostic_arrays.py": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-diagnostic-arrays-v3\\candidate\\tests\\test_native_diagnostic_arrays.py",
+        "sha256": "b9946008002d52af2f3a023a4d98c15574ad311463b4242bd0d9001851761e56",
+        "bytes": 30076
+      },
+      "references/native-diagnostic-arrays.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-diagnostic-arrays-v3\\candidate\\references\\native-diagnostic-arrays.md",
+        "sha256": "2e17d4eb3091c620e2615943f1c854268eb05a3b210e5cf67a6cbe9d75142b3e",
+        "bytes": 12736
+      }
+    },
+    "tests_pass": 76,
+    "codec_tests": 54,
+    "historical_private_metrics_tests": 18,
+    "historical_fake_transport_tests": 4,
+    "tests_seconds": 4.870534599991515,
+    "exact_V2_comparison_fixtures": 6,
+    "runtime_AST_delta": {
+      "changed_functions": [
+        "_stats",
+        "_pack"
+      ],
+      "new_functions": [
+        "_encoded_string_size",
+        "_dumps"
+      ],
+      "all_others_exact_V2": true
+    },
+    "native_UTF8_hash_and_expanded_stats_unchanged": true,
+    "encoded_JSON": "ASCII_ESCAPED_UTF8_WITH_EXACT_LF",
+    "serialization_reserve": "3 * exact_encoded_bytes_including_LF + 256",
+    "output_caps": {
+      "max_nodes": 500000,
+      "max_bytes": 8388608,
+      "max_depth": 128
+    },
+    "private_conservative_caps": {
+      "max_work": 100000000,
+      "max_allocation_bytes": 268435456
+    },
+    "hard_caps_unchanged": true,
+    "no_new_clock_budget_or_refund": true,
+    "syntax": "PASS",
+    "whitespace": "PASS",
+    "analysis_frozen": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-codec-allocation-analysis-v1\\FROZEN.json",
+      "sha256": "4afcf26accc758add975c74aebc3c54c7195ef3a013a62af59d141e91320c900",
+      "bytes": 1298
+    },
+    "analysis_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-codec-allocation-analysis-v1\\receipt.json",
+      "sha256": "9c6e183871acb48933b77ccae086a3afd290041673ebf28c0240dedf08e55cae",
+      "bytes": 853
+    },
+    "previous_author_frozen": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-diagnostic-arrays-v2\\FROZEN.json",
+      "sha256": "8bf7e8fdf2098a3a094f083cea50a9b18fe9c6600647c431bd9252858411a765",
+      "bytes": 5516
+    },
+    "previous_review_frozen": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-diagnostic-arrays-review-v2\\FROZEN.json",
+      "sha256": "69486a5e5929340f1b4642532b816bbd7c14a83237739e231059617f1d143aa6",
+      "bytes": 5743
+    },
+    "actual_DNP_PF5_frozen": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-synchronized-profile-result-v5\\FROZEN.json",
+      "sha256": "8ce0b75af73f501b2fb2822e7fbcd18fb671762b905324e68f4e09e65d581269",
+      "bytes": 1365
+    },
+    "actual_DNP_PF5_scope": "UNKNOWN_OR_UNATTESTED_GEOMETRY_NO_COMPLETE_PAYLOAD_NO_UNIQUE_CAUSE",
+    "native_execution": "NOT_EXECUTED",
+    "real_collar": "NOT_EXECUTED",
+    "existing_callers_changed": false,
+    "protected_consumed_files": 81,
+    "protected_equal": true,
+    "independent_review": "PENDING",
+    "initial_failures_retained": [
+      "baseline44-first.log",
+      "baseline44-first.json",
+      "initial54-result.json",
+      "initial-del-boundary-witness.json"
+    ]
+  },
+  "review_receipt": {
+    "admission": "NONE",
+    "author_frozen_sha256": "2650c9dc0eacacf3d4bb552b94a16c76e27cf97a19aea918bca158d0c56eb9a4",
+    "author_manifest_files_preserved": 39,
+    "author_receipt_sha256": "0a4e56b5df6fcff4187a9d0a87ec9fff05a99c90563922abb7fb21fc4b545113",
+    "direct_buffer_measurements": 5,
+    "doc_sha256": "2e17d4eb3091c620e2615943f1c854268eb05a3b210e5cf67a6cbe9d75142b3e",
+    "findings": [],
+    "independent_V2_comparisons": 5,
+    "independent_probes": 9,
+    "independent_string_oracle_codepoints": 265,
+    "module_sha256": "616d4f9bd1658523d669290e9934e05e525dcaae92ad4259e763853bd2d57038",
+    "protected_files_preserved": 48,
+    "qualification": "NONE",
+    "real_payload_or_native_expansion": "NOT_EXECUTED",
+    "report_sha256": "ca623083185a577835aa172695945ac7e4f4eb90e2259ec1770dd0a8222126fa",
+    "source_edits": false,
+    "status": "PASS_NATIVE_DIAGNOSTIC_ARRAYS_V3_PORTABLE_REVIEW_ONLY",
+    "targeted_tests": 76,
+    "tests_sha256": "b9946008002d52af2f3a023a4d98c15574ad311463b4242bd0d9001851761e56"
+  },
+  "proofs": [
+    {
+      "path": "program-native-codec-allocation-analysis-v1/FROZEN.json",
+      "bytes": 1298,
+      "sha256": "4afcf26accc758add975c74aebc3c54c7195ef3a013a62af59d141e91320c900"
+    },
+    {
+      "path": "program-native-diagnostic-arrays-v3/FROZEN.json",
+      "bytes": 11606,
+      "sha256": "2650c9dc0eacacf3d4bb552b94a16c76e27cf97a19aea918bca158d0c56eb9a4"
+    },
+    {
+      "path": "program-native-diagnostic-arrays-v3/receipt.json",
+      "bytes": 3733,
+      "sha256": "0a4e56b5df6fcff4187a9d0a87ec9fff05a99c90563922abb7fb21fc4b545113"
+    },
+    {
+      "path": "program-native-diagnostic-arrays-review-v3/FROZEN.json",
+      "bytes": 8673,
+      "sha256": "a9f4a5a18d1b55135fa1c6ebe72a319d7f6c09cd797bb8100d578f4d756a8067"
+    },
+    {
+      "path": "program-native-diagnostic-arrays-review-v3/receipt.json",
+      "bytes": 996,
+      "sha256": "d1a8e411951c9207d217bb6d7a75558cddbd10366852300a7f9e1ab8df28da2b"
+    },
+    {
+      "path": "program-native-diagnostic-arrays-v2/FROZEN.json",
+      "bytes": 5516,
+      "sha256": "8bf7e8fdf2098a3a094f083cea50a9b18fe9c6600647c431bd9252858411a765"
+    },
+    {
+      "path": "program-native-diagnostic-arrays-review-v2/FROZEN.json",
+      "bytes": 5743,
+      "sha256": "69486a5e5929340f1b4642532b816bbd7c14a83237739e231059617f1d143aa6"
+    },
+    {
+      "path": "program-native-synchronized-profile-result-v5/FROZEN.json",
+      "bytes": 1365,
+      "sha256": "8ce0b75af73f501b2fb2822e7fbcd18fb671762b905324e68f4e09e65d581269"
+    }
+  ],
+  "encoded_JSON": "ASCII_ESCAPED_UTF8_WITH_EXACT_LF",
+  "serialization_reserve": "3 * exact_encoded_bytes_including_LF + 256",
+  "output_caps": {
+    "max_nodes": 500000,
+    "max_bytes": 8388608,
+    "max_depth": 128
+  },
+  "allocation_scope": "CONSERVATIVE_CUMULATIVE_RESERVATIONS_NOT_MEASURED_PROCESS_RSS",
+  "native_UTF8_hash_and_expanded_stats_unchanged": true,
+  "old_V5_scope": "ALLOCATION_UNKNOWN_OR_UNATTESTED_NO_COMPLETE_PAYLOAD",
+  "unicode_dense_output": "MAY_GROW_AND_REACH_UNCHANGED_BYTE_CAP_EARLIER",
+  "native_caller_integration": "PENDING_SEPARATE_REVIEW",
+  "real_payload_fit": "NOT_VERIFIED",
+  "automatic_retry": false,
+  "NOT_QUALIFIED": [
+    "NATIVE_MESH_QUALITY",
+    "PLACEMENT",
+    "CONTACTS",
+    "CLOTH",
+    "FITTING",
+    "GARMENT_ACCEPTANCE"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "status": "PORTABLE_CAPACITY_GENERALIZATION_VALIDATED",
+  "base_source_commit": "aea7654aea90e743f27126e06f63a5e384012b58",
+  "code": {
+    "a3d/fit_capacity_bounds.py": "ede9e7aec8549d6df07fe7c09e89a99b8d0c1f7be041dedc4521cd1435c2049c",
+    "tests/test_fit_capacity_bounds.py": "9ebfcb7b6601f93e04caec1b377a18b566349e420ea33bd160ab3a87a8b2c65c"
+  },
+  "tests": {
+    "python311": {"status": "PASS", "count": 17, "seconds": 0.034},
+    "python313": {"status": "PASS", "count": 17, "seconds": 0.066}
+  },
+  "changed_behavior": [
+    "Declared source seam edges replace required literal underarm edge names",
+    "Unique declared middle upper-arm section selected by side, domain and parameter instead of literal section ID"
+  ],
+  "preserved": [
+    "One permanent unary reverse join with exact component and package source",
+    "Actual unique contiguous source chains and disjoint ownership",
+    "Analytical affine bounds and continuous material coverage checks",
+    "Sleeve/cuff role and left/right supported domain",
+    "Authenticated body descriptor and unique declared measured parameter 0.5 upper-arm section",
+    "Exact source recompilation and all refusal paths"
+  ],
+  "independent_review": "NO_P2_OR_HIGHER_CONFIRMED",
+  "cross_python_result_digest": "3337cd3384360cf0637b064b5f2d271ceb7bd537d4ce86a4f748fd9cdaba9dce",
+  "original_vs_renamed_edge_numerical_family": "EXACT_EQUAL_WITH_CURRENT_KERNEL",
+  "local_evidence": "G:/projets/atelier-3d/work/garment-automation-v1/program-capacity-generalization-v1/evidence.json",
+  "wrapper_scope": "MOCKED_PLUMBING_AND_AUTHENTICATION_REFUSALS_ONLY",
+  "real_body_remeasurement": "NOT_EXECUTED",
+  "native_execution": "NOT_EXECUTED",
+  "cloth": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "installation": "NOT_EXECUTED",
+  "product_qualification": "NONE"
+}

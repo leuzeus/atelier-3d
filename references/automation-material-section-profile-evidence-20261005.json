@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "status": "BOUNDED_PORTABLE_PROFILING_COMPLETE",
+  "source_commit": "aea7654aea90e743f27126e06f63a5e384012b58",
+  "runner": {
+    "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-material-section-profile-v1/profile_material_section.py",
+    "sha256": "c418b0514fe89b97d973de2034dba486bf97b82d97f9b6f9f2623c7cacfc4450",
+    "parameters": "Source and project paths, component, piece, source edges and measured body landmarks are explicit CLI arguments",
+    "supported_plane": "Already measured landmark section at body-frame height"
+  },
+  "source_triangles": 5242,
+  "guide_points": 6159,
+  "guide_triangles": 11922,
+  "unchanged_budgets": {"max_faces": 50000, "max_points": 20000, "max_seconds": 15.0},
+  "chest_without_cprofile": {
+    "status": "TIME_BUDGET_REFUSAL",
+    "completed_source_faces": 2558,
+    "evaluated_uv_vertices": 1436,
+    "nodes": 15,
+    "segments": 14,
+    "helper_seconds": 15.44320640002843
+  },
+  "chest_with_cprofile": {
+    "status": "TIME_BUDGET_REFUSAL",
+    "completed_source_faces": 735,
+    "evaluated_uv_vertices": 498,
+    "helper_seconds": 16.587186999968253,
+    "kernel_seconds": 15.010158700000002,
+    "cage_point_cumulative_seconds": 12.229651400000002,
+    "path_inside_cumulative_seconds": 2.59232,
+    "completed_barycentric_predicates": 5937156
+  },
+  "timing_scope": "Instrumentation consumes unchanged budget; helper includes checks before kernel; cumulative costs overlap and must not be added",
+  "baseline_profile_sha256": "08cee414d2fadef87a6f65b727b97f3327a18aa30057e99b6a1fd6fff3db2390",
+  "cprofile_profile_sha256": "640033ba221a4f6feb99b347b1fa611c833c00d5702755097e5a732f78dc457f",
+  "local_evidence": "G:/projets/atelier-3d/work/garment-automation-v1/program-material-section-profile-v1/validation.json",
+  "observed_primary_cost": "LINEAR_CAGE_CELL_SEARCH_PER_SOURCE_UV_VERTEX",
+  "source_inputs_changed": false,
+  "canonical_state_changed": false,
+  "native_execution": "NOT_EXECUTED",
+  "complete_material_capacity": "NOT_ESTABLISHED",
+  "qualification": "NONE"
+}

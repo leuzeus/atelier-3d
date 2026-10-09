@@ -307,6 +307,59 @@ def inspect(project_root):
 
 
 def _perform(project_root, operation, arguments):
+    if operation == 'bind_component_preparations':
+        from blender.textile_executor import bind_component_preparations
+        return bind_component_preparations(Project(project_root), **arguments)
+    if operation == 'run_dressing_program':
+        from blender.dressing_executor import run_dressing_program
+        return run_dressing_program(project_root, **arguments)
+    if operation == 'attach_reconstructed_part':
+        from blender.rigid_attachment import attach_reconstructed_part
+        return attach_reconstructed_part(project_root, **arguments)
+    if operation == 'render_motion_review':
+        from blender.review_motion import render_motion_review
+        return render_motion_review(project_root, **arguments)
+    if operation == 'compose_animated_delivery':
+        from blender.animated_delivery import compose_animated_delivery
+        return compose_animated_delivery(project_root, **arguments)
+    if operation == 'introduce_body_target':
+        from blender.body_context import introduce_body_target
+        return introduce_body_target(project_root, **arguments)
+    if operation == 'inspect_reconstructed_part':
+        from blender.part_preparation import inspect_reconstructed_part
+        return inspect_reconstructed_part(project_root, **arguments)
+    if operation == 'prepare_reconstructed_part':
+        from blender.part_preparation import prepare_reconstructed_part
+        return prepare_reconstructed_part(project_root, **arguments)
+    if operation == 'run_garment_motion':
+        from blender.garment_motion import run_garment_motion
+        return run_garment_motion(project_root, **arguments)
+    if operation == 'export_blender_animation':
+        from blender.asset_export import export_blender_animation
+        return export_blender_animation(project_root, **arguments)
+    if operation == 'prepare_asset_finishing':
+        from blender.asset_finishing import prepare_asset_finishing
+        return prepare_asset_finishing(project_root, **arguments)
+    if operation == 'run_material_bench':
+        from a3d.material_bench import run_material_bench
+        return run_material_bench(project_root, **arguments)
+    if operation == 'inspect_dressing_plan':
+        from a3d.dressing import inspect_dressing_plan
+        return inspect_dressing_plan(project_root, **arguments)
+    if operation in ('advance_textile_program', 'transition_textile_group'):
+        from blender.textile_executor import advance_textile_program
+        from blender.textile_group import transition_textile_group
+        return {'advance_textile_program':advance_textile_program,
+                'transition_textile_group':transition_textile_group}[operation](project_root, **arguments)
+    if operation == 'prepare_body_motion':
+        from blender.body_motion import prepare_body_motion
+        return prepare_body_motion(project_root, **arguments)
+    if operation == 'render_asset_review':
+        from blender.delivery import render_asset_review
+        return render_asset_review(project_root, **arguments)
+    if operation == 'prepare_body_target':
+        from blender.body_target import prepare_body_target
+        return prepare_body_target(project_root, **arguments)
     if operation != "run_script":
         from blender.sewing import simulate_sewn, freeze_sewn
         from blender.sewn_stages import apply_sewn_result, prepare_sewn_stage
@@ -357,6 +410,8 @@ def _perform(project_root, operation, arguments):
         from a3d.core import digest
         sim_obj, sim_payload, sim_recipe = managed_inputs(project, plan["component_id"], plan["sewing_recipe"])
         sim_context, sim_colliders, sim_trees = preflight(sim_obj, sim_payload, sim_recipe)
+        from blender.physics_admission import require_native_recipe_fit_intent
+        sim_fit_admission = require_native_recipe_fit_intent(project, sim_recipe, sim_colliders, sim_payload)
         local_path = project.data / "blender/sewing" / (plan["component_id"] + "-local.json")
         expected_binding = trial_binding(sim_obj, sim_payload, sim_recipe, plan["phase"], sim_context)
         if not local_path.exists() or read_json(local_path).get("binding") != expected_binding or read_json(local_path).get("simulation") != "PASS":
@@ -380,6 +435,7 @@ def _perform(project_root, operation, arguments):
         from a3d.sewing import distance, mesh_quality
         verify_physics(sim_obj, sim_expected)
         preflight(sim_obj, sim_payload, sim_recipe)
+        require_native_recipe_fit_intent(project, sim_recipe, sim_colliders, sim_payload)
         final = object_mesh(sim_obj, True)[0]
         if mesh_digest(sim_obj) != sim_base_hash:
             raise StudioError("Custom simulation changed the base mesh instead of evaluating Cloth")
@@ -396,28 +452,69 @@ def _perform(project_root, operation, arguments):
     bpy.ops.wm.save_as_mainfile(filepath=rec["working"], check_existing=False)
     receipt = {"operation": arguments["purpose"], "script": arguments["path"], "sha256": arguments["sha256"],
         "component_ids": arguments["component_ids"], "checkpoint": saved, "visual_validation": "NOT_EXECUTED"}
+    if arguments['purpose'] == 'simulate':
+        receipt.update(fit_intent_admission=sim_fit_admission,
+                       fitting='NOT_QUALIFIED', product_acceptance='NOT_GRANTED', accepted=False)
     atomic_json(project.data / ("blender/script-" + uuid.uuid4().hex + ".json"), receipt)
     return receipt
 
 
-def restore_checkpoint(project_root):
+def restore_checkpoint(project_root, run_id=None, attempt_id=None):
     import bpy
     project, session = working(project_root)
-    pending = project.state()["pending_blender_operation"]
-    source = inside(project.root, pending["checkpoint"]["path"])
+    if (run_id is None) != (attempt_id is None):
+        raise StudioError('Returned run recovery requires both run and attempt identity')
+    recovery = None
+    if run_id is not None:
+        from a3d.runs import returned_run_recovery
+        recovery = returned_run_recovery(project, run_id, attempt_id)
+        previous = recovery['restored_event']
+        if previous:
+            if Path(session['working']).resolve() != inside(project.root, previous['working_ref']['path']):
+                raise StudioError('Recovered run boundary is no longer the current working scene')
+            if bpy.data.is_dirty:
+                raise StudioError('Recovered run scene has unsaved changes; idempotent recovery is not established')
+            return {'restored': previous['working'], 'checkpoint': recovery['checkpoint'],
+                    'run_binding': recovery['run_binding'], 'already_restored': True,
+                    'visual_validation': 'NOT_EXECUTED', 'qualification': 'NOT_GRANTED'}
+        saved = recovery['checkpoint']
+        # Preserve exact historical projections before changing the live session.
+        # Only this authorized restoration persists the archive; it grants no replay.
+        from a3d.run_projection_archive import archive_recovery_projections
+        from hashlib import sha256
+        receipt_ref = recovery['native_receipt_ref']
+        receipt_path = inside(project.root, receipt_ref['path'])
+        receipt_bytes = receipt_path.read_bytes()
+        if sha256(receipt_bytes).hexdigest() != receipt_ref['sha256']:
+            raise StudioError('Recovery native receipt changed before archival')
+        archive_recovery_projections(project, json.loads(receipt_bytes.decode('utf-8-sig')))
+    else:
+        pending = project.state()["pending_blender_operation"]
+        saved = pending['checkpoint']
+    source = inside(project.root, saved['path'])
+    if sha(source) != saved['sha256']:
+        raise StudioError('Recovery checkpoint changed before native opening')
     bpy.ops.wm.open_mainfile(filepath=str(source))
     # A failed scene stays on disk for diagnosis; recovery gets a new path.
     restored = project.data / ("blender/working-recovered-" + uuid.uuid4().hex + ".blend")
     bpy.ops.wm.save_as_mainfile(filepath=str(restored), check_existing=False)
     session["working"] = str(restored)
     atomic_json(project.data / "blender/session.json", session)
+    working(project_root)
     with project.transaction() as db:
         state = project.state(db)
-        state.pop("pending_blender_operation")
-        if pending["operation"] == "assemble":
-            state["evidence"].pop("assembly-result", None)
-        project.save(db, state, "blender_recovered", {"checkpoint": pending["checkpoint"], "working": str(restored)})
-    return {"restored": str(restored), "checkpoint": pending["checkpoint"], "visual_validation": "NOT_EXECUTED"}
+        detail = {'checkpoint': saved, 'working': str(restored)}
+        if recovery:
+            returned_run_recovery(project, run_id, attempt_id)
+            detail.update(run_binding=recovery['run_binding'], working_ref={
+                'path': restored.relative_to(project.root).as_posix(), 'sha256': sha(restored)},
+                restoration_only=True, qualification='NOT_GRANTED')
+        else:
+            state.pop("pending_blender_operation")
+            if pending["operation"] == "assemble":
+                state["evidence"].pop("assembly-result", None)
+        project.save(db, state, "blender_recovered", detail)
+    return dict(detail, restored=str(restored), already_restored=False, visual_validation='NOT_EXECUTED')
 
 
 def dispatch(project_root, operation, arguments):
@@ -426,18 +523,27 @@ def dispatch(project_root, operation, arguments):
     project = Project(project_root)
     admit_operation(project, operation, arguments)
     if operation == "restore_checkpoint":
-        return restore_checkpoint(project_root)
+        return restore_checkpoint(project_root, **arguments)
+    if operation in ('prepare_body_target', 'prepare_body_motion', 'render_asset_review', 'run_material_bench',
+                     'inspect_dressing_plan', 'export_blender_animation', 'prepare_asset_finishing',
+                     'inspect_reconstructed_part', 'prepare_reconstructed_part', 'run_garment_motion',
+                     'compose_animated_delivery', 'attach_reconstructed_part', 'render_motion_review', 'run_dressing_program'):
+        return _perform(project_root, operation, arguments)
     if operation in ("prepare", "start_clean_construction", "recover_clean_construction", "inspect_body_source", "prepare_body_reference", "prepare_fitting_envelope", "prepare_fitting_pose", "resume", "inspect", "frame_view", "inspect_sewing_failure", "inspect_garment_failure", "inspect_sewing_placement", "inspect_garment_fit", "propose_pattern_adjustment", "verify_legacy_import"):
         return _perform(project_root, operation, arguments)
     import bpy
     saved = checkpoint(project_root)
+    from a3d.runs import native_attempt_binding, record_native_run_checkpoint
+    run_binding = native_attempt_binding(project, operation, arguments)
     before_ids = {o.get("a3d_component_id") for o in bpy.data.objects if o.type == "MESH" and o.get("a3d_component_id")}
     with project.transaction() as db:
         state = project.state(db)
         from a3d.lifecycle import no_pending_operation
         no_pending_operation(state)
-        state["pending_blender_operation"] = {"operation": operation, "checkpoint": saved, "status": "running"}
+        state["pending_blender_operation"] = {"operation": operation, "arguments": arguments,
+            "checkpoint": saved, "status": "running", "run_binding": run_binding}
         project.save(db, state, "blender_started", state["pending_blender_operation"])
+    record_native_run_checkpoint(project, operation, arguments, saved)
     try:
         if operation in ('simulate_sewn', 'freeze_sewn', 'transition_pattern_assembly', 'apply_sewn_result', 'prepare_sewn_stage'):
             from blender.piece_inventory import require_live
@@ -477,8 +583,14 @@ def dispatch(project_root, operation, arguments):
                     raise StudioError("Separate components share mesh data; restore checkpoint")
         with project.transaction() as db:
             state = project.state(db)
-            state.pop("pending_blender_operation")
-            project.save(db, state, "blender_finished", {"operation": operation, "checkpoint": saved})
+            from a3d.runs import native_attempt_binding
+            if native_attempt_binding(project, operation, arguments):
+                state['pending_blender_operation'].update(status='RESULT_READY', arguments=arguments)
+                project.save(db, state, "blender_result_ready", {"operation": operation, "arguments": arguments, "checkpoint": saved})
+            else:
+                state.pop('pending_blender_operation')
+                project.save(db, state, "blender_finished", {"operation":operation, "checkpoint":saved})
+        result['_entry_checkpoint'] = saved
         return result
     except BaseException as exc:
         with project.transaction() as db:

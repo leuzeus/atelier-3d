@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-07",
+  "scope": "CURRENT_PACKAGE_DIMENSIONAL_PREFLIGHT_INCOMPLETE",
+  "source_package_ref": {
+    "path": "variants/source-row-grading-v3/packages/garment.coat.garmentpkg",
+    "sha256": "3ba1ffe6a5b647fb41db388476e118fdaf2f4ee57e4e3c4a8c3c624915faddf1"
+  },
+  "patronage_report_ref": {
+    "path": "preparation/patronage-current-source-review-v1/report.json",
+    "sha256": "1716b80a69afc61cf638e3e6cb7987ab0777c777177dfd1741f574c5dd945945"
+  },
+  "dimensional_table_ref": {
+    "path": "preparation/dimensional-current-source-review-v1/report.json",
+    "sha256": "626c35c10ad24f1759a3c0536dda947fbb2afc26352f10e7233cf8040aec9351"
+  },
+  "rows": 26,
+  "historical_v11_proof_transferred": false,
+  "measurement_paths_required": true,
+  "excluded_neck_row": {
+    "id": "coat.neck",
+    "reason": "42.90cm horizontal neck with previous6cm ease is superseded for collar-base preparation; use approved51.2154cm path plus4cm"
+  },
+  "nominal_collar_row": {
+    "id": "coat.neck-base",
+    "body_measure_cm": 51.215414631164414,
+    "approved_ease_target_cm": 4.0,
+    "material_path": [
+      {
+        "piece": "collar",
+        "edge": "inner-left",
+        "material_edge_length_cm": 2.061553,
+        "scope": "EXACT_NAMED_SOURCE_EDGE_ONLY"
+      },
+      {
+        "piece": "collar",
+        "edge": "front-left",
+        "material_edge_length_cm": 14.264996583298196,
+        "scope": "EXACT_NAMED_SOURCE_EDGE_ONLY"
+      },
+      {
+        "piece": "collar",
+        "edge": "back-left",
+        "material_edge_length_cm": 11.281157732284008,
+        "scope": "EXACT_NAMED_SOURCE_EDGE_ONLY"
+      },
+      {
+        "piece": "collar",
+        "edge": "back-right",
+        "material_edge_length_cm": 11.281157732284015,
+        "scope": "EXACT_NAMED_SOURCE_EDGE_ONLY"
+      },
+      {
+        "piece": "collar",
+        "edge": "front-right",
+        "material_edge_length_cm": 14.264996583298199,
+        "scope": "EXACT_NAMED_SOURCE_EDGE_ONLY"
+      },
+      {
+        "piece": "collar",
+        "edge": "inner-right",
+        "material_edge_length_cm": 2.0615529999999964,
+        "scope": "EXACT_NAMED_SOURCE_EDGE_ONLY"
+      }
+    ],
+    "source_capacity_cm": 55.215414631164414,
+    "gap_cm": 0.0,
+    "correspondence": "APPROVED_BODY_PATH_AND_SOURCE_ROW_NOMINAL_LENGTH_ONLY",
+    "action": "Correct full-volume correspondence and guide deformation; no demonstrated nominal length deficit",
+    "fitting": "NOT_QUALIFIED"
+  },
+  "source_edge_measurements_do_not_prove_homology": true,
+  "closed_torso_girth_invented": false,
+  "open_front_visibility_decision_preserved": true,
+  "body_changed": false,
+  "patterns_changed": false,
+  "decision_scope": "REQUIRES_DESIGN_SCOPE_RECONCILIATION",
+  "new_numeric_review_requested": false,
+  "fitting": "NOT_QUALIFIED",
+  "qualification": "DIAGNOSTIC_ONLY",
+  "next": [
+    "Prepare path correspondences from explicit native body regions and source edges.",
+    "Reconcile existing numerical intent provenance to current dossier without asking unchanged values again.",
+    "Measure deformation separately at each source guide transformation.",
+    "Propose local 2D variants only for demonstrated deficits."
+  ]
+}

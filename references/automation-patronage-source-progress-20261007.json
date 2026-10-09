@@ -1,0 +1,177 @@
+{
+  "date": "2026-10-07",
+  "scope": "SOURCE_DIAGNOSTICS_AND_BODY_BOUNDARY_REVIEW",
+  "code_commit": "dd8ff08b65dd4fdf2e70d38ffa026cc875680ec2",
+  "native_execution": false,
+  "connected_mcp": false,
+  "qualification": "NONE",
+  "source_compiler": {
+    "status": "READY_TO_PLAN",
+    "fit_preflight": "FIT_PREFLIGHT_INCOMPLETE",
+    "seconds": 188.8929449999705,
+    "source_unchanged": true,
+    "proposals": [
+      {
+        "id": "coat.chest",
+        "path_kind": "open_material_span",
+        "status": "HOMOLOGY_PROPOSED_REVIEW_REQUIRED",
+        "source_material_length_cm": 88.20155510482003,
+        "body_girth_cm": 110.15260880042449,
+        "spatial_coverage": "NOT_MEASURED",
+        "open_front_overlap": "NOT_MEASURED",
+        "admissible_for_fit": false
+      },
+      {
+        "id": "coat.hip",
+        "path_kind": "open_material_span",
+        "status": "HOMOLOGY_PROPOSED_REVIEW_REQUIRED",
+        "source_material_length_cm": 103.58847361636963,
+        "body_girth_cm": 103.03582161616674,
+        "spatial_coverage": "NOT_MEASURED",
+        "open_front_overlap": "NOT_MEASURED",
+        "admissible_for_fit": false
+      },
+      {
+        "id": "coat.upper-arm.left",
+        "path_kind": "closed_girth",
+        "status": "HOMOLOGY_PROPOSED_REVIEW_REQUIRED",
+        "source_material_length_cm": 45.20489425393275,
+        "body_girth_cm": 37.43990234168494,
+        "spatial_coverage": "NOT_MEASURED",
+        "open_front_overlap": "NOT_MEASURED",
+        "admissible_for_fit": false
+      },
+      {
+        "id": "coat.upper-arm.right",
+        "path_kind": "closed_girth",
+        "status": "HOMOLOGY_PROPOSED_REVIEW_REQUIRED",
+        "source_material_length_cm": 45.24033562461178,
+        "body_girth_cm": 37.47698884036007,
+        "spatial_coverage": "NOT_MEASURED",
+        "open_front_overlap": "NOT_MEASURED",
+        "admissible_for_fit": false
+      },
+      {
+        "id": "coat.waist",
+        "path_kind": "open_material_span",
+        "status": "HOMOLOGY_PROPOSED_REVIEW_REQUIRED",
+        "source_material_length_cm": 83.11635513780706,
+        "body_girth_cm": 85.2868398368254,
+        "spatial_coverage": "NOT_MEASURED",
+        "open_front_overlap": "NOT_MEASURED",
+        "admissible_for_fit": false
+      },
+      {
+        "id": "coat.wrist.left",
+        "path_kind": "closed_girth",
+        "status": "HOMOLOGY_PROPOSED_REVIEW_REQUIRED",
+        "source_material_length_cm": 25.0,
+        "body_girth_cm": 17.39573913140808,
+        "spatial_coverage": "NOT_MEASURED",
+        "open_front_overlap": "NOT_MEASURED",
+        "admissible_for_fit": false
+      },
+      {
+        "id": "coat.wrist.right",
+        "path_kind": "closed_girth",
+        "status": "HOMOLOGY_PROPOSED_REVIEW_REQUIRED",
+        "source_material_length_cm": 25.0,
+        "body_girth_cm": 17.441565861380564,
+        "spatial_coverage": "NOT_MEASURED",
+        "open_front_overlap": "NOT_MEASURED",
+        "admissible_for_fit": false
+      }
+    ],
+    "diagnostics": [
+      {
+        "id": "coat.neck",
+        "message": "Open collar needs one actual measured neck-plane source row with complete declared neckline attachments"
+      }
+    ],
+    "result": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-patronage-synchronized-proposal-probe-v3\\result.json",
+      "sha256": "f9bba7b18d7c31a5d18266825384829ba24849a21c341beb7437485997770bba"
+    },
+    "receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-patronage-synchronized-proposal-probe-v3\\receipt.json",
+      "sha256": "6470b334429787796d35238204c527739d324f8b97a399c828b32c7b55e764a3"
+    }
+  },
+  "body_source_paths": {
+    "status": "BODY_SOURCE_PATH_REVIEW_PREPARED",
+    "paths": [
+      {
+        "id": "neck.source-boundary",
+        "source_joint": "neck.base",
+        "length_cm": 51.215414631164414,
+        "height_variation_cm": 7.088112831115723,
+        "measurement_kind": "SOURCE_REGION_BOUNDARY_LENGTH",
+        "tailoring_homology": "REVIEW_REQUIRED",
+        "topology": "ONE_EXACT_DECLARED_REGION_INTERFACE_CYCLE"
+      }
+    ],
+    "artifacts": {
+      "projections.svg": {
+        "path": "preparation/source-body-path-review-v2/projections.svg",
+        "sha256": "ff1347aeab5b0f351482bc62477f0aee752b8f83eb9932308124cb899101ddbb"
+      },
+      "report.md": {
+        "path": "preparation/source-body-path-review-v2/report.md",
+        "sha256": "9226e247e0913559429cb45caf9922bbaff3120404e40d5a6b34ffb5dbd5c261"
+      },
+      "report.json": {
+        "path": "preparation/source-body-path-review-v2/report.json",
+        "sha256": "7970df4e54293f676bed2f00feb65aba5472c34b1ce0e5b1124a792c130d1c4e"
+      }
+    },
+    "receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-body-source-path-review-probe-v2\\receipt.json",
+      "sha256": "c18a08ab6c427a9994ee035400a29d10eb8866b7e5c21f85415b104a57494f33"
+    },
+    "originals_unchanged": true,
+    "preview": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-body-source-path-render-v1\\projections.png",
+      "sha256": "f4ef89e4a062ef360581549e7447834e99366539dd6f3db3e368c03666fe887c"
+    },
+    "preview_svg_identical": true
+  },
+  "review": {
+    "status": "NO_REMAINING_CONFIRMED_P0_P1_P2",
+    "closed": [
+      "Actual bootstrap and per-document read limits",
+      "Fresh final marker removal after terminal refusal",
+      "Synchronized writer ledger consistency"
+    ],
+    "independent_body_and_filter_tests": 21
+  },
+  "python313_targeted": {
+    "tests": 62,
+    "seconds": 12.194,
+    "status": "PASS",
+    "log": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-patronage-integrated-python313-v1\\unittest.log",
+      "sha256": "bb9ddaa2fdf8fe84d6a104685003b47008a94515dff18b7cc2252f0371001bd2"
+    }
+  },
+  "contour_probe": {
+    "status": "RETURNED",
+    "length_cm": 26.050388776205,
+    "seconds": 14.509,
+    "budget_seconds_unchanged": 15,
+    "result": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-plane-prepared-contour-probe-20261007-v1\\result.json",
+      "sha256": "7c442f7440252837472f47ae09c71eaa4085a5c16f32e7d7b269717f1a7111e1"
+    }
+  },
+  "remaining": [
+    "Collar and shoulder anatomical homology",
+    "Open-front coverage and target reconciliation",
+    "Pattern variants if measured deficit",
+    "Admitted placement",
+    "All 15 textile pieces and buckle",
+    "Dressing, physics, draping, fitting, full clips, artistic review and final release"
+  ],
+  "body_or_patterns_changed": false,
+  "new_pattern_variant": false,
+  "fitting": "NOT_EXECUTED"
+}

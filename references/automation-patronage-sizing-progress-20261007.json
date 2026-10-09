@@ -1,0 +1,149 @@
+{
+  "date": "2026-10-07",
+  "scope": "SOURCE_MEASURES_AND_HUMAN_PREPARATION_INTENTS_ONLY",
+  "runtime": {
+    "version": "0.7.0-rc.2.dev.2026100701",
+    "doctor": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-patronage-connected-0701-reload-v1\\doctor.json",
+      "sha256": "adc74c7490806ef3559f134e86976e69ecd7049e3c98e6caff1130a9309e2993"
+    },
+    "pipeline": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-patronage-connected-0701-reload-v1\\pipeline.json",
+      "sha256": "3dc4ea9fb7161c55e3ded8dbf4e76e1d60112f3c2d1eb8a9d7d776684c9eef2d"
+    }
+  },
+  "human_decisions": [
+    {
+      "decision_id": "e35d8f56-71b0-4416-b9f5-d4a78fdcf516",
+      "source": "human",
+      "source_ref": "codex://threads/01a10118-bef1-7c71-9a8f-6ac8191361a2#user-sizing-intent-call_lghcM0JvGANn2azKlcz06zbO-0-2026-10-07",
+      "statement": "55,22 cm : 4 cm d’aisance",
+      "approved": true,
+      "evidence": {
+        "patronage-sizing.intent.collar-base": {
+          "path": "preparation/closed-collar-target-review-v1/intent.json",
+          "recorded_at": "2026-10-07T07:04:59.946511+00:00",
+          "sha256": "115b731463f3ac5c590e7e92828e2df391dee344556e484aac7a9834933ce80f"
+        },
+        "patronage-sizing.intent.collar-base.comparison": {
+          "path": "preparation/closed-collar-target-review-v1/comparison.json",
+          "recorded_at": "2026-10-07T07:05:17.281317+00:00",
+          "sha256": "8a46c39b864f40adf07d2daec83969af3c51e68f6fbb86c750504a9a7fb37d41"
+        },
+        "body-path-homology.neck.source-boundary.report": {
+          "path": "preparation/source-body-path-review-v3/report.json",
+          "recorded_at": "2026-10-07T05:18:11.793281+00:00",
+          "sha256": "7970df4e54293f676bed2f00feb65aba5472c34b1ce0e5b1124a792c130d1c4e"
+        }
+      },
+      "timestamp": "2026-10-07T07:06:38.307976+00:00"
+    },
+    {
+      "decision_id": "6db2799b-6244-4f52-9003-3b86dd13f328",
+      "source": "human",
+      "source_ref": "codex://threads/01a10118-bef1-7c71-9a8f-6ac8191361a2#user-sizing-intent-call_lghcM0JvGANn2azKlcz06zbO-1-2026-10-07",
+      "statement": "Conserver toute sa largeur visible (recommandé)",
+      "approved": true,
+      "evidence": {
+        "patronage-sizing.intent.central-front-visibility": {
+          "path": "preparation/central-front-reference-review-v1/intent.json",
+          "recorded_at": "2026-10-07T07:05:34.408816+00:00",
+          "sha256": "327534240c2c7dc97bc4e362e18a592909509983c59c4d29394d69f4aeccec0e"
+        },
+        "patronage-sizing.intent.central-front-visibility.measurements": {
+          "path": "preparation/central-front-reference-review-v1/measured-result.json",
+          "recorded_at": "2026-10-07T07:05:51.644552+00:00",
+          "sha256": "465ad66407eb73b8e6e1f253851fe96f67cba56d7fd30457fbeeef37d6ee61d4"
+        },
+        "patronage-sizing.intent.central-front-visibility.projections": {
+          "path": "preparation/central-front-reference-review-v1/projections.png",
+          "recorded_at": "2026-10-07T07:06:08.930980+00:00",
+          "sha256": "23f7e40f99e6b19754c05198c4913f12dc121cd64aec7c60450ed60be80e18b8"
+        }
+      },
+      "timestamp": "2026-10-07T07:06:55.452751+00:00"
+    }
+  ],
+  "neck_reference_human_decision_id": "85c0b2f5-212e-400f-a274-5a2aca34b33b",
+  "collar_target_cm": 55.215414631164414,
+  "new_curve_ease_cm": 4.0,
+  "ease_decomposition": "NOT_DECLARED",
+  "collar_comparison": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\closed-collar-target-review-v1\\comparison.json",
+    "sha256": "8a46c39b864f40adf07d2daec83969af3c51e68f6fbb86c750504a9a7fb37d41"
+  },
+  "collar_intent": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\closed-collar-target-review-v1\\intent.json",
+    "sha256": "115b731463f3ac5c590e7e92828e2df391dee344556e484aac7a9834933ce80f"
+  },
+  "central_front_intent": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\central-front-reference-review-v1\\intent.json",
+    "sha256": "327534240c2c7dc97bc4e362e18a592909509983c59c4d29394d69f4aeccec0e"
+  },
+  "central_front_measurements": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\central-front-reference-review-v1\\measured-result.json",
+    "sha256": "465ad66407eb73b8e6e1f253851fe96f67cba56d7fd30457fbeeef37d6ee61d4"
+  },
+  "central_front_final_pixels": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\central-front-reference-review-v1\\projections.png",
+    "sha256": "23f7e40f99e6b19754c05198c4913f12dc121cd64aec7c60450ed60be80e18b8"
+  },
+  "code_sources": [
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\a3d\\body_path_openings.py",
+      "sha256": "56ac68617f51e7d63aa34f736b9b66bb50c2d3e3c96eb48e4ccb908948acdbbc"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\a3d\\body_source_paths.py",
+      "sha256": "4737f348fd73fcb79cca1e3415a7481322ff25684820cdeb73c3e50a2ef66868"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\a3d\\open_front_reference.py",
+      "sha256": "4e44df2fe924cd70bb17ef387a6569d4df8980f708e13e136bad722db8af6359"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\a3d\\dressing_derivation.py",
+      "sha256": "ab55bd721b33b077c8ced8e18927b3eeec94f50ec85ddfe9ae5b2db97fc1b177"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\a3d\\garment_measurements.py",
+      "sha256": "2e6202a2efdc6efdd9a7c0108e35d21e0300180ced23c4382d22c9daaa5baeb8"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\a3d\\tools.py",
+      "sha256": "795acfcb06951054382f09942af3e436892897fc0fe1582001e8db14adbfc8ad"
+    }
+  ],
+  "targeted_test_logs": [
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-body-opening-integration-tests-v1\\python311.log",
+      "sha256": "a89e06d2f89b25ea6bcf19e271c51c2a25f6be274910bbd3314c3e27bc9b8842"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-body-opening-integration-tests-v1\\python313.log",
+      "sha256": "55ed2079f7ba220faf6d14d054f772c3f4b164812f6996d38a34933539b1877f"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-open-front-reference-tests-20261007-v4\\python311.log",
+      "sha256": "fe8fe2c627967ce58c8b45d79f3fbf3be71a5b1ec57c350663917b24e8e36558"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-open-front-reference-tests-20261007-v4\\python313.log",
+      "sha256": "5e670efc9284c3f4c545054028567ffe93b77dc24b51a4ab2150b855c6631e9b"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-collar-source-topology-tests-20261007-v2\\python311.log",
+      "sha256": "9058c6d349957d5e4128f0812655fceadc54b0d22374eef09b23010a3eae1ea0"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-collar-source-topology-tests-20261007-v2\\python313.log",
+      "sha256": "38e587d7ac0e86f699fa19fb1ae6a304691fa562487d9bec8b6bb654755d8adb"
+    }
+  ],
+  "new_pattern_variant": "NOT_PRODUCED",
+  "native_execution": false,
+  "fitting": "NOT_EXECUTED",
+  "artistic_acceptance": "NOT_GRANTED",
+  "current_piece_completeness": "NON_VERIFIABLE_NOT_REINSPECTED",
+  "distribution": "NEW_SOURCE_CAPABILITIES_NOT_INSTALLED_IN_0701"
+}

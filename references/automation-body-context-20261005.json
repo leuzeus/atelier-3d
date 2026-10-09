@@ -1,0 +1,36 @@
+{
+  "scope": "ACTUAL_NATIVE_BODY_CONTEXT_ONLY",
+  "project_root": "G:/projets/atelier-3d/work/garment-automation-v1/program-reviewed-design-main-v1/execution-project",
+  "project_id": "44f03e6c-dc68-4adb-85b9-e30f88b1aeaa",
+  "runtime_version": "0.7.0-rc.2.dev.21509",
+  "run_id": "run.74b32ba8748a452a93e1983fa1664357",
+  "attempt_id": "attempt.8c48bcd1ae1249c5a97011bc95ec61f4",
+  "operation": "introduce_body_target",
+  "arguments": {"context_path": "preparation/body-context-v1.json"},
+  "authorization": "EXPLICIT_USER_REPLY_FOR_THIS_OPERATION",
+  "execution_status": "COMPLETED",
+  "result_status": "BODY_TARGET_INTRODUCED",
+  "qualification": "EXACT_BODY_CONTEXT_ONLY",
+  "run_qualification": "NOT_GRANTED",
+  "native_receipt": {
+    "path": ".a3d/runs/native/attempt.8c48bcd1ae1249c5a97011bc95ec61f4.json",
+    "sha256": "65589246127ab5c6008d1869822d227e44a5c39bd42ca34708500c332d7ec969",
+    "event_id": 23
+  },
+  "artifact": {
+    "path": ".a3d/outputs/body-context-903e9bd68e724e2c9afec0a1fb9f320b/context.blend",
+    "sha256": "034a3efb442e93a433a6612055f4f2a3fea2200a28ef8d9442f8645958a51327"
+  },
+  "object": "A3D.BodyTarget.MainMale180",
+  "profile_sha256": "50f40c8999caed1e2e908da3eeb9a94d883a4ea2f3fdf6f15f3a4fd633bf437a",
+  "geometry_sha256": "ad81aa69409ab4b2220152f68c1c12c90e475ba6b24613e33d5eb142d54de0c7",
+  "stature_cm": 180.00001,
+  "collision_inner_and_outer_cm": 0.3,
+  "source_mutated": false,
+  "anatomy_transformed": false,
+  "simulation": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "artistic_review": "NOT_EXECUTED",
+  "window_capture": "NOT_RETAINED_AS_CURRENT_CANDIDATE_VIEW",
+  "full_garment_acceptance": "NOT_GRANTED"
+}

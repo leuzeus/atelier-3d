@@ -1,5 +1,145 @@
 # Validation d’Atelier 3D
 
+## Placement anatomique générique — 2026-10-08
+
+Le correctif V2 passe **2 108 tests**, zéro échec, zéro erreur et zéro SKIP,
+en 367,979 s, ainsi que **14 contrats JSON**. Les empreintes de 503 fichiers
+restent inchangées pendant la campagne finale. La revue indépendante ne
+conserve aucun constat ouvert dans son périmètre. Le [reçu exact](references/automation-generic-placement-evidence-20261008.json)
+conserve aussi l'essai initial interrompu par un changement de code concurrent.
+
+Les tests couvrent les guides 3D, les attaches, la métrique des coutures,
+l'embu source, le transport natif et les contrôles obligatoires du maillage.
+Les services Blender des tests sont simulés. Le replay sur le col source
+réel vérifie seulement sa représentation portable. Aucun essai Blender réel,
+Cloth, fitting ou acceptation du manteau n'est ajouté par ce lot.
+Voir [les capacités et limites du correctif](references/generic-anatomical-placement.md).
+
+## Programme en développement — 2026-10-04
+
+Dernière unité : source figée 45, 900 tests portables PASS en 114,496 s et
+49 tests de revue indépendante PASS. Deux cas Blender isolés PASS : cages
+couplées v3 avec six pièces/13 raccords et réouverture, puis contour source v1
+avec coin exact et triangulation native. Nouvelle politique v8 validée avec
+PowerShell Test-Json. Ces cas ont une portée `TEST_ONLY`, sans fitting ni
+acceptation du manteau complet. Le [reçu de couplage](references/automation-source-coupling-evidence-20261004.json)
+vérifie 389 fichiers de code et contrats contre le commit `848c9a8`.
+Le [suivi](references/automation-ease-followup-20261004.md)
+conserve les observations et les campagnes antérieures.
+
+L'unité précédente poursuit l'accord numérique d'aisance ample. Son
+[suivi séparé](references/automation-ease-followup-20261004.md) distingue la
+variante calculée des patrons, les guides et l'acceptation encore requise.
+Source figée 43, code `49ade3c` : 868 tests portables PASS en 103,96 s,
+29 contrats JSON PASS, zéro FAIL et trois SKIP. Les groupes textiles natifs
+v16 passent en 36,28 s et le cas natif de cage source v2 en 4,03 s.
+Le [reçu de cette unité](references/automation-ease-evidence-20261004.json)
+conserve les empreintes et la portée de chaque essai. La campagne 41 de
+857 tests reste historique. Ces essais sont limités au logiciel et aux cas
+synthétiques. Les valeurs numériques et les deux nouveaux
+patrons de manches sont acceptés dans leurs portées distinctes ; la couverture
+du devant et le fitting restent à vérifier.
+La compilation MAIN v8 produit sept chemins proposés et refuse la poitrine :
+un segment de l'ancienne préparation native ne suit pas le vrai bord source.
+Les témoins de coutures résolvent les ambiguïtés d'arrondi sans élargir les
+tolérances. Les chemins proposés restent non qualifiés pour le fitting.
+
+Les observations suivantes concernent l'intégration antérieure sur la source
+37 ; leurs preuves et limites restent conservées.
+
+Les observations actuelles et leurs limites sont détaillées dans
+[le programme](references/automation-program.md) et
+[les preuves d'automatisation](references/automation-validation.md).
+Elles ne remplacent aucune qualification du vêtement complet.
+Le [reçu d'intégration](references/automation-evidence-20261004.json) conserve
+les identités des campagnes et la vérification des octets du code commité.
+
+- Source figée 37, octets conformes aux attributs Git : 795 tests portables PASS
+  en 105,57 s (106,73 s de lancement).
+  Empreinte `2bee3c9b90f19fe3c64dd71c01bbb590d861d6d6151eaf6a64947bb64d93ec3a`.
+  Les 14 contrats de templates/fixtures et sept entrées actuelles sont validés
+  par PowerShell Test-Json. Les campagnes historiques restent distinctes.
+- Textile natif v14, même source 37 : groupes ordonnés, bande unique, groupe
+  couplé et réconciliation sans replay PASS en 40,09 s. Portée TEST_ONLY ;
+  les entrées de production sans fiche d'aisance revue restent refusées.
+- Compilation publique v3, même source 37 : 15 textiles et une boucle couverts,
+  six chemins proposés, deux manches non homologues refusées. Guides reconstruits
+  strictement à l'identique ; SQLite et corps conservés. Fitting incomplet.
+  Les anciennes campagnes 36 et antérieures conservent leurs reçus séparés.
+- Source figée 32 : admission native du corps exact PASS ; quatre substitutions
+  refusées. Groupes textiles v12 PASS en 35,16 s, y compris refus des entrées
+  de production sans contexte d'aisance. Portée identité et coupons uniquement.
+- Enfilage de prise source v5 : cinq images Cloth exécutées et réouvertes,
+  erreurs sous .001 cm, poids libérés et cache valide. La bande reste éloignée
+  du corps ; aucun passage physique du manteau principal démontré.
+- Préparation principale v8 : 15 pièces générées, trois composants refusés.
+  Épaules et haut du torse pénétrants, déformation métrique dépassant les limites,
+  ceinture avec réserve insuffisante. Aucun Cloth ni fitting principal exécuté.
+- Coupe ample retenue par l'utilisateur ; valeurs numériques encore proposées
+  dans cette intégration antérieure. Le mannequin accepté ne change pas. Toute gradation produit une
+  variante séparée à examiner avant construction et acceptation.
+
+## Préversion textile 0.7.0-rc.2 — 2026-10-03
+
+Les contrôles logiciels du commit publié, l'inventaire du paquet et les
+empreintes sont consignés avec la release et la CI. Les essais natifs de
+développement suivants sont liés aux modules et artefacts effectivement
+contrôlés, avant le changement de version ; ils ne qualifient pas une nouvelle
+installation Codex ou le vêtement complet.
+
+- Procédure codée de stature : originaux et topologie conservés ; variantes
+  évaluées à 180,00000189 et 180,00000392 cm, pieds conservés et réouverture
+  vérifiée. Profils et points de peau des épaules remesurés sur les variantes
+  exactes. Portée `GEOMETRY_ONLY` / `HEIGHT_ONLY`, pas de fitting exécuté.
+- Intégrité des repères de surface : source, pose, profil complet et cadre
+  liés au reçu ; triangles incomplets, étrangers, dupliqués, mal orientés et
+  corps ouverts refusés. Ces contrôles ne valent pas revue anatomique humaine.
+- Torse : après la correction bornée de préparation, métriques PASS sur les
+  quatre panneaux des bases d'origine à 169/164 cm. Contacts corps FAIL :
+  pénétration maximale 6,987 / 6,109 cm pour un seuil de 0,05 cm. Les vues
+  examinées confirment les pénétrations. Self-contacts non évalués après ce
+  refus ; Cloth non exécuté. Aucun transfert aux corps cibles à 180 cm.
+- Réglage indépendant des tours, enfilage, construction complète des 15
+  pièces textiles avec boucle rigide, fitting, mouvement et acceptation
+  artistique restent à réaliser ou à qualifier.
+
+Les reçus locaux sont `work/garment-automation-v1/body-target-runtime-v2/` et
+`native-upper-torso-skin-v1/`. Ils restent exclus du paquet public. Voir
+[les contrôles de mensurations](references/mannequin-measurements.md).
+
+## Préversion textile 0.7.0-rc.1 — 2026-10-03
+
+La préversion conserve les contrôles et les patrons approuvés. Les vérifications
+logicielles du candidat versionné sont consignées avec la release et la CI du
+commit publié. Les essais natifs ci-dessous précèdent le changement de version :
+ils restent limités aux fichiers et scénarios effectivement contrôlés. Une
+installation du paquet versionné dans Codex n’est pas revendiquée.
+
+Sur le candidat versionné du 3 octobre 2026 : **443 tests Windows PASS**
+(58,174 s) et **14 contrats JSON PASS** par PowerShell `Test-Json`.
+Le journal reste local dans `work/release-0.7.0-rc.1-20261003/` du checkout
+principal. Linux est vérifié séparément par la CI GitHub ; aucun WSL local
+n’a été utilisé.
+
+- Catalogue : sélection et référence statique des deux bases CC0 vérifiées dans
+  une instance Blender isolée ; repos et mouvement court du rig préparatoire.
+  Qualité générale des déformations et fitting non qualifiés.
+- Coupon couplé : convergence après 38 images sur un plafond de 96, portée
+  COUPLED_COUPON_ONLY. Aucun transfert de ce PASS au vêtement complet.
+- Torse : métrique des quatre panneaux PASS sur les deux mannequins, aucun
+  chevauchement entre panneaux dans le scénario ciblé. Les contacts avec le
+  corps restent refusés : distance signée minimale -5,584 cm / -4,204 cm et
+  raccord maximal 24,914 cm / 26,961 cm, au-delà du plafond initial de 12 cm.
+  Les corrections rigides coordonnées testées sont rejetées.
+- Ceinture : métrique du panneau source unique PASS sur les deux bases ;
+  fermeture, boucle rigide, enfilage et fitting non exécutés.
+- Limites : montage complet des 15 pièces textiles, fitting, stabilité longue,
+  animation, revue humaine et import Unreal restent non qualifiés.
+
+Les reçus natifs restent locaux sous `work/garment-automation-v1/` ; ils ne sont
+pas inclus dans le paquet public. Les détails et étapes restantes sont dans
+[le contrat de développement](references/garment-automation.md).
+
 ## Release 0.6.8 — 2026-10-03
 
 La version 0.6.8 inclut la préparation et l'assemblage PATTERN_SEWN, les

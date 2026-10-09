@@ -6,10 +6,41 @@ import uuid
 from a3d.core import StudioError,atomic_json,contract,digest,inside,read_json,sha
 from blender.pattern_assembly import reference,verified_reference,collision_guard,validate_envelope_review
 from blender.sewing import build_mesh,make_object,mesh_digest,mesh_recipe_digest,context_colliders,simulation_quality
+from a3d.placement_attachments import bind_anatomical_attachments,observe_anatomical_attachments
 
 
 RETIRED_PREPARATIONS=('experimental_prefit','interface_preparation','panel_mount',
     'fitting_placement','contact_recovery','fitting_pose','fitting_tacks')
+
+
+def meshing_partial_diagnostic(error):
+    """Failure observations only; never serialize a native Vector candidate."""
+    partial=getattr(error,'bounded_meshing_partial',None)
+    if not isinstance(partial,dict):return None
+    result={key:copy.deepcopy(partial.get(key)) for key in
+            ('qualification','admission','active_piece','interior_grid',
+             'last_completed_work_snapshot','snapshot_scope','costs_refunded')}
+    result['best_safe_candidate_recorded_in_exception']=partial.get('best_safe_candidate') is not None
+    result['candidate_admitted']=False
+    return result
+
+
+def preform_supports(payload,plan,coordinates):
+    """Resolve the same source supports even when an initial guide is refused."""
+    from a3d.pattern_assembly import support_weights
+    from a3d.sewing import permanent_support_groups,distance
+    weights,report=support_weights(payload,plan,'assembly',release=0.)
+    source=payload.get('source_pins',{})
+    report['source_pin_transition']={key:{'source_weight':source.get(key,0.),'prepared_weight':weights.get(key,0.)}
+        for key in source.keys()|weights.keys() if source.get(key,0.)!=weights.get(key,0.)}
+    variations=[];conflicts=[]
+    for group in permanent_support_groups(payload):
+        cohort={str(i):weights.get(str(i),0.) for i in group}
+        if len(set(cohort.values()))>1:variations.append(cohort)
+        fixed=[i for i in group if cohort[str(i)]>=1.]
+        if any(distance(coordinates[a],coordinates[b])>plan['consolidation']['weld_gap_cm'] for a in fixed for b in fixed):conflicts.append(fixed)
+    report.update(permanent_cohort_weight_variations=variations,contradictory_fixed_cohorts=conflicts)
+    return weights,report
 
 
 def migrate_preparation_recipe(source_recipe,spec):
@@ -45,7 +76,36 @@ def prepared_receipt(project,obj,payload,recipe,plan_ref):
             or record.get('mesh_sha256')!=mesh_digest(obj)):
         raise StudioError('Prepared geometry, recipe, source mapping or plan changed; prepare again')
     verified_reference(project,record['derived_mesh'])
+    correction=record.get('placement_correction')
+    if correction:
+        observed=read_json(verified_reference(project,correction['receipt']))
+        if (correction.get('candidate_sha256')!=digest(payload['placed_cm'])
+                or observed.get('candidate_sha256')!=digest(payload['placed_cm'])
+                or observed.get('status')!='GEOMETRIC_GATES_PASSED'):
+            raise StudioError('Prepared native placement correction changed or was not geometrically admitted')
     spec=read_json(verified_reference(project,record['preparation_spec']))
+    if 'anatomical_attachments' in spec:
+        observed=record.get('anatomical_attachments',{})
+        binding=bind_anatomical_attachments(payload,payload['placed_cm'],spec['anatomical_attachments'])
+        if (observed.get('source_declarations_sha256')!=digest(spec['anatomical_attachments'])
+                or observed.get('status')!='ANATOMICAL_ATTACHMENTS_PRESERVED'
+                or observed.get('final',{}).get('preserved') is not True
+                or observed.get('final',{}).get('candidate_sha256')!=digest(payload['placed_cm'])
+                or not observe_anatomical_attachments(binding,payload['placed_cm'])['preserved']):
+            raise StudioError('Prepared anatomical attachment evidence is missing, changed or not preserved')
+    if spec.get('meshing_profile'):
+        from a3d.meshing_profile import profile_binding
+        observation=record.get('meshing_observation',{})
+        work=payload.get('meshing_work',{})
+        if (observation.get('status')!='COMPLETED_MESH_BUILD_ONLY'
+            or payload.get('meshing_profile')!=profile_binding(spec['meshing_profile'])
+            or observation.get('profile')!=payload.get('meshing_profile')
+            or observation.get('work')!=work or work.get('component_id')!=payload['component_id']
+            or work.get('qualification')!='NONE' or work.get('admission')!='NONE'
+            or type(work.get('last_checkpoint'))not in(int,float)
+            or type(work.get('absolute_deadline'))not in(int,float)
+            or not work['last_checkpoint']<work['absolute_deadline']):
+            raise StudioError('Prepared synchronized meshing observation is missing, expired or changed')
     for key in ('assembly_plan','construction_dossier'):
         if spec.get(key):verified_reference(project,spec[key])
     verified_reference(project,record['recipe'])
@@ -128,6 +188,8 @@ def _material_assessment(data,recipe,spec,payload):
 
 
 def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_path):
+    import time
+    meshing_started=time.monotonic()
     import bpy
     from blender.operations import working
     from a3d.packages import extract_package
@@ -141,6 +203,12 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
     spec_path=inside(project.root,preparation_path);spec=contract('pattern-preparation',read_json(spec_path))
     recipe_file=inside(project.root,recipe_path);source_recipe=contract('sewing-recipe',read_json(recipe_file))
     recipe,migration=migrate_preparation_recipe(source_recipe,spec)
+    meshing_envelope=None
+    if spec.get('meshing_profile'):
+        from a3d.meshing_profile import create_envelope
+        meshing_envelope=create_envelope(spec['meshing_profile'],component_id,recipe,
+            spec['regular_mesh'],started_at=meshing_started)
+        meshing_envelope.check('before_source_package_capture')
     if spec['component_id']!=component_id or recipe['component_id']!=component_id:raise StudioError('Preparation component mismatch')
     if spec['regular_mesh']['min_spacing_cm']>spec['regular_mesh']['spacing_cm']:
         raise StudioError('Regular preparation minimum spacing cannot exceed its base spacing')
@@ -168,21 +236,52 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
         source_audit={'status':'NEEDS_CORRECTION','source_sha256':digest(data),'error':str(exc),
             'issues':[{'category':'source_contract','code':'SOURCE_AUDIT_ERROR','message':str(exc)}]}
         problem('NEEDS_CORRECTION','source_pattern',exc)
-    payload=None;plan=None;plan_ref=None;obj=None;preform=None;collision=None;statistics=None;dressing=None;layer_migration=None
+    payload=None;plan=None;plan_ref=None;obj=None;preform=None;collision=None;statistics=None;dressing=None;layer_migration=None;placement_correction=None
+    meshing_observation=None
+    anatomical_binding=None;anatomical_assessment=None
+    if 'anatomical_attachments' in spec:
+        anatomical_assessment={'status':'NOT_EXECUTED_NO_DERIVED_MESH',
+            'source_declarations_sha256':digest(spec['anatomical_attachments']),
+            'qualification':'NONE','physical_pin_created':False}
+    meshing_attachments=({'anatomical_attachments':spec['anatomical_attachments']}
+        if 'anatomical_attachments' in spec else {})
     try:
-        payload=build_mesh(data,recipe,regular_mesh=spec['regular_mesh'],dossier=dossier)
+        if meshing_envelope is not None:
+            payload=build_mesh(data,recipe,regular_mesh=spec['regular_mesh'],dossier=dossier,
+                meshing_profile=spec['meshing_profile'],meshing_envelope=meshing_envelope,**meshing_attachments)
+        else:payload=build_mesh(data,recipe,regular_mesh=spec['regular_mesh'],dossier=dossier,**meshing_attachments)
+        if meshing_envelope is not None:
+            meshing_observation={'status':'COMPLETED_MESH_BUILD_ONLY','qualification':'NONE',
+                'work':copy.deepcopy(payload['meshing_work']),'profile':copy.deepcopy(payload['meshing_profile'])}
     except StudioError as exc:
         payload=getattr(exc,'garment_payload',None)
         problem('NEEDS_CORRECTION','derived_mesh_or_initial_placement',exc)
+        if meshing_envelope is not None:
+            meshing_observation={'status':'REFUSED_OR_INCOMPLETE_MESH_BUILD','qualification':'NONE',
+                'reason':getattr(exc,'reason',None),'execution_status':getattr(exc,'status',None),
+                'message':str(exc),'last_phase':meshing_envelope.phase,
+                'attempted_work':dict(meshing_envelope._counts),'costs_refunded':False,
+                'owner_attempted_work':copy.deepcopy(meshing_envelope._owner_counts),
+                'last_observed_elapsed_seconds':meshing_envelope._last_clock-meshing_envelope.start,
+                'elapsed_scope':'LAST_COOPERATIVE_CLOCK_CHECK_NOT_COMPLETE_OPERATION_DURATION',
+                'bounded_partial':meshing_partial_diagnostic(exc),
+                'terminal_snapshot':'NOT_AVAILABLE_NO_SUCCESS_CLOCK_CHECK',
+                'native_diagnostic':getattr(exc,'diagnostic',None)}
+            problem('NEEDS_CORRECTION','synchronized_meshing_incomplete',
+                'Synchronized mesh has no completed terminal observation; preform cannot clear this refusal')
     if payload:
         payload.update(package_sha256=component['package']['sha256'],source_garment=(source_dir/'garment.json').relative_to(project.root).as_posix(),
             source_pins=copy.deepcopy(payload['pins']),full_rest_area_cm2=_area(payload))
         if session.get('construction_id'):payload['construction_id']=session['construction_id']
         source_placement=copy.deepcopy(payload['placed_cm'])
+        initial_preform_problem=None
+        initial_preform_can_reconcile=False
         if spec.get('assembly_plan'):
             original_plan=contract('pattern-assembly',read_json(verified_reference(project,spec['assembly_plan'])))
             if original_plan['component_id']!=component_id:raise StudioError('Preparation assembly plan component mismatch')
             plan=copy.deepcopy(original_plan);plan['mapping_sha256']=map_digest(payload)
+            from a3d.dressing import rebind_layer_execution
+            plan=rebind_layer_execution(plan,payload)
             if 'layers' not in plan:
                 from a3d.dressing import migrate_legacy_layers
                 roles={item['object']:'body' if item['role']=='mannequin' else 'unknown' for item in recipe['colliders']}
@@ -190,30 +289,34 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
                 if layer_migration['layers']:plan['layers']=layer_migration['layers']
                 else:problem('NEEDS_CLARIFICATION','layer_order',layer_migration['reason'])
             try:
+                if spec.get('source_preform_budget'):
+                    from a3d.textile_executor import verify_source_preform_budget
+                    verify_source_preform_budget(data,plan['preform']['panels'],recipe['placements'],spec['source_preform_budget'])
                 coords,preform=preform_coordinates(payload,plan)
                 payload['placed_cm']=coords
-                payload['pins'],support=support_weights(payload,plan,'assembly',release=0.)
-                support['source_pin_transition']={key:{'source_weight':payload['source_pins'].get(key,0.),'prepared_weight':payload['pins'].get(key,0.)}
-                    for key in payload['source_pins'].keys()|payload['pins'].keys() if payload['source_pins'].get(key,0.)!=payload['pins'].get(key,0.)}
-                from a3d.sewing import permanent_support_groups,distance
-                variations=[];fixed_conflicts=[]
-                for group in permanent_support_groups(payload):
-                    weights={str(i):payload['pins'].get(str(i),0.) for i in group}
-                    if len(set(weights.values()))>1:variations.append(weights)
-                    fixed=[i for i in group if weights[str(i)]>=1.]
-                    if any(distance(coords[a],coords[b])>plan['consolidation']['weld_gap_cm'] for a in fixed for b in fixed):fixed_conflicts.append(fixed)
-                support.update(permanent_cohort_weight_variations=variations,contradictory_fixed_cohorts=fixed_conflicts)
-                if fixed_conflicts:problem('NEEDS_CORRECTION','support_conflict','Fixed declared supports prevent their permanent seam partners from closing within tolerance')
+                payload['pins'],support=preform_supports(payload,plan,coords)
+                if support['contradictory_fixed_cohorts']:problem('NEEDS_CORRECTION','support_conflict','Fixed declared supports prevent their permanent seam partners from closing within tolerance')
                 preform['supports']=support
                 # The regular derivation is checked in its actual preform below.
                 problems[:]=[p for p in problems if p['category']!='derived_mesh_or_initial_placement']
             except StudioError as exc:
                 if getattr(exc,'preform_coordinates_cm',None):payload['placed_cm']=exc.preform_coordinates_cm
+                initial_preform_can_reconcile=bool(getattr(exc,'preform_coordinates_cm',None))
                 preform={'status':'NEEDS_CORRECTION','error':str(exc),
                     'correspondence':getattr(exc,'preform_correspondence',None),
                     'native_backends':getattr(exc,'preform_native_backends',{})}
-                problem('NEEDS_CORRECTION',getattr(exc,'reason_category','preform'),exc)
-            displacement=_placement_displacement(payload,source_placement,payload['placed_cm'],plan['assembly']['max_displacement_cm'])
+                initial_preform_problem={'readiness':'NEEDS_CORRECTION','category':getattr(exc,'reason_category','preform'),'message':str(exc)}
+                problems.append(initial_preform_problem)
+                if getattr(exc,'preform_coordinates_cm',None):
+                    try:
+                        payload['pins'],support=preform_supports(payload,plan,payload['placed_cm']);preform['supports']=support
+                        if support['contradictory_fixed_cohorts']:
+                            problem('NEEDS_CORRECTION','support_conflict','Fixed declared supports prevent their permanent seam partners from closing within tolerance')
+                    except StudioError as support_error:problem('NEEDS_CORRECTION','support_conflict',support_error)
+            preform_limit=spec.get('source_preform_budget',{}).get('max_displacement_cm',plan['assembly']['max_displacement_cm'])
+            displacement=_placement_displacement(payload,source_placement,payload['placed_cm'],preform_limit)
+            displacement['budget_basis']='SOURCE_GUIDE_STAGING' if spec.get('source_preform_budget') else 'LEGACY_ASSEMBLY_DISPLACEMENT'
+            displacement['physical_assembly_limit_cm']=plan['assembly']['max_displacement_cm']
             preform['placement_displacement']=displacement
             if not displacement['within_budget']:
                 problem('NEEDS_CORRECTION','placement_budget',f"Preform displacement {displacement['max_cm']:.6g} cm exceeds its declared {displacement['limit_cm']:.6g} cm budget at source vertex {displacement['vertex']}")
@@ -223,6 +326,17 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
                 'source_recipe_sha256':digest(recipe),'geometry_not_copied_from_old_triangulation':True}
         else:
             rebind=None;problem('NEEDS_CLARIFICATION','preform','A sourced target preform and explicit support roles are required before mounting')
+        # Anatomical validity belongs to preparation itself, independently of
+        # the optional correction solver. Preserve this original binding across
+        # all later numerical proposals; a later pose must not rebase it.
+        if anatomical_assessment is not None:
+            try:
+                anatomical_binding=bind_anatomical_attachments(payload,payload['placed_cm'],spec['anatomical_attachments'])
+                anatomical_assessment.update(status='ANATOMICAL_ATTACHMENTS_BOUND',binding=anatomical_binding,
+                    entry=observe_anatomical_attachments(anatomical_binding,payload['placed_cm']))
+            except StudioError as exc:
+                anatomical_assessment.update(status='NEEDS_CORRECTION',error=str(exc),stage='ENTRY')
+                problem('NEEDS_CORRECTION','anatomical_attachments',exc)
         try:
             colliders,trees,snapshots=context_colliders(recipe)
             selected={o.name for o in colliders}
@@ -233,6 +347,51 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
                 else:problem('NEEDS_CLARIFICATION','layer_order',selection['reason'])
             inward=[(o,t,s) for o,t,s in zip(colliders,trees,snapshots,strict=True) if o.name in selected]
             collision_plan=copy.deepcopy(plan) if plan else {'collision':{'required':bool(recipe['colliders']),'clearance_cm':0.},'consolidation':{'weld_gap_cm':recipe['limits']['weld_gap_cm']}}
+            if (plan and spec.get('placement_correction')
+                    and (anatomical_assessment is None or anatomical_binding is not None)):
+                from blender.placement_correction import correct_preparation
+                before_correction=copy.deepcopy(payload['placed_cm'])
+                try:
+                    anchor_options={}
+                    if spec.get('anchor_reserve_correction'):
+                        from blender.anchor_reserve import verified_anchor_body
+                        anchor_options['anchor_body']=verified_anchor_body(project,recipe,plan,spec)
+                    placement_correction=correct_preparation(payload,recipe,plan,spec,[item[0] for item in inward],**anchor_options)
+                    payload['placed_cm']=copy.deepcopy(placement_correction['coordinates_cm'])
+                    if placement_correction['status']!='GEOMETRIC_GATES_PASSED':
+                        problem('NEEDS_CORRECTION','placement_correction',placement_correction['stop_reason'])
+                    elif initial_preform_problem and initial_preform_can_reconcile:
+                        # Only the precise initial-guide error is superseded.
+                        # Source/support/layer/audit issues and the final native
+                        # preparation validator remain independently required.
+                        problems[:]=[row for row in problems if row is not initial_preform_problem]
+                        preform['initial_guide_failure']=copy.deepcopy(initial_preform_problem)
+                        preform.update(status='CORRECTED_CANDIDATE_PREPOSITIONED',
+                            corrected_candidate_sha256=digest(payload['placed_cm']),
+                            correspondence_domain='ORIGINAL_SOURCE_GUIDE_BEFORE_CORRECTION')
+                except StudioError as exc:
+                    placement_correction={'status':'NEEDS_CORRECTION','error':str(exc),
+                        'quality_violations':getattr(exc,'quality_violations',[]),
+                        'contact_report':getattr(exc,'contact_report',None),'qualification':'NONE','simulation':'NOT_EXECUTED'}
+                    problem('NEEDS_CORRECTION','placement_correction',exc)
+                if spec.get('source_preform_budget'):
+                    correction_limit=min(plan['assembly']['max_displacement_cm'],spec['placement_correction']['budgets']['max_displacement_cm'])
+                    correction_delta=_placement_displacement(payload,before_correction,payload['placed_cm'],correction_limit)
+                    correction_delta.update(source='SOURCE_GUIDE_PREFORM',target='CORRECTED_PREFORM',budget_basis='UNCHANGED_CORRECTION_AND_ASSEMBLY_LIMITS')
+                    placement_correction['displacement_from_source_guide']=correction_delta
+                    total_limit=preform_limit+correction_limit
+                    if not correction_delta['within_budget']:
+                        problem('NEEDS_CORRECTION','placement_budget','Correction exceeds its unchanged displacement budget from the declared source guide')
+                else:total_limit=plan['assembly']['max_displacement_cm']
+                corrected_displacement=_placement_displacement(payload,source_placement,payload['placed_cm'],total_limit)
+                corrected_displacement['budget_basis']='SOURCE_GUIDE_BOUND_PLUS_UNCHANGED_CORRECTION_LIMIT' if spec.get('source_preform_budget') else 'LEGACY_ASSEMBLY_DISPLACEMENT'
+                placement_correction['total_source_placement_displacement']=corrected_displacement
+                if not corrected_displacement['within_budget']:
+                    problem('NEEDS_CORRECTION','placement_budget','Corrected preform exceeds its declared total source-placement bound')
+                correction_path=directory/'placement-correction.json';atomic_json(correction_path,placement_correction)
+                placement_correction={'assessment':placement_correction['status'],'receipt':reference(project,correction_path),
+                    'candidate_sha256':digest(payload['placed_cm']),'qualification':'NONE',
+                    'final_readiness':'UNCHANGED_PREPARATION_VALIDATOR_REQUIRED'}
             # Preparation inspects the declared target even if assembly later
             # elects a collider-free mounting phase. No deep contact is hidden.
             collision=collision_guard(payload,[item[1] for item in inward],[item[2] for item in inward],collision_plan,self_contacts=True)(payload['placed_cm'])
@@ -247,6 +406,15 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
                     problem(dressing['status'],'placement_enfilage',dressing.get('reason') or 'Sourced dressing geometry is not admitted')
         except StudioError as exc:
             collision={'ok':False,'error':str(exc)};problem('NEEDS_CLARIFICATION','collision_context',exc)
+        if anatomical_binding is not None:
+            try:
+                final=observe_anatomical_attachments(anatomical_binding,payload['placed_cm'])
+                anatomical_assessment.update(status=final['status'],final=final)
+                if not final['preserved']:
+                    problem('NEEDS_CORRECTION','anatomical_attachments','Final preparation moved a measured anatomical attachment')
+            except StudioError as exc:
+                anatomical_assessment.update(status='NEEDS_CORRECTION',error=str(exc),stage='FINAL')
+                problem('NEEDS_CORRECTION','anatomical_attachments',exc)
         preparation_limits={**recipe['mesh'],'min_angle_degrees':max(recipe['mesh']['min_angle_degrees'],spec['regular_mesh'].get('target_min_angle_degrees',15.))}
         try:simulation_quality(payload,payload['placed_cm'],preparation_limits)
         except StudioError as exc:problem('NEEDS_CORRECTION','strict_native_geometry',exc)
@@ -279,6 +447,7 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
         'source_package':reference(project,package),'preparation_spec':reference(project,spec_path),
         'construction_dossier':dossier_ref,
         'source_recipe':reference(project,recipe_file),'recipe':reference(project,output_recipe),
+        'placement_correction':placement_correction,
         'recipe_sha256':digest(recipe),'derived_mesh':derived,
         'recipe_migration':migration,
         'assembly_plan':plan_ref,'mapping_rebind':rebind,'source_audit':source_audit,'preform':preform,
@@ -290,6 +459,8 @@ def prepare_pattern_assembly(project_root,component_id,recipe_path,preparation_p
         'object':obj.name if obj else None,'mesh_sha256':mesh_digest(obj) if obj else None,
         'simulation':'NOT_EXECUTED','fitting':'NOT_QUALIFIED','behavior':'NOT_QUALIFIED',
         'visual_validation':'NOT_EXECUTED','accepted':False,'export_eligible':False}
+    if meshing_envelope is not None:record['meshing_observation']=meshing_observation
+    if anatomical_assessment is not None:record['anatomical_attachments']=anatomical_assessment
     from blender.piece_inventory import collect, remember_candidate, save_report
     remember_candidate(project, component_id, obj)
     coverage = collect(project, component_id, focus=obj, previews=True)

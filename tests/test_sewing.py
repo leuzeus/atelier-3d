@@ -15,6 +15,24 @@ def sources():
 
 
 class BoundaryTests(unittest.TestCase):
+    def test_explicit_seam_free_trial_preserves_closures_and_all_source_panels(self):
+        data,recipe=sources(); before=digest(data)
+        for seam in data['seams']:
+            seam['kind']='detachable';recipe['seams'][seam['id']]['kind']='detachable'
+        data['seams'][0]['kind']='closure';recipe['seams'][data['seams'][0]['id']]['kind']='closure'
+        recipe['trial_mode']='seam_free';recipe['trial_pieces']=sorted(data['pieces'])
+        unchanged=digest(data);validate_recipe(data,recipe);self.assertEqual(digest(data),unchanged)
+        boundaries,mapping,_=prepare_boundaries(data,recipe)
+        self.assertEqual(set(boundaries),set(data['pieces']))
+        self.assertEqual({s['kind'] for s in mapping.values()},{'closure','detachable'})
+        recipe['trial_pieces'].pop()
+        with self.assertRaisesRegex(StudioError,'every panel'):validate_recipe(data,recipe)
+        recipe['trial_pieces']=sorted(data['pieces'])+[next(iter(data['pieces']))]
+        with self.assertRaises(StudioError):validate_recipe(data,recipe)
+        recipe['trial_pieces']=sorted(data['pieces'])
+        data['seams'][0]['kind']='permanent';recipe['seams'][data['seams'][0]['id']]['kind']='permanent'
+        with self.assertRaisesRegex(StudioError,'permanent source'):validate_recipe(data,recipe)
+
     def test_mirror_u_preserves_source_boundaries_and_changes_recipe_identity(self):
         from blender.sewing import mesh_recipe_digest
         data,recipe=sources();original=digest(data)

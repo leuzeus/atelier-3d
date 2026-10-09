@@ -262,6 +262,14 @@ No synthetic legacy local/full report is written and no second weld occurs.
 Behaviour, silhouette and export gates remain independent downstream decisions.
 """
     import bpy
+    if recipe.get('physics_purpose') == 'TEST_ONLY':
+        raise StudioError('TEST_ONLY physics cannot become a production frozen fitting result')
+    from a3d.physics_admission import require_recipe_fit_intent
+    fit_admission = require_recipe_fit_intent(project, recipe)
+    if recipe['colliders']:
+        from blender.physics_admission import require_native_recipe_fit_intent
+        colliders, _, _ = context_colliders(recipe)
+        fit_admission = require_native_recipe_fit_intent(project, recipe, colliders, payload)
     from blender.fitting import recipe_fit
     ref={'path':obj.get('a3d_pattern_assembly_receipt',''),
          'sha256':obj.get('a3d_pattern_assembly_receipt_sha256')}
@@ -302,6 +310,7 @@ Behaviour, silhouette and export gates remain independent downstream decisions.
         'derived_mesh_sha256':obj['a3d_sewing_mesh_sha256'],'fitting_binding':fitting['fit_binding'],
         'preserved_links':[sid for sid,seam in payload['seams'].items() if seam['kind']!='permanent'],
         'simulation':'PASS','qualification':'FITTING_PHYSICS_ONLY','behavior':'NOT_QUALIFIED',
+        'fit_intent_admission':fit_admission,
         'visual_validation':'NOT_EXECUTED','accepted':False,'export_eligible':False,
         'checkpoint':project.state()['pending_blender_operation']['checkpoint']}
     path=project.data/('blender/pattern-assembly/frozen-'+uuid.uuid4().hex+'.json');atomic_json(path,frozen)
@@ -317,6 +326,9 @@ def transition_pattern_assembly(project_root,component_id,recipe_path,plan_path,
     from blender.preform import preform_coordinates
     project,session=working(project_root)
     obj,payload,recipe=managed_inputs(project,component_id,recipe_path,check_placement=False)
+    if stage in ('mount', 'relax', 'drape'):
+        from a3d.physics_admission import require_recipe_fit_intent
+        require_recipe_fit_intent(project, recipe)
     from blender.piece_inventory import require_live
     require_live(project, component_id)
     if stage not in ('migrate',)+STAGES:raise StudioError('Unknown pattern assembly stage')
@@ -354,6 +366,10 @@ def transition_pattern_assembly(project_root,component_id,recipe_path,plan_path,
     candidate['pattern_assembly']={'version':2,'source_map':original_ref,'plan_sha256':plan_ref['sha256'],'stage':stage,
         'contact_policy':{'clearance_cm':plan['collision']['clearance_cm']}}
     declared_colliders,declared_trees,declared_snapshots=context_colliders(recipe)
+    fit_admission = None
+    if stage in ('mount', 'relax', 'drape'):
+        from blender.physics_admission import require_native_recipe_fit_intent
+        fit_admission = require_native_recipe_fit_intent(project, recipe, declared_colliders, payload)
     from a3d.dressing import migrate_legacy_layers,layer_collision_selection,source_references
     layer_plan=copy.deepcopy(plan);layer_migration=None
     collider_roles={item['object']:'body' if item['role']=='mannequin' else 'unknown' for item in recipe['colliders']}
@@ -383,6 +399,8 @@ def transition_pattern_assembly(project_root,component_id,recipe_path,plan_path,
         'layer_migration':layer_migration,'layer_selection':layer_selection,
         'legacy_preparations_not_executed':[k for k in LEGACY_PREPARATIONS if recipe.get(k)],
         'fitting':'NOT_QUALIFIED','behavior':'NOT_QUALIFIED','cause':'NOT_ESTABLISHED'}
+    if fit_admission is not None:
+        record['fit_intent_admission'] = fit_admission
     temporary=None;physics_in_progress=False
     original_settings=(bpy.context.scene.frame_current,bpy.context.scene.frame_start,bpy.context.scene.frame_end,
         bpy.context.scene.render.fps,bpy.context.scene.render.fps_base,list(bpy.context.scene.gravity),bpy.context.scene.use_gravity)

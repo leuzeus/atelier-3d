@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "status": "EXACT_COMPACT_STORAGE_INDEPENDENTLY_REVIEWED",
+  "purpose": "TEST_ONLY",
+  "qualification": "NONE",
+  "product_admission": "NONE",
+  "software_commit": "7b703b5e4b935bd19dfcf3992db76b78eb917526",
+  "format": "MATERIAL_SURFACE_FIELD_COMPACT_V1",
+  "source_fresh_reference_complete": true,
+  "source_patterns_changed": false,
+  "previous_V1_API_changed": false,
+  "existing_caps_increased": false,
+  "hidden_budget_or_clock": false,
+  "provenance": "OPAQUE_CAPTURED_NON_ADMITTED_NOT_APPLIED_TO_COMPUTATION",
+  "counts": {
+    "targeted_tests": 129,
+    "new_tests": 31,
+    "independent_probes": 15,
+    "legacy_full_results_exact": 12,
+    "consumed_modules_preserved": 22,
+    "protected_inputs_preserved": 32
+  },
+  "accounting": {
+    "output": "COMPLETE_CURRENT_RESULT_WITH_RECEIPT",
+    "work": "CUMULATIVE_CALLER_LEDGER_WITHOUT_REFUND",
+    "finalizer": "LOCAL_TO_NEW_COMPACT_FORMAT",
+    "validation": "RECOMPILE_COMPLETE_INPUTS_ON_SAME_LEDGER_MAY_BE_INCOMPLETE"
+  },
+  "clock_precondition": "READ_ONLY_MONOTONE_COOPERATIVE",
+  "clock_scope_limit": "SIDE_EFFECTING_TERMINAL_CLOCK_CALLBACK_VIOLATES_PRECONDITION_AND_IS_NOT_QUALIFIED",
+  "base_scope": "INTERNAL_V1_BASE_USED_FOR_SEMANTICS_WITHOUT_ENCODING_VERBOSE_V1_OUTPUT",
+  "remaining": {
+    "real_collar_compilation": "NOT_EXECUTED",
+    "observer": "NOT_IMPLEMENTED",
+    "metrics": "NOT_QUALIFIED",
+    "constraints": "NOT_QUALIFIED",
+    "native": "NOT_EXECUTED",
+    "production_caller": "NOT_ADDED",
+    "placement": "NOT_ADMITTED",
+    "Cloth": "NOT_EXECUTED",
+    "fitting": "NOT_QUALIFIED",
+    "final_prerelease": "NOT_PUBLISHED",
+    "installation": "NOT_PERFORMED"
+  },
+  "integrated_build_scope": "SOURCE67_BUILD_PRECEDES_THIS_COMMIT_AND_DOES_NOT_INCLUDE_COMPACT",
+  "references": {
+    "program-material-surface-compact-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-compact-v1\\FROZEN.json",
+        "sha256": "40e1dbd703c90779be1b7a6a8aa9fc2618fe71c5ee07e4c60c0b147a7ff7fe12"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-compact-v1\\receipt.json",
+        "sha256": "2dc42c1bf7bd67c6599df5af391f86a7d091f6edc1c81d3cfa59afc59543d7c5"
+      }
+    },
+    "program-material-surface-compact-review-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-compact-review-v1\\FROZEN.json",
+        "sha256": "4f1c46d90f3613b2ebe051b7a112b0d7fcf392ce65640fd842e3a8fa1513d7bf"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-compact-review-v1\\receipt.json",
+        "sha256": "9aecadd0b78baa5c2088d38ea3ae1a369c62eef368f8cde9507b7cf384f58d04"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-material-surface-compact-review-v1\\report.md",
+        "sha256": "4314670a42079597df50dd428aa607ccc7b25bdadb0ce67504c5464f3333b8c9"
+      }
+    }
+  }
+}

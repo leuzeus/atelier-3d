@@ -1,0 +1,255 @@
+{
+  "version": 1,
+  "scope": "ANATOMICAL_CORRESPONDENCES_AND_LOCAL_JOINT_PLACEMENT",
+  "status": "PARTIAL_NO_WHOLE_GARMENT_ADMISSION",
+  "source_commit_validated": "ab064d528ff499b4b49c72052510298e689fd7b3",
+  "software_tests": 2285,
+  "software_skips": 0,
+  "software_contracts": 14,
+  "targeted_tests": 88,
+  "experimental_tests": 25,
+  "experimental_test_result": "PASS",
+  "experimental_test_observation": "unittest discover: 25 tests, 0.323 s, exit 0",
+  "experimental_copies": {
+    "solve_piece_metric.py": {
+      "repository_path": "experiments/anatomical-placement/solve_piece_metric.py",
+      "sha256": "f871ce7f5eb22c1a3f7a5baefcfb93510088b76d6bfa8cba38b91ba2cb41af3b",
+      "source_snapshot": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\collar-feasibility\\helper-v2-snapshot\\solve_piece_metric.py",
+        "sha256": "f871ce7f5eb22c1a3f7a5baefcfb93510088b76d6bfa8cba38b91ba2cb41af3b"
+      }
+    },
+    "solve_piece_contact.py": {
+      "repository_path": "experiments/anatomical-placement/solve_piece_contact.py",
+      "sha256": "0c4ee648b586c458c01a7465786b9cc3464487574c6db3e8948c7befbe27c893",
+      "source_snapshot": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\collar-feasibility\\scalar-helper-v4-snapshot\\solve_piece_contact.py",
+        "sha256": "0c4ee648b586c458c01a7465786b9cc3464487574c6db3e8948c7befbe27c893"
+      }
+    },
+    "solve_corner_contact.py": {
+      "repository_path": "experiments/anatomical-placement/solve_corner_contact.py",
+      "sha256": "d7492c6cc33efa2981a130bd3672ec00a2d69364b92ea5c7c4d602dda034c3ce",
+      "source_snapshot": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\corner-closure-probe\\solve_corner_contact.py",
+        "sha256": "d7492c6cc33efa2981a130bd3672ec00a2d69364b92ea5c7c4d602dda034c3ce"
+      }
+    }
+  },
+  "artifacts": {
+    "software_validation": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-attachment-guard-integrated-validation-v1\\validation.json",
+      "sha256": "5146bd7fac7922c8ef2506a966e2ab090372923125f1652f6c974558d06eb87e"
+    },
+    "software_tests": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-attachment-guard-integrated-validation-v1\\tests-receipt.json",
+      "sha256": "931f4899f3d9f3988cc4bda5c767ca070b208e1f17934d2f10f31277b2cbb205"
+    },
+    "software_contracts": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-attachment-guard-integrated-validation-v1\\contracts-receipt.json",
+      "sha256": "27d1e1ad520ed3e6a5858f9ca18ab82b9ae9e45f71ad18c853837441277419f1"
+    },
+    "guard_real_replay": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\attachment-guard-product-replay-03\\report.json",
+      "sha256": "144bef5f7ddd7e0bbf87256fcd74ceb89f4ff9b59186ee9d87e76cd2b45f8d78"
+    },
+    "guard_review": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\review-attachment-clearance\\verification.json",
+      "sha256": "f23e8fe6fd17c59bba755d456ca007826768feadb223043018579c4e7e6b016c"
+    },
+    "collar_candidate": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\collar-feasibility\\attempt-06-computation-margin\\candidate-cage.json",
+      "sha256": "0e0a1f0d6e82353dbc5f3627273ac16c12bf8d95ea0ffa907485b6ec8d65169d"
+    },
+    "collar_report": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\collar-feasibility\\attempt-06-computation-margin\\report.json",
+      "sha256": "b580369b2caeea86b98349f4dfdfb85ec3e44c43ff85f9cc96cbf072c766cad6"
+    },
+    "collar_independent_review": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\collar-feasibility\\review-contact-06\\verification.json",
+      "sha256": "766cb5dcec407232050726b2164fda4e43ba9fe95dcfcb63945ab164959091cf"
+    },
+    "collar_before": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\collar-feasibility\\contact-final-preview\\final-before\\board-isolated.png",
+      "sha256": "16f3edeb79eea029e8a4952c50233a16a2063c6819920f5dbf9985ce823e561b"
+    },
+    "collar_after": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\collar-feasibility\\contact-final-preview\\final-after\\board-isolated.png",
+      "sha256": "4f97cf2ffcf0e5cb5318bedf1e63d7aea67433a935192b78c6e8ec7e9e38eaee"
+    },
+    "whole_refused_before": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\preview-04\\before\\board-details.png",
+      "sha256": "3b70abbd3b995c244556791ceaaa9b93de22aa5e2de2b1c538e8732d11bfdebc"
+    },
+    "whole_refused_after": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\preview-04\\after\\board-details.png",
+      "sha256": "6171beeeffc78b22a3a2b2eca6bea19f5ca9bc03add635944a2992a4cf8a5178"
+    },
+    "coupling_input": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\prepared-v2\\solver-input.json",
+      "sha256": "05585a8d4d8f3ceba23c22a009a8ac5e74efd4429a6e1bba4110b7c69c07fcab"
+    },
+    "coupling_plan": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\coupling-plan.md",
+      "sha256": "53e6bf97b75b9c928255d74294bb245b1ff3e3e8976b1f5ba9e272b1c9f0679d"
+    },
+    "coupling_plan_v2_historical": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\coupling-plan-v2-historical.md",
+      "sha256": "3031c9c0af63946e8ef10e1c2c9cee9cb56f392a2302017caa2277062359521e"
+    },
+    "coupling_current_input": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\prepared-v3-corner-closed\\solver-input.json",
+      "sha256": "b452bfaaf5523ea64b05cb8ad76b4bd89c8fa3b433a125be7a5d32bdabe424c3"
+    },
+    "coupling_current_report": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\prepared-v3-corner-closed\\report.json",
+      "sha256": "3627a616be408b23ac483cea41902a85ccd0a00a10e33c77f3e513bd0d94f3b6"
+    },
+    "collar_corner_candidate": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\corner-closure-probe\\attempt-01\\candidate-cage.json",
+      "sha256": "2c4177afc73c7a4c5526a073254face2ebc590bb100f7f7b4e8c40f4b0fb1e6c"
+    },
+    "collar_corner_report": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\corner-closure-probe\\attempt-01\\report.json",
+      "sha256": "c49b7d51bb289c1c8dda74c1a1d84edef7d278c1069d6e38d964d3b03b0e53ae"
+    },
+    "collar_corner_review": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\corner-closure-probe\\reviewer-corner-closure\\verification.json",
+      "sha256": "b233faf549c597f8e2319b177b9ab49a7199ced7892c6d1e2ad7b970cdd37d3b"
+    },
+    "collar_corner_after": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\corner-closure-probe\\final-preview\\after\\board-isolated.png",
+      "sha256": "8324cc5d908bd0fddb6daae9eac3829e5968a8d338599f902f382f6d790141c9"
+    },
+    "rigid_refusal": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\rigid-partners-01\\report.json",
+      "sha256": "9aa45605fbdba8fd416e1ca95d68586277cc82a7c8f663fac1aaf8f6d1a3df49"
+    },
+    "frozen_bands_refusal": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\frozen-bands-20-02\\report.json",
+      "sha256": "d9996ef42da166135299a948e7f96db42246a6b157426cf9181d944e4b4c3a4d"
+    },
+    "inner_front_band_refusal": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\inner-front-band-20-02\\report.json",
+      "sha256": "5abf501f7fa4f9f7086e6ec91e9b9875f63bde2a0159f459de2ad5e49d04ce5b"
+    },
+    "sparse_single_step_experiment": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\sparse-metric-validation-01\\report.json",
+      "sha256": "4f014bebb1169f5b03ec88daa00f14a78a1069b46a63f769472783dc82ff1b94"
+    },
+    "scientific_test_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\final-source-observation\\scientific-tests-receipt.json",
+      "sha256": "24f5dd550a2b165ccfaa2e4e4511e37763518065a7d798f62b319d59f45c4105"
+    },
+    "partner_probe_review_verify_and_archive": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\review-partner-probes\\verify_and_archive.py",
+      "sha256": "2e505a2aa84f947d662f89ad2c0103fb0654c69b043bcaa3b64415d88c1e58be"
+    },
+    "partner_probe_review_conditional-path-review": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\review-partner-probes\\conditional-path-review.json",
+      "sha256": "df4a09502fc226a712f0fce8837485708e81f419d4bc50d5b43d0894ab982ed4"
+    },
+    "partner_probe_review_manifest": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\review-partner-probes\\manifest.json",
+      "sha256": "f3c17b309cd02ec76f348f49f68b0bc8e8a986b491e95a7d5b75443fbe66955e"
+    },
+    "partner_probe_review_rigid-review": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\review-partner-probes\\rigid-review.json",
+      "sha256": "cce6f501809cdf8c7e146845945895f659e6040796ffbcb68299baf00959cdc5"
+    },
+    "partner_probe_review_conditional-path-review.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\review-partner-probes\\conditional-path-review.json",
+      "sha256": "df4a09502fc226a712f0fce8837485708e81f419d4bc50d5b43d0894ab982ed4"
+    },
+    "partner_probe_review_conditional-path-review.md": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\review-partner-probes\\conditional-path-review.md",
+      "sha256": "242d8a90d9d12bfa285fa486ea932d58161ac627752d730201137154f19083a2"
+    },
+    "partner_probe_review_manifest.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\review-partner-probes\\manifest.json",
+      "sha256": "f3c17b309cd02ec76f348f49f68b0bc8e8a986b491e95a7d5b75443fbe66955e"
+    },
+    "partner_probe_review_rigid-review.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\review-partner-probes\\rigid-review.json",
+      "sha256": "cce6f501809cdf8c7e146845945895f659e6040796ffbcb68299baf00959cdc5"
+    },
+    "partner_probe_review_rigid-review.md": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\review-partner-probes\\rigid-review.md",
+      "sha256": "4f1a7ea2a74d4d592a079c0e2b14d05229aa8526118a8a64ec317eafad44a075"
+    },
+    "partner_probe_review_verify_and_archive.py": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\review-partner-probes\\verify_and_archive.py",
+      "sha256": "2e505a2aa84f947d662f89ad2c0103fb0654c69b043bcaa3b64415d88c1e58be"
+    },
+    "partner_probe_review_current-helper-snapshots_prepare_sewn_band.py": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\review-partner-probes\\current-helper-snapshots\\prepare_sewn_band.py",
+      "sha256": "f1d2f0e4b82ae98cd44c356dfb3e6ad9d1ddffffd6c10fb3b11b75c1ab10d428"
+    },
+    "partner_probe_review_current-helper-snapshots_propose_partner_rigid.py": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\review-partner-probes\\current-helper-snapshots\\propose_partner_rigid.py",
+      "sha256": "6b061f3d0840c367785b4586c4fe3e5cba3b79754be3e9bc9da704200e53d376"
+    },
+    "partner_probe_review_current-helper-snapshots_solve_piece_contact.py": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\review-partner-probes\\current-helper-snapshots\\solve_piece_contact.py",
+      "sha256": "0c4ee648b586c458c01a7465786b9cc3464487574c6db3e8948c7befbe27c893"
+    },
+    "partner_probe_review_current-helper-snapshots_solve_piece_metric.py": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-placement-joint-v1\\torso-coupling-from-collar06\\review-partner-probes\\current-helper-snapshots\\solve_piece_metric.py",
+      "sha256": "f871ce7f5eb22c1a3f7a5baefcfb93510088b76d6bfa8cba38b91ba2cb41af3b"
+    }
+  },
+  "canonical_mutated": false,
+  "blender_executed": false,
+  "cloth": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "human_artistic_review": "NOT_RECORDED",
+  "whole_garment": "NOT_ADMITTED",
+  "refusals": "PRESERVED",
+  "next": "Validate a sparse joint deformation solver with movable numerical halos, variable collar outside its 13 fixed anatomical targets, exact source sewing, metric/trust bounds and full surface contacts. Preserve local and whole-candidate refusals.",
+  "experimental_modules": {
+    "prepare_sewn_band.py": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\experiments\\anatomical-placement\\prepare_sewn_band.py",
+      "sha256": "f1d2f0e4b82ae98cd44c356dfb3e6ad9d1ddffffd6c10fb3b11b75c1ab10d428"
+    },
+    "propose_partner_rigid.py": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\experiments\\anatomical-placement\\propose_partner_rigid.py",
+      "sha256": "6b061f3d0840c367785b4586c4fe3e5cba3b79754be3e9bc9da704200e53d376"
+    },
+    "solve_corner_contact.py": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\experiments\\anatomical-placement\\solve_corner_contact.py",
+      "sha256": "d7492c6cc33efa2981a130bd3672ec00a2d69364b92ea5c7c4d602dda034c3ce"
+    },
+    "solve_piece_contact.py": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\experiments\\anatomical-placement\\solve_piece_contact.py",
+      "sha256": "0c4ee648b586c458c01a7465786b9cc3464487574c6db3e8948c7befbe27c893"
+    },
+    "solve_piece_metric.py": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\experiments\\anatomical-placement\\solve_piece_metric.py",
+      "sha256": "f871ce7f5eb22c1a3f7a5baefcfb93510088b76d6bfa8cba38b91ba2cb41af3b"
+    },
+    "solve_sewn_band.py": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\experiments\\anatomical-placement\\solve_sewn_band.py",
+      "sha256": "7d23bf4efe3f8fde3a9dd5b3f58b046dfed48f18956d0f9d255c712b96c30ad9"
+    },
+    "sparse_metric_factor.py": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\experiments\\anatomical-placement\\sparse_metric_factor.py",
+      "sha256": "4d9cb199af90ccd4356fcb438b82014f4b34e711ffb6784977f1d3ba5b44f49b"
+    },
+    "test_corner_contact.py": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\experiments\\anatomical-placement\\test_corner_contact.py",
+      "sha256": "119203c743289172b98647cd0b3c20885e312532d7a9b0f3d27ff24136d11f1d"
+    },
+    "test_partner_probes.py": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\experiments\\anatomical-placement\\test_partner_probes.py",
+      "sha256": "d0992cac501454daca1d777864509c18279fcba84c15992079f984a518c21eff"
+    },
+    "test_solve_piece_contact.py": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\experiments\\anatomical-placement\\test_solve_piece_contact.py",
+      "sha256": "7e74ee8d8692afd670f127c25d053c2c8954e6c93e1a54a73ed2c0c4eed57100"
+    },
+    "test_solve_piece_metric.py": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\experiments\\anatomical-placement\\test_solve_piece_metric.py",
+      "sha256": "9e921af93c613bf3360b1aabd97f47f5846a3eab1091b4632c2e2f5be7f26944"
+    }
+  }
+}

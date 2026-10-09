@@ -1,0 +1,280 @@
+{
+  "version": 1,
+  "status": "MEASURED_EXTERNAL_NUMERICAL_PROBES_NOT_INTEGRATED",
+  "qualification": "NONE",
+  "artifact_root": "G:\\projets\\atelier-3d\\work\\garment-automation-v1",
+  "evidence": {
+    "stable_kernel": {
+      "path": "program-native-circumcentre-stability-v1/stable-centre-kernel.py",
+      "sha256": "e70f921645c3bbb1bc12f09d98a0ac8c811675caaaecb7b7a0b55a5e57c5c7ba"
+    },
+    "stable_request": {
+      "path": "program-native-circumcentre-stability-v1/request.json",
+      "sha256": "564a98c649fef3fa8607a7f8f1842f14f0960aecfaa96d3a5e8d13f42727ffec"
+    },
+    "stable_native": {
+      "path": "program-native-circumcentre-stability-v1/output-v1/receipt.json",
+      "sha256": "cc1f0b63ef68cdba9abdb3ef7a38620e3ae427e9fa916d541d8821cb5e506e5c"
+    },
+    "stable_launch": {
+      "path": "program-native-circumcentre-stability-v1/launch-receipt.json",
+      "sha256": "a16c5e6391ff1019b4149ff330b105978cbb0e31360cd744e1c39c057061e70d"
+    },
+    "stable_result_review": {
+      "path": "program-native-circumcentre-result-review-v1/receipt.json",
+      "sha256": "c34fe13887a1b39483607bed38928b549f111a93522946a3f77bae7e2f8d6316"
+    },
+    "conditioned_kernel": {
+      "path": "program-native-conditioned-points-v1/conditioned-kernel.py",
+      "sha256": "20f07b308b8ac8242e7773da1d50c392d91f1d41700fb8d3bc5d8e27436760cd"
+    },
+    "conditioned_request": {
+      "path": "program-native-conditioned-points-v1/request.json",
+      "sha256": "2fe6b81de87cf04506cd8fcca32dce6d9b0ee9f67143791eac9636b7b0b28e0d"
+    },
+    "conditioned_frozen": {
+      "path": "program-native-conditioned-points-v1/FROZEN.json",
+      "sha256": "3dc4b636060e76d022a700b7c9e04019835a58629376e0a9a1a708fc9f871c82"
+    },
+    "conditioned_native": {
+      "path": "program-native-conditioned-points-v1/output-v1/receipt.json",
+      "sha256": "45eff6984a7c1f63849564a152af44d956d29c5720df562d1cc878aacbdb5ee2"
+    },
+    "conditioned_launch": {
+      "path": "program-native-conditioned-points-v1/launch-receipt.json",
+      "sha256": "4cf9592ef270c0b5e08f6e0e05118f0cbf91bc270c786a9f76fcc889a6a80dc7"
+    },
+    "conditioned_root_preflight": {
+      "path": "program-native-conditioned-preflight-review-v1/receipt.json",
+      "sha256": "b58b6003b65c5fe1871e3ca47945b395d9b7c2c0d9b5681884ada52efb8051c0"
+    },
+    "conditioned_result_review": {
+      "path": "program-native-conditioned-result-review-v1/receipt.json",
+      "sha256": "e1f7bf6a9d46588ffc35f97f77e594033138bc4071d51e0375a6029666e765e2"
+    },
+    "conditioned_result_review_frozen": {
+      "path": "program-native-conditioned-result-review-v1/FROZEN.json",
+      "sha256": "59a52a587930d9f6d78253eb09e7d718a6ebfa66cf9671306e27801bef6e1beb"
+    },
+    "neckline_report": {
+      "path": "program-joint-neckline-guide-investigation-v1/report.json",
+      "sha256": "931f708d2314599b322b975f002274114beb3fb3c325691dc6264a13471880f9"
+    },
+    "neckline_receipt": {
+      "path": "program-joint-neckline-guide-investigation-v1/receipt.json",
+      "sha256": "c6e65ce12fb38dd93400f265dbdb1d7eaf1964dcdfa5afeabebd01c98223c401"
+    }
+  },
+  "production": {
+    "observed_commit": "a46a86e6703cebb556c6ecbe2aa8ca46c0298eeb",
+    "kernel_path": "blender/sewing.py",
+    "kernel_sha256": "24372dc8e3e2d9b608a125697cfea2a45c3f2de0253d984a62ae0caf46e3badc",
+    "stable_circumcentre_integrated": false,
+    "conditioned_input_propagation_integrated": false
+  },
+  "input_scope": {
+    "native_full_preparation_pieces": 10,
+    "native_full_seams": 24,
+    "native_measured_pieces_per_case": 3,
+    "reviewed_variant_package_sha256": "771eddd4dec57f4c938d8b16932ee0a3757c9cc9b5c73ea8675bf2a2f9742bad",
+    "recipe_sha256": "d964146818a95b16df4165524bd8e3106f0e28292b4704a7e9dd827508e04584",
+    "preparation_sha256": "8c413bcafd62bc0a4a727c2aadecc6b540be89fb352e19b42653113372137bc3",
+    "source_snapshots": [
+      {
+        "version": 56,
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v56\\source",
+        "files": 502,
+        "sha256": "95079043f198c5ff119a9f38beb177a78eb14786aad360722885d73fdf47c2c0"
+      },
+      {
+        "version": 57,
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v57\\source",
+        "files": 505,
+        "sha256": "d09e85365e354c33cd2c02ce3e9e61f5341db20571991da2bf686ad0501feaa8"
+      },
+      {
+        "version": 58,
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v58\\source",
+        "files": 506,
+        "sha256": "1bf148d3a3452a0a824469cd157bbb3338d9d2b1347b87a89aaca778b0561fd2"
+      }
+    ],
+    "preservation": "REFERENCES_INVENTORIES_SOURCE_ANCHORS_CONTOURS_AND_COMPLETE_INPUT_ID_MAPS_VERIFIED"
+  },
+  "stable_circumcentre": {
+    "scope": "EXTERNAL_TEST_ONLY_SIX_NATIVE_REPLAYS",
+    "native_seconds": 25.75597860000562,
+    "launch_seconds": 29.905999999959022,
+    "cases": {
+      "sleeve-left": {
+        "baseline_min_angle_degrees": 4.061236941605269,
+        "candidate_min_angle_degrees": 4.264129029658495,
+        "candidate_min_edge_cm": 0.010898330670841666,
+        "candidate_vertices": 901,
+        "candidate_triangles": 1653,
+        "candidate_cdt_calls": 4,
+        "quality": "NEEDS_CORRECTION"
+      },
+      "sleeve-right": {
+        "baseline_min_angle_degrees": 4.0574631479835315,
+        "candidate_min_angle_degrees": 4.313422461820215,
+        "candidate_min_edge_cm": 0.010898330670841666,
+        "candidate_vertices": 901,
+        "candidate_triangles": 1653,
+        "candidate_cdt_calls": 4,
+        "quality": "NEEDS_CORRECTION"
+      },
+      "front-left": {
+        "baseline_min_angle_degrees": 4.483886989191477,
+        "candidate_min_angle_degrees": 5.453778101887463,
+        "candidate_min_edge_cm": 0.010898330561834733,
+        "candidate_vertices": 2464,
+        "candidate_triangles": 4589,
+        "candidate_cdt_calls": 6,
+        "quality": "NEEDS_CORRECTION"
+      }
+    },
+    "PASS": [
+      "One exact circumcentre block changed; inputs and exact source anchors preserved",
+      "Final mesh metrics independently recomputed; domain, manifold, winding and maps preserved"
+    ],
+    "FAIL": [
+      "All six meshes below unchanged 15 degree minimum angle"
+    ],
+    "SKIP": [
+      "Conditioned interior coordinates and full orig IDs at every intermediate pass were not recorded",
+      "Product guides, contacts, Cloth, fitting and artistic review"
+    ]
+  },
+  "conditioned_inputs": {
+    "scope": "EXTERNAL_TEST_ONLY_SIX_NATIVE_REPLAYS",
+    "native_seconds": 28.054220099991653,
+    "launch_seconds": 33.95299999997951,
+    "cases": {
+      "sleeve-left": {
+        "baseline_min_angle_degrees": 4.264129029658495,
+        "candidate_min_angle_degrees": 5.961773941461179,
+        "candidate_min_edge_cm": 0.010898330670841666,
+        "candidate_vertices": 901,
+        "candidate_triangles": 1653,
+        "candidate_cdt_calls": 4,
+        "quality": "NEEDS_CORRECTION"
+      },
+      "sleeve-right": {
+        "baseline_min_angle_degrees": 4.313422461820215,
+        "candidate_min_angle_degrees": 6.2700672789677965,
+        "candidate_min_edge_cm": 0.010898330670841666,
+        "candidate_vertices": 901,
+        "candidate_triangles": 1653,
+        "candidate_cdt_calls": 4,
+        "quality": "NEEDS_CORRECTION"
+      },
+      "front-left": {
+        "baseline_min_angle_degrees": 5.453778101887463,
+        "candidate_min_angle_degrees": 4.552743079737584,
+        "candidate_min_edge_cm": 0.010898330561834733,
+        "candidate_vertices": 2463,
+        "candidate_triangles": 4587,
+        "candidate_cdt_calls": 5,
+        "quality": "NEEDS_CORRECTION"
+      }
+    },
+    "independent_preflight_tests": 15,
+    "independent_preflight_helper_probes": 5,
+    "native_trace_events_verified": 76,
+    "candidate_work": {
+      "sleeve-left": {
+        "cdt_calls": 4,
+        "remesh_attempts": 3,
+        "attempted_insertions": 21,
+        "maximum_observed_cumulative_displacement_cm": 0.4992813242298716,
+        "final_cumulative_displacement_cm": 0.4992813242298716
+      },
+      "sleeve-right": {
+        "cdt_calls": 4,
+        "remesh_attempts": 3,
+        "attempted_insertions": 21,
+        "maximum_observed_cumulative_displacement_cm": 0.49981344956729623,
+        "final_cumulative_displacement_cm": 0.49981344956729623
+      },
+      "front-left": {
+        "cdt_calls": 5,
+        "remesh_attempts": 4,
+        "attempted_insertions": 8,
+        "maximum_observed_cumulative_displacement_cm": 0.48892799853928176,
+        "final_cumulative_displacement_cm": 0.48697404443238695
+      }
+    },
+    "unchanged_limits": {
+      "min_angle_degrees": 15,
+      "min_edge_cm": 0.001,
+      "cumulative_displacement_cm": 0.5,
+      "remesh": 8,
+      "cdt": 9,
+      "attempted_insertions": 4000,
+      "points": 30000
+    },
+    "PASS": [
+      "Three stable baseline meshes byte-identical to previous frozen native outputs",
+      "Actual conditioned pool propagation with unique orig IDs and immutable births",
+      "Cumulative displacement checked before comparisons and final return; actual-pool insertion separation",
+      "Complete best-state rollback with monotone attempted work and no extra CDT after rollback"
+    ],
+    "FAIL": [
+      "All six meshes below unchanged 15 degree minimum angle",
+      "Front-left comparative minimum angle regresses despite sleeve improvements"
+    ],
+    "SKIP": [
+      "Real stall branch not reached in six native cases",
+      "Product guides, contacts, Cloth, fitting and artistic review"
+    ]
+  },
+  "joint_neckline_investigation": {
+    "scope": "SNAPSHOT58_KERNEL_WITH_HISTORICAL_V9_SOURCE_GUIDES_AND_APPROVED_INPUT_BYTES_ONLY",
+    "source_snapshot_version": 58,
+    "historical_v9_policy_current_admission": false,
+    "permanent_source_relations": 6,
+    "homologous_controls": 368,
+    "collar_material_span_cm": 48.834424,
+    "collar_curve_polyline_length_cm": 48.83442401,
+    "rigid_chord_difference_cm": 3.1790659850216674,
+    "minimum_rigid_max_endpoint_error_cm": 1.5895329925108337,
+    "rejected_anchored_path_ratios": {
+      "collar-inner-left": {
+        "over_source_collar": 0.8917584291788069,
+        "over_source_partner": 0.8917585101514127
+      },
+      "collar-back-left": {
+        "over_source_collar": 0.8779244514185203,
+        "over_source_partner": 0.8779244803155499
+      },
+      "collar-back-right": {
+        "over_source_collar": 0.8779080707874093,
+        "over_source_partner": 0.8779080996839002
+      },
+      "collar-inner-right": {
+        "over_source_collar": 0.8917608835702743,
+        "over_source_partner": 0.8917609645431015
+      }
+    },
+    "unchanged_material_stretch_interval": [
+      0.9,
+      1.1
+    ],
+    "source_phase_shoulders_closure_and_body_preserved": true,
+    "PASS": [
+      "Exact six-relation source partitions and phase available; necessary original-segment reachability bounds compatible"
+    ],
+    "FAIL": [
+      "A rigid collar cannot preserve both exact protected shoulder stops",
+      "Anchored interpolation and per-seam reparameterization compress back and inner-front below 0.9"
+    ],
+    "SKIP": [
+      "Source-segment constrained curve solver NOT_IMPLEMENTED_NOT_EXECUTED_NOT_QUALIFIED",
+      "Six-piece joint interior metric propagation, contacts, Cloth, fitting and artistic review"
+    ],
+    "global_product_or_material_impossibility_proven": false,
+    "new_relaxation_scope_admitted": false
+  },
+  "non_transfer": "Portable guard PASS and partial numerical improvement do not admit production placement, physical fitting, artistic review or the full 15-textile-piece garment and buckle."
+}
