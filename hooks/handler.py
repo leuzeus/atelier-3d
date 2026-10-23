@@ -70,6 +70,8 @@ def handle(event):
                 short = tool.split("__")[-1]
                 readonly = ("get_blendfile_summary_", "get_object_detail_summary", "get_objects_summary", "get_python_api_docs", "get_screenshot_", "search_api_docs", "search_manual_docs")
                 if not short.startswith(readonly):
+                    if short == 'jump_to_view3d_object_by_name':
+                        raise StudioError('Use studio_blender_operation frame_view with component_id and object_name for guarded viewport framing; direct navigation may change visibility or target a foreign scene')
                     if short not in ("execute_blender_code", "execute_blender_code_for_cli"):
                         raise StudioError("Use a guarded Blender operation for scene/output changes")
                     payload = parse_code(args.get("code", ""))

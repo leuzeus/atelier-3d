@@ -44,6 +44,16 @@
       "type": "integer",
       "minimum": 1,
       "maximum": 2400
+    },
+    "sewing_recipe": {
+      "type": "string",
+      "minLength": 1
+    },
+    "phase": {
+      "enum": [
+        "mount",
+        "drape"
+      ]
     }
   },
   "required": [

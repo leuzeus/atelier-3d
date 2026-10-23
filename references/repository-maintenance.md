@@ -42,6 +42,12 @@ Python tierce ; le fichier Dependabot suit les actions GitHub.
 5. Ouvrir une PR, laisser réussir la CI, puis fusionner. Vérifier le commit distant
    et les règles actives. Une publication de release/marketplace est une action
    distincte de la mise à jour du dépôt.
+6. Lors d'une installation locale, terminer les opérations du plugin avant son
+   remplacement et prévoir le rechargement de Codex. Le chargeur peut retirer les
+   scripts de l'ancienne version pendant que des conversations en gardent les
+   chemins. Rapporter séparément les tests de la copie installée, la confiance
+   des hooks et leur exécution dans l'application après rechargement. Une liste
+   de hooks approuvés ou un test en sous-processus ne prouve pas le dernier point.
 
 Les rapports locaux historiques référencés dans la documentation ne sont pas des
 artefacts publics. Préférer les logs CI du commit exact pour les tests reproductibles.

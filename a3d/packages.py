@@ -88,8 +88,8 @@ def check_manifest(manifest, get):
                 b = pieces[seam["piece_b"]]["edges"][seam["edge_b"]]
             except KeyError as exc:
                 raise StudioError("Dangling seam reference") from exc
-            if seam["piece_a"] == seam["piece_b"] or len(a) != len(b):
-                raise StudioError("Seam needs distinct panels with equal vertex counts")
+            if seam["piece_a"] == seam["piece_b"] and set(a) & set(b):
+                raise StudioError("A self seam requires two disjoint boundary edges")
     for name in manifest["entrypoints"].values():
         get(name)
     return manifest

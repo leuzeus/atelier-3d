@@ -5,6 +5,27 @@ description: Orchestrer un projet de production 3D local reprenable à partir de
 
 # 3d-project
 
+Suivre [la reprise après un refus](../../references/preparation-recovery.md).
+Distinguer une limite du logiciel d'une erreur de préparation : pour une limite,
+informer l'utilisateur et lui faire choisir entre conserver la technique
+approuvée avec un parcours compatible et revenir au contrat supporté, avant
+tout changement. Pour un défaut confirmé ou des pièces manquantes, proposer une
+correction ciblée ou refaire les seuls patrons/dérivés concernés depuis les
+sources approuvées, puis recontrôler raccords et complétude. Un bord partagé
+entre couture permanente et attache détachable n'est pas automatiquement erroné.
+Conserver le découpage approuvé et les autorisations d'exécution Blender.
+
+Suivre [la complétude des pièces](../../references/piece-completeness.md).
+Présenter `piece_completeness.summary` et les identités manquantes dans le
+chat avec chaque aperçu. Les candidats de préparation restent distincts de
+la géométrie active et une couverture locale ne vaut pas couverture globale.
+
+Avant chaque appel à `execute_blender_code` ou `execute_blender_code_for_cli`, présenter l'opération préparée, le projet cible et ses effets attendus ; demander explicitement l'autorisation de l'utilisateur et attendre sa réponse affirmative. La préparation du code et les validations du pipeline ne valent pas autorisation d'exécution. Un refus ou une absence de réponse empêche l'appel. Si l'opération ou ses arguments changent, demander l'autorisation pour la nouvelle action. Respecter tout blocage de Codex ou du projet. Voir [le protocole Blender](../../references/blender.md).
+
+Pour PATTERN_SEWN, suivre [le fitting mesuré](../../references/measured-fitting.md) avant de varier la physique : préparer la fiche technique depuis le corps cible, le collider effectif et les repères homologues des patrons à la ligne de couture. Appeler inspect_garment_fit ; repères/capacité absents restent NOT_QUALIFIED. Distinguer déficit de coupe prouvé, signaux de placement, supports et physique non établie. Ne jamais déduire un manque d'aisance d'un échec Cloth seul. Les fitting_tacks natifs ne tiennent qu'une closure source dans l'essai local, avec force commune/durée explicites ; pas de retypage/soudure, pas de full/freeze tant qu'ils sont présents. Retirer ces attaches puis requalifier local sur la recette exacte. Une proposition d'ajustement alloue le déficit en cm, sans éditer de courbes : si nécessaire, préparer une variante native séparée, recontrôler coutures/embu/droit-fil et faire valider le board des différences avant production. Ne pas faire réapprouver une coupe inchangée ni imposer un formulaire utilisateur.
+
+Avant Cloth pour PATTERN_SEWN, suivre [la revue de prépositionnement](../../references/sewing-placement.md) : appeler `inspect_sewing_placement`, examiner coutures, supports, trajets dans les colliders et orientations, puis ouvrir un rendu du montage initial. Une manche alignée sur un bras n'est pas forcément enfilée. Utiliser d'abord flat/cylinder avec paramètres mesurés ; leurs limites restent explicites. Le rapport automatique de tentative ne remplace pas cette revue et n'accorde aucun PASS local ni validation de silhouette.
+
 Commencer par le brief : destination render/game/animation/3d_print, hauteur réelle, composants, relations et fichiers sources. Lire [le déroulement](../../references/production.md). Utiliser studio_create_project puis studio_project_status pour reprendre la base SQLite canonique. Chaque composant garde son propre routage et son package. N'utiliser un état COMPLETE qu'après rapport profilé, fichiers vérifiés et acceptation humaine. Le plugin n'installe pas ComfyUI, comfy-mcp, comfy-cli ou Blender. Un backend absent est UNAVAILABLE, pas un échec de l'asset. Respecter le dossier de production choisi par l'utilisateur.
 
 À chaque invocation, sélectionner explicitement le projet avec `studio_project_status(project_root)` (ou le créer), même dans un chat dont le cwd est ailleurs. Cette étape permet au hook de rattacher les appels suivants à ce projet lorsque l'hôte fournit son identifiant de session.
@@ -18,3 +39,17 @@ Le board de préparation est construit à partir des images de référence origi
 Appliquer les [contrôles des autres étapes](../../references/lifecycle-guards.md) : preuves spécialisées pour reconstruction, assemblage, finition, comportements et livraison. Reprendre les preuves existantes sans transformer une ancienne approbation générale en approbation du candidat actuel.
 
 Pour le board à valider, appliquer le [contrat des trois volets](../../references/fabrication-board.md). La vue éclatée du volet 2 est générée avec Codex Image intégré à partir des originaux et de la demande retournée par studio_prepare_exploded_view ; conserver la sortie réelle via studio_register_exploded_view, puis placer les repères sur les pièces visibles. Le compositeur ajoute leurs noms et caractéristiques exacts. Le volet 3 utilise les contours du package avec coupe, couture, plis/milieu, droit-fil et crans appariés à une échelle commune. Mesurer les proportions contre les images sources, ouvrir le résultat, puis attendre l'approbation humaine du découpage. Une vue éclatée indisponible ou erronée ne doit pas être remplacée discrètement par un autre backend.
+
+Pour PATTERN_SEWN, suivre [la recette native de toile](../../references/sewn-toile.md) après approbation du board : contours source conservés, maillage dérivé, mannequin auxiliaire vérifié, essais gravité/couture/contact puis sous-ensemble local, simulation complète bornée et consolidation des seules coutures permanentes. Préparer les données techniques pour l’utilisateur ; ne pas lui imposer un nouveau formulaire ni faire réapprouver un board inchangé pour ajuster la physique. Après deux échecs complets, diagnostiquer le petit cas et refaire l’essai local. Examiner les rendus avant toute conclusion artistique.
+
+
+Pour les vêtements, suivre [les préparations de fitting et profils régionaux](../../references/fitting-preparation.md).
+Le board décrit l'intention de matière/renfort et de plis par patron depuis les
+références originales ; quelques profils partagés restent des hypothèses.
+Calibrer dans Blender après pose commune qualifiée, sans coefficient arbitraire
+par panneau ni chaîne/trame indépendante promise par un backend qui ne la simule
+pas. Préparer les données techniques sans formulaire utilisateur. Une modification
+de recette physique requalifie ses preuves techniques ; elle ne réclame pas de
+nouvelle approbation d'un découpage inchangé. Les opérations natives
+`prepare_fitting_envelope` et `prepare_fitting_pose` préservent la scène live ;
+la mutation de stage et le local/full gardent leurs admissions et checkpoints.
