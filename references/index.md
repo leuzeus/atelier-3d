@@ -26,11 +26,19 @@ le précise le [contrat de production](production.md).
 - [Templates ComfyUI : usages, paramètres et réutilisation](../workflows/comfy/README.md)
 - [Intégration du MCP officiel ComfyUI](comfy-official.md)
 
+## Préversion textile 0.7.0-rc.2
+
+- [Automatisation : capacités, preuves et limites de développement](garment-automation.md)
+- [Mensurations : contrôles existants et travaux restant à réaliser](mannequin-measurements.md)
+- [Catalogue hors ligne des deux bases réalistes](../assets/mannequins/catalog.json)
+- [Provenance et licence CC0](../assets/mannequins/NOTICE-CC0.md)
+
 ## Blender et préparation textile
 
 - [Protocole Blender et autorisation du code](blender.md)
 - [Continuité native, checkpoints et reprise](blender-continuity.md)
 - [Choisir explicitement le corps source](body-source.md)
+- [Dimensionner et mesurer le mannequin pour le vêtement](garment-body-target.md)
 - [Préparation native des patrons](pattern-preparation.md)
 - [Assemblage depuis les patrons approuvés](pattern-assembly.md)
 - [Du board à la toile cousue](sewn-toile.md)
@@ -41,10 +49,26 @@ le précise le [contrat de production](production.md).
 
 ## Fitting et diagnostics
 
+- [Rôle Patronage, calculs de dimensionnement et profil d'agent fourni](patronage-agent.md)
+- [Classification du vêtement et aisance explicite](garment-fit-intent.md)
+- [Variantes de patrons calculées et contraintes conservées](pattern-ease-variants.md)
+- [Composer exactement les pièces d'une variante revue](pattern-variant-composition.md)
+- [Suivi de la correction d’aisance du 4 octobre 2026](automation-ease-followup-20261004.md)
+- [Reçu des contrôles logiciels et observations d’aisance](automation-ease-evidence-20261004.json)
+- [Sections de peau des bras et enveloppes de passage des mains](body-region-sections.md)
+- [Préparation des régions et capacités nominales des manches](limb-source-measurements.md)
 - [Reprise dans une scène vide et fitting séparé](clean-construction-fitting.md)
 - [Préparation native du fitting](fitting-preparation.md)
 - [Fiche de fitting mesurée](measured-fitting.md)
 - [Prépositionnement et écarts des coutures](sewing-placement.md)
+- [Couplage des guides par leurs coutures source](source-seam-coupling.md)
+- [Placement anatomique générique et conservation des attaches](generic-anatomical-placement.md)
+- [Reçu des contrôles de couplage et de conservation des coins](automation-source-coupling-evidence-20261004.json)
+- [Récupération métrique des raccords permanents](guide-metric-seam-coupling.md)
+- [Conditionnement borné du maillage dérivé](source-mesh-conditioning.md)
+- [Reçu du conditionnement et des entrées de variante](automation-source-conditioning-evidence-20261004.json)
+- [Reçu du solveur commun et des appuis impossibles](automation-metric-cohort-evidence-20261004.json)
+- [Reçu de la phase du col et de l'ancrage des composantes](automation-metric-anchor-evidence-20261004.json)
 - [Déplacements pendant Cloth](cloth-motion.md)
 - [Diagnostic des probes physiques](probe-diagnostics.md)
 - [Candidats refusés avant Cloth](garment-rejections.md)

@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "date": "2026-10-05",
+  "status": "REAL_COMPACT_COLLAR_SAVED_AND_PHYSICAL_UTF8_LF_EXACT",
+  "purpose": "TEST_ONLY",
+  "qualification": "NONE",
+  "product_admission": "NONE",
+  "summary": {
+    "status": "PORTABLE_TRIAL_TERMINALLY_ATTESTED",
+    "qualification": "NONE",
+    "admission": "NONE",
+    "candidate_id": "portable-current-collar-free-field-A-compact-v3",
+    "run_id": "portable-current-collar-free-field-A-compact-v3-run1",
+    "request_sha256": "f1981e3200f82a4da1b7307be7a745ce094f240fb9f9768210e0d84fd180dfae",
+    "result": {
+      "bytes": 7171084,
+      "sha256": "02af3ddc4e1d2cf0e69bd92d89fd3a10819e274c2595be03ec54fe2950eae907"
+    },
+    "launch_receipt": {
+      "bytes": 5377,
+      "sha256": "d69a64779fca2adfe523fb12f4e3b5734806a2fc4c599488ab474ad622425ff8"
+    },
+    "host_seconds": 51.71945560001768,
+    "terminal_checkpoint_seconds": 51.57799999997951,
+    "aggregate_output_nodes": 267903,
+    "aggregate_output_bytes": 7173249,
+    "geometry_table_rows": {
+      "reference_carrier": 5178,
+      "source_carrier": 586,
+      "source_reference_carrier": 5526
+    },
+    "input_counts": {
+      "source": {
+        "vertices": 15,
+        "faces": 13
+      },
+      "carrier": {
+        "vertices": 125,
+        "faces": 192
+      },
+      "reference": {
+        "vertices": 743,
+        "faces": 1098
+      }
+    },
+    "samples": 751,
+    "marks": 7,
+    "relations": 7,
+    "work": {
+      "carrier_triangles": 384,
+      "carrier_vertices": 375,
+      "fraction_operations": 117830,
+      "input_nodes": 92447,
+      "intersection_patches": 5764,
+      "mark_owners": 8,
+      "output_bytes": 7171084,
+      "output_nodes": 267834,
+      "pair_checks": 1922721,
+      "queries": 125,
+      "reference_triangles": 2196,
+      "reference_vertices": 1486,
+      "refinement_patches": 5526,
+      "relation_owners": 740,
+      "samples": 751,
+      "source_triangles": 13,
+      "source_vertices": 15,
+      "targets": 0
+    },
+    "single_budget_instance": true,
+    "real_compiler_calls": 1,
+    "protected_files": 1021,
+    "inputs_preserved": true,
+    "scope": "COMPILATION_AND_COMPACT_STORAGE_ONLY",
+    "NOT_QUALIFIED": [
+      "UV_DOMAIN_ADMISSION",
+      "MATERIAL_METRICS",
+      "CONTACTS",
+      "PLACEMENT",
+      "CLOTH",
+      "DRAPE",
+      "FITTING",
+      "ART",
+      "PHYSICAL_GARMENT"
+    ],
+    "previous_incomplete_result_preserved": "program-current-collar-field-result-v2",
+    "previous_compact_crlf_discrepancy_preserved": "program-current-collar-compact-result-v2",
+    "physical_stdout_bytes": 2165,
+    "physical_stdout_matches_ledger": true,
+    "physical_stdout_terminator_hex": "0a",
+    "prelaunch_argument_correction": "program-current-collar-compact-v3-prelaunch-argument-correction.json"
+  },
+  "proofs": [
+    {
+      "path": "program-current-collar-compact-preflight-v3/FROZEN.json",
+      "sha256": "58756bf0af7b0ff13046a4ca6983995d9b544ca83ed8ff06db82b62287be9989",
+      "bytes": 32755
+    },
+    {
+      "path": "program-current-collar-compact-preflight-v3/receipt.json",
+      "sha256": "ab9ce00e2c33b5abb12f238ae4584265140aa2d6c190254d1e8bf9a4d2a6b48d",
+      "bytes": 3210
+    },
+    {
+      "path": "program-current-collar-compact-preflight-review-v3/FROZEN.json",
+      "sha256": "af78ad47d1f4476245d5e9e71fa0f15882e8c51dfc3157c1de8e539653480f2c",
+      "bytes": 112977
+    },
+    {
+      "path": "program-current-collar-compact-preflight-review-v3/receipt.json",
+      "sha256": "fffb271dd5f3cb0f7fa5c264a41d3835c8debb31670354995ba4bf495367d0ad",
+      "bytes": 1661
+    },
+    {
+      "path": "program-current-collar-compact-host-review-v4/FROZEN.json",
+      "sha256": "32979871cf75945128c76abb111bf2af2832acf1748e3f1164db1e2dbb3c44b6",
+      "bytes": 1519
+    },
+    {
+      "path": "program-current-collar-compact-host-review-v4/receipt.json",
+      "sha256": "be1ae6f5f0fa8d29738c8f29bf66e8f22284e7828b4c1c1876042dd05acb55e7",
+      "bytes": 1005
+    },
+    {
+      "path": "program-run-current-collar-compact-v3.py",
+      "sha256": "3a33e6f9ce50c57f4cc36a04a48b11b95fd6aa564c2b36ad1b00724d8309669d",
+      "bytes": 17447
+    },
+    {
+      "path": "program-current-collar-compact-root-gate-v3.json",
+      "sha256": "225b88eec55347c634c28068f7db8a94fd494b45e88ccc976acdea5c1fcc0607",
+      "bytes": 2568
+    },
+    {
+      "path": "program-current-collar-compact-result-v3/FROZEN.json",
+      "sha256": "725447ba170d60e02e5d442b8bd88d508d471dc21891fa6b2081bbdec4b7e490",
+      "bytes": 1180
+    },
+    {
+      "path": "program-current-collar-compact-result-v3/launch-receipt.json",
+      "sha256": "d69a64779fca2adfe523fb12f4e3b5734806a2fc4c599488ab474ad622425ff8",
+      "bytes": 5377
+    },
+    {
+      "path": "program-current-collar-compact-result-v3/candidate-output/result.json",
+      "sha256": "02af3ddc4e1d2cf0e69bd92d89fd3a10819e274c2595be03ec54fe2950eae907",
+      "bytes": 7171084
+    },
+    {
+      "path": "program-current-collar-compact-result-v3/stdout.log",
+      "sha256": "ec22d19ae225dece599086098bf691f2b40a9623c72bbfb09dd53fa589ac05c2",
+      "bytes": 2165
+    },
+    {
+      "path": "program-current-collar-compact-result-v3/summary.json",
+      "sha256": "9061d5eb26bb07baeef21e280fe59d4f18edd2d58e86c0cd22a956254b23dd65",
+      "bytes": 2407
+    },
+    {
+      "path": "program-current-collar-compact-result-v2/FROZEN.json",
+      "sha256": "2a28c2c3a933f50d6158dfefb68dec6ce4efd8ea1d2e10aaa2b0015000847330",
+      "bytes": 1180
+    },
+    {
+      "path": "program-current-collar-compact-v3-prelaunch-argument-correction.json",
+      "sha256": "2a43a19f0537f460350a947c65b0ac2065e827f55e272f661c75de6983783cec",
+      "bytes": 622
+    },
+    {
+      "path": "program-ci-material-metrics-v1/github-response.json",
+      "sha256": "2021bf84024329796e958c14cf601b5ed76524553129469fbcf568f32f958b01",
+      "bytes": 5523
+    },
+    {
+      "path": "program-ci-material-metrics-v1/receipt.json",
+      "sha256": "d1901390c28ba951b314e8b85b93c2a8ab65218062fa2e87e5d53261f6a30a07",
+      "bytes": 578
+    }
+  ],
+  "driver_review": {
+    "author_tests": 48,
+    "independent_probes": 4,
+    "review_mode": "46_DIRECT_2_CLI_IN_MEMORY_NO_CHILD_PROCESS"
+  },
+  "host_transport_review": {
+    "probes": 6,
+    "scope": "PHYSICAL_STDOUT_EXACT_LF"
+  },
+  "software_CI": {
+    "head": "06c1cf210f00960ec4a1fee23eed61ab58a9b0bd",
+    "run": "37297414625",
+    "status": "PASS_EXACT_HEAD_CI",
+    "scope": "SOFTWARE_PORTABLE_CI_ONLY_NOT_GARMENT_ACCEPTANCE"
+  },
+  "time_scope": "Terminal checkpoint is before physical stdout emission; process completion and host checks are distinct observations.",
+  "actual_metric_observation": "NOT_EXECUTED",
+  "automatic_retry": false
+}

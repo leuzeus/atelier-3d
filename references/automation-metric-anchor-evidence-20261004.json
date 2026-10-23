@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "date": "2026-10-04",
+  "status": "METRIC_ANCHOR_AND_COLLAR_PHASE_DEVELOPMENT_UNIT_CHECKED",
+  "code_commit": "0c744c193968a8e80fb0df20beeb80da2ca19c17",
+  "tested_snapshot": {
+    "identity_sha256": "d54aac47ffa7b3bafb329d0e6c31b460612d01a5bfb7a36183249e9495d81e90",
+    "files": 484
+  },
+  "committed_code_files_verified": 390,
+  "committed_code_sha256": "e8326eea3cdd94c5af495a9702c9d8b999699fbcd6422083517927f3cbbd4b92",
+  "portable": {
+    "status": "PASS",
+    "tests": 939,
+    "seconds": 108.606,
+    "launcher_seconds": 109.78099999995902,
+    "receipt_ref": {
+      "path": "program-portable-source48-v1/receipt.json",
+      "sha256": "e8b75562d0fceab4ba3fe28e4c6945bffb981831c64cac761fad88b07b79138c"
+    },
+    "log_ref": {
+      "path": "program-portable-source48-v1/tests.log",
+      "sha256": "f9d65233decb6a1425be7a080556b8a98af06e2819a9108dc6772a6a9235f70f"
+    }
+  },
+  "independent_review": {
+    "status": "PASS_SCOPED_REVIEW",
+    "tests": 88,
+    "schema_cases_per_validator": 12,
+    "validators": [
+      "CORE",
+      "POWERSHELL_TEST_JSON"
+    ],
+    "report_ref": {
+      "path": "program-metric-anchor-scope-implementation-review-v1/review-final.json",
+      "sha256": "959b71aaf0cc343456bcd56a61b97a3d2b4416d45c4c93a38e96a110cc918911"
+    },
+    "architecture_ref": {
+      "path": "program-metric-anchor-scope-review-v1/review-architecture.json",
+      "sha256": "e1d7520d2ee659c0ebacf4ad5396be1114821c71cc30ad6d53673cec7e528074"
+    }
+  },
+  "native_static_component_fixture": {
+    "status": "PASS",
+    "purpose": "TEST_ONLY",
+    "seconds": 3.9380000000237487,
+    "only_one_panel_has_numerical_anchor": true,
+    "receipt_ref": {
+      "path": "program-native-placement-correction-v4/receipt.json",
+      "sha256": "dfc742f0b772d6569cc0d26eb47b80769547e65fef0cc74584fbd13ce442e00b"
+    },
+    "result_ref": {
+      "path": "program-native-placement-correction-v4/result.json",
+      "sha256": "613136ed798545e347d4a632191077b6914413928f11d2fa892d5319da1f6d31"
+    },
+    "scene_ref": {
+      "path": "program-native-placement-correction-v4/synthetic-coupled-recovery.blend",
+      "sha256": "63327e74e4cc8a38a36d5b6d3c58a7513e92483c4329de980f9a7b48bf35d360"
+    },
+    "source_body_unchanged": true,
+    "scene_reopened": true,
+    "cloth": "NOT_EXECUTED"
+  },
+  "main_guide_proposal_v9": {
+    "status": "DETERMINISTIC_PROPOSAL_ONLY",
+    "qualification": "NONE",
+    "policy_ref": {
+      "path": "program-production-main-v1/preparation/source-guide-policy-proposal-v9.json",
+      "sha256": "dc3b4531bccd5aeb8fcbd600574232317d273581bc8aa3ce7a3d29bf3a444c84"
+    },
+    "guides_ref": {
+      "path": "program-production-main-v1/preparation/source-guide-proposals-policy-v9.json",
+      "sha256": "9db51cd58780257018fd8a959eadcca57bc977ffc906882d09ec261155332938"
+    },
+    "generation_ref": {
+      "path": "program-production-main-v1/preparation/source-guide-policy-generation-v9.json",
+      "sha256": "9ee9bd4b20070a65b5335ef6045890e72ee360d0ee314f200231ec6d79f1fa30"
+    },
+    "anchor_report_ref": {
+      "path": "program-main-guide-anchor-policy-v1/report.json",
+      "sha256": "65088111d4ed791ed94074586711dd51efb2249b21acc0eb6165e88af234f1d8"
+    },
+    "permanent_internal_relations": 13,
+    "common_control_gap_cm": 0.0,
+    "numerical_fixed_edges": 4,
+    "shoulder_required_stretch_bounds": [
+      0.9437810533282228,
+      0.9422882069191798
+    ],
+    "bounds_are_necessary_not_sufficient": true,
+    "source_and_body_changed": false
+  },
+  "main_auxiliary_diagnostic": {
+    "status": "AUXILIARY_COMPONENT_DIAGNOSTIC_REFUSED_BEFORE_RESULT",
+    "scope": "AUXILIARY_SOURCE_UV_CAGE_CONTROL_TRIANGLES_ONLY",
+    "receipt_ref": {
+      "path": "program-main-metric-component-diagnostic-v1/receipt.json",
+      "sha256": "28310b8e21653a155c266344ba78202d2709813b0fa48ecc19639607ad765ac2"
+    },
+    "candidate_produced": false,
+    "qualification": "NONE",
+    "cause": "AUXILIARY_SOURCE_FAN_SLIVER_BEFORE_ANY_LINEAR_ALIGNMENT",
+    "minimum_source_edge_cm": 1.2499998967e-07,
+    "failure_refers_to_native_mesh_or_pattern_feasibility": false,
+    "new_native_preparation": "NOT_EXECUTED"
+  },
+  "runtime_route": {
+    "status": "CURRENT_INSTALLED_ROOT_CANNOT_EXECUTE_NEW_CODE_ON_MAIN",
+    "audit_ref": {
+      "path": "program-runtime-development-route-audit-v1/audit.json",
+      "sha256": "012fd460dc3c0e32f98516603356a40dddeb95d24229c65f49bb13b0fdba74d2"
+    },
+    "development_isolated_case_product_acceptance": "NOT_GRANTED",
+    "installation_or_guard_bypass": "NOT_EXECUTED"
+  },
+  "exact_seam_equality_scope": "METRIC_RECOVERY_ONLY_CONTACT_SEARCH_RETAINS_EXISTING_GAP_GATE",
+  "scope": "DEVELOPMENT_SOFTWARE_ONLY",
+  "main_cloth": "NOT_EXECUTED",
+  "main_fitting": "NOT_QUALIFIED",
+  "final_release": "NOT_PUBLISHED",
+  "installed": "NOT_EXECUTED"
+}

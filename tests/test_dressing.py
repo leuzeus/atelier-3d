@@ -1,10 +1,12 @@
 import copy
 import math
 import unittest
+import tempfile
+from pathlib import Path
 
-from a3d.core import StudioError, digest
+from a3d.core import ROOT, StudioError, atomic_json, read_json, sha, digest
 from a3d.dressing import (layer_collision_selection, migrate_legacy_layers, select_colliders,
-                         source_references, validate_dressing)
+                         source_references, validate_dressing, compile_dressing_plan, support_schedule_at, _compiled_dressing)
 from blender.dressing import audit_opening, loop_from_opening, section_segments
 from tests.test_pattern_assembly import example
 from a3d.pattern_assembly import map_digest
@@ -261,6 +263,89 @@ class MeasuredBodyPassages(unittest.TestCase):
         payload['seams']['join']['kind'] = 'permanent'
         coords[8][1] = 0.
         with self.assertRaises(StudioError): loop_from_opening(payload, coords, opening, plan)
+
+
+class DressingPlanCompiler(unittest.TestCase):
+    def setUp(self):
+        from a3d.store import Project
+        from tests.support import asset
+        folder=ROOT/'work/test-dressing-plan'; folder.mkdir(parents=True,exist_ok=True)
+        self.temp=tempfile.TemporaryDirectory(dir=folder); self.root=Path(self.temp.name)
+        self.project=Project.create(self.root,asset(True))
+        payload,_,plan,geometry=dressing_fixture()
+        payload['component_id']=plan['component_id']='garment.coat'; plan['mapping_sha256']=map_digest(payload)
+        body=self.root/'body.json'; atomic_json(body,geometry)
+        body_ref={'path':'body.json','sha256':sha(body)}
+        def replace_refs(value):
+            if isinstance(value,dict):
+                if set(value)=={'path','sha256'}: return copy.deepcopy(body_ref)
+                return {key:replace_refs(item) for key,item in value.items()}
+            if isinstance(value,list): return [replace_refs(item) for item in value]
+            return value
+        plan=replace_refs(plan)
+        plan['supports']['temporary']=[{'id':'mount','source_ref':'explicit fixture clamp',
+            'piece':'sleeve','edge':'entry','weight':1.}]
+        plan['supports']['functional']=[{'id':'keep','source_ref':'functional fixture clamp',
+            'piece':'sleeve','edge':'entry','weight':.1}]
+        recipe=read_json(ROOT/'templates/sewing-recipe.json')
+        recipe['colliders']=[{'object':'body','role':'mannequin','geometry_sha256':'a'*64,
+            'dimensions_cm':[2.,2.,4.],'tolerance_cm':.1,'outer_thickness_cm':.1,'inner_thickness_cm':.1}]
+        recipe['no_collision_reason']=''
+        values={'candidate':payload,'assembly':plan,'source':{'cut':'TEST ONLY'},'body':geometry,
+            'pose':{'pose':'FIXED TEST ONLY'},'recipe':recipe}
+        bindings={}
+        for key,value in values.items():
+            path=self.root/(key+'.json'); atomic_json(path,value)
+            bindings[key]={'path':path.name,'sha256':sha(path)}
+        self.payload=payload; self.plan=plan
+        self.spec={'version':1,'id':'dressing-test','component_id':'garment.coat','bindings':bindings,
+            'paths':[{'opening_id':'entry','waypoints':[
+                {'id':'outside','source_ref':bindings['source'],'translations_cm':{'sleeve':[0.,0.,4.]}},
+                {'id':'aligned','source_ref':bindings['source'],'translations_cm':{'sleeve':[0.,0.,0.]}}]}],
+            'support_release':[{'support_id':'mount','after_waypoint':'aligned','release_frames':4,'source_ref':bindings['source']}],
+            'execution':{'max_seconds':5.,'max_step_cm':.1,'max_subdivisions':64}}
+        atomic_json(self.root/'spec.json',self.spec)
+    def tearDown(self): self.temp.cleanup()
+    def test_compilation_preserves_cut_layer_order_and_gates_and_requires_native_measurements(self):
+        original=digest([self.payload,self.plan]); state=self.project.state()
+        result=compile_dressing_plan(self.project,self.payload,self.plan,'spec.json','compiled')
+        self.assertFalse(result['executed']); self.assertEqual(result['qualification'],'NOT_EXECUTED')
+        self.assertEqual(digest([self.payload,self.plan]),original); self.assertEqual(self.project.state(),state)
+        doc=_compiled_dressing(self.project,result['dressing']['path'])
+        self.assertEqual(doc['assembly']['layers'],self.plan['layers'])
+        self.assertEqual(len(doc['assembly']['dressing']['milestones']),2)
+        first=support_schedule_at(doc,'outside'); last=support_schedule_at(doc,'aligned')
+        self.assertEqual(first['release'],[]); self.assertEqual(last['release'][0]['release_frames'],4)
+        self.assertEqual(last['retain_functional'][0]['id'],'keep'); self.assertFalse(last['executed'])
+        run=read_json(self.root/result['run_specification']['path'])
+        self.assertEqual(run['units'][0]['operation'],'inspect_dressing_plan')
+    def test_missing_opening_duplicate_waypoints_or_invented_support_is_refused(self):
+        for failure in ('opening','duplicate','support','missing_release','budget','unknown_release','reserved'):
+            spec=copy.deepcopy(self.spec)
+            if failure=='opening':spec['paths'][0]['opening_id']='invented'
+            if failure=='duplicate':spec['paths'][0]['waypoints'][1]['id']='outside'
+            if failure=='support':spec['support_release'][0]['support_id']='keep'
+            if failure=='missing_release':spec['support_release']=[]
+            if failure=='budget':spec['paths'][0]['waypoints'][0]['translations_cm']['sleeve'][2]=11.
+            if failure=='unknown_release':spec['support_release'][0]['after_waypoint']='absent'
+            if failure=='reserved':spec['paths'][0]['waypoints'][1]['id']='prepared'
+            atomic_json(self.root/'bad.json',spec)
+            with self.subTest(failure=failure),self.assertRaises(StudioError):
+                compile_dressing_plan(self.project,self.payload,self.plan,'bad.json','bad-output')
+    def test_recomputed_derived_fingerprint_cannot_change_source_paths(self):
+        result=compile_dressing_plan(self.project,self.payload,self.plan,'spec.json','compiled')
+        path=self.root/result['dressing']['path']; doc=read_json(path)
+        doc['assembly']['dressing']['milestones'][0]['translations_cm']['sleeve'][2]=5.
+        doc.pop('fingerprint'); doc['fingerprint']=digest(doc); atomic_json(path,doc)
+        with self.assertRaises(StudioError): _compiled_dressing(self.project,result['dressing']['path'])
+    def test_stale_pose_or_actual_candidate_record_prevents_preparation(self):
+        (self.root/'pose.json').write_text('{}')
+        with self.assertRaises(StudioError):
+            compile_dressing_plan(self.project,self.payload,self.plan,'spec.json','compiled')
+        atomic_json(self.root/'pose.json',{'pose':'FIXED TEST ONLY'})
+        altered=copy.deepcopy(self.payload); altered['placed_cm'][0][0]+=.001
+        with self.assertRaises(StudioError):
+            compile_dressing_plan(self.project,altered,self.plan,'spec.json','compiled')
 
 
 if __name__ == '__main__':

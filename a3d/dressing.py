@@ -123,7 +123,8 @@ def select_colliders(layers, layer_id):
 def layer_collision_selection(payload, plan, collider_roles=None):
     """Select one native Cloth obstacle collection; never merge active layers.
 
-    Multiple current garment layers need separately sequenced simulations.
+    Independent current garment groups need separately sequenced simulations.
+    An explicitly bound permanent cohort can use one joint native Cloth object.
     External inner garments may contribute evaluated collider cages when
     their DAG order and sourced outward sides are explicit.
     """
@@ -135,6 +136,39 @@ def layer_collision_selection(payload, plan, collider_roles=None):
         name for node in layers['nodes'] for name in node['colliders']]
     validation = validate_layers(payload, layers, colliders)
     active = [node['id'] for node in layers['nodes'] if node['panels']]
+    execution = plan.get('layer_execution')
+    if validation['status'] != 'NEEDS_CLARIFICATION' and len(active) > 1 and execution:
+        _reference(execution['source_ref'])
+        from .pattern_assembly import map_digest
+        mapping = payload.get('source_mapping_sha256') if payload.get('rest_mode') == 'assembled_3d' else map_digest(payload)
+        graph = sewing_graph_digest(payload)
+        if execution.get('mode') != 'joint_coupled_single_object' or execution.get('version') != 1:
+            _error('Unsupported native layer execution mode', 'layers')
+        if execution.get('source_mapping_sha256') != mapping or execution.get('sewing_graph_sha256') != graph:
+            _error('Joint layer execution is stale for the source mapping or sewing graph', 'geometry_safety')
+        parents = {pid: pid for pid in payload['panels']}
+        def find(pid):
+            while parents[pid] != pid:
+                parents[pid] = parents[parents[pid]]; pid = parents[pid]
+            return pid
+        def union(a, b):
+            a, b = find(a), find(b); parents[max(a, b)] = min(a, b)
+        for node in layers['nodes']:
+            for pid in node['panels'][1:]: union(node['panels'][0], pid)
+            if node['panels'] and node['colliders']:
+                _error('Joint active panels cannot also be declared frozen collider objects', 'layers')
+        for sid, seam in payload['seams'].items():
+            a, b = seam.get('piece_a'), seam.get('piece_b')
+            if a not in parents or b not in parents:
+                _error('Joint native group needs source identities on every sewing link: '+sid, 'layers')
+            if seam['kind'] == 'permanent': union(a, b)
+        if len({find(pid) for pid in parents}) != 1:
+            return {'status': 'NEEDS_CLARIFICATION', 'reason': 'SEPARATE_UNCOUPLED_GROUPS_REQUIRED',
+                    'active_layers': active, 'colliders': [], 'qualification': 'NONE'}
+        return {'status': 'LAYER_COLLIDERS_SELECTED', 'active_layers': sorted(active),
+                'colliders': sorted(set().union(*(set(select_colliders(layers, lid)) for lid in active))),
+                'execution': 'joint_coupled_single_object', 'sewing_graph_sha256': graph,
+                'interaction': 'joint_self_collision_and_one_way_external', 'qualification': 'NONE'}
     if validation['status'] == 'NEEDS_CLARIFICATION' or len(active) != 1:
         return {'status': 'NEEDS_CLARIFICATION',
                 'reason': 'SEPARATE_PER_LAYER_NATIVE_SIMULATIONS_REQUIRED' if len(active) != 1 else validation['reason'],
@@ -142,6 +176,24 @@ def layer_collision_selection(payload, plan, collider_roles=None):
     return {'status': 'LAYER_COLLIDERS_SELECTED', 'active_layer': active[0],
             'colliders': select_colliders(layers, active[0]),
             'interaction': 'one_way_declared', 'qualification': 'NONE'}
+
+
+def sewing_graph_digest(payload):
+    """Link types and source owners remain bound across geometric consolidation."""
+    return digest({sid: {key: seam.get(key) for key in ('piece_a', 'piece_b', 'kind')}
+                   for sid, seam in sorted(payload['seams'].items())})
+
+
+def rebind_layer_execution(plan, payload):
+    """Rebind a regular derived map only when the source link graph is unchanged."""
+    result = copy.deepcopy(plan)
+    execution = result.get('layer_execution')
+    if execution:
+        if execution['sewing_graph_sha256'] != sewing_graph_digest(payload):
+            _error('Regular preparation changed the declared source sewing graph; review a new plan', 'layers')
+        from .pattern_assembly import map_digest
+        execution['source_mapping_sha256'] = map_digest(payload)
+    return result
 
 
 def validate_dressing(payload, plan, collider_ids=()):
@@ -244,3 +296,196 @@ def source_references(plan):
                 visit(child)
     visit({key: plan.get(key) for key in ('dressing', 'layers')})
     return [copy.deepcopy(found[key]) for key in sorted(found)]
+
+
+def _dressing_bindings(project, bindings):
+    from .core import inside, sha
+    result = {}
+    for key, ref in bindings.items():
+        _reference(ref)
+        path = inside(project.root, ref['path'])
+        if not path.is_file() or sha(path) != ref['sha256']:
+            _error('Dressing binding is stale: '+key, 'geometry_safety')
+        result[key] = copy.deepcopy(ref)
+    return result
+
+
+def _dressing_code_sources():
+    from .core import ROOT, sha
+    files = ['a3d/dressing.py', 'a3d/pattern_assembly.py', 'blender/dressing.py',
+             'blender/cloth_contacts.py', 'blender/sewing.py', 'schemas/dressing-plan.schema.json']
+    return {path: sha(ROOT/path) for path in files}
+
+
+def compile_dressing_plan(project, payload, assembly_plan, specification_path, output_dir):
+    """Compile sourced openings, paths and release times without fitting by AI.
+
+    Existing panel cuts, opening assignments and layer order remain immutable.
+    A missing opening or trajectory is a clarification, never a guessed passage.
+    The resulting run asks the native evaluator to measure geometric clearance;
+    it performs no Cloth and schedules no accepted support removal by itself.
+    """
+    from .core import atomic_json, ident, inside, read_json, sha
+    from .pattern_assembly import map_digest
+    state = project.state()
+    if state.get('pending_blender_operation') or state['stage'] == 'COMPLETE':
+        _error('Pending or completed project prevents dressing preparation')
+    spec = contract('dressing-plan', read_json(inside(project.root, specification_path)))
+    ident(spec['id']); ident(spec['component_id'])
+    if spec['component_id'] != payload['component_id'] or spec['component_id'] not in state['components']:
+        _error('Dressing target does not identify this source garment', 'geometry_safety')
+    bindings = _dressing_bindings(project, spec['bindings'])
+    if read_json(inside(project.root, bindings['candidate']['path'])) != payload:
+        _error('Dressing candidate record differs from the prepared source map', 'geometry_safety')
+    if read_json(inside(project.root, bindings['assembly']['path'])) != assembly_plan:
+        _error('Dressing assembly record differs from the current reviewed plan', 'geometry_safety')
+    recipe = contract('sewing-recipe', read_json(inside(project.root, bindings['recipe']['path'])))
+    if recipe['component_id'] != spec['component_id']:
+        _error('Dressing recipe identifies another garment', 'geometry_safety')
+    collider_ids = [item['object'] for item in recipe['colliders']]
+    structural = validate_dressing(payload, assembly_plan, collider_ids)
+    if structural['status'] != 'DRESSING_CONTRACT_VALIDATED' or not structural['full_coverage']:
+        _error('Dressing needs a complete sourced opening, region and layer contract')
+    for ref in source_references(assembly_plan):
+        _dressing_bindings(project, {'assembly_source': ref})
+    declared = assembly_plan['dressing']['mount_order']
+    if [path['opening_id'] for path in spec['paths']] != declared:
+        _error('Dressing paths must preserve every approved opening and its mount order exactly')
+    waypoint_order = []; milestones = []
+    for path in spec['paths']:
+        for point in path['waypoints']:
+            ident(point['id']); _dressing_bindings(project, {'waypoint': point['source_ref']})
+            if point['id'] in waypoint_order or point['id']=='prepared':
+                _error('Dressing waypoint IDs must be globally unique')
+            if not point['translations_cm'] or set(point['translations_cm']) - set(payload['panels']):
+                _error('Dressing waypoint must identify actual source panels')
+            if any(not _finite(value) or math.dist(value, (0,0,0)) > assembly_plan['assembly']['max_displacement_cm']
+                   for value in point['translations_cm'].values()):
+                _error('Dressing waypoint exceeds the approved displacement budget', 'geometry_safety')
+            waypoint_order.append(point['id']); milestones.append(copy.deepcopy(point))
+    temporary = {item['id']: item for item in assembly_plan['supports']['temporary']}
+    released = [item['support_id'] for item in spec['support_release']]
+    if sorted(released) != sorted(temporary) or len(released) != len(set(released)):
+        _error('Dressing must schedule each temporary support exactly once and preserve functional supports')
+    for item in spec['support_release']:
+        _dressing_bindings(project, {'support_release': item['source_ref']})
+        if item['after_waypoint'] not in waypoint_order:
+            _error('Temporary support release must follow a declared source waypoint')
+        if item['release_frames'] > max(profile['frames'] for profile in recipe['phases'].values()):
+            _error('Temporary support release exceeds the source physical frame budget')
+    derived = copy.deepcopy(assembly_plan)
+    derived['dressing']['milestones'] = milestones
+    validate_dressing(payload, derived, collider_ids)
+    output = inside(project.root, output_dir, False)
+    if output.exists(): _error('Dressing output must be a new project directory')
+    document = {'version':1, 'id':spec['id'], 'component_id':spec['component_id'],
+        'specification':{'path':specification_path,'sha256':sha(inside(project.root,specification_path))},
+        'bindings':bindings, 'source_mapping_sha256':map_digest(payload), 'assembly':derived,
+        'source_assembly_sha256':digest(assembly_plan), 'paths':copy.deepcopy(spec['paths']),
+        'support_release':copy.deepcopy(spec['support_release']), 'execution':copy.deepcopy(spec['execution']),
+        'waypoint_order':waypoint_order, 'code_sources':_dressing_code_sources(),
+        'qualification':'NOT_EXECUTED', 'accepted':False, 'source_patterns_changed':False,
+        'support_removal':'SCHEDULED_NOT_EXECUTED'}
+    document['fingerprint'] = digest(document)
+    output.mkdir(parents=True); path = output/'dressing.json'; atomic_json(path, document)
+    ref = {'path':path.relative_to(project.root).as_posix(), 'sha256':sha(path)}
+    run = {'version':1, 'id':spec['id'], 'asset_id':state['asset']['id'], 'kind':'garment',
+        'inputs':list(bindings.values())+[ref], 'budgets':{'max_attempts':1,'max_seconds':spec['execution']['max_seconds']},
+        'units':[{'id':'dressing.clearance', 'dependencies':[], 'executor':'blender',
+            'operation':'inspect_dressing_plan', 'arguments':{'component_id':spec['component_id'],
+                'recipe_path':bindings['recipe']['path'], 'dressing_path':ref['path']},
+            'inputs':list(bindings.values())+[ref], 'code_paths':list(document['code_sources']), 'success_statuses':['READY']}]}
+    contract('run',run); run_path=output/'run.json'; atomic_json(run_path,run)
+    return {'status':'PREPARED','dressing':ref,
+        'run_specification':{'path':run_path.relative_to(project.root).as_posix(),'sha256':sha(run_path)},
+        'executed':False,'qualification':'NOT_EXECUTED','accepted':False,'support_removal':'SCHEDULED_NOT_EXECUTED'}
+
+
+def support_schedule_at(document, waypoint_id):
+    """Return coded release intent; do not claim native pin changes occurred."""
+    if waypoint_id not in document['waypoint_order']:
+        _error('Unknown dressing source waypoint')
+    completed = set(document['waypoint_order'][:document['waypoint_order'].index(waypoint_id)+1])
+    released = [item for item in document['support_release'] if item['after_waypoint'] in completed]
+    return {'release':copy.deepcopy(released),
+            'retain_functional':copy.deepcopy(document['assembly']['supports']['functional']),
+            'executed':False,'qualification':'NOT_EXECUTED'}
+
+
+def _compiled_dressing(project, dressing_path):
+    from .core import inside, read_json, sha
+    doc = read_json(inside(project.root,dressing_path)); bound=dict(doc); fingerprint=bound.pop('fingerprint',None)
+    if digest(bound)!=fingerprint or doc['code_sources']!=_dressing_code_sources():
+        _error('Compiled dressing plan or its evaluator changed', 'geometry_safety')
+    _dressing_bindings(project,doc['bindings'])
+    if sha(inside(project.root,doc['specification']['path']))!=doc['specification']['sha256']:
+        _error('Dressing specification changed', 'geometry_safety')
+    spec=contract('dressing-plan',read_json(inside(project.root,doc['specification']['path'])))
+    from .pattern_assembly import map_digest
+    candidate=read_json(inside(project.root,doc['bindings']['candidate']['path']))
+    source=read_json(inside(project.root,doc['bindings']['assembly']['path']))
+    derived=copy.deepcopy(source)
+    derived['dressing']['milestones']=[copy.deepcopy(point) for path in spec['paths'] for point in path['waypoints']]
+    if (doc['bindings']!=spec['bindings'] or doc['assembly']!=derived or doc['source_assembly_sha256']!=digest(source)
+            or doc['component_id']!=spec['component_id'] or doc['id']!=spec['id'] or doc['source_mapping_sha256']!=map_digest(candidate)
+            or doc['paths']!=spec['paths'] or doc['support_release']!=spec['support_release'] or doc['execution']!=spec['execution']
+            or doc['waypoint_order']!=[point['id'] for path in spec['paths'] for point in path['waypoints']]):
+        _error('Compiled dressing changed the approved source paths or assembly contract', 'geometry_safety')
+    return doc
+
+
+def inspect_dressing_plan(project_root, component_id, recipe_path, dressing_path):
+    """Native read-only audit of actual openings, contacts and declared paths.
+
+    Discrete geometric motion samples use one fixed evaluated body pose. They
+    are neither continuous contact proof nor execution of physical dressing.
+    """
+    import time
+    import uuid
+    from .core import atomic_json, inside, sha
+    from .store import Project
+    from blender.sewing import managed_inputs, structural_inputs, context_colliders, object_mesh
+    from blender.dressing import audit_dressing
+    from blender.cloth_contacts import build_contact_context, check_contacts, check_motion
+    project=Project(project_root); document=_compiled_dressing(project,dressing_path)
+    if component_id!=document['component_id'] or recipe_path!=document['bindings']['recipe']['path']:
+        _error('Native dressing audit differs from its compiled source target', 'geometry_safety')
+    obj,payload,recipe=managed_inputs(project,component_id,recipe_path,check_placement=False)
+    from .pattern_assembly import map_digest
+    if map_digest(payload)!=document['source_mapping_sha256']:
+        _error('Native dressing source map changed', 'geometry_safety')
+    structural_inputs(obj,payload,recipe)
+    evaluated,faces=object_mesh(obj,True)
+    coords=[[float(value)*100 for value in point] for point in evaluated]
+    if faces!=payload['faces'] or len(coords)!=len(payload['rest_cm']) or any(not _finite(point) for point in coords):
+        _error('Native evaluated dressing mesh changed topology or has nonfinite geometry', 'geometry_safety')
+    colliders,_,snapshots=context_colliders(recipe)
+    plan=document['assembly']; execution=document['execution']; started=time.monotonic()
+    context=build_contact_context(payload,colliders,clearance_cm=plan['collision']['clearance_cm'],
+        self_clearance_cm=recipe['phases']['drape']['self_distance_cm'] if recipe['phases']['drape']['self_collision'] else 0.,
+        seam_tolerance_cm=recipe['limits']['weld_gap_cm'],max_penetration_cm=recipe['limits']['max_penetration_cm'])
+    order=document['waypoint_order']+['prepared']
+    def expired(): return time.monotonic()-started>=execution['max_seconds']
+    def contact(points):
+        if expired(): return {'ok':False,'reason':'DRESSING_TIME_BUDGET'}
+        return check_contacts(context,points,frame=0)
+    def motion(previous,current,previous_id,current_id):
+        if expired(): return {'ok':False,'reason':'DRESSING_TIME_BUDGET'}
+        return check_motion(context,previous,current,order.index(previous_id),order.index(current_id),
+            max_step_cm=execution['max_step_cm'],max_subdivisions=execution['max_subdivisions'])
+    report=audit_dressing(payload,coords,plan,colliders=colliders,project=project.root,
+        contact_check=contact,motion_check=motion,source_coords_cm=payload['placed_cm'])
+    if expired() or any(item.get('reason') in ('DRESSING_TIME_BUDGET','CONTACT_MOTION_UNDERSAMPLED',
+        'CONTACT_PAIR_BUDGET','SWEPT_RAY_BUDGET') for item in report.get('motion',[])):
+        report.update(status='INCOMPLETE',reason='DRESSING_EVALUATION_BUDGET')
+    report.update(bindings=copy.deepcopy(document['bindings']),compiled_plan_sha256=sha(inside(project.root,dressing_path)),
+        actual_collider_snapshots=snapshots,actual_coordinates_sha256=digest(coords),
+        actual_geometry='EVALUATED_NATIVE_CAGE_WORLD_CENTIMETRES',
+        support_release=copy.deepcopy(document['support_release']),support_removal='SCHEDULED_NOT_EXECUTED',
+        physical_simulation='NOT_EXECUTED',fitting='NOT_EXECUTED',accepted=False,qualification='GEOMETRY_ONLY',
+        elapsed_seconds=time.monotonic()-started,
+        trajectory_scope='DECLARED_DISCRETE_PLACEMENT_SEQUENCE_ON_FIXED_EVALUATED_BODY_POSE')
+    path=project.data/'blender/dressing'/('audit-'+uuid.uuid4().hex+'.json'); atomic_json(path,report)
+    return {'status':report['status'],'report':{'path':path.relative_to(project.root).as_posix(),'sha256':sha(path)},
+        'qualification':'GEOMETRY_ONLY','accepted':False,'support_removal':'SCHEDULED_NOT_EXECUTED',
+        'physical_simulation':'NOT_EXECUTED','fitting':'NOT_EXECUTED'}

@@ -5,12 +5,15 @@ physical qualification or artistic acceptance is hidden in these functions.
 """
 import copy
 import math
+from fractions import Fraction
 
 from .core import StudioError, contract, digest
+from .board_contract import assembly_mark_position
 from .cloth_metrics import (METRIC_VERSION, VALIDATOR_VERSION, METRIC_SCOPE,
     face_sources, evaluate_metrics, distribution as _distribution)
 from .sewing import (chain_lengths, edge_chain, point_inside, prepare_boundaries,
-                     segment_distance, seam_report, signed_area)
+                     sample_chain, segment_distance, seam_report, signed_area,
+                     mandatory_source_uv_inputs, mandatory_boundary_bindings)
 
 
 def _issue(code, message, category, **location):
@@ -154,7 +157,7 @@ def audit_source(data, recipe, dossier=None):
                         issues.append(_issue('DUPLICATE_NOTCH_ID', 'Seam has duplicate notch identifiers', 'source_contract', seam_id=sid))
                     marks.append({m.get('id'): m for m in entries})
                 if (seam['piece_a'] == seam['piece_b'] and seam['orientation'] == 'reverse'
-                        and any(not _inversion_invariant_notch(m.get('position')) for m in marks[0].values())):
+                        and any('seam_side_positions'not in m and not _inversion_invariant_notch(m.get('position')) for m in marks[0].values())):
                     issues.append(_issue('SELF_SEAM_NOTCH_SIDE_UNSPECIFIED',
                         'The source mark format does not identify which edge of this self-seam carries each notch',
                         'missing_metadata', seam_id=sid, piece=seam['piece_a']))
@@ -163,7 +166,7 @@ def audit_source(data, recipe, dossier=None):
                 else:
                     for mid, mark in marks[0].items():
                         other = marks[1][mid]
-                        ta, tb = mark.get('position'), other.get('position')
+                        ta, tb = assembly_mark_position(mark,seam,'a'), assembly_mark_position(other,seam,'b')
                         valid = type(ta) in (int, float) and type(tb) in (int, float) and 0 <= ta <= 1 and 0 <= tb <= 1
                         expected = 1-ta if valid and seam['orientation'] == 'reverse' else ta
                         if (not valid or abs(tb-expected) > 1e-6
@@ -199,13 +202,271 @@ def _mesh_config(config):
     return h, fine, band, maximum
 
 
-def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
+def _contour_parameter_requirements(points, parameters, error):
+    lengths = chain_lengths(points)
+    required = set()
+    for lo, hi in zip(parameters, parameters[1:]):
+        a, b = sample_chain(points, lo), sample_chain(points, hi)
+        candidates = [(segment_distance(point,a,b),value/lengths[-1])
+            for point,value in zip(points,lengths) if lo < value/lengths[-1] < hi]
+        if candidates:
+            deviation,t = max(candidates)
+            if deviation > error+1e-9:
+                required.add(t)
+    return required
+
+
+def _source_corner_indices(points):
+    """Identify exact source turns without an angle or distance threshold.
+
+    Source coordinates define the polygon. An exact determinant over those
+    binary-float values distinguishes a turn from a straight subdivision;
+    there is no angle or distance threshold that can remove a shallow corner.
+    Named physical stops are protected by the common sampler. Material notches
+    receive source-bound references separately, without forcing a cloth vertex.
+    """
+    turns = set()
+    for index, (a, b, c) in enumerate(zip(points, points[1:], points[2:]), 1):
+        first = [Fraction(b[k]) - Fraction(a[k]) for k in range(2)]
+        second = [Fraction(c[k]) - Fraction(b[k]) for k in range(2)]
+        if first[0] * second[1] != first[1] * second[0] or \
+                sum(x * y for x, y in zip(first, second)) <= 0:
+            turns.add(index)
+    return turns
+
+
+def _source_corner_parameters(points):
+    lengths = chain_lengths(points)
+    return {lengths[index] / lengths[-1] for index in _source_corner_indices(points)}
+
+
+def _verify_prepared_source_corners(data, boundaries):
+    """Refuse a lost or conflicting mandatory corner; never repair its output."""
+    bindings = {}
+    for pid, piece in data['pieces'].items():
+        points = piece['vertices'] + piece['vertices'][:1]
+        lengths = chain_lengths(points)
+        corners = sorted({0} | _source_corner_indices(points))
+        boundary = boundaries[pid]
+        lookup = {key: index for index, key in enumerate(boundary['keys'])}
+        used, rows = set(), []
+        for source_index in corners:
+            key = round(lengths[source_index], 8)
+            if key in used or key not in lookup:
+                raise StudioError('Source corners exceed boundary key precision or a mandatory corner was omitted: ' + pid)
+            used.add(key)
+            derived_index = lookup[key]
+            if boundary['polygon'][derived_index] != piece['vertices'][source_index]:
+                raise StudioError('Prepared mandatory corner differs from its exact original source vertex: ' + pid)
+            rows.append({'source_vertex': source_index, 'derived_boundary_vertex': derived_index,
+                         'source_perimeter_key_cm': key})
+        bindings[pid] = rows
+    return bindings
+
+
+def regular_chain_parameters(points, sampled, spacing, error):
+    """Remove optional rim-grid points while preserving every source turn."""
+    lengths = chain_lengths(points)
+    count = max(1,math.ceil(lengths[-1]/spacing))
+    grid = {i/count for i in range(count+1)}
+    required = set(sampled)-grid | {0.,1.}
+    required.update(_source_corner_parameters(points))
+    required.update(t for t in sampled if any(abs(t-s/lengths[-1])<1e-14 for s in lengths))
+    while True:
+        selected = set(required)
+        for t in sorted(set(sampled)-required):
+            if min(abs(t-other)*lengths[-1] for other in selected) >= spacing/2-1e-8:
+                selected.add(t)
+        result = sorted(selected)
+        missing = _contour_parameter_requirements(points,result,error)-required
+        if not missing:
+            return result
+        required.update(missing)
+
+
+def regular_shared_parameters(pieces, chains, sampled, required, spacing, error):
+    """Prune optional grid seeds together across their source arc graph.
+
+    Named stops, every real source corner and explicitly required physical
+    parameters are protected. Closely spaced required samples are reported and
+    retained; they are never snapped or merged to satisfy a density target.
+    """
+    from .shared_seam_sampling import shared_parameters
+    if type(spacing) not in (float,int) or not math.isfinite(spacing) or spacing<=0:
+        raise StudioError('Regular boundary sampling needs a positive metric spacing')
+    source_curves = {sid:[ [pieces[pid]['vertices'][i] for i in chain] for pid,chain in partners]
+                     for sid,partners in chains.items()}
+    lengths = {sid:min(chain_lengths(points)[-1] for points in curves) for sid,curves in source_curves.items()}
+    required = {sid:set(values) for sid,values in required.items()}
+    source_corners = {sid:set().union(*(_source_corner_parameters(points) for points in curves))
+                      for sid,curves in source_curves.items()}
+    for sid, values in source_corners.items():
+        required[sid].update(values)
+    candidates = [(sid,t) for sid in sorted(sampled) for t in sorted(sampled[sid])]
+    removed = []
+    while True:
+        selected = shared_parameters(pieces,chains,required)
+        protected = {sid:set(values) for sid,values in selected.items()}
+        removed = []
+        for sid,t in candidates:
+            if t in selected[sid]:
+                continue
+            seed = {key:list(values) for key,values in selected.items()}
+            seed[sid].append(t)
+            proposal = shared_parameters(pieces,chains,seed)
+            conflict = False
+            for key,values in proposal.items():
+                old = set(selected[key])
+                added = set(values)-old
+                for value in added:
+                    if any(1e-7 < abs(value-other)*lengths[key] < spacing/2-1e-8
+                           for other in values if other!=value):
+                        conflict = True
+                        break
+                if conflict:
+                    break
+            if conflict:
+                removed.append({'seam_id':sid,'common_parameter':t})
+            else:
+                selected = proposal
+        missing = {sid:set() for sid in chains}
+        for sid,curves in source_curves.items():
+            for points in curves:
+                missing[sid].update(_contour_parameter_requirements(points,selected[sid],error))
+            missing[sid].difference_update(protected[sid])
+        if not any(missing.values()):
+            break
+        for sid,values in missing.items():
+            required[sid].update(values)
+    near = []
+    for sid,values in protected.items():
+        values=sorted(values)
+        for a,b in zip(values,values[1:]):
+            gap=(b-a)*lengths[sid]
+            if 1e-7 < gap < spacing/2-1e-8:
+                near.append({'seam_id':sid,'parameters':[a,b],'minimum_partner_arc_gap_cm':gap})
+    return selected, {'version':1,'policy':'REMOVE_OPTIONAL_GRID_SEEDS_ON_BOTH_PARTNERS',
+        'minimum_optional_arc_gap_cm':spacing/2,'max_source_contour_error_cm':error,
+        'source_corner_policy':'PRESERVE_EVERY_EXACT_SOURCE_TURN_BEFORE_PRUNING',
+        'source_corner_parameters':{sid:sorted(values) for sid,values in source_corners.items()},
+        'protected_parameters':{sid:sorted(values) for sid,values in protected.items()},
+        'removed_optional_seeds':removed,'close_required_parameters_preserved':near,
+        'source_vertices_moved':False,'source_seam_correspondence_changed':False}
+
+
+def _bind_source_notch(data, boundaries, seams, notch):
+    """Bind an exact authored material mark to existing physical boundary IDs.
+
+    The immutable UV is its identity. Numerical reconstruction of an arc mark
+    is reported separately; no residual is a tolerance or admission gate.
+    """
+    source = next(row for row in data['seams'] if row['id']==notch['seam_id'])
+    side, pid = notch['side'], notch['piece']
+    if side not in ('a','b') or pid!=source['piece_'+side]:
+        raise StudioError('Source notch binding has the wrong source seam owner')
+    mark = notch['source_mark']
+    if (mark['id']!=notch['notch_id'] or mark['seam_id']!=source['id']
+            or mark.get('symbol')!=notch['symbol']
+            or assembly_mark_position(mark,source,side)!=notch['source_local_parameter']):
+        raise StudioError('Source notch binding differs from its declared material mark')
+    chain, points, _ = edge_chain(data['pieces'][pid], source['edge_'+side])
+    position = notch['source_local_parameter']
+    lengths = chain_lengths(points)
+    source_vertex = next((index for index, stop in zip(chain, lengths)
+                          if position==stop/lengths[-1]), None)
+    source_uv = sample_chain(points, position)
+    seam, boundary = seams[notch['seam_id']], boundaries[pid]
+    parameters, indices = seam['parameters'], seam[side]
+    reverse = side=='b' and source['orientation']=='reverse'
+    common = 1-position if reverse else position
+    provenance = boundary['sample_provenance']
+    vertex_matches = []
+    for sample, (parameter, index) in enumerate(zip(parameters, indices)):
+        local_parameter = 1-parameter if reverse else parameter
+        identity = provenance[index]
+        exact_vertex = source_vertex is not None and identity['kind']=='SOURCE_VERTEX' and identity['source_vertex']==source_vertex
+        if boundary['polygon'][index]==source_uv and (local_parameter==position or exact_vertex):
+            vertex_matches.append((local_parameter!=position, sample, index))
+    base = {'source_edge':source['edge_'+side], 'source_chain':list(chain),
+            'source_chain_sha256':digest(points), 'source_uv_cm':source_uv,
+            'source_vertex':source_vertex, 'common_parameter':common}
+    def finish(result):
+        # A completed row can be checked by rederiving it; stored weights,
+        # source identity and UV are never accepted as independent claims.
+        if result['binding']['kind']=='BOUNDARY_SEGMENT' and any(
+                key in notch for key in ('common_sample','derived_boundary_vertex')):
+            raise StudioError('A material segment notch cannot claim a physical common sample or vertex')
+        if any(key in notch and notch[key]!=value for key,value in result.items()):
+            raise StudioError('Stored source notch binding differs from its exact source derivation')
+        return result
+    if vertex_matches:
+        if len({index for _,_,index in vertex_matches})!=1:
+            raise StudioError('Source notch has ambiguous physical vertex identities')
+        _, sample, index = min(vertex_matches)
+        base.update(common_sample=sample, derived_boundary_vertex=index,
+            binding={'kind':'BOUNDARY_VERTEX','index_space':'PIECE_BOUNDARY_LOCAL',
+                     'boundary_vertex':index,'physical_common_parameter':parameters[sample]},
+            reconstructed_uv_cm=list(boundary['polygon'][index]),
+            numeric_reconstruction_residual_cm=0.)
+        return finish(base)
+    bracket = next((i for i,(lo,hi) in enumerate(zip(parameters,parameters[1:]))
+                    if lo<=common<=hi), None)
+    if bracket is None:
+        raise StudioError('Source notch is outside its prepared source seam boundary')
+    lo, hi = parameters[bracket:bracket+2]
+    endpoints = indices[bracket:bracket+2]
+    if hi<=lo or len(set(endpoints))!=2:
+        raise StudioError('Source notch needs a nondegenerate physical boundary interval')
+    weights = [(hi-common)/(hi-lo), (common-lo)/(hi-lo)]
+    if any(not math.isfinite(weight) or not 0<=weight<=1 for weight in weights):
+        raise StudioError('Source notch has invalid source arc interpolation weights')
+    reconstructed = [sum(weight*boundary['polygon'][index][axis]
+                         for weight,index in zip(weights,endpoints)) for axis in range(2)]
+    base.update(binding={'kind':'BOUNDARY_SEGMENT','index_space':'PIECE_BOUNDARY_LOCAL',
+        'boundary_vertices':endpoints,'physical_common_parameters':[lo,hi],
+        'weights':weights,'parameter_scope':'ORIENTED_SOURCE_SEAM_ARCLENGTH'},
+        reconstructed_uv_cm=reconstructed,
+        numeric_reconstruction_residual_cm=math.dist(source_uv,reconstructed))
+    return finish(base)
+
+
+def _notch_physical_identity(notch):
+    binding = notch['binding']
+    if binding['kind']=='BOUNDARY_VERTEX':return ((binding['boundary_vertex'],1.),)
+    return tuple(sorted((index,weight) for index,weight in zip(
+        binding['boundary_vertices'],binding['weights']) if weight!=0.))
+
+
+def anatomical_boundary_requirements(data, anatomical_attachments, *, check=None, work=None):
+    """Transport admitted attachment material coordinates into derived mesh constraints."""
+    if anatomical_attachments is None:
+        return {}
+    if not isinstance(anatomical_attachments, list) or len(anatomical_attachments) > 4096:
+        raise StudioError('Mandatory anatomical mesh controls require bounded source attachment records')
+    requests = {}
+    from .sewing import _bounded_uv_rows
+    for row in _bounded_uv_rows(anatomical_attachments, check, work):
+        if (not isinstance(row, dict) or row.get('piece') not in data['pieces'] or
+                'source_uv_cm' not in row):
+            raise StudioError('Mandatory anatomical mesh controls require bounded source attachment records')
+        requests.setdefault(row['piece'], []).append(row['source_uv_cm'])
+    return mandatory_source_uv_inputs(data, requests, check=check, work=work)
+
+
+def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None, *,
+                               meshing_envelope=None, transport_2d=None, anatomical_attachments=None):
     """Same source IDs/shared arc sampler, explicitly rebuilt at rim resolution."""
+    if (meshing_envelope is None)!=(transport_2d is None):
+        raise StudioError('Synchronized boundary preparation requires both envelope and native transport')
+    if meshing_envelope is not None:meshing_envelope.check('before_regular_boundary_capture')
+    mandatory_check = (lambda: meshing_envelope.check('mandatory_anatomical_source_uv')) if meshing_envelope is not None else None
+    mandatory_work = (lambda amount: meshing_envelope.reserve('work_steps', amount)) if meshing_envelope is not None else None
+    mandatory = anatomical_boundary_requirements(data, anatomical_attachments, check=mandatory_check, work=mandatory_work)
     _, fine, _, maximum = _mesh_config(regular_mesh)
     derived = copy.deepcopy(recipe)
     derived['mesh']['spacing_cm'] = fine
     derived['mesh']['max_vertices'] = min(maximum, derived['mesh']['max_vertices'])
-    extra, notch_sources, ambiguous_notches = {}, [], []
+    notch_sources, ambiguous_notches, seen_notches = [], [], set()
     seam_by_id = {s['id']: s for s in data['seams']}
     infos = [] if dossier is None else dossier.get('components', {}).get(data['component_id'], {}).get('pieces', [])
     for info in infos:
@@ -214,63 +475,104 @@ def prepare_regular_boundaries(data, recipe, regular_mesh, dossier=None):
             seam = seam_by_id.get(mark.get('seam_id'))
             if seam is None or pid not in (seam['piece_a'], seam['piece_b']):
                 raise StudioError('Source notch must reference its own declared seam and panel')
-            position = mark.get('position')
-            if type(position) not in (int, float) or not math.isfinite(position) or not 0 <= position <= 1:
-                raise StudioError('Source notch must have a finite normalized arc position')
+            identity = (pid,seam['id'],mark['id'])
+            if identity in seen_notches:
+                raise StudioError('Source notch identities must be unique within their panel and seam')
+            seen_notches.add(identity)
+            position = assembly_mark_position(mark,seam,'a'if seam['piece_a']==pid else'b')
             if (seam['piece_a'] == seam['piece_b'] and seam['orientation'] == 'reverse'
-                    and not _inversion_invariant_notch(position)):
+                    and 'seam_side_positions'not in mark and not _inversion_invariant_notch(position)):
                 ambiguous_notches.append({'seam_id': seam['id'], 'notch_id': mark['id'], 'piece': pid,
                     'reason': 'source_mark_has_no_self_seam_side', 'requires_clarification': True})
                 continue
-            # The existing seam map is parameterized along side A. Reverse side
-            # B's local source arc before inserting into the common sampler.
+            # These are material positions on the original source arcs. They do
+            # not add required physical samples to the cloth boundary.
             sides = [side for side in ('a', 'b') if seam['piece_'+side] == pid]
             for side in sides:
-                parameter = 1-position if side == 'b' and seam['orientation'] == 'reverse' else position
-                # Round only floating subtraction noise, never the source arc to
-                # a mesh vertex: .3 and 1-.7 are the same source notch.
-                parameter = round(parameter, 14)
-                extra.setdefault(seam['id'], []).append(parameter)
+                position=assembly_mark_position(mark,seam,side)
                 notch_sources.append({'seam_id': seam['id'], 'notch_id': mark['id'],
                     'piece': pid, 'side': side, 'source_local_parameter': position,
-                    'common_parameter': parameter})
-    boundaries, seams, seam_reports = prepare_boundaries(data, derived, extra)
+                    'symbol':mark.get('symbol'), 'source_mark':copy.deepcopy(mark)})
+    if meshing_envelope is not None:
+        from .boundary_gradation import _sampling_cost
+        meshing_envelope.reserve('sampling_calls',1)
+        meshing_envelope.reserve('sampling_point_slots',derived['mesh']['max_vertices'])
+        _sampling_cost(data,derived,{},meshing_envelope,
+            lambda:meshing_envelope.check('baseline_sampling_cost'), mandatory_source_uv=mandatory)
+        meshing_envelope.check('before_baseline_sampling')
+    boundaries, seams, seam_reports = prepare_boundaries(data, derived,
+        regular_boundary_spacing_cm=fine, mandatory_source_uv=mandatory,
+        mandatory_check=mandatory_check, mandatory_work=mandatory_work)
+    gradation=None
+    if meshing_envelope is not None:
+        from .boundary_gradation import grade_shared_boundaries
+        meshing_envelope.check('after_baseline_sampling')
+        normalized=copy.deepcopy(regular_mesh);normalized.setdefault('target_min_angle_degrees',15.)
+        boundaries,seams,gradation=grade_shared_boundaries(data,derived,normalized,
+            boundaries,seams,transport_2d=transport_2d,envelope=meshing_envelope)
+        seam_reports=gradation['seam_reports']
+    source_corner_bindings = _verify_prepared_source_corners(data, boundaries)
+    mandatory_bindings = mandatory_boundary_bindings(boundaries, mandatory, check=mandatory_check, work=mandatory_work)
     for notch in notch_sources:
-        seam = seams[notch['seam_id']]
-        sample = seam['parameters'].index(notch['common_parameter'])
-        notch['common_sample'] = sample
-        notch['derived_boundary_vertex'] = seam[notch['side']][sample]
+        notch.update(_bind_source_notch(data,boundaries,seams,notch))
     paired_self_notches = {}
     for notch in notch_sources:
         source = seam_by_id[notch['seam_id']]
         if source['piece_a'] == source['piece_b']:
             key = (notch['seam_id'], notch['notch_id'])
-            paired_self_notches.setdefault(key, {})[notch['side']] = notch['derived_boundary_vertex']
+            paired_self_notches.setdefault(key, {})[notch['side']] = _notch_physical_identity(notch)
     if any(set(pair) != {'a', 'b'} or pair['a'] == pair['b'] for pair in paired_self_notches.values()):
-        raise StudioError('Self-seam paired notches require distinct derived boundary vertices')
+        raise StudioError('Self-seam paired notches require distinct source-bound boundary references')
     count = sum(len(p['polygon']) for p in boundaries.values())
     if count > maximum:
         raise StudioError('Shared source boundary samples exceed the preparation vertex budget')
-    return boundaries, seams, {'version': 1, 'source_sha256': digest(data),
+    result={'version': 1, 'source_sha256': digest(data),
         'sampling': 'existing_common_source_arclength', 'boundary_spacing_cm': fine,
         'boundary_vertices': count, 'seams': seam_reports, 'source_immutable': True,
+        'boundary_sampling_policy':next(iter(boundaries.values())).get('regular_sampling_report'),
+        'source_corner_bindings':source_corner_bindings,
+        'source_notch_binding_version':1,
+        'source_notch_policy':'MATERIAL_REFERENCE_WITHOUT_REQUIRED_PHYSICAL_VERTEX',
+        'notch_index_space':'PIECE_BOUNDARY_LOCAL',
         'dossier_sha256': digest(dossier) if dossier is not None else None,
         'source_notches': notch_sources, 'ambiguous_source_notches': ambiguous_notches}
+    if anatomical_attachments is not None:
+        result['mandatory_anatomical_boundary_bindings'] = mandatory_bindings
+        result['anatomical_attachments_sha256'] = digest(anatomical_attachments)
+    if meshing_envelope is not None:
+        result['source_boundary_gradation']=gradation
+        meshing_envelope.check('after_source_corner_and_notch_rebinding')
+    return boundaries,seams,result
 
 
-def regular_interior_points(boundary, mesh_config):
+def regular_interior_points(boundary, mesh_config, *, meshing_envelope=None):
     """Nested triangular lattices with a graded source-boundary refinement band.
 
     Returned points are interior seeds only: constrained Delaunay in Blender
     retains all common seam/boundary samples and supplies the triangulation.
     """
     spacing, fine, band, maximum = _mesh_config(mesh_config)
+    identity = digest([boundary, mesh_config]) if meshing_envelope is not None else None
+    def check(phase):
+        if meshing_envelope is not None:
+            meshing_envelope.check('regular_grid:'+phase)
+    check('before_source_validation')
+    owner = None
+    if meshing_envelope is not None:
+        owner = boundary.get('piece_id')
+        if type(owner) is not str or owner not in meshing_envelope.material_controls:
+            raise StudioError('Bounded interior grid requires its reserved source owner')
+    def source_work(count):
+        check('source_validation')
+        meshing_envelope.reserve('work_steps',count,owner=owner)
     polygon = boundary['polygon']
     if len(polygon) < 3:
         raise StudioError('Regular mesh requires a nondegenerate source polygon')
     from .board_contract import simple_polygon
-    if not simple_polygon(polygon):
+    if not (simple_polygon(polygon) if meshing_envelope is None else
+            simple_polygon(polygon,work=source_work)):
         raise StudioError('Regular mesh cannot repair a non-simple source boundary')
+    check('after_source_validation')
     xmin, xmax = min(p[0] for p in polygon), max(p[0] for p in polygon)
     ymin, ymax = min(p[1] for p in polygon), max(p[1] for p in polygon)
     dy = fine*math.sqrt(3)/2
@@ -278,10 +580,17 @@ def regular_interior_points(boundary, mesh_config):
     if nx*ny > maximum*64:
         raise StudioError('Adaptive lattice candidate count exceeds the bounded preparation budget')
     segments = list(zip(polygon, polygon[1:]+polygon[:1]))
+    queries = None
+    if meshing_envelope is not None:
+        from .interior_grid_queries import InteriorGridQueries
+        queries = InteriorGridQueries(polygon,
+            check=lambda:check('source_query'),
+            reserve=lambda count:meshing_envelope.reserve('work_steps',count,owner=owner))
     max_level = max(0, int(math.floor(math.log2(spacing/fine)+1e-10)))
     points, levels, considered = [], {}, 0
     # Bound each row by x rather than following the skew lattice outside the bbox.
     for row in range(ny):
+        check('row')
         y = ymin+row*dy
         if y > ymax:
             continue
@@ -291,10 +600,12 @@ def regular_interior_points(boundary, mesh_config):
             if x > xmax:
                 continue
             considered += 1
+            check('candidate')
             p = [x, y]
-            if not point_inside(p, polygon):
+            if not (queries.contains(p) if queries is not None else point_inside(p, polygon)):
                 continue
-            distance = min(segment_distance(p, a, b) for a, b in segments)
+            distance = (queries.distance(p) if queries is not None else
+                        min(segment_distance(p, a, b) for a, b in segments))
             level = min(max_level, max(0, int(math.floor(math.log2(max(1., 1+(distance-band)/fine))))))
             step = 2**level
             if row % step or col % step or distance < .38*fine*step:
@@ -303,13 +614,23 @@ def regular_interior_points(boundary, mesh_config):
             levels[level] = levels.get(level, 0)+1
             if len(points)+len(polygon) > maximum:
                 raise StudioError('Regular interior seeds exceed the preparation vertex budget')
-    return points, {'version': 1, 'algorithm': 'nested_triangular_lattice_boundary_grading',
+    check('before_return')
+    if identity is not None and digest([boundary,mesh_config])!=identity:
+        raise StudioError('Bounded interior grid changed its immutable source or policy')
+    report = {'version': 1, 'algorithm': 'nested_triangular_lattice_boundary_grading',
         'boundary_sha256': digest(polygon), 'requested_spacing_cm': spacing,
         'fine_spacing_cm': fine, 'coarse_spacing_cm': fine*2**max_level,
         'refinement_distance_cm': band, 'interior_vertices': len(points),
         'boundary_vertices': len(polygon), 'candidate_count': considered,
         'levels': {str(level): {'spacing_cm': fine*2**level, 'count': count} for level, count in levels.items()},
         'triangulation': 'requires_native_constrained_delaunay', 'qualification': 'NONE'}
+    if queries is not None:
+        report['query_work'] = queries.report()
+        report['query_policy'] = 'EXACT_SOURCE_SEGMENTS_INDEXED_NO_GEOMETRY_CHANGE'
+    check('final_return')
+    if identity is not None and digest([boundary,mesh_config])!=identity:
+        raise StudioError('Bounded interior grid changed its immutable source or policy')
+    return points, report
 
 
 def preparation_statistics(payload, coords=None, mass=None):

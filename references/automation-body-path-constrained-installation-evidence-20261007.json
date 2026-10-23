@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-07",
+  "scope": "SOURCE_BODY_PATHS_GUIDE_DIAGNOSTICS_LOCAL_RECOVERY_AND_DEVELOPMENT_INSTALL",
+  "qualified_code_commit": "cc69fecb79c34f3baae3ad51d062266f606e254d",
+  "software": {
+    "status": "PASS",
+    "tests": 1996,
+    "skipped": 0,
+    "test_seconds": 384.204,
+    "contracts": 14,
+    "source_unchanged": true,
+    "validation_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-body-path-constrained-full-validation-v2\\validation.json",
+      "sha256": "1f3d42e71a394f41f103c32e92bc361962c66ad701bbfbd582e1052a672a3dbe"
+    }
+  },
+  "installation": {
+    "status": "PASS_EXACT_NATIVE_INSTALLED_COPY",
+    "version": "0.7.0-rc.2.dev.2026100705",
+    "files": 719,
+    "method": "NATIVE_CODEX_PLUGIN_ADD",
+    "previous_stages_preserved": true
+  },
+  "installation_preparation_ref": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-body-path-constrained-local-build-v1\\installation-preparation.json",
+    "sha256": "29374eb42df4597975fdc591f849d7d1db8270b4d5221f933a4515ed49f927d6"
+  },
+  "installation_verification_ref": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-body-path-constrained-local-build-v1\\verification\\installation-verification.json",
+    "sha256": "3ad1798c6803e88c1ce4c02fc67ac7c05404d2917a8bbd25c95245034fa70031"
+  },
+  "native_installer_failure_preserved": {
+    "reason": "GLOBAL_NPM_CLI_HAS_NO_PLUGIN_ADD",
+    "stderr_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-body-path-constrained-local-build-v1\\failed-global-cli-v1\\native-install-stderr.txt",
+      "sha256": "adf137d01fdf094981000ab44c0bfd8e76494128b999efc880cdd0dd6b998439"
+    },
+    "fallback": "RUNNING_APP_NATIVE_CLI_SUPPORTS_PLUGIN_ADD"
+  },
+  "connected_runtime": {
+    "status": "STALE_0704_CACHE_ABSENT",
+    "receipt_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-body-path-constrained-local-build-v1\\runtime-before-reload.json",
+      "sha256": "a44172b10d085b977fe7a381d96ff97b4e73fd1b0d7696e00f0996fed47d1e32"
+    },
+    "verification_after_restart": "REQUIRED"
+  },
+  "dimension_table_ref": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\dimensional-current-source-review-v2\\report.json",
+    "sha256": "3ce3aa59b8bc4e2600fb67f497ba5168ef0329c01f807ebc2b9d6c4ed07a9fa4"
+  },
+  "restart_point_ref": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-body-path-constrained-local-build-v1\\restart-point.json",
+    "sha256": "a009b31a2eca1257fe0239013533f472213da9c767fc11d1e32c6d0a18140785"
+  },
+  "body_changed": false,
+  "patterns_changed": false,
+  "new_Blender_operation": false,
+  "Cloth": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "artistic_review": "NOT_GRANTED",
+  "release_final": "NOT_PUBLISHED",
+  "qualification": "NONE"
+}

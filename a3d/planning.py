@@ -84,7 +84,7 @@ def package_records(project, state):
     return records
 
 
-def validate_dossier(project, state, dossier, packages):
+def _validate_dossier_structure(project, state, dossier, packages):
     contract("construction", dossier)
     if dossier["asset_id"] != state["asset"]["id"] or dossier["target"] != state["asset"]["target"] or dossier["height_cm"] != state["asset"]["height_cm"]:
         raise StudioError("Construction dossier identity/target/scale mismatch")
@@ -137,9 +137,15 @@ def validate_dossier(project, state, dossier, packages):
                 if any(abs(a - b) > 0.01 for a, b in zip(actual, piece["dimensions_cm"][:2])):
                     raise StudioError(f"Pattern dimensions must match package bounds: {cid}/{piece['id']}")
             garments[cid] = garment
-    from .board_contract import validate_patterns, validate_proportions, require_generation
+    from .board_contract import validate_patterns, validate_proportions
     validate_patterns(dossier, garments)
     validate_proportions(project, dossier, source_refs)
+    return sources, garments, source_refs
+
+
+def validate_dossier(project, state, dossier, packages):
+    sources, garments, source_refs = _validate_dossier_structure(project, state, dossier, packages)
+    from .board_contract import require_generation
     require_generation(project, state, dossier, packages, sources)
     return sources, garments, source_refs
 
@@ -232,6 +238,12 @@ def require_board(project, state):
         raise StudioError("Legacy board lacks manufacturing/Codex Image/proportion checks; rebuild and obtain a new human review")
     packages = package_records(project, state)
     expected = {cid: {"sha256": p["sha256"], "pipeline": p["manifest"]["pipeline"]} for cid, p in packages.items()}
+    if "reviewed-source-adoption" in state["evidence"]:
+        from .reviewed_source_adoption import require_reviewed_source_adoption
+        return require_reviewed_source_adoption(project, state, manifest, packages)
+    if "reviewed-pattern-composition" in state["evidence"]:
+        from .reviewed_pattern_admission import require_reviewed_pattern_composition
+        return require_reviewed_pattern_composition(project, state, manifest, packages)
     if manifest["asset_id"] != state["asset"]["id"] or manifest["packages"] != expected or manifest["pipeline_proposal"] != project.verify_evidence(state, "pipeline-proposal"):
         raise StudioError("Construction board no longer matches routes/packages; regenerate and request a new cutting review")
     for key, source in manifest["source_references"].items():

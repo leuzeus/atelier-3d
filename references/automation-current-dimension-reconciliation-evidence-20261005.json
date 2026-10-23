@@ -1,0 +1,123 @@
+{
+  "scope": "CURRENT_DIMENSION_RECONCILIATION_NOT_PRODUCT_ACCEPTANCE",
+  "original_pixels_examined": true,
+  "project_root": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project",
+  "files_sha256": {
+    "references/original-triptyque.png": "1d158fe59b9ae9a055d32c00754d9df816a94abd494fe42191b2d59240034701",
+    ".a3d/evidence/reviewed-pattern-composition-dossier.json": "620457742c3038ed981976ccb641558a269a8e042d651c3bbee3d01039c01711",
+    "preparation/body-region-remeasurement-summary-current-v1.json": "f3d64273bcad6e7936abe7e0e64834c945999b52a6a4d08048172e228aeac376",
+    "preparation/body-region-policy-current-v1.json": "02a00cab0fdc53c9b6bff0df25399f959b38ab5e5d05a95f539153b85d321c56",
+    "preparation/body-region-supplement-current-v1.json": "4ce17bf1b826e45a6f37cfd7ae9120182ceb21f70790cd643cd572362cd8a30c",
+    "preparation/coat-limb-capacity-current-v1.json": "1611011ad5ce1efab4b335d3f5bebbb4b2a85be875d5d8b5583eba72519033ac",
+    "preparation/coat-fit-intent-proposal-current-v3.json": "bdcb97cac2a378d55b79e0aea19168d64090474c66c5c0a49efc0cc4ca8c000d",
+    "preparation/coat-fit-measurement-context-current-v1.json": "340f4cab3df4215e3306045af9b3cfa10f3189ba6b57ad63926cf8d86f3c5bde"
+  },
+  "body_regions": {
+    "status": "BODY_REGIONS_NEED_DATA",
+    "valid_sections": 10,
+    "total_sections": 12,
+    "rejected_sections": [
+      {
+        "id": "upper.left.section.0",
+        "status": "NOT_QUALIFIED",
+        "ok": false,
+        "girth_cm": null,
+        "reason": "SECTION_OPEN_OR_BRANCHING"
+      },
+      {
+        "id": "upper.right.section.0",
+        "status": "NOT_QUALIFIED",
+        "ok": false,
+        "girth_cm": null,
+        "reason": "SECTION_OPEN_OR_BRANCHING"
+      }
+    ],
+    "body_unchanged": true
+  },
+  "capacity_status": "CURRENT_SOURCE_LIMB_CAPACITY_BOUNDS_MEASURED",
+  "measurement_source_compiler": {
+    "status": "READ_ONLY_SOURCE_COMPILER_RETURNED",
+    "compilation_status": "READY_TO_PLAN",
+    "measurement_status": "MEASUREMENT_PATH_PROPOSALS_NEED_REVIEW",
+    "proposals": [
+      {
+        "id": "coat.wrist.left",
+        "source_material_length_cm": 25.0,
+        "body_girth_cm": 17.39573913140808,
+        "admissible_for_fit": false
+      },
+      {
+        "id": "coat.wrist.right",
+        "source_material_length_cm": 25.0,
+        "body_girth_cm": 17.441565861380564,
+        "admissible_for_fit": false
+      }
+    ],
+    "diagnostics": [
+      {
+        "id": "coat.chest",
+        "code": "HOMOLOGOUS_SOURCE_PATH_NEEDS_DATA",
+        "message": "Native sewing UV differs from its exact source parameter binary32 round-trip"
+      },
+      {
+        "id": "coat.hip",
+        "code": "HOMOLOGOUS_SOURCE_PATH_NEEDS_DATA",
+        "message": "Native sewing UV differs from its exact source parameter binary32 round-trip"
+      },
+      {
+        "id": "coat.neck",
+        "code": "HOMOLOGOUS_SOURCE_PATH_NEEDS_DATA",
+        "message": "Open collar needs one actual measured neck-plane source row with complete declared neckline attachments"
+      },
+      {
+        "id": "coat.upper-arm.left",
+        "code": "HOMOLOGOUS_SOURCE_PATH_NEEDS_DATA",
+        "message": "Native sewing UV differs from its exact source parameter binary32 round-trip"
+      },
+      {
+        "id": "coat.upper-arm.right",
+        "code": "HOMOLOGOUS_SOURCE_PATH_NEEDS_DATA",
+        "message": "Native sewing UV differs from its exact source parameter binary32 round-trip"
+      },
+      {
+        "id": "coat.waist",
+        "code": "HOMOLOGOUS_SOURCE_PATH_NEEDS_DATA",
+        "message": "Native sewing UV differs from its exact source parameter binary32 round-trip"
+      }
+    ],
+    "fit_status": "FIT_PREFLIGHT_INCOMPLETE",
+    "qualification": "NONE",
+    "fitting": "NOT_EXECUTED",
+    "elapsed_seconds": 37.200421300018206,
+    "input_sha256": {
+      ".a3d\\evidence\\reviewed-pattern-composition-dossier.json": "620457742c3038ed981976ccb641558a269a8e042d651c3bbee3d01039c01711",
+      "preparation\\production-metadata-composed-v1.json": "73640c7c46bf413a8c8cc31af3f0f1f4ee620b74eb9530c11635ec3a3d800799",
+      "preparation\\coat-fit-intent-proposal-current-v3.json": "bdcb97cac2a378d55b79e0aea19168d64090474c66c5c0a49efc0cc4ca8c000d",
+      "preparation\\public-source-preparation-v3\\guides.json": "43eb5587d201db505c44f2896a5944afa8dbbb4fcaa1abc7624eea9cc3745593",
+      "preparation\\public-source-preparation-v3\\guide-policy.json": "d927439522f74b9f4c7836ca332f84a6da2e5f69579e1296d61607defa90aca4",
+      "preparation\\body-region-policy-options-current-v1.json": "daf8e9540063c39bacdaee4f6954d1a6360c3a0721cf37349978adf5675b21a8",
+      ".a3d\\blender\\pattern-preparation\\attempt-a55b834780ac4ba1a3cee42dd76ba326\\mesh.json": "90e8792259e8ec92ee60f633e3c3d55082990b73990fc28048a6957932d7fde4",
+      "preparation\\body-region-policy-current-v1.json": "02a00cab0fdc53c9b6bff0df25399f959b38ab5e5d05a95f539153b85d321c56",
+      "preparation\\body-region-supplement-current-v1.json": "4ce17bf1b826e45a6f37cfd7ae9120182ceb21f70790cd643cd572362cd8a30c"
+    },
+    "input_files_unchanged": true,
+    "installed_runtime_changed": false,
+    "native_execution": false,
+    "human_approval_recorded": false
+  },
+  "measurement_result_sha256": "dc8858cd436d076bc9fe3a064aaf3834aca57595a415c3a5e13d9a86d8810fda",
+  "design_intent": "AMPLE_COAT_LIGHT_TOP",
+  "source_context_proposal_approved": false,
+  "initial_dimensions_are_hypotheses": true,
+  "fitting": "NOT_EXECUTED",
+  "qualification": "NONE",
+  "remaining": [
+    "Whole torso source paths and open-front coverage",
+    "Neck-plane correspondence of entire source path",
+    "Upper-arm source path correspondence",
+    "Human review of proposed homology",
+    "Admitted placement",
+    "Cloth and fitting"
+  ],
+  "bounds_scope": "Flat source transverse capacity family only; maximum sleeve width is not measured worn ease."
+}

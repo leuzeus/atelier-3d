@@ -917,6 +917,52 @@
       ],
       "additionalProperties": false,
       "description": "Explicit directed acyclic inner-to-outer order; named panels/colliders must be partitioned. One-way collision interaction is an approximation, not bidirectional cloth qualification."
+    },
+    "layer_execution": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "mode": {
+          "const": "joint_coupled_single_object"
+        },
+        "source_ref": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "additionalProperties": false
+        },
+        "source_mapping_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "sewing_graph_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "version",
+        "mode",
+        "source_ref",
+        "source_mapping_sha256",
+        "sewing_graph_sha256"
+      ],
+      "additionalProperties": false,
+      "description": "One native Cloth object only for layers coupled by permanent source links; no simulation or fitting qualification follows from this declaration."
     }
   },
   "required": [

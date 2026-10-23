@@ -274,6 +274,10 @@ migration vérifiée. Aucune suppression destructive n'est requise pour cette re
 
 ## Recette de vérification et livrables
 
+La [reprise de placement](placement-recovery.md) décrit le diagnostic exact,
+le profil de maillage dérivé et l'option de réserve des stops avant protection.
+Ces propositions conservent les critères finaux et ne qualifient pas Cloth.
+
 Exécuter les essais dans des processus Blender dédiés, avec profil et caches
 configurables sur **G:**, `--background --factory-startup --disable-autoexec
 --python-exit-code 1`. Ne pas envoyer une réinitialisation à la scène Blender

@@ -173,4 +173,6 @@ def simulation_plan(project, state, path, component_ids):
     profile = recipe["phases"][plan["phase"]]
     if recipe["component_id"] != plan["component_id"] or plan["frame_start"] != 1 or plan["frame_end"] != profile["frames"] or plan["quality"] != profile["quality"]:
         raise StudioError("Simulation plan and physical recipe disagree")
+    from .physics_admission import require_recipe_fit_intent
+    require_recipe_fit_intent(project, recipe)
     return plan

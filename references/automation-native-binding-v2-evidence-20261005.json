@@ -1,0 +1,288 @@
+{
+  "status": "VERIFIED_NATIVE_BINDING_V2_EXECUTED",
+  "project_root": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project",
+  "runtime_version": "0.7.0-rc.2.dev.2026100503",
+  "authorization": {
+    "source": "User message continue after exact operation permission request",
+    "operation": "bind_component_preparations",
+    "arguments": {
+      "body_geometry_ref": {
+        "path": ".a3d/outputs/body-target-7538c9a47520482ca744f85c201f6529/geometry.json",
+        "sha256": "ad81aa69409ab4b2220152f68c1c12c90e475ba6b24613e33d5eb142d54de0c7"
+      },
+      "body_object": "A3D.BodyTarget.MainMale180",
+      "output_directory": "preparation/native-source-bindings-v2",
+      "policy_path": "preparation/public-source-preparation-v3/guide-policy.json",
+      "templates_path": "preparation/public-source-preparation-v3/component-templates.json"
+    },
+    "code_sha256": "6ddfe8cb6101f790e6788b473ea8e1a065f99a22faf64062351d43afaf33952b"
+  },
+  "native_receipt": {
+    "path": ".a3d/runs/native/attempt.2dd7013e4b5e416e9f25ab302e68533e.json",
+    "sha256": "3de34a359218dd7db595ff42d2cb9ec780934912bc521d7871f7e90a9b9b6b0d"
+  },
+  "binding": {
+    "path": "preparation/native-source-bindings-v2/binding.json",
+    "sha256": "fd548ad8ace2ffc393c55f005e5422061a6845723c51c78af2bbbadd5eb798d7"
+  },
+  "checkpoint": {
+    "path": ".a3d/checkpoints/pre-973984f087cd4fdbad9e1b38cc4db657.blend",
+    "sha256": "bcfa424e879b46416927a9fa1bc930e5959f13f6ae920b852acd40b15fcb3149"
+  },
+  "native_elapsed_seconds": 180.6607187000336,
+  "files_verified": [
+    {
+      "path": ".a3d/outputs/body-target-7538c9a47520482ca744f85c201f6529/geometry.json",
+      "sha256": "ad81aa69409ab4b2220152f68c1c12c90e475ba6b24613e33d5eb142d54de0c7"
+    },
+    {
+      "path": ".a3d/outputs/body-target-7538c9a47520482ca744f85c201f6529/profile.json",
+      "sha256": "50f40c8999caed1e2e908da3eeb9a94d883a4ea2f3fdf6f15f3a4fd633bf437a"
+    },
+    {
+      "path": ".a3d/runs/native/attempt.8c48bcd1ae1249c5a97011bc95ec61f4.json",
+      "sha256": "65589246127ab5c6008d1869822d227e44a5c39bd42ca34708500c332d7ec969"
+    },
+    {
+      "path": "packages/belt-v1.garmentpkg",
+      "sha256": "5817ea66475ffa40f4c27277499c9f7cdd3b89f1565f68ba510b643dc85d13b8"
+    },
+    {
+      "path": "packages/hood-yoke-v1.garmentpkg",
+      "sha256": "d2cbf768f1ec2fc83613c929308e2f27c5675cd4ad6e5d371246729ecc40080c"
+    },
+    {
+      "path": "preparation/native-source-bindings-v2/garment.belt/plan.json",
+      "sha256": "e5ca785c5ada295db6e221c3cfa5e19978de0b6021ece92fb50d65f1511781c8"
+    },
+    {
+      "path": "preparation/native-source-bindings-v2/garment.belt/preparation.json",
+      "sha256": "6238747442d3343230f73b9dd38a66425599b85d978a6658452436540cf93031"
+    },
+    {
+      "path": "preparation/native-source-bindings-v2/garment.belt/recipe.json",
+      "sha256": "268fcb24a40bda9b3d73dda5934bb2e842abe813ee97a8979372d038f2dffac8"
+    },
+    {
+      "path": "preparation/native-source-bindings-v2/garment.belt/run.json",
+      "sha256": "c10f8b71fbf983118d46a439385bcbb8a87f4d1938e820c5427a28dff54012f4"
+    },
+    {
+      "path": "preparation/native-source-bindings-v2/garment.coat/plan.json",
+      "sha256": "13a333d5f9f00ac9516454ef6bfd96d775525c38f9f89d85a298febf11066de7"
+    },
+    {
+      "path": "preparation/native-source-bindings-v2/garment.coat/preparation.json",
+      "sha256": "03ae6e90d17441665eaae7351b1e7f3cc8c537997bd2e42c22fdf7be1638b0be"
+    },
+    {
+      "path": "preparation/native-source-bindings-v2/garment.coat/recipe.json",
+      "sha256": "f10c1de41bec2ce60cebec654a098dcc7f5a86c140579f2cda6b36db3f6f4b24"
+    },
+    {
+      "path": "preparation/native-source-bindings-v2/garment.coat/run.json",
+      "sha256": "8eeaf950a82b913d25df30e9f3ad04a2d953bfc40a29822ca2affdb333344e91"
+    },
+    {
+      "path": "preparation/native-source-bindings-v2/garment.hood-yoke/plan.json",
+      "sha256": "53be822e1bb21c29dff6e1962b56fbd21b31e8bda6081e35d0f9894da241b446"
+    },
+    {
+      "path": "preparation/native-source-bindings-v2/garment.hood-yoke/preparation.json",
+      "sha256": "e3097e0f84cf989dac1ec2a2db3887ced1e614cf8385efe505b02b37094f2dd8"
+    },
+    {
+      "path": "preparation/native-source-bindings-v2/garment.hood-yoke/recipe.json",
+      "sha256": "6c36e95a69b0520fadcd7ca70a5c5a83263e51eb6e34020748d42cf7fcc93f42"
+    },
+    {
+      "path": "preparation/native-source-bindings-v2/garment.hood-yoke/run.json",
+      "sha256": "faf2bb711865f4b40262a090d20cc214349fc39558fe13a62a76fcb4f2a135b1"
+    },
+    {
+      "path": "preparation/native-source-bindings-v2/run.json",
+      "sha256": "196cd0449ece02645e773b6de3d1267d85fab983c513da1bca25f57243825acc"
+    },
+    {
+      "path": "preparation/public-source-preparation-v3/component-templates.json",
+      "sha256": "6630a1d5039fe4d0f7ff1a7a3a6f7bb6d2c230939c13036c42f9e4282e926ef9"
+    },
+    {
+      "path": "preparation/public-source-preparation-v3/guide-policy.json",
+      "sha256": "d927439522f74b9f4c7836ca332f84a6da2e5f69579e1296d61607defa90aca4"
+    },
+    {
+      "path": "variants/ease-variant-dense-v2/packages/garment.coat.garmentpkg",
+      "sha256": "771eddd4dec57f4c938d8b16932ee0a3757c9cc9b5c73ea8675bf2a2f9742bad"
+    }
+  ],
+  "textile_piece_ids": {
+    "garment.belt": [
+      "belt"
+    ],
+    "garment.coat": [
+      "back-left",
+      "back-right",
+      "collar",
+      "cuff-left",
+      "cuff-right",
+      "front-left",
+      "front-right",
+      "inner-front",
+      "sleeve-left",
+      "sleeve-right"
+    ],
+    "garment.hood-yoke": [
+      "hood-left",
+      "hood-right",
+      "yoke-lower",
+      "yoke-upper"
+    ]
+  },
+  "qualification": "NONE",
+  "accepted": false,
+  "simulation": "NOT_EXECUTED",
+  "fitting": "NOT_QUALIFIED",
+  "source_mutated": false,
+  "native_guide_comparison": {
+    "status": "GUIDE_HYPOTHESES_RECONSTRUCTED",
+    "policy_sha256": "5ae99337042c75b09891291d3030c8fec42949c9f59121b02c1200fae1e91567",
+    "generator_code_sha256": {
+      "garment_guide_policy": "2ab6f3903e31b4a66bf0cda5eea19c59fe127f8978a5a7ed53353ee7fb827211",
+      "garment_guides": "17d3b7b91360ecc3f077c3202a4ce2c876093549c5de5ee8cef068ae89cc49f8",
+      "semantic_placement": "2be03016cabb069343a98992e58a66adafd7b0128b12b661aaaa891bc996bb25",
+      "torso_sections": "6c18c95501ec8dc06809995da7dd22e1dc199a6115e7923417fa8c3be8d45ecf",
+      "guide_cage_sampling": "deb639561935d4554c6933f6212a1063dc7487bb1cf62b15bf484aa59ac94a71",
+      "source_seam_coupling": "f2f2d486f25d98a5e83db34feae162a8a0612f22d1e308f54c3979dee808b587",
+      "rigid_guide_alignment": "65d2c26e15a07ad4844f337f5ebd56a75a2ca77aa7dfa8b0a4b493902eacb2bb",
+      "shoulder_guides": "6e9f4ac77ed5b6fbbccbd565aca9e6cc0b9283a473f026f4c0704b048300ca39",
+      "preform_volume": "5c375d0a8ddb9e3cec2e3950635d222c6ad6a4d4acff12aec4b0fd766cdebb01",
+      "pattern_assembly": "cad6a9dc7177df9dd3a324abbf04ca53977dea389690098bac916911d058e015",
+      "anatomy_profile": "700149494e09b2a80c0e46fb5b6a1bcc72d3f6a00b573dd6c29f8ded26a7793b",
+      "shoulder_surface": "851105df8a00f2faacb91314da33e74e30fcf7821022e2732a12506ab391eba7",
+      "head_surface": "20b8bcc091f6e11de855949f69bb0c2d4f4c14d72eef1c1af596cb32cfc01e0f",
+      "contact_geometry": "75a61e95443fc4b27bb4356232799c7f3dfbcd292b1c832bf26738f1e0d222f7",
+      "sewing": "f7d85540382ae840cda3fb3fe621363b241ed1bff1ecf345736da8b29cacf132",
+      "core": "469481522a435053ed36aec44ca40723563136af201394226147749c5e8b7e0d"
+    },
+    "source_compilation_sha256": "37f6aeade2b6a73a98aa86a8a625537f9cdcd1add100b1d3d01ef7fdd501d54f",
+    "body_profile_sha256": "7aeb03ae88a5d7853b49b4082cd9326b5e0409467961a40bfe1a2fe6feadc490",
+    "geometry_ref": {
+      "path": ".a3d/outputs/body-target-7538c9a47520482ca744f85c201f6529/geometry.json",
+      "sha256": "ad81aa69409ab4b2220152f68c1c12c90e475ba6b24613e33d5eb142d54de0c7"
+    },
+    "guides_sha256": "d8cd37e400176703d05c7e003d4ff3024f4f607c687370b6843a59179690f4f2",
+    "skin_sections": {
+      "garment.coat": {
+        "sections_sha256": "09f0a4b1ad23af489d5c7a012e91d7154390f857b38f10312fa20d4c1c0aee1e",
+        "geometry_sha256": "7cabdc37aedcb76d6d6683eb18b4243f23e11f84276f17f17bb35b5d8479f6f2",
+        "qualification": "OBSTACLE_GUIDE_CONTOURS_ONLY",
+        "anatomical_girths_replaced": false
+      }
+    },
+    "comparison": "FULL_UNROUNDED_GUIDE_REPORT_IDENTICAL",
+    "qualification": "NONE",
+    "admissible_for_fit": false,
+    "placement": "NOT_QUALIFIED",
+    "simulation": "NOT_EXECUTED",
+    "acceptance": "NOT_GRANTED",
+    "policy_ref": {
+      "path": "preparation/public-source-preparation-v3/guide-policy.json",
+      "sha256": "d927439522f74b9f4c7836ca332f84a6da2e5f69579e1296d61607defa90aca4"
+    },
+    "native_body_origin": {
+      "event_id": 23,
+      "receipt": {
+        "path": ".a3d/runs/native/attempt.8c48bcd1ae1249c5a97011bc95ec61f4.json",
+        "sha256": "65589246127ab5c6008d1869822d227e44a5c39bd42ca34708500c332d7ec969"
+      },
+      "run_id": "run.74b32ba8748a452a93e1983fa1664357",
+      "unit_id": "bodycontext",
+      "attempt_id": "attempt.8c48bcd1ae1249c5a97011bc95ec61f4"
+    }
+  },
+  "component_probe_quality": {
+    "garment.belt": null,
+    "garment.coat": null,
+    "garment.hood-yoke": {
+      "status": "NEEDS_CORRECTION",
+      "message": "Degenerate/sliver simulation triangles: {'min_angle_degrees': 1.7943119898575155, 'min_area_cm2': 0.0001413792324566425, 'min_edge_cm': 0.00503558326519158, 'min_stretch': 0.9991143067323903, 'max_stretch': 1.0012982774323382, 'rest_area_cm2': 4414.291675259007}"
+    }
+  },
+  "scene_after": {
+    "status": "ok",
+    "result": {
+      "status": "ok",
+      "filepath": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\blender\\working-recovered-f6e077dcc6134de09cde3774057afb1f.blend",
+      "is_saved": true,
+      "is_dirty": true,
+      "age_seconds": 5865,
+      "file_size_bytes": 479681,
+      "backups": []
+    }
+  },
+  "objects_after": {
+    "status": "ok",
+    "result": {
+      "status": "ok",
+      "scene_name": "Scene",
+      "active_workspace": "Layout",
+      "active_object": "A3D.BodyTarget.MainMale180",
+      "object_mode": "OBJECT",
+      "camera_object": null,
+      "collections": [
+        {
+          "name": "Scene Collection",
+          "exclude": false,
+          "hide_viewport": false,
+          "objects": [
+            {
+              "name": "A3D.BodyTarget.MainMale180",
+              "type": "MESH",
+              "parent": null,
+              "data_name": "A3D.BodyTargetMesh.7538c9a47520482ca744f85c201f6529",
+              "selected": true,
+              "visible": true,
+              "hide_viewport": false
+            }
+          ],
+          "children": []
+        }
+      ]
+    }
+  },
+  "run_reconciled": {
+    "run_id": "run.1a4b661f07cc4215abf1535c70529df8",
+    "status": "COMPLETED",
+    "qualification": "NOT_GRANTED",
+    "accepted": false
+  },
+  "next_preparation": {
+    "status": "AWAITING_CONFIRMATION",
+    "unit_id": "prepare-garment.coat",
+    "attempt_id": "attempt.c5b8a1c8f91949edb10e65c54bca7477",
+    "operation": "prepare_pattern_assembly",
+    "arguments": {
+      "component_id": "garment.coat",
+      "preparation_path": "preparation/native-source-bindings-v2/garment.coat/preparation.json",
+      "recipe_path": "preparation/native-source-bindings-v2/garment.coat/recipe.json"
+    },
+    "code_sha256": "ce846f80f19aebda2d59305e76930b1a023fd08ae698757c4117a9631a761034",
+    "executed": false,
+    "execution_permission_required": true,
+    "qualification": "NOT_GRANTED",
+    "budgets": {
+      "max_attempts": 2,
+      "max_seconds": 3600
+    },
+    "next": "Present this exact operation and effects, ask for permission, wait for an affirmative reply, then use the guarded Blender MCP. Preparation is not execution permission.",
+    "run_id": "run.04d8b017e9d340e4834eb1e26d4eafd0"
+  },
+  "limits": [
+    "Binding execution completion does not admit garment placement, Cloth or fitting.",
+    "Only the accepted body remains in the live scene.",
+    "Saved recovery file remains available; live scene state is dirty after temporary mesh probes.",
+    "Hood-yoke derived mesh needs sliver-triangle correction without changing approved cutting.",
+    "Coat guide relation alignment remains partial until exact placement diagnostics and correction."
+  ]
+}

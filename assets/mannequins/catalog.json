@@ -1,0 +1,132 @@
+{
+  "version": 1,
+  "status": "DEVELOPMENT_CANDIDATE",
+  "entries": [
+    {
+      "id": "body.realistic-male",
+      "version": 1,
+      "label": "Homme",
+      "file": "realistic-male-v1.blend",
+      "sha256": "674ed24c2042cfd65a03d45b9f7fd3b0eebec2cfd11fe1532cd9b168550ee750",
+      "bytes": 1244609,
+      "source_url": "https://download.blender.org/demo/asset-bundles/human-base-meshes/human-base-meshes-bundle-v1.4.1.zip",
+      "source_bundle_sha256": "811f43accbb31a88266d932f8f5563b2d13586fca0ba2693aad1f5fe582b3515",
+      "source_asset": "Body Male - Realistic",
+      "author": "Dan Ulrich",
+      "license": "CC0-1.0",
+      "unit_scale_m": 1.0,
+      "stature_cm": 168.99610231630504,
+      "bounds_cm": [
+        [
+          -44.04309391975403,
+          -17.945513129234314,
+          -0.5547828506678343
+        ],
+        [
+          44.02700662612915,
+          11.099401116371155,
+          168.4413194656372
+        ]
+      ],
+      "meshes": [
+        "A3D.Mannequin.body.realistic-male"
+      ],
+      "dependencies": [],
+      "orientation": {
+        "up_axis": [
+          0,
+          0,
+          1
+        ],
+        "forward_axis": [
+          0,
+          -1,
+          0
+        ]
+      },
+      "rig_status": "NOT_CREATED",
+      "pose_status": "SOURCE_A_POSE_NOT_QUALIFIED",
+      "collision_envelope": "NOT_CREATED",
+      "pipeline_ready": false,
+      "source_mesh_metric_preserved": true,
+      "preparation": "Isolated base mesh extracted; cameras, eyes, other assets, animation and multires display modifier excluded. Source world coordinates baked explicitly; library display-layout translation removed; metric and topology preserved.",
+      "profile_status": "PROFILE_MEASURED",
+      "missing_landmarks": [],
+      "measured_girths_cm": {
+        "hip": 96.737,
+        "waist": 80.073,
+        "chest": 103.419,
+        "neck": 40.277
+      },
+      "anatomical_review": "REQUIRED",
+      "anatomy_adapter": "body.realistic-male.anatomy.json",
+      "anatomy_adapter_sha256": "613bf3f0a7454058f606f156295af4902937199a7034b6a43489ce241e9b7cd1"
+    },
+    {
+      "id": "body.realistic-female",
+      "version": 1,
+      "label": "Femme",
+      "file": "realistic-female-v1.blend",
+      "sha256": "a5f567f931d903339f4881cbf4910306f48511dcf14ef50dbff06a9e901e77e5",
+      "bytes": 1563149,
+      "source_url": "https://download.blender.org/demo/asset-bundles/human-base-meshes/human-base-meshes-bundle-v1.4.1.zip",
+      "source_bundle_sha256": "811f43accbb31a88266d932f8f5563b2d13586fca0ba2693aad1f5fe582b3515",
+      "source_asset": "Body Female - Realistic",
+      "author": "Dan Ulrich",
+      "license": "CC0-1.0",
+      "unit_scale_m": 1.0,
+      "stature_cm": 163.93198643345386,
+      "bounds_cm": [
+        [
+          -42.114949226379395,
+          -16.739968955516815,
+          0.2014192519709468
+        ],
+        [
+          42.10834503173828,
+          11.519335210323334,
+          164.1334056854248
+        ]
+      ],
+      "meshes": [
+        "A3D.Mannequin.body.realistic-female"
+      ],
+      "dependencies": [],
+      "orientation": {
+        "up_axis": [
+          0,
+          0,
+          1
+        ],
+        "forward_axis": [
+          0,
+          -1,
+          0
+        ]
+      },
+      "rig_status": "NOT_CREATED",
+      "pose_status": "SOURCE_A_POSE_NOT_QUALIFIED",
+      "collision_envelope": "NOT_CREATED",
+      "pipeline_ready": false,
+      "source_mesh_metric_preserved": true,
+      "preparation": "Isolated base mesh extracted; cameras, eyes, other assets, animation and multires display modifier excluded. Source world coordinates baked explicitly; library display-layout translation removed; metric and topology preserved.",
+      "profile_status": "PROFILE_MEASURED",
+      "missing_landmarks": [],
+      "measured_girths_cm": {
+        "hip": 97.142,
+        "waist": 65.002,
+        "chest": 90.789,
+        "neck": 35.848
+      },
+      "anatomical_review": "REQUIRED",
+      "anatomy_adapter": "body.realistic-female.anatomy.json",
+      "anatomy_adapter_sha256": "09277e53d3bae5ad5a01bfc5bab9d3013b1d08f8012c65c1a066795161648ac6"
+    }
+  ],
+  "additional_choices": [
+    "Importer un mannequin",
+    "Utiliser le mannequin sélectionné"
+  ],
+  "classification_policy": "Catalog labels only; fitting uses actual measurements, never inferred sex.",
+  "license_notice_sha256": "a1e4c467858da6c0d96e8b230734a400c1d6dbb2b79f139e04c1dbf58b466390"
+}

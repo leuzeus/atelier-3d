@@ -1,0 +1,49 @@
+{
+  "scope": "SOFTWARE_BUILD_AND_LOCAL_INSTALLATION_ONLY",
+  "code_commit": "11d0b807f716c0df4216cce9c1e0b6158561c79e",
+  "software_tests": {
+    "status": "PASS",
+    "count": 1528,
+    "elapsed_seconds": 192.152,
+    "log": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-public-preparation-tests-v1.log",
+    "log_sha256": "421fce31186269dd460cd0c75fa1f844a9b23573a47d80549e0137da1e22d4e8",
+    "native_blender_executed_by_suite": false,
+    "earlier_sandbox_attempt": "WinError 5 on temporary fixture Path.resolve; outside-sandbox rerun passed"
+  },
+  "json_contracts": {
+    "status": "PASS",
+    "count": 14,
+    "validator": "PowerShell Test-Json"
+  },
+  "independent_review": {
+    "status": "TWO_P2_FIXED_AND_CLOSED_BY_READ_ONLY_REVIEW",
+    "findings": [
+      "Preparation diagnostics lost in MCP transport",
+      "Partial guide diagnostics lost at template refusal"
+    ],
+    "additional_tests": "17 dedicated preparation/interface tests, included in full suite",
+    "scope": "Software only"
+  },
+  "build": {
+    "source_archive_sha256": "5aca66453274d5c778262bba0f84557a4ab97a629171a15d941a84cf5762961b",
+    "exact_git_export_files": 591,
+    "first_build_verification": "REFUSED: CRLF/LF differences in three documentation files only; preserved",
+    "qualified_build": "Rebuilt from canonical Git export, exact bytes verified"
+  },
+  "installation": {
+    "status": "PASS_EXACT_NATIVE_INSTALLED_COPY",
+    "version": "0.7.0-rc.2.dev.2026100501",
+    "code_commit": "11d0b807f716c0df4216cce9c1e0b6158561c79e",
+    "installed_path": "C:/Users/leuz9/.codex/plugins/cache/atelier-3d-local/atelier-3d/0.7.0-rc.2.dev.2026100501",
+    "files": 592,
+    "method": "NATIVE_CODEX_PLUGIN_ADD",
+    "old_stage_on_g_present": true,
+    "connected_runtime": "NOT_RELOADED_AFTER_INSTALL",
+    "qualified_product": false
+  },
+  "connected_runtime_after_install": "RELOAD_REQUIRED_NOT_VERIFIED",
+  "actual_garment_guide_preparation": "NOT_EXECUTED",
+  "actual_native_body_context": "automation-body-context-20261005.json",
+  "product_qualification": "NONE",
+  "final_prerelease": "NOT_PUBLISHED"
+}

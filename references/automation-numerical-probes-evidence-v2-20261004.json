@@ -1,0 +1,215 @@
+{
+  "kind": "DEVELOPMENT_NUMERICAL_PROBES_EVIDENCE",
+  "version": 2,
+  "date_local": "2026-10-04",
+  "qualification": "NONE",
+  "product_admission": "NONE",
+  "production_kernel_unchanged_sha256": "24372dc8e3e2d9b608a125697cfea2a45c3f2de0253d984a62ae0caf46e3badc",
+  "fan": {
+    "scope": "THREE_SOURCE_PIECES_TWO_EXTERNAL_KERNELS",
+    "portable_tests_reproduced": 11,
+    "native_cases": {
+      "conditioned-baseline": {
+        "sleeve-left": {
+          "quality": "NEEDS_CORRECTION",
+          "min_angle_degrees": 5.961773941461179,
+          "min_edge_cm": 0.010898330670841666,
+          "vertices": 901,
+          "triangles": 1653,
+          "cdt_calls": 4,
+          "source_anchors_exact": true,
+          "source_boundary_unchanged": true,
+          "baseline_matches_previous": true
+        },
+        "sleeve-right": {
+          "quality": "NEEDS_CORRECTION",
+          "min_angle_degrees": 6.2700672789677965,
+          "min_edge_cm": 0.010898330670841666,
+          "vertices": 901,
+          "triangles": 1653,
+          "cdt_calls": 4,
+          "source_anchors_exact": true,
+          "source_boundary_unchanged": true,
+          "baseline_matches_previous": true
+        },
+        "front-left": {
+          "quality": "NEEDS_CORRECTION",
+          "min_angle_degrees": 4.552743079737584,
+          "min_edge_cm": 0.010898330561834733,
+          "vertices": 2463,
+          "triangles": 4587,
+          "cdt_calls": 5,
+          "source_anchors_exact": true,
+          "source_boundary_unchanged": true,
+          "baseline_matches_previous": true
+        }
+      },
+      "fan-init-conditioned": {
+        "sleeve-left": {
+          "quality": "NEEDS_CORRECTION",
+          "min_angle_degrees": 1.193125506178617,
+          "min_edge_cm": 0.010898330670841666,
+          "vertices": 906,
+          "triangles": 1663,
+          "cdt_calls": 2,
+          "source_anchors_exact": true,
+          "source_boundary_unchanged": true,
+          "baseline_matches_previous": false
+        },
+        "sleeve-right": {
+          "quality": "NEEDS_CORRECTION",
+          "min_angle_degrees": 1.1931236426558613,
+          "min_edge_cm": 0.010898330670841666,
+          "vertices": 906,
+          "triangles": 1663,
+          "cdt_calls": 2,
+          "source_anchors_exact": true,
+          "source_boundary_unchanged": true,
+          "baseline_matches_previous": false
+        },
+        "front-left": {
+          "quality": "NEEDS_CORRECTION",
+          "min_angle_degrees": 1.5254623886554453,
+          "min_edge_cm": 0.010898330561834733,
+          "vertices": 2466,
+          "triangles": 4593,
+          "cdt_calls": 1,
+          "source_anchors_exact": true,
+          "source_boundary_unchanged": true,
+          "baseline_matches_previous": false
+        }
+      }
+    },
+    "complete_component_input_inventory": {
+      "pieces": 10,
+      "relations": 24
+    },
+    "native_seconds": 24.169549900048878,
+    "initial_seeds": {
+      "sleeve-left": 18,
+      "sleeve-right": 18,
+      "front-left": 9
+    },
+    "stop": "REFINEMENT_STALLED_FOR_ALL_FAN_CANDIDATES",
+    "candidate_integration": "REFUSED_AFTER_COMPARATIVE_REGRESSION",
+    "observed_obstruction": {
+      "original_points_inside_analytic_fan_faces": 0,
+      "other_fan_seeds_inside_analytic_faces": {
+        "sleeve-left": 6,
+        "sleeve-right": 6,
+        "front-left": 2
+      },
+      "global_causality_proven": false
+    },
+    "sources_and_references_preserved": true
+  },
+  "neckline_v1": {
+    "scope": "HISTORICAL_V9_ONE_DIMENSIONAL_CHAIN",
+    "original_segment_relative_error_max": 0.04191627769,
+    "stop": "STAGNATION",
+    "proximal_nullspace_cause": "INFERENCE_NOT_PROVEN",
+    "maximum_step_cm": 0.5000000000000031,
+    "step_IEEE_guard_allowance_present": true,
+    "strict_half_centimeter_budget_pass": false
+  },
+  "neckline_v2": {
+    "scope": "SAME_FROZEN_V9_PROBLEM_NEW_ONE_DIMENSIONAL_KERNEL",
+    "status": "PROPOSED_SOURCE_CHAIN_TEST_ONLY",
+    "stop": "NUMERICALLY_FEASIBLE_SECONDARY_STAGNATION",
+    "iterations": 19,
+    "seconds": 6.9060000000172295,
+    "original_segment_count": 12,
+    "subdivision_count": 362,
+    "source_link_count": 6,
+    "maximum_original_segment_relative_error": 3.468181388869167e-14,
+    "maximum_subdivision_relative_error": 1.7357742651503878e-07,
+    "numerical_equations_within_data_derived_IEEE_bounds": true,
+    "maximum_step_cm": 0.4999999999999945,
+    "maximum_displacement_from_exact_V9_reference_cm": 3.5238366456088657,
+    "budget_epsilon_allowance": false,
+    "candidate_coordinates_retained": true,
+    "source59_rigid_seed_replay": "NOT_EXECUTED_BY_THIS_PROBE",
+    "production_integration": "NOT_PERFORMED"
+  },
+  "published_software_ci": {
+    "head": "ed345ddb9e7173a1338fb036c4dc2c2008b8f530",
+    "url": "https://github.com/leuzeus/atelier-3d/actions/runs/37246863437",
+    "status": "CI_PROVIDER_SUCCESS"
+  },
+  "not_qualified": [
+    "full_band",
+    "surface_interiors",
+    "diagonals",
+    "current_source59_guides",
+    "native_garment_placement",
+    "all_15_textiles_and_buckle",
+    "contacts",
+    "dressing",
+    "Cloth",
+    "drape",
+    "fitting",
+    "movement",
+    "artistic_review",
+    "final_release",
+    "installation"
+  ],
+  "references": {
+    "fan_proposal": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-source-fan-seeds-v1\\FROZEN.json",
+      "sha256": "1d0230e4535feb710cb526cdacf553cd91535fd4cbac7f4c25b0d288395ffd70",
+      "file_count": 22
+    },
+    "fan_independent_review": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-source-fan-native-result-review-v1\\FROZEN.json",
+      "sha256": "ba737325d5e082390f1dae2728d065d1ad2d960f7ff533cc0517b9e12cf6cc09",
+      "file_count": 7
+    },
+    "curve_v1_independent_review": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-neckline-curve-review-v1\\FROZEN.json",
+      "sha256": "8553aa3e0bcb942266681c5bd323c140bbfc2ebbdf48b6ab1af86b09841bb892",
+      "file_count": 8
+    },
+    "curve_v2_proposal": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-neckline-curve-solver-v2\\FROZEN.json",
+      "sha256": "f3bb6443db9a8182fc505df966394fceba7274de5e13dac711f09af1e20158dc",
+      "file_count": 56
+    },
+    "curve_v2_independent_review": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-neckline-curve-review-v2\\FROZEN.json",
+      "sha256": "1950c73d04c2b5c6b2d7726adc665d11aee17d6fec3d4b28470a65c50df8a295",
+      "file_count": 8
+    },
+    "fan_preflight": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-source-fan-preflight-review-v1\\receipt.json",
+      "sha256": "34e759ee24c0a402512215c5d52e023e809646d980154f694413567115abd8f3"
+    },
+    "fan_native": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-source-fan-seeds-v1\\output-v1\\receipt.json",
+      "sha256": "1bd75af7aa024be25cb5b86c28c107b1b36855603298fce8ab0d15c7eac2ff58"
+    },
+    "fan_launch": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-source-fan-seeds-v1\\launch-receipt.json",
+      "sha256": "99e7fd1dea2ba93079caa3db49260b1d91959c3b5868a6fc1829fe19a928e69c"
+    },
+    "curve_v1_review_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-neckline-curve-review-v1\\receipt.json",
+      "sha256": "bfb25d0985836366973bfca3af4f037b971731333d0257f4b25c8080a8ba2c0b"
+    },
+    "curve_v2_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-neckline-curve-solver-v2\\receipt.json",
+      "sha256": "8b02b044456983ab1c1fc3a448fda47d98c5bd2db20efbf812d975774f6066f6"
+    },
+    "curve_v2_review_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-neckline-curve-review-v2\\receipt.json",
+      "sha256": "dc8b15d86935c88262af02569210fca556b785a5da47ebc238bd1929092fc426"
+    },
+    "current_published_ci": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-ci-docs61-v1\\receipt.json",
+      "sha256": "696fb845f675f81a62b7f2c079f7519faae44ca48cddf8d24bddc3413bb815d8"
+    },
+    "pr_utf8": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-pr22-utf8-verification-v11\\receipt.json",
+      "sha256": "d9550feedc7950644695c7d8eec32c9c633f6de7a1082598f39a5880a1cb9f23"
+    }
+  }
+}

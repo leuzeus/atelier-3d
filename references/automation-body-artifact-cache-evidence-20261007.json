@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-07",
+  "scope": "CALL_LOCAL_BODY_ARTIFACT_VALIDATION_CACHE_SOFTWARE_ONLY",
+  "source_files": {
+    "blender/anchor_reserve.py": "543359474499e70b69dea5c1463089908775178bcf94aed7bf54f2de7300e828",
+    "tests/test_native_anchor_reserve.py": "89e7a151e83218609615d4c8e1d3b5a6a6387416c56326ba9bb45e89b350ac3a"
+  },
+  "software": {
+    "targeted_tests_passed": 71,
+    "python_3_11_seconds": 0.402,
+    "python_3_13_seconds": 0.617,
+    "full_suite": "NOT_RERUN_AFTER_THIS_PATCH",
+    "native_execution": false
+  },
+  "independent_review": {
+    "initial_P2": "Cache creation could escape the existing unavailable measurement wrapper",
+    "resolution": "Lazy creation within the first guarded measurement and kernel clock; failures retain prior structured statuses",
+    "final_P1_P2": [],
+    "tests_reexecuted_by_reviewer": false
+  },
+  "guards": {
+    "strict_initial_json": true,
+    "exact_byte_SHA_before_and_after_every_successful_measurement": true,
+    "full_binding_mutation_detection": true,
+    "live_evaluated_body_checks_before_and_after": true,
+    "global_cache": false,
+    "source_changed": false,
+    "geometry_changed": false,
+    "budgets_changed": false,
+    "gates_changed": false
+  },
+  "portable_profile": {
+    "scope": "EXACT_ARTIFACT_FILE_VALIDATION_ONLY_NOT_NATIVE_BODY_CAPTURE_OR_CONTACTS",
+    "repetitions": 5,
+    "python_3_11": {
+      "uncached_median_ms": 47.307,
+      "cached_median_ms": 42.26,
+      "creation_ms": 160.923,
+      "extrapolation_114_boundaries_minus_creation_seconds": 0.414
+    },
+    "python_3_13": {
+      "uncached_median_ms": 88.091,
+      "cached_median_ms": 75.882,
+      "creation_ms": 212.895,
+      "extrapolation_114_boundaries_minus_creation_seconds": 1.179
+    },
+    "earlier_7_seconds_estimate": "SUPERSEDED_BY_ACTUAL_GUARD_INCLUDED_PROFILE",
+    "native_gain": "NOT_MEASURED"
+  },
+  "connected_runtime": "0704_UNCHANGED_PATCH_NOT_INSTALLED",
+  "anchor_reserve_admission": "NOT_GRANTED",
+  "collar_volume_repair": "NOT_IMPLEMENTED_BY_THIS_PATCH",
+  "fitting": "NOT_QUALIFIED",
+  "qualification": "NONE"
+}

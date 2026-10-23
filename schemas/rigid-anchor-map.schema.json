@@ -1,0 +1,258 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "target_component_id",
+    "piece_id",
+    "source_ref",
+    "provenance_ref",
+    "origin",
+    "right",
+    "up"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "target_component_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "piece_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "provenance_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "origin": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "uv_cm"
+          ],
+          "properties": {
+            "kind": {
+              "const": "UV"
+            },
+            "uv_cm": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "edge_id",
+            "fraction"
+          ],
+          "properties": {
+            "kind": {
+              "const": "EDGE"
+            },
+            "edge_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "fraction": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "mark_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "MARK"
+            },
+            "mark_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    },
+    "right": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "uv_cm"
+          ],
+          "properties": {
+            "kind": {
+              "const": "UV"
+            },
+            "uv_cm": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "edge_id",
+            "fraction"
+          ],
+          "properties": {
+            "kind": {
+              "const": "EDGE"
+            },
+            "edge_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "fraction": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "mark_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "MARK"
+            },
+            "mark_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    },
+    "up": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "uv_cm"
+          ],
+          "properties": {
+            "kind": {
+              "const": "UV"
+            },
+            "uv_cm": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "edge_id",
+            "fraction"
+          ],
+          "properties": {
+            "kind": {
+              "const": "EDGE"
+            },
+            "edge_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "fraction": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "mark_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "MARK"
+            },
+            "mark_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    }
+  }
+}

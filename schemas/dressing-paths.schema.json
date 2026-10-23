@@ -1,0 +1,16 @@
+{
+  "type": "object", "additionalProperties": false,
+  "required": ["version", "bindings", "max_path_points"],
+  "properties": {
+    "version": {"const": 1},
+    "bindings": {
+      "type": "object", "additionalProperties": false,
+      "required": ["derivation_spec_ref", "derivation_ref"],
+      "properties": {
+        "derivation_spec_ref": {"type": "object", "additionalProperties": false, "required": ["path", "sha256"], "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}},
+        "derivation_ref": {"type": "object", "additionalProperties": false, "required": ["path", "sha256"], "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}}
+      }
+    },
+    "max_path_points": {"type": "integer", "minimum": 2, "maximum": 10000}
+  }
+}

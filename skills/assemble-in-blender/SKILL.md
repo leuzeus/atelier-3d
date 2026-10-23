@@ -5,6 +5,13 @@ description: Assembler dans une copie Blender des reconstructions 3D indépendan
 
 # assemble-in-blender
 
+Pour un vêtement, préparer le mannequin dès son ajout selon
+[le corps cible du vêtement](../../references/garment-body-target.md).
+Catalogue, import et sélection dans la scène suivent la même règle :
+mensurations cibles, variante préservant l'original, mesures et revue des
+proportions, puis compatibilité aux lignes de couture et à l'enfilage.
+Une base sélectionnée ou une mise à l'échelle par hauteur ne vaut pas fitting.
+
 Suivre [la reprise après un refus](../../references/preparation-recovery.md).
 Distinguer une limite du logiciel d'une erreur de préparation : pour une limite,
 informer l'utilisateur et lui faire choisir entre conserver la technique

@@ -1,0 +1,148 @@
+{
+  "version": 1,
+  "source_commit": "341c7983bfe966283c39147bd96d1333100bd17a",
+  "software": {
+    "status": "PASS",
+    "tests": 2222,
+    "skipped": 0,
+    "test_seconds": 455.0,
+    "contracts": 14,
+    "source_unchanged": true
+  },
+  "kernel_scope": "INTERNAL_DIAGNOSTIC_NOT_CONNECTED_TO_GUIDE_DISPATCHER",
+  "boundary": {
+    "source_queries": 198,
+    "submitted_queries": 189,
+    "missing_domain_preserved": 9,
+    "product_rows": 189,
+    "product_outcomes": {
+      "LOCAL_PATH_LIFT_REACHED": 174,
+      "SEED_ENDPOINT_NOT_SUPPORTED_BY_EDGE_SEED_V1": 15
+    },
+    "exact_fields_all_equal": true,
+    "traversed_topology_and_intervals_all_equal": true,
+    "max_numeric_differences": {
+      "signed_ray_distance_cm": 2.220446049250313e-16,
+      "cosine": 4.440892098500626e-16,
+      "minimum_traversed_cosine": 4.440892098500626e-16,
+      "ray_reconstruction_residual_cm": 8.881784197001252e-16
+    },
+    "max_normal_component_difference": 2.220446049250313e-16,
+    "work_events": 65695,
+    "elapsed_seconds": 2.530999999959022
+  },
+  "cuff_centering": "REFUSED_METRIC_NOT_ADOPTED",
+  "cuff_non_circular_shape": "ONE_SECTION_ONLY_NO_MATERIAL_U_TRANSPORT_NO_TUBE",
+  "original_receipts_preserved": true,
+  "canonical_state_modified": false,
+  "native_execution": false,
+  "garment_qualification": "NONE",
+  "fitting": "NOT_EXECUTED",
+  "pending_human_cutting_review": false,
+  "files": [
+    {
+      "path": "program-surface-path-integrated-validation-v1/validation.json",
+      "sha256": "6ed963f458893e67bb564eebc34fb493845f981adc081b324397e0134b031126"
+    },
+    {
+      "path": "program-surface-path-integrated-validation-v1/tests-receipt.json",
+      "sha256": "bb2ce5b968bbd535e0fd441f3429c0222d137e075ae06f7e9b74b7cfa8f320eb"
+    },
+    {
+      "path": "program-surface-path-integrated-validation-v1/contracts-receipt.json",
+      "sha256": "acd5824b4b6810837f64c7922d1817344f35fb260415eb32abe25f8d29b6e16f"
+    },
+    {
+      "path": "program-surface-path-kernel-validation-v1/review/final-review.json",
+      "sha256": "56fc194e2453508cf01120d0e0aeea554c48a0c33ef83b8ab9a72ad0bdae65b3"
+    },
+    {
+      "path": "program-surface-path-kernel-validation-v1/review/counterexamples-after.json",
+      "sha256": "f1cd25813540c344ed45d85d0e21f48ccc4dd43c517600fcf7538612a058729d"
+    },
+    {
+      "path": "program-surface-path-kernel-validation-v1/review/real-witness-comparison-after.json",
+      "sha256": "87823fc686992ed1aba4a3523de7c1d4751785ca98cc6458eb209d2a03218fce"
+    },
+    {
+      "path": "program-surface-path-kernel-validation-v1/runtime-before.json",
+      "sha256": "210321b545991643df607750232e2f580a15a1e8ec743bfe776ab376c2f4436c"
+    },
+    {
+      "path": "program-surface-path-kernel-validation-v1/visual-observation.json",
+      "sha256": "573753726d8e77b418ed9d9fbccc5919b1f34cba6b7194203d15957f844343fb"
+    },
+    {
+      "path": "program-neck-boundary-continuation-v1/exhaustive-replay/report.json",
+      "sha256": "3448dff3f3e606526ef7f5e55d0dcea99393ca75d5ff01422b28a565c1e3d0a4"
+    },
+    {
+      "path": "program-neck-boundary-continuation-v1/coverage-and-feasibility.json",
+      "sha256": "f8a7977b790f83b2ba1c496aab9c7b92c561bf36e4b8fa22c0381f1f5248a93a"
+    },
+    {
+      "path": "program-neck-boundary-continuation-v1/product-comparison/report.json",
+      "sha256": "31b11d0a8df0f28a5ea7fa42a7e720011d993d1c85161d1e62b9031db55720de"
+    },
+    {
+      "path": "program-neck-boundary-continuation-v1/preview-final/manifest.json",
+      "sha256": "f923281a92374d646f891e2c7a0d805939a8b9308de38064bbd6d2575fecd572"
+    },
+    {
+      "path": "program-neck-boundary-continuation-v1/preview-final/board-continuation.png",
+      "sha256": "a4c793bdd3ff0ec9c675ff359d787196da82b67f443f352d016ec78d95274cd6"
+    },
+    {
+      "path": "program-neck-boundary-continuation-v1/preview-final/board-reserve.png",
+      "sha256": "7473d8f3e613afe1df1153c9e3b42cbe13bf998601f30b496242307e4507ca34"
+    },
+    {
+      "path": "program-neck-boundary-continuation-v1/verification.json",
+      "sha256": "f8797fe1672e8297b1a1e4cfc73ed6b69b85feb6ca1bf10a421dc047808fa781"
+    },
+    {
+      "path": "program-cuff-section-placement-v1/execution/report.json",
+      "sha256": "09cd9912f876713f11f2ac1ca97123fbc59945765059e5f2feb239eb87a3d1b9"
+    },
+    {
+      "path": "program-cuff-section-placement-v1/execution/metric-comparison-supplement.json",
+      "sha256": "57a77f39bfa98ff762bfd73a4f06fe7f97e03c9a835e9ff5ac0cf0effb4e1ee6"
+    },
+    {
+      "path": "program-cuff-section-placement-v1/planar-shape/report.json",
+      "sha256": "6f1b9faf3e402a198deca060fc680af7608be3a4e76cea41ca15d2b34c413f24"
+    },
+    {
+      "path": "program-cuff-section-placement-v1/physical-scope.json",
+      "sha256": "6762100c401047fecce76006161e93047595a2b499285005c48210d1039c9162"
+    },
+    {
+      "path": "program-cuff-section-placement-v1/review/review.json",
+      "sha256": "8657579dfce8c252d8f85ad7c7893d3b6c37b6099c0790176c20427a9561ad9e"
+    },
+    {
+      "path": "program-cuff-section-placement-v1/review/saved-observations.json",
+      "sha256": "716fbfd7e7fd755fa3c8fa0e1208f953fa7ed8c97d3a684e27f36a7a032cc61f"
+    },
+    {
+      "path": "program-cuff-section-placement-v1/preview/after/manifest.json",
+      "sha256": "2b198cf034876303c5af56f5a5afb5a72c2760a8b3bc6b5ff2d339606aaedb79"
+    },
+    {
+      "path": "program-cuff-section-placement-v1/preview/after/board-comparison.png",
+      "sha256": "cc49cb002ae41116f3d5c3cd4d5ff976819d205a8a010438070016d24010c42a"
+    },
+    {
+      "path": "program-cuff-section-placement-v1/preview/after/board-details.png",
+      "sha256": "d7542c9dacea7904c15c3b000a25c34197537f6130f38f81eed1bd09175cd40e"
+    },
+    {
+      "path": "program-cuff-section-placement-v1/section-figure/manifest.json",
+      "sha256": "e7b0eb8c37578df7c6bba03603d1a7ae8dfc003fdea1eb3062ad0bd3b4d29fae"
+    },
+    {
+      "path": "program-cuff-section-placement-v1/section-figure/section-comparison.png",
+      "sha256": "afac66e8a375f2398f98321736c06367a674a0f9821735cb1d90e41675b3274e"
+    }
+  ]
+}

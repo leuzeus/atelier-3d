@@ -1,0 +1,840 @@
+{
+  "date": "2026-10-07",
+  "scope": "REVIEWED_DESIGN_DATA_PREPARATION_ONLY",
+  "status": "DESIGN_SOURCE_REVISION_PREPARED",
+  "source_epoch": "19ca533d1eabf37df59bf934d22925001a464a71bddc7cba9e3b6366a2a6f640",
+  "parent_source_epoch": "cd3510df816031360237aa832f1d123fea9716306e476b5fc5ca1bc099f32e5c",
+  "human_decision_id": "1d9f7648-a6cc-420b-a498-25d8f9a1ec51",
+  "reviewed_piece_ids": [
+    "back-left",
+    "back-right",
+    "collar",
+    "front-left",
+    "front-right"
+  ],
+  "human_decision_origin": {
+    "project": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project",
+    "project_id": "44f03e6c-dc68-4adb-85b9-e30f88b1aeaa",
+    "event_id": 101,
+    "decision_id": "1d9f7648-a6cc-420b-a498-25d8f9a1ec51",
+    "gate_name": "pattern-variant.collar-source-row-v3",
+    "import_lineage": []
+  },
+  "manifest_ref": {
+    "path": "preparation/reviewed-source-revision-v5/revision.json",
+    "sha256": "a4fc10dfae40e0181739fce03449d029164d6396b392685bdd81091e59d13c94"
+  },
+  "outputs": {
+    "effective-dossier.json": {
+      "path": "preparation/reviewed-source-revision-v5/effective-dossier.json",
+      "sha256": "fd1a0c7fe7c48c3f7fa56457a2a08d41819c2bcf60b59fe99cbfe91472a2c610"
+    },
+    "effective-packages.json": {
+      "path": "preparation/reviewed-source-revision-v5/effective-packages.json",
+      "sha256": "f092f61bbb631f30ce61b893db933660cba2d978c2b876712265921c15945527"
+    }
+  },
+  "probe_receipt_ref": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-source-revision-probe-v5\\receipt.json",
+    "sha256": "7c9f454d011b567f1fd01b5345b74b920c241aaf14ee78a73de6a80db2cd8779"
+  },
+  "elapsed_seconds": 28.391000000061467,
+  "canonical_database_unchanged": true,
+  "code_producers": {
+    "a3d/reviewed_pattern_revisions.py": "0216e46a44340498a0f88ae3dcfe5ebd725a32ee7c684e285bd5e4d399b716cb",
+    "a3d/pattern_ease_variant.py": "fd0216fb9714a1ad5c4955092d9430b1454e4ba7f2768d79f5e4fe1b7e1eb643",
+    "a3d/production_dossier.py": "29a1d6981e3479cadd7db640476e96b3a6ad29fd19143dbaf52c24631f34a654",
+    "a3d/board_contract.py": "481cf70c5a615e74a3452e9ff66b89f040fd55071257cfc26568b924b7e98ef9",
+    "a3d/sewing.py": "f7d85540382ae840cda3fb3fe621363b241ed1bff1ecf345736da8b29cacf132",
+    "a3d/pattern_variant_composition.py": "5fe190d839b38e9ccab980ff0fb3a6acede96ebdd4ae19246143c8edf9f1c8b0",
+    "a3d/reviewed_pattern_admission.py": "9095706492135efab871c6aeb6f09220b45f7026ac9e4ee686bdeb3591321ecb",
+    "a3d/core.py": "469481522a435053ed36aec44ca40723563136af201394226147749c5e8b7e0d",
+    "a3d/planning.py": "71498dc21a71dac10199870744a97f43c465479e415d7667e908854366defd01",
+    "a3d/packages.py": "ed02446e11fb75f04b15bfa1cc05a8b0a504c3e8c5cefaec635ea33b063ff9a8",
+    "a3d/garment_guides.py": "17d3b7b91360ecc3f077c3202a4ce2c876093549c5de5ee8cef068ae89cc49f8",
+    "a3d/garment_fit.py": "652b1d5cb7ab6d6f76512ec300bd125f992bf5c0ef944477c7a7cd5340471d38",
+    "a3d/source_path_intent.py": "689aa7bc8c5c290f44cf4c6b6ec2d6ad0f0a16968ef93f588efad28c7b3122d1",
+    "schemas/pattern-ease-variant.schema.json": "fb5d5a02f2569439881ec4427a03fad93b49c377bcec021aec73ee483fdd3406",
+    "schemas/production-dossier.schema.json": "7328e5d86f3839d139e865229054fea535e26dee82bd6b090d15599b50bc5aba",
+    "schemas/construction.schema.json": "84a981a9623364dd0393391301a082ea90a1b333ac44569c987e2a9ab0b9d629",
+    "schemas/garment.schema.json": "91ee660de0ea51ab67e38cc0947313ae47c6071a60dd7cb30f19a87dfb2f0ad9",
+    "schemas/package.schema.json": "9c424df7df3ed048a9e1b20e2b3fce7a1caabf0007f4e1fb110598c3ba73d094"
+  },
+  "budgets": {
+    "max_seconds": 120.0,
+    "max_input_bytes": 134217728,
+    "max_file_bytes": 67108864,
+    "max_output_bytes": 16777216,
+    "max_references": 512
+  },
+  "input_preflight": {
+    "scope": "CURRENT_DESIGN_ADMISSION_LINEAGE_FILES_AND_EXPANDED_PACKAGES",
+    "expanded_input_bytes": 107849661,
+    "parent_project_count": 3,
+    "max_parent_projects": 8,
+    "files": [
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\.a3d\\decisions\\pipeline-71556fdee1534ea7943eb4c0717ad86b.json",
+        "sha256": "8a1d6560363a17d77da69fb5a0a2571dcf6fb78091728c9a55148f5755a81849",
+        "file_bytes": 4202,
+        "expanded_bytes": 4202,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\.a3d\\evidence\\approved-design-import.json",
+        "sha256": "b7beb26ec97680737b83ed8d0e1a23940ef49c1a38d9c8960c644657fdff8fb1",
+        "file_bytes": 3009,
+        "expanded_bytes": 3009,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\.a3d\\evidence\\exploded-generation-50e5378fbca148a2bdb3dae9840f6f82.json",
+        "sha256": "246479c2854941c0e5e197bcc53ed105fac1aa4e87241b294f3f497857e0933f",
+        "file_bytes": 894,
+        "expanded_bytes": 894,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\.a3d\\evidence\\exploded-request-8411c33549a844de8f9cb9ffae590a15.json",
+        "sha256": "48f12f53bae33c0a00eda2e9bc5c55759c869e90d959357d0e6ec88e1f7bfc3d",
+        "file_bytes": 50690,
+        "expanded_bytes": 50690,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\.a3d\\outputs\\body-target-7538c9a47520482ca744f85c201f6529\\profile.json",
+        "sha256": "50f40c8999caed1e2e908da3eeb9a94d883a4ea2f3fdf6f15f3a4fd633bf437a",
+        "file_bytes": 222704,
+        "expanded_bytes": 222704,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\.a3d\\outputs\\construction-c1f0612ceb914bb284d2129480439984\\board.json",
+        "sha256": "ab171bfc1e3a393df6a831f3d31dde8f45a75b3ad5620a34f90ed94b4b32a0ae",
+        "file_bytes": 2570,
+        "expanded_bytes": 2570,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\.a3d\\outputs\\construction-c1f0612ceb914bb284d2129480439984\\board.svg",
+        "sha256": "6fe065eb278c23351a326c85a27a4a2c173a6c32b0773935e66042b9016636e5",
+        "file_bytes": 14102901,
+        "expanded_bytes": 14102901,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\.a3d\\outputs\\construction-c1f0612ceb914bb284d2129480439984\\dossier.html",
+        "sha256": "7d6c9216c54697c3735b3f06197d7efa12b041fa3b953c6ecd9f2ac3d56e0600",
+        "file_bytes": 3141446,
+        "expanded_bytes": 3141446,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\evidence\\analysis.json",
+        "sha256": "5fb943f8626a770ec0d34a4e70930b1f0bf58c38a7ea3fa3bbabc6cebf85552e",
+        "file_bytes": 5647,
+        "expanded_bytes": 5647,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\evidence\\brief.json",
+        "sha256": "2c8b48ef49694e5b0da4edf48213db08e36db88f82fa4bef559185050d91ebce",
+        "file_bytes": 1315,
+        "expanded_bytes": 1315,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\packages\\belt-v1.garmentpkg",
+        "sha256": "5817ea66475ffa40f4c27277499c9f7cdd3b89f1565f68ba510b643dc85d13b8",
+        "file_bytes": 1654,
+        "expanded_bytes": 2835,
+        "kind": "PACKAGE_INVENTORY_ONLY"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\packages\\buckle-v1.partpkg",
+        "sha256": "dc5d34cb525cb839ec1dab2366700052030980656f8db236e41856714bd3695f",
+        "file_bytes": 2357960,
+        "expanded_bytes": 2385081,
+        "kind": "PACKAGE_INVENTORY_ONLY"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\packages\\coat-v1.garmentpkg",
+        "sha256": "a51a8c782fa908a11dad6d69fb8a488df6df12d67af580798c70d5f5cbbc0253",
+        "file_bytes": 6567,
+        "expanded_bytes": 57259,
+        "kind": "PACKAGE_INVENTORY_ONLY"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\packages\\hood-yoke-v1.garmentpkg",
+        "sha256": "d2cbf768f1ec2fc83613c929308e2f27c5675cd4ad6e5d371246729ecc40080c",
+        "file_bytes": 8182,
+        "expanded_bytes": 57031,
+        "kind": "PACKAGE_INVENTORY_ONLY"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\preparation\\atlas\\manifest.json",
+        "sha256": "85805385fcd202496bb554fcc35d7a8547e0c209e186c04c8dc66b5e6dd48826",
+        "file_bytes": 10859,
+        "expanded_bytes": 10859,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\preparation\\buckle\\package\\front.png",
+        "sha256": "fe6c93338c3cc5c6fe005d934c0098ed3dd1f74ea382a9ebc008d852ecaf507e",
+        "file_bytes": 1157319,
+        "expanded_bytes": 1157319,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\preparation\\buckle\\package\\left.png",
+        "sha256": "779310e227fa271c61d2c04482a81ddbac0d780eb2c4459b5b7f780c03564c17",
+        "file_bytes": 1225552,
+        "expanded_bytes": 1225552,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\preparation\\coat-ease-design-decision-v1.json",
+        "sha256": "d564f336f3741eabd479a4b6afe00077d7103c853b3eaa5e0a4681c480066223",
+        "file_bytes": 4983,
+        "expanded_bytes": 4983,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\preparation\\construction-dossier.json",
+        "sha256": "80acf6fb94c43f4179202add23d968c0fede22f1ec56abe73904049964670a40",
+        "file_bytes": 100481,
+        "expanded_bytes": 100481,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\preparation\\exploded-board-v1.png",
+        "sha256": "c5201a56be041336dfd7b78f9bfb52976b9fac6aa2ad09012d79760628d03f1a",
+        "file_bytes": 1229069,
+        "expanded_bytes": 1229069,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\references\\original-triptyque.png",
+        "sha256": "1d158fe59b9ae9a055d32c00754d9df816a94abd494fe42191b2d59240034701",
+        "file_bytes": 2317743,
+        "expanded_bytes": 2317743,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\variants\\ease-variant-dense-v2\\candidate-dossier.json",
+        "sha256": "7d98d25c6fb9e253b2c30be7ec3281e3840e8902cb4a2f216a06427d5da748fd",
+        "file_bytes": 97878,
+        "expanded_bytes": 97878,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\variants\\ease-variant-dense-v2\\packages\\garment.coat.garmentpkg",
+        "sha256": "771eddd4dec57f4c938d8b16932ee0a3757c9cc9b5c73ea8675bf2a2f9742bad",
+        "file_bytes": 19103,
+        "expanded_bytes": 152593,
+        "kind": "PACKAGE_INVENTORY_ONLY"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\variants\\ease-variant-dense-v2\\proposal.json",
+        "sha256": "4d4c63fef0fb1d7e39093069ed981c10480da50bdf1d0aecb0f5422f9ecbde6a",
+        "file_bytes": 304426,
+        "expanded_bytes": 304426,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\variants\\ease-variant-dense-v2\\review-patterns.png",
+        "sha256": "be3d2c8a6fafbbc1d2727ba8024e2dca6d60cdffd2c8f5d271fbd3ab79e4de0b",
+        "file_bytes": 66450,
+        "expanded_bytes": 66450,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1\\variants\\ease-variant-dense-v2\\sleeve-pattern-decision-v1.json",
+        "sha256": "6bc1d81b01b8c540af7dd4553de4eb1cb07da718f25b28b32e9b528f4f275bc4",
+        "file_bytes": 2041,
+        "expanded_bytes": 2041,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\decisions\\pipeline-71556fdee1534ea7943eb4c0717ad86b.json",
+        "sha256": "8a1d6560363a17d77da69fb5a0a2571dcf6fb78091728c9a55148f5755a81849",
+        "file_bytes": 4202,
+        "expanded_bytes": 4202,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\evidence\\approved-design-import.json",
+        "sha256": "188bd8b45d5d6240261a4ec26b47988a875ff3d4aedecaf6488976bc42ae31c7",
+        "file_bytes": 4299,
+        "expanded_bytes": 4299,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\evidence\\exploded-generation-50e5378fbca148a2bdb3dae9840f6f82.json",
+        "sha256": "246479c2854941c0e5e197bcc53ed105fac1aa4e87241b294f3f497857e0933f",
+        "file_bytes": 894,
+        "expanded_bytes": 894,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\evidence\\exploded-request-8411c33549a844de8f9cb9ffae590a15.json",
+        "sha256": "48f12f53bae33c0a00eda2e9bc5c55759c869e90d959357d0e6ec88e1f7bfc3d",
+        "file_bytes": 50690,
+        "expanded_bytes": 50690,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\evidence\\reviewed-pattern-composition-dossier.json",
+        "sha256": "620457742c3038ed981976ccb641558a269a8e042d651c3bbee3d01039c01711",
+        "file_bytes": 97560,
+        "expanded_bytes": 97560,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\evidence\\reviewed-pattern-composition.json",
+        "sha256": "f044ccff8d239ed1ee9b3f45c798387c9bacbdc0182ad088ad5d97b32ca4b87f",
+        "file_bytes": 51534,
+        "expanded_bytes": 51534,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\outputs\\body-context-903e9bd68e724e2c9afec0a1fb9f320b\\context.blend",
+        "sha256": "034a3efb442e93a433a6612055f4f2a3fea2200a28ef8d9442f8645958a51327",
+        "file_bytes": 481650,
+        "expanded_bytes": 481650,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\outputs\\body-context-903e9bd68e724e2c9afec0a1fb9f320b\\receipt.json",
+        "sha256": "1b641fd7eaa5d7daf5d2951aa00c71420760629132415f3f574b4bdf4fce44f0",
+        "file_bytes": 2856,
+        "expanded_bytes": 2856,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\outputs\\body-target-7538c9a47520482ca744f85c201f6529\\body.blend",
+        "sha256": "418c2db2cccc5189021313c0e83b42ec50a8852fb688f31a4c17302d67c662e8",
+        "file_bytes": 893760,
+        "expanded_bytes": 893760,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\outputs\\body-target-7538c9a47520482ca744f85c201f6529\\derivation.json",
+        "sha256": "ef3550f91265d7b16844a2fe0218279a8f708cb8afa96423c14a0b8053c025e6",
+        "file_bytes": 8994,
+        "expanded_bytes": 8994,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\outputs\\body-target-7538c9a47520482ca744f85c201f6529\\geometry.json",
+        "sha256": "ad81aa69409ab4b2220152f68c1c12c90e475ba6b24613e33d5eb142d54de0c7",
+        "file_bytes": 1678616,
+        "expanded_bytes": 1678616,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\outputs\\body-target-7538c9a47520482ca744f85c201f6529\\options.json",
+        "sha256": "c4c455b198602b92f44ae6d80abe9bc53a4ea4303a7192c1bdd441687c5277e3",
+        "file_bytes": 30776,
+        "expanded_bytes": 30776,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\outputs\\body-target-7538c9a47520482ca744f85c201f6529\\profile.json",
+        "sha256": "50f40c8999caed1e2e908da3eeb9a94d883a4ea2f3fdf6f15f3a4fd633bf437a",
+        "file_bytes": 222704,
+        "expanded_bytes": 222704,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\outputs\\body-target-7538c9a47520482ca744f85c201f6529\\receipt.json",
+        "sha256": "ffc00c012971e53a3bfe2ca63c46ce29c20960172dfb675bfb43a145255a2f27",
+        "file_bytes": 11837,
+        "expanded_bytes": 11837,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\outputs\\body-target-7538c9a47520482ca744f85c201f6529\\source-geometry.json",
+        "sha256": "f9f3c45b547519e66a3de8f164af6892a9697001d7c21ea91dfb0505c61a9bb3",
+        "file_bytes": 1665472,
+        "expanded_bytes": 1665472,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\outputs\\body-target-7538c9a47520482ca744f85c201f6529\\source-profile.json",
+        "sha256": "68f6b25326cda5cab7c4dfce2e22876886a43b2c9ff93a1b5806e4b8fcaa5e7c",
+        "file_bytes": 222503,
+        "expanded_bytes": 222503,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\outputs\\body-target-7538c9a47520482ca744f85c201f6529\\triangles.json",
+        "sha256": "b86e67386fbb08d71462c5bda0b167bedbce080f553c368d6ba12dc01d44c38b",
+        "file_bytes": 800909,
+        "expanded_bytes": 800909,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\outputs\\construction-c1f0612ceb914bb284d2129480439984\\board.json",
+        "sha256": "ab171bfc1e3a393df6a831f3d31dde8f45a75b3ad5620a34f90ed94b4b32a0ae",
+        "file_bytes": 2570,
+        "expanded_bytes": 2570,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\outputs\\construction-c1f0612ceb914bb284d2129480439984\\board.svg",
+        "sha256": "6fe065eb278c23351a326c85a27a4a2c173a6c32b0773935e66042b9016636e5",
+        "file_bytes": 14102901,
+        "expanded_bytes": 14102901,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\outputs\\construction-c1f0612ceb914bb284d2129480439984\\dossier.html",
+        "sha256": "7d6c9216c54697c3735b3f06197d7efa12b041fa3b953c6ecd9f2ac3d56e0600",
+        "file_bytes": 3141446,
+        "expanded_bytes": 3141446,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\.a3d\\runs\\native\\attempt.8c48bcd1ae1249c5a97011bc95ec61f4.json",
+        "sha256": "65589246127ab5c6008d1869822d227e44a5c39bd42ca34708500c332d7ec969",
+        "file_bytes": 18661,
+        "expanded_bytes": 18661,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\body.realistic-male.target.json",
+        "sha256": "4fbafddf159c8fcd859aee4aad02039e71766cc241c375180286e993dca1ad3f",
+        "file_bytes": 1006,
+        "expanded_bytes": 1006,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\evidence\\analysis.json",
+        "sha256": "5fb943f8626a770ec0d34a4e70930b1f0bf58c38a7ea3fa3bbabc6cebf85552e",
+        "file_bytes": 5647,
+        "expanded_bytes": 5647,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\evidence\\brief.json",
+        "sha256": "2c8b48ef49694e5b0da4edf48213db08e36db88f82fa4bef559185050d91ebce",
+        "file_bytes": 1315,
+        "expanded_bytes": 1315,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\packages\\belt-v1.garmentpkg",
+        "sha256": "5817ea66475ffa40f4c27277499c9f7cdd3b89f1565f68ba510b643dc85d13b8",
+        "file_bytes": 1654,
+        "expanded_bytes": 2835,
+        "kind": "PACKAGE_INVENTORY_ONLY"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\packages\\buckle-v1.partpkg",
+        "sha256": "dc5d34cb525cb839ec1dab2366700052030980656f8db236e41856714bd3695f",
+        "file_bytes": 2357960,
+        "expanded_bytes": 2385081,
+        "kind": "PACKAGE_INVENTORY_ONLY"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\packages\\coat-v1.garmentpkg",
+        "sha256": "a51a8c782fa908a11dad6d69fb8a488df6df12d67af580798c70d5f5cbbc0253",
+        "file_bytes": 6567,
+        "expanded_bytes": 57259,
+        "kind": "PACKAGE_INVENTORY_ONLY"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\packages\\hood-yoke-v1.garmentpkg",
+        "sha256": "d2cbf768f1ec2fc83613c929308e2f27c5675cd4ad6e5d371246729ecc40080c",
+        "file_bytes": 8182,
+        "expanded_bytes": 57031,
+        "kind": "PACKAGE_INVENTORY_ONLY"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\atlas\\manifest.json",
+        "sha256": "85805385fcd202496bb554fcc35d7a8547e0c209e186c04c8dc66b5e6dd48826",
+        "file_bytes": 10859,
+        "expanded_bytes": 10859,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\body-context-v1.json",
+        "sha256": "70a34fc0be73f50454e2380fca75bf7d9fa8e2bc7ea6d44b1f9c053423fd07e3",
+        "file_bytes": 519,
+        "expanded_bytes": 519,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\buckle\\package\\front.png",
+        "sha256": "fe6c93338c3cc5c6fe005d934c0098ed3dd1f74ea382a9ebc008d852ecaf507e",
+        "file_bytes": 1157319,
+        "expanded_bytes": 1157319,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\buckle\\package\\left.png",
+        "sha256": "779310e227fa271c61d2c04482a81ddbac0d780eb2c4459b5b7f780c03564c17",
+        "file_bytes": 1225552,
+        "expanded_bytes": 1225552,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\closed-collar-target-review-v1\\comparison.json",
+        "sha256": "8a46c39b864f40adf07d2daec83969af3c51e68f6fbb86c750504a9a7fb37d41",
+        "file_bytes": 31848,
+        "expanded_bytes": 31848,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\closed-collar-target-review-v1\\intent.json",
+        "sha256": "115b731463f3ac5c590e7e92828e2df391dee344556e484aac7a9834933ce80f",
+        "file_bytes": 686,
+        "expanded_bytes": 686,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\coat-ease-design-decision-v1.json",
+        "sha256": "d564f336f3741eabd479a4b6afe00077d7103c853b3eaa5e0a4681c480066223",
+        "file_bytes": 4983,
+        "expanded_bytes": 4983,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\coat-ease-review-v2.md",
+        "sha256": "fa35fd9767ba38b3e4c979b1c5ec2d02b43b2780683771837862b34d6bf5cb97",
+        "file_bytes": 3209,
+        "expanded_bytes": 3209,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\coat-ease-target-proposal-v1.json",
+        "sha256": "7cfcf7c6426bde40f3b82df58b8c0e571c5bd6c560b59dbb99644c48378a3ceb",
+        "file_bytes": 7495,
+        "expanded_bytes": 7495,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\coat-fit-measurement-context-current-v1.json",
+        "sha256": "340f4cab3df4215e3306045af9b3cfa10f3189ba6b57ad63926cf8d86f3c5bde",
+        "file_bytes": 4488,
+        "expanded_bytes": 4488,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\construction-dossier.json",
+        "sha256": "80acf6fb94c43f4179202add23d968c0fede22f1ec56abe73904049964670a40",
+        "file_bytes": 100481,
+        "expanded_bytes": 100481,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\exploded-board-v1.png",
+        "sha256": "c5201a56be041336dfd7b78f9bfb52976b9fac6aa2ad09012d79760628d03f1a",
+        "file_bytes": 1229069,
+        "expanded_bytes": 1229069,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\patronage-runtime-review-v10\\fit-profile.json",
+        "sha256": "7357a2398452ef552b0e70cb6832bb8c7ff166759723f720bcd401ce53ff2652",
+        "file_bytes": 2775,
+        "expanded_bytes": 2775,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\production-metadata-composed-v1.json",
+        "sha256": "73640c7c46bf413a8c8cc31af3f0f1f4ee620b74eb9530c11635ec3a3d800799",
+        "file_bytes": 21966,
+        "expanded_bytes": 21966,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\public-source-preparation-v3\\guides.json",
+        "sha256": "43eb5587d201db505c44f2896a5944afa8dbbb4fcaa1abc7624eea9cc3745593",
+        "file_bytes": 20237764,
+        "expanded_bytes": 20237764,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\source-body-path-review-input-v1.json",
+        "sha256": "2d41c48669fdd26d88e1155e8c952ea7359d01936ec8f93e7b8280299b7a8201",
+        "file_bytes": 427,
+        "expanded_bytes": 427,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\source-body-path-review-v3\\report.json",
+        "sha256": "7970df4e54293f676bed2f00feb65aba5472c34b1ce0e5b1124a792c130d1c4e",
+        "file_bytes": 63880,
+        "expanded_bytes": 63880,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\source-row-grading-inputs-v3\\compiled.json",
+        "sha256": "1ca0e505a8e46929b7d28a9e73217efa004ec4530bdc3ca1178c0be392b3a59b",
+        "file_bytes": 244176,
+        "expanded_bytes": 244176,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\source-row-grading-inputs-v3\\decision.json",
+        "sha256": "e947737eb2346589fdbae32e3a49799c195f15683def126ad904f533549f7cdb",
+        "file_bytes": 9926,
+        "expanded_bytes": 9926,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\source-row-grading-inputs-v3\\policy.json",
+        "sha256": "da492483a7376d5d251b8727fd21883e8d80d9162cfcdc45f559b3ceddf4f297",
+        "file_bytes": 9429,
+        "expanded_bytes": 9429,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\source-row-pattern-review-v1\\closeups.png",
+        "sha256": "22776309d7c63d75f3b6bf79ca7f43179db2a5935621c07a2657ae35c12715d5",
+        "file_bytes": 179447,
+        "expanded_bytes": 179447,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\references\\original-triptyque.png",
+        "sha256": "1d158fe59b9ae9a055d32c00754d9df816a94abd494fe42191b2d59240034701",
+        "file_bytes": 2317743,
+        "expanded_bytes": 2317743,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\sources\\mannequins\\a6ce27875ff6464796879419ace0950c\\anatomy-adapter.json",
+        "sha256": "fead9633e6c32ab202c2058fb26b189db8b1bbefc6a7463d99067192d32382a0",
+        "file_bytes": 3830,
+        "expanded_bytes": 3830,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\sources\\mannequins\\a6ce27875ff6464796879419ace0950c\\body.blend",
+        "sha256": "674ed24c2042cfd65a03d45b9f7fd3b0eebec2cfd11fe1532cd9b168550ee750",
+        "file_bytes": 1244609,
+        "expanded_bytes": 1244609,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\sources\\mannequins\\a6ce27875ff6464796879419ace0950c\\selection.json",
+        "sha256": "957f26ee28fd9842686ab0bf8bbc3fd851e3f7cc1c385a69677afd05ffe7e808",
+        "file_bytes": 503,
+        "expanded_bytes": 503,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\variants\\ease-variant-dense-v2\\candidate-dossier.json",
+        "sha256": "7d98d25c6fb9e253b2c30be7ec3281e3840e8902cb4a2f216a06427d5da748fd",
+        "file_bytes": 97878,
+        "expanded_bytes": 97878,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\variants\\ease-variant-dense-v2\\packages\\garment.coat.garmentpkg",
+        "sha256": "771eddd4dec57f4c938d8b16932ee0a3757c9cc9b5c73ea8675bf2a2f9742bad",
+        "file_bytes": 19103,
+        "expanded_bytes": 152593,
+        "kind": "PACKAGE_INVENTORY_ONLY"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\variants\\ease-variant-dense-v2\\proposal.json",
+        "sha256": "4d4c63fef0fb1d7e39093069ed981c10480da50bdf1d0aecb0f5422f9ecbde6a",
+        "file_bytes": 304426,
+        "expanded_bytes": 304426,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\variants\\ease-variant-dense-v2\\review-patterns.png",
+        "sha256": "be3d2c8a6fafbbc1d2727ba8024e2dca6d60cdffd2c8f5d271fbd3ab79e4de0b",
+        "file_bytes": 66450,
+        "expanded_bytes": 66450,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\variants\\ease-variant-dense-v2\\sleeve-pattern-decision-v1.json",
+        "sha256": "6bc1d81b01b8c540af7dd4553de4eb1cb07da718f25b28b32e9b528f4f275bc4",
+        "file_bytes": 2041,
+        "expanded_bytes": 2041,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\variants\\source-row-grading-v3\\candidate-dossier.json",
+        "sha256": "17a7e313542a1708e0588feec48beb91789f9fbd9fa8bf90606b2e02fdb2f493",
+        "file_bytes": 98573,
+        "expanded_bytes": 98573,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\variants\\source-row-grading-v3\\packages\\garment.coat.garmentpkg",
+        "sha256": "3ba1ffe6a5b647fb41db388476e118fdaf2f4ee57e4e3c4a8c3c624915faddf1",
+        "file_bytes": 20705,
+        "expanded_bytes": 154614,
+        "kind": "PACKAGE_INVENTORY_ONLY"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\variants\\source-row-grading-v3\\proposal.json",
+        "sha256": "54537d847b8e14b4c65cd6077ac34b415ad30906995cf8550c19aea9522299a0",
+        "file_bytes": 302185,
+        "expanded_bytes": 302185,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\robe-bleu-nuit-nouveau-20261003\\.a3d\\decisions\\pipeline-71556fdee1534ea7943eb4c0717ad86b.json",
+        "sha256": "8a1d6560363a17d77da69fb5a0a2571dcf6fb78091728c9a55148f5755a81849",
+        "file_bytes": 4202,
+        "expanded_bytes": 4202,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\robe-bleu-nuit-nouveau-20261003\\.a3d\\evidence\\exploded-generation-50e5378fbca148a2bdb3dae9840f6f82.json",
+        "sha256": "246479c2854941c0e5e197bcc53ed105fac1aa4e87241b294f3f497857e0933f",
+        "file_bytes": 894,
+        "expanded_bytes": 894,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\robe-bleu-nuit-nouveau-20261003\\.a3d\\evidence\\exploded-request-8411c33549a844de8f9cb9ffae590a15.json",
+        "sha256": "48f12f53bae33c0a00eda2e9bc5c55759c869e90d959357d0e6ec88e1f7bfc3d",
+        "file_bytes": 50690,
+        "expanded_bytes": 50690,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\robe-bleu-nuit-nouveau-20261003\\.a3d\\outputs\\construction-c1f0612ceb914bb284d2129480439984\\board.json",
+        "sha256": "ab171bfc1e3a393df6a831f3d31dde8f45a75b3ad5620a34f90ed94b4b32a0ae",
+        "file_bytes": 2570,
+        "expanded_bytes": 2570,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\robe-bleu-nuit-nouveau-20261003\\.a3d\\outputs\\construction-c1f0612ceb914bb284d2129480439984\\board.svg",
+        "sha256": "6fe065eb278c23351a326c85a27a4a2c173a6c32b0773935e66042b9016636e5",
+        "file_bytes": 14102901,
+        "expanded_bytes": 14102901,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\robe-bleu-nuit-nouveau-20261003\\.a3d\\outputs\\construction-c1f0612ceb914bb284d2129480439984\\dossier.html",
+        "sha256": "7d6c9216c54697c3735b3f06197d7efa12b041fa3b953c6ecd9f2ac3d56e0600",
+        "file_bytes": 3141446,
+        "expanded_bytes": 3141446,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\robe-bleu-nuit-nouveau-20261003\\packages\\belt-v1.garmentpkg",
+        "sha256": "5817ea66475ffa40f4c27277499c9f7cdd3b89f1565f68ba510b643dc85d13b8",
+        "file_bytes": 1654,
+        "expanded_bytes": 2835,
+        "kind": "PACKAGE_INVENTORY_ONLY"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\robe-bleu-nuit-nouveau-20261003\\packages\\buckle-v1.partpkg",
+        "sha256": "dc5d34cb525cb839ec1dab2366700052030980656f8db236e41856714bd3695f",
+        "file_bytes": 2357960,
+        "expanded_bytes": 2385081,
+        "kind": "PACKAGE_INVENTORY_ONLY"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\robe-bleu-nuit-nouveau-20261003\\packages\\coat-v1.garmentpkg",
+        "sha256": "a51a8c782fa908a11dad6d69fb8a488df6df12d67af580798c70d5f5cbbc0253",
+        "file_bytes": 6567,
+        "expanded_bytes": 57259,
+        "kind": "PACKAGE_INVENTORY_ONLY"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\robe-bleu-nuit-nouveau-20261003\\packages\\hood-yoke-v1.garmentpkg",
+        "sha256": "d2cbf768f1ec2fc83613c929308e2f27c5675cd4ad6e5d371246729ecc40080c",
+        "file_bytes": 8182,
+        "expanded_bytes": 57031,
+        "kind": "PACKAGE_INVENTORY_ONLY"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\robe-bleu-nuit-nouveau-20261003\\preparation\\atlas\\manifest.json",
+        "sha256": "85805385fcd202496bb554fcc35d7a8547e0c209e186c04c8dc66b5e6dd48826",
+        "file_bytes": 10859,
+        "expanded_bytes": 10859,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\robe-bleu-nuit-nouveau-20261003\\preparation\\buckle\\package\\front.png",
+        "sha256": "fe6c93338c3cc5c6fe005d934c0098ed3dd1f74ea382a9ebc008d852ecaf507e",
+        "file_bytes": 1157319,
+        "expanded_bytes": 1157319,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\robe-bleu-nuit-nouveau-20261003\\preparation\\buckle\\package\\left.png",
+        "sha256": "779310e227fa271c61d2c04482a81ddbac0d780eb2c4459b5b7f780c03564c17",
+        "file_bytes": 1225552,
+        "expanded_bytes": 1225552,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\robe-bleu-nuit-nouveau-20261003\\preparation\\construction-dossier.json",
+        "sha256": "80acf6fb94c43f4179202add23d968c0fede22f1ec56abe73904049964670a40",
+        "file_bytes": 100481,
+        "expanded_bytes": 100481,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\robe-bleu-nuit-nouveau-20261003\\preparation\\exploded-board-v1.png",
+        "sha256": "c5201a56be041336dfd7b78f9bfb52976b9fac6aa2ad09012d79760628d03f1a",
+        "file_bytes": 1229069,
+        "expanded_bytes": 1229069,
+        "kind": "ORDINARY_FILE"
+      },
+      {
+        "path": "G:\\projets\\atelier-3d\\work\\robe-bleu-nuit-nouveau-20261003\\references\\original-triptyque.png",
+        "sha256": "1d158fe59b9ae9a055d32c00754d9df816a94abd494fe42191b2d59240034701",
+        "file_bytes": 2317743,
+        "expanded_bytes": 2317743,
+        "kind": "ORDINARY_FILE"
+      }
+    ]
+  },
+  "production_binding": "NOT_CHANGED",
+  "source_revision": "ADOPTION_REQUIRED",
+  "execution": "NOT_AUTHORIZED",
+  "fitting": "NOT_QUALIFIED",
+  "Blender_execution": false,
+  "installed_runtime_changed": false,
+  "next": "Implement canonical source adoption with dependent evidence invalidation, then prepare torso coverage and shoulder guides through native operations.",
+  "historical_attempts": [
+    {
+      "attempt": 1,
+      "status": "REFUSED_CODE_CHANGED_DURING_PREPARATION"
+    },
+    {
+      "attempt": 2,
+      "status": "PASS_BEFORE_ARCHIVE_PREFLIGHT_CORRECTION"
+    },
+    {
+      "attempt": 3,
+      "status": "REFUSED_UNUSED_ANCESTRAL_OUTPUT_REQUIRED_BY_PREFLIGHT"
+    },
+    {
+      "attempt": 4,
+      "status": "PASS_CHECKOUT_WITH_DIFFERENT_SCHEMA_LINE_ENDINGS"
+    }
+  ],
+  "software_validation": {
+    "scope": "EXPORTED_SOURCE_SOFTWARE_ONLY",
+    "source_commit": "8e40c2a2578603b53235247a66ad2fa0ed5ad6f4",
+    "tests": 1915,
+    "skipped": 0,
+    "receipt_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-source-revision-full-validation-v1\\validation.json",
+      "sha256": "e9ba2761ccc4edc55c70609b26f817f25133757528fd53d7a333ee500c91a21c"
+    },
+    "git_archive_sha256": "7c108da602c33ce1e28636bceead79a341ab71f1f31738fb6b236e58375298fd",
+    "probe_code_matches_export": true,
+    "contracts_receipt_ref": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-source-revision-full-validation-v1\\contracts-receipt.json",
+      "sha256": "11c3c22c215840de359fc336577d6fb27a2b1e0da0a140f1d65487661c0c46f2"
+    }
+  }
+}

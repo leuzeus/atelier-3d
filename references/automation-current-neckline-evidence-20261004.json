@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "status": "CURRENT_COMPOSITION_PORTABLE_EVIDENCE_RECORDED",
+  "purpose": "TEST_ONLY",
+  "qualification": "NONE",
+  "product_admission": "NONE",
+  "source60_identity": "70c9fd8adbddb38366a8b323469ad273eda4fb4204bcab801debdb22ddea040d",
+  "composition_dossier_sha256": "620457742c3038ed981976ccb641558a269a8e042d651c3bbee3d01039c01711",
+  "composed_package_sha256": "771eddd4dec57f4c938d8b16932ee0a3757c9cc9b5c73ea8675bf2a2f9742bad",
+  "curve": {
+    "status": "PROPOSED_SOURCE_CHAIN_TEST_ONLY",
+    "reference_identity": "c63d43dec48588806cb435ad6925b7d07dbe9232d13561083177de7a77dce4a3",
+    "iterations": 11,
+    "elapsed_seconds": 3.4540000000270084,
+    "source_segments": 12,
+    "source_subdivisions": 362,
+    "all_lengths_IEEE_satisfied": true,
+    "accepted_actual_max_step_cm": 0.4999999999999899,
+    "accepted_actual_max_displacement_cm": 1.3284480315009943,
+    "V9_gates_transferred": false,
+    "surface_qualification": "NONE"
+  },
+  "auxiliary_cage_preflight": {
+    "status": "AUXILIARY_CAGE_PREFLIGHT_REFUSED_SOURCE_QUALITY_NO_OPTIMIZATION",
+    "full_reference_sha256": "eec699d47533eb7897572213da9053afc6e4603bb26b182fa1358dad7816a23f",
+    "control_count": 20278,
+    "triangle_count": 38316,
+    "internal_permanent_seams": 13,
+    "injected_owner_count": 730,
+    "physical_pin_count": 0,
+    "declared_quality_profiles": {
+      "exploratory_declared": {
+        "min_angle_degrees": 2,
+        "min_edge_cm": 0.001,
+        "min_stretch": 0.9,
+        "max_stretch": 1.1
+      },
+      "native_effective_declared": {
+        "min_angle_degrees": 15.0,
+        "min_edge_cm": 0.001,
+        "min_stretch": 0.9,
+        "max_stretch": 1.1
+      }
+    },
+    "refused_before": {
+      "exploratory_declared": [
+        "degenerate_or_sliver",
+        "short_edge",
+        "compression",
+        "stretch",
+        "principal_compression",
+        "principal_stretch"
+      ],
+      "native_effective_declared": [
+        "degenerate_or_sliver",
+        "short_edge",
+        "compression",
+        "stretch",
+        "principal_compression",
+        "principal_stretch"
+      ]
+    },
+    "refused_after": {
+      "exploratory_declared": [
+        "degenerate_or_sliver",
+        "short_edge",
+        "compression",
+        "stretch",
+        "principal_compression",
+        "principal_stretch"
+      ],
+      "native_effective_declared": [
+        "degenerate_or_sliver",
+        "short_edge",
+        "compression",
+        "stretch",
+        "principal_compression",
+        "principal_stretch"
+      ]
+    },
+    "UV_topology_original_source_provenance_unchanged": true,
+    "optimization_executed": false,
+    "pattern_feasibility": "NOT_ASSESSED",
+    "physical_mesh_qualification": "NONE"
+  },
+  "execution": {
+    "current_project": "NOT_EXECUTED",
+    "Blender": "NOT_EXECUTED",
+    "SQLite": "NOT_CONNECTED",
+    "aggregate_budget": "NON_INSTALLABLE_INCOMPLETE"
+  },
+  "scope": {
+    "L4": "PARTIAL",
+    "L5": "NOT_ADMITTED",
+    "Cloth": "NOT_QUALIFIED",
+    "fitting": "NOT_QUALIFIED",
+    "garment_motion": "NOT_QUALIFIED",
+    "artistic_review": "NOT_PERFORMED",
+    "final_prerelease": "NOT_PUBLISHED",
+    "new_installation": "NOT_PERFORMED"
+  },
+  "references": {
+    "program-current-neckline-curve-replay-v1/FROZEN.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-neckline-curve-replay-v1\\FROZEN.json",
+      "sha256": "071e06176df28dcd760558de3709470fc77d3a9bae58ac987e9a4a7bfe86f434"
+    },
+    "program-current-neckline-curve-replay-v1/receipt.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-neckline-curve-replay-v1\\receipt.json",
+      "sha256": "243882746836ca92494fe397a8777fc40fd7b2ee4dfe483efa4d86c2c755ac57"
+    },
+    "program-current-neckline-curve-replay-v1/result.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-neckline-curve-replay-v1\\result.json",
+      "sha256": "6d78fda6ea6d3635d9342a7d04d3b8e56f7a9ae189e7f2be4a4872d812d64453"
+    },
+    "program-current-neckline-curve-review-v1/FROZEN.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-neckline-curve-review-v1\\FROZEN.json",
+      "sha256": "7a68387b02e5ba3192d006a43fba766a8cb24c0a76b270c7dc1acdf8bb887848"
+    },
+    "program-current-neckline-curve-review-v1/receipt.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-neckline-curve-review-v1\\receipt.json",
+      "sha256": "7948be43f7b9ef4497a341583d2d8ac669132dc10f86895282e09370c9d6cdf3"
+    },
+    "program-current-neckline-curve-review-v1/report.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-neckline-curve-review-v1\\report.json",
+      "sha256": "280dcc34922aa0d49b749667d39858cc4ed093b58b2869d2df2555097569958d"
+    },
+    "program-joint-neckline-surface-contract-v1/FROZEN.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-joint-neckline-surface-contract-v1\\FROZEN.json",
+      "sha256": "ae716399667390353751f031ebbdbe68523ef8f7aeee1b0ae96a77e915edb8ea"
+    },
+    "program-joint-neckline-surface-contract-v1/receipt.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-joint-neckline-surface-contract-v1\\receipt.json",
+      "sha256": "473348ea0d8ddc1afb13837ca1c049448b0386866375faaf7c3e20b2dc4169a9"
+    },
+    "program-joint-neckline-surface-contract-v1/report.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-joint-neckline-surface-contract-v1\\report.json",
+      "sha256": "a5403f7bc9b77fea71246ca647d2ec3008210c1830bc6a46f679d6989c34f220"
+    },
+    "program-joint-neckline-cage-preflight-v1/FROZEN.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-joint-neckline-cage-preflight-v1\\FROZEN.json",
+      "sha256": "4cbf6ba37ea1316dfeeeec6caf6eef33da1f4d62ef6936e3157f8064317a305b"
+    },
+    "program-joint-neckline-cage-preflight-v1/receipt.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-joint-neckline-cage-preflight-v1\\receipt.json",
+      "sha256": "790d56d9fe260a232eb505175a6c1b316df3d71530fec5f44a76e6f02cfaf645"
+    },
+    "program-joint-neckline-cage-preflight-v1/report.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-joint-neckline-cage-preflight-v1\\report.json",
+      "sha256": "a7b24c35f3e3a7007a084504a8ceddd429ae02979507519f9d746534fd1df929"
+    },
+    "program-ci-docs62-v1/receipt.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-ci-docs62-v1\\receipt.json",
+      "sha256": "4f1a19f0b4ac6e0cb24d5583108730ccf38ccb4ccec22299a351881f02388c81"
+    },
+    "program-pr22-utf8-verification-v12/receipt.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-pr22-utf8-verification-v12\\receipt.json",
+      "sha256": "757de4c9a9556a2e53ac02b8e33a6759616b37c376dc5cd445e6315a8fc9e6f5"
+    }
+  },
+  "frozen_files_preserved": true
+}

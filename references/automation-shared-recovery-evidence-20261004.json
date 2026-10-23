@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "status": "REVIEWED_SHARED_RECOVERY_SOFTWARE_INTEGRATED",
+  "commit": "92764229d52ae8cffccde218bc396e8b4bcbf9a4",
+  "source_identity_sha256": "baa4c97054734addec732e268e39052c35abfd82f8ac56425f9a535bf94c0c42",
+  "files_count": 514,
+  "qualification": "NONE",
+  "product_admission": "NONE",
+  "API": {
+    "optional_parameters": [
+      "displacement_reference",
+      "deadline"
+    ],
+    "reference_scope": "FRESH_GUIDE_BEFORE_PREVIOUS_CORRECTION",
+    "displacement_budget_reset": false,
+    "strict_actual_step_budget": true,
+    "expired_deadline_allows_admission": false,
+    "deadline_mode": "COOPERATIVE",
+    "legacy_receipt_form_preserved_when_options_absent": true,
+    "physical_pins_inferred": false
+  },
+  "validation": {
+    "targeted_tests": 79,
+    "new_tests": 23,
+    "independent_extra_probes": 8,
+    "legacy_receipts_exact": 12,
+    "extra_legacy_clock_counts": [
+      11,
+      5,
+      33
+    ],
+    "portable_tests": 1095,
+    "portable_test_seconds": 229.823,
+    "portable_launch_seconds": 232.10899999999674,
+    "independent_contracts": 14,
+    "source_snapshot_preserved": true,
+    "all_distribution_bytes_match_git": true
+  },
+  "local_development_build": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-local-build-source61-v1\\atelier-3d-development-source61.zip",
+    "bytes": 2878882,
+    "sha256": "d2f0ecc2d2c980000c4e0c6e3c62d82ee15b068e50ab8c32b92e15ca7d6a7f50",
+    "declared_version": "0.7.0-rc.2",
+    "installed": false,
+    "released": false
+  },
+  "remaining": {
+    "six_auxiliary_cages": "REFUSED_SOURCE_QUALITY_BEFORE_OPTIMIZATION",
+    "postprocess_guide_provenance": "NOT_IMPLEMENTED",
+    "contact_numeric_constraint_transport": "NOT_IMPLEMENTED",
+    "physical_mesh_remapping": "NOT_QUALIFIED",
+    "placement": "NOT_ADMITTED",
+    "Cloth": "NOT_QUALIFIED",
+    "fitting": "NOT_QUALIFIED",
+    "garment_motion": "NOT_QUALIFIED",
+    "artistic_review": "NOT_PERFORMED",
+    "final_prerelease": "NOT_PUBLISHED",
+    "installation": "NOT_PERFORMED"
+  },
+  "references": {
+    "program-guide-metric-shared-reference-v1/FROZEN.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-metric-shared-reference-v1\\FROZEN.json",
+      "sha256": "6d5743bc5f6d9f7aeeb00495e874ac331f0923fcbdeaa492fbf18ec9d782fb2b"
+    },
+    "program-guide-metric-shared-reference-v1/receipt.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-metric-shared-reference-v1\\receipt.json",
+      "sha256": "ffaff3311fad4db7538f4c5862ecf910af5be785b4c7a0c4f2e1315596e69b5c"
+    },
+    "program-guide-metric-shared-reference-v1/report.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-metric-shared-reference-v1\\report.json",
+      "sha256": "cb466fdbe2034c6c4700749fa59fa03712ebde42b6f85e37b85bb443bc1df56a"
+    },
+    "program-guide-metric-shared-reference-review-v1/FROZEN.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-metric-shared-reference-review-v1\\FROZEN.json",
+      "sha256": "a06bc8310d5fa8dde9460de1482dfb0492d0ad073d46e800849b9e466cef1603"
+    },
+    "program-guide-metric-shared-reference-review-v1/receipt.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-metric-shared-reference-review-v1\\receipt.json",
+      "sha256": "abf566d66f2429569bf7a71786d323eecf8953ee094f01103705e6ebcaac2440"
+    },
+    "program-guide-metric-shared-reference-review-v1/report.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-metric-shared-reference-review-v1\\report.json",
+      "sha256": "6fb4318a000ef88ab5a19da18937a61f021db4d21605b9ff5f823765b091b6fe"
+    },
+    "program-runtime-source-v61/capture.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v61\\capture.json",
+      "sha256": "af51ab03d6ab9aa40ec1f84d9bd484538763f849dc7e34dad3642642a677e2e9"
+    },
+    "program-portable-source61-v1/launch-receipt.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source61-v1\\launch-receipt.json",
+      "sha256": "b7affc009f191912b2ef4bf769572083d18d519d1434ed6e9195be28236a571d"
+    },
+    "program-portable-source61-v1/contracts.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source61-v1\\contracts.json",
+      "sha256": "280bba06ee6175e26bf26384812766fc2c74eecec5ef1f4893f2892796371653"
+    },
+    "program-local-build-source61-v1/receipt.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-local-build-source61-v1\\receipt.json",
+      "sha256": "58eded777f1158948735786fedd63de097d2de56db3384fb59e237ee2f12373a"
+    }
+  }
+}

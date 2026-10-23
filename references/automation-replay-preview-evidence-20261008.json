@@ -1,0 +1,175 @@
+{
+  "version": 1,
+  "recorded_at": "2026-10-08T16:57:07.819636+00:00",
+  "source_commit": "83723ab40eacef4806332a554469d5297c88417b",
+  "status": "SOFTWARE_VALIDATED_GARMENT_GUIDES_REFUSED",
+  "validation": {
+    "tests": 2127,
+    "skipped": 0,
+    "contracts": 14,
+    "seconds": 487.173
+  },
+  "source_epoch": "19ca533d1eabf37df59bf934d22925001a464a71bddc7cba9e3b6366a2a6f640",
+  "source_bindings": "UNCHANGED",
+  "body": "UNCHANGED",
+  "human_decisions": "UNCHANGED",
+  "canonical_revision": 98,
+  "components": {
+    "garment.belt": {
+      "status": "GARMENT_GUIDES_PREPARED",
+      "piece_ids": [
+        "belt"
+      ],
+      "pending_pieces": []
+    },
+    "garment.coat": {
+      "status": "PARTIAL_GUIDES",
+      "piece_ids": [
+        "back-left",
+        "back-right",
+        "collar",
+        "cuff-left",
+        "cuff-right",
+        "front-left",
+        "front-right",
+        "inner-front",
+        "sleeve-left",
+        "sleeve-right"
+      ],
+      "pending_pieces": []
+    },
+    "garment.hood-yoke": {
+      "status": "GARMENT_GUIDES_PREPARED",
+      "piece_ids": [
+        "hood-left",
+        "hood-right",
+        "yoke-lower",
+        "yoke-upper"
+      ],
+      "pending_pieces": []
+    }
+  },
+  "coupling": {
+    "status": "PROPOSAL_INCOMPLETE",
+    "termination": "ITERATION_BUDGET_EXHAUSTED",
+    "iterations": 8,
+    "rigid_iterations": 4,
+    "initial": {
+      "material_energy": 2769242066.813714,
+      "max_edge_strain": 9001.274950134175,
+      "max_seam_gap_cm": 20.165041046983447,
+      "objective": 2769242066.8231015,
+      "position_energy": 0.0,
+      "seam_energy": 0.009387492916044285
+    },
+    "best": {
+      "material_energy": 2769242066.813714,
+      "max_edge_strain": 9001.274950134175,
+      "max_seam_gap_cm": 16.956318187645,
+      "objective": 2769242066.8188276,
+      "position_energy": 2.6323835434276382e-06,
+      "seam_energy": 0.005110707149445868
+    },
+    "best_phase": "WHOLE_PIECE_RIGID_TRANSLATION",
+    "min_principal_stretch": 0.016973442605986773,
+    "max_principal_stretch": 9926.585882105548
+  },
+  "attachment_status": "ANATOMICAL_ATTACHMENTS_PRESERVED",
+  "image_scope": {
+    "count": 16,
+    "represented_textile_pieces": 10,
+    "missing": [
+      "hood",
+      "yokes",
+      "belt",
+      "buckle"
+    ],
+    "origin": "SAVED_PORTABLE_GUIDE_GEOMETRY",
+    "simulation": "NOT_EXECUTED"
+  },
+  "files": {
+    "validation": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-source-boundary-validation-v1\\validation.json",
+      "sha256": "3e07ed61128b9b11bbe2b524486f06ed7b48398c9d8772632d43e9da35390842"
+    },
+    "revalidation": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-anatomical-0802-v2\\revalidation\\receipt.json",
+      "sha256": "b7bddc9e9a5e7f77fbd5b5381af96bbc2fc86ee517d54078e74aaf364eafbb0f"
+    },
+    "canonical_revalidation": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\source-software-revalidation-0802-v2\\revalidation.json",
+      "sha256": "558abd6278d6da45de39bf9f33f54c3efb6c96f6cbb2351d710c1b3bcd577969"
+    },
+    "full_compile_refusal": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-anatomical-0802-v2\\compilation\\result.json",
+      "sha256": "fef15e67da27d52dd62e8d2b32311353cabda86b8f47bddcb746d1e76de7b386"
+    },
+    "preview_request": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-anatomical-0802-v2\\preview-request.json",
+      "sha256": "d5c3c4fde9287e2805becaec3ea7087f300daaff696b2e061b82bc1970f05198"
+    },
+    "preview_compile_receipt": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-anatomical-0802-v2\\preview-compilation\\receipt.json",
+      "sha256": "2dbce6a4f8d628fc8a1873a880ace05a82672324808b52d791d82fa7741a1328"
+    },
+    "preview_compile_refusal": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-anatomical-0802-v2\\preview-compilation\\result.json",
+      "sha256": "fbcba0a1089cfb72ee47dc3644b8e4fdd6101dc68e694ebdba0aea48b09cac49"
+    },
+    "guide_inputs": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\anatomical-preview-parameters-v1\\variant-receipt.json",
+      "sha256": "89b4a24353d6134fbc3859977b215bef27b30493dd7baa6e8e0544a011119205"
+    },
+    "guides": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\public-anatomical-preview-v1\\guides.json",
+      "sha256": "21eac65ccd8156bd46616d8ae47c525c4b02ae109cc99154410441d5ab1af4b5"
+    },
+    "visual_manifest": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-anatomical-0802-v2\\preview\\current-diagnostic-8iterations\\manifest.json",
+      "sha256": "059fabeb81b137af7afc6adc12c2f4fbee665937d77c53eeffea8133bb1488ab"
+    },
+    "current_overview": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-anatomical-0802-v2\\preview\\current-diagnostic-8iterations\\board-overview.png",
+      "sha256": "305d06d77d40390c7a715934b27791917f691da6d0909622b166ae76eb2c70af"
+    },
+    "current_closeups": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-anatomical-0802-v2\\preview\\current-diagnostic-8iterations\\board-details.png",
+      "sha256": "f091e19a474ca0fb6476cc1fbeeb885c8946f24e9a3cb5564dc78e4a0214c4bd"
+    },
+    "historical_overview": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-anatomical-0802-v2\\preview\\historical-v5\\board-overview.png",
+      "sha256": "f04c9a4b536e9d6319face0e7e7347000e3d2523b77ab1bab9edd730883b6ab3"
+    },
+    "source_mesh_probe": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-source-boundary-rounding-fix-v1\\source-probe.json",
+      "sha256": "8ccac8f63490aaf15ed0c4908b45968da4ed09077806cada5379056087b299f6"
+    },
+    "regional_probe": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\anatomical-placement-0801-v1\\regional-adjacent-arm-probe.json",
+      "sha256": "e3b704add11cea4ee660d1f01340e7678b3502fb97812aa9282f96154aea9992"
+    },
+    "regional_area_metrics": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\anatomical-placement-0801-v1\\regional-adjacent-arm-area-metrics.json",
+      "sha256": "68a07a1abf0707ebc6c11e7fc000789804f0fee2ea36eac4e4587705958e7c24"
+    },
+    "stage_preparation": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-anatomical-revalidation-local-build-v1\\installation-preparation.json",
+      "sha256": "fe8e35f5095a882cd94be1fcf053dafdf46316286c4e2e11d48085ecc8003cdd"
+    },
+    "preview_renderer": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\development-tools-v1\\render_guide_preview.py",
+      "sha256": "ec5f27d595e41a19e995698c70a937efce5b96598cfc3269e99e7e9a882475e4"
+    }
+  },
+  "local_build": {
+    "version": "0.7.0-rc.2.dev.2026100802",
+    "prepared_files": 741,
+    "installed": false,
+    "connected_runtime": "0801"
+  },
+  "native_execution": false,
+  "qualification": "NONE",
+  "fitting": "NOT_EXECUTED",
+  "artistic_review": "NOT_RECORDED",
+  "next": "Diagnose transverse collar frame continuity and surface/material coupling; show every resulting candidate before native preparation."
+}

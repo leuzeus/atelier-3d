@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "status": "PORTABLE_FIX_VALIDATED_REAL_HISTORICAL_DESCRIPTOR_AUTHENTICATED",
+  "cause": "Returned restoration changed the live session before its second historical receipt check; session.json and working-recovered scenes were not archived as mutable projections",
+  "source_sha256": {
+    "a3d/run_projection_archive.py": "076891651186a2b3c19b7afd0bdc4456eaebc386f13e986faac12b9c1a44411e",
+    "a3d/runs.py": "59c12e71efa6ac405564fdb19b3aa3b3414488d21dd48672ff35e3dd19f902cf",
+    "blender/operations.py": "84c0e15cd31cf9347be63c195cab6c068dcdb5dd08024407a0fc61ffda678b62",
+    "tests/test_returned_run_recovery.py": "2d593309be2d109b1035d195dc4a213bb7a83c0a9f0eddedf07bc080fad23d41",
+    "tests/test_recovery_projection_archive.py": "a29d8975fb1e3d4c1f16d7878794508e08e0a13dee522d181f6c419650f1cc35"
+  },
+  "tests": {
+    "python311": {"status": "PASS", "count": 71, "seconds": 9.456, "log_sha256": "8878d423754c7807870ec86e087c0238ca57efc81269d74e514cdbb1dab52746"},
+    "python313": {"status": "PASS", "count": 71, "seconds": 11.481, "log_sha256": "877b91d6923dc7cce4bb725bb968d0069f8d315fb7d16272f38410c4eaa9c0e1"},
+    "scope": "Portable fixtures, including partial restoration and replacement of receipt bytes; fake Blender files are not native proof"
+  },
+  "independent_review": "One P2 receipt reread finding corrected; no P2 or higher remaining in reviewed code",
+  "native_failed_attempt": {
+    "runtime": "0.7.0-rc.2.dev.2026100504",
+    "operation": "restore_checkpoint",
+    "run_id": "run.04d8b017e9d340e4834eb1e26d4eafd0",
+    "attempt_id": "attempt.c5b8a1c8f91949edb10e65c54bca7477",
+    "outcome": "PARTIAL_SAVE_WITHOUT_COMPLETED_CANONICAL_RECOVERY",
+    "saved_working_path": ".a3d/blender/working-recovered-9f447501a5ab421fb0ce7931973301ce.blend",
+    "saved_working_sha256": "36b69a6249706b99208a2efc20bbc53660d26206d3012a52841c89e0591b0f0f",
+    "raw_error": "G:/projets/atelier-3d/work/garment-automation-v1/program-restart-verification-v1/restore-execution-error.json"
+  },
+  "historical_proof": {
+    "native_receipt_sha256": "caa5751a802762da7392eb2588b1f6e5445dd5b5c2ca767fb2e5b37e73ec19d6",
+    "native_receipt_event_id": 54,
+    "session_historical_sha256": "aba7b83c385c649d4e810c44b43aa9a0e1be6a5807baf6a7b3fc0f91947f3bef",
+    "session_reconstructed_bytes": 687,
+    "session_reconstruction": "Only working replaced in current managed JSON, exact entire historical SHA-256 required; no write during verification",
+    "checkpoint_sha256": "376aa273e226cef381f00a717d66db49f794e2c8450928189143c97adca7c301",
+    "working_historical_sha256": "ceb19ec18f2dd6a1331097100eddc050b15322531adb102dfc3d1b84a4c8b749",
+    "real_descriptor_python311": "PASS_READ_ONLY_DB_UNCHANGED",
+    "real_descriptor_python313": "PASS_READ_ONLY_DB_UNCHANGED",
+    "local_evidence_directory": "G:/projets/atelier-3d/work/garment-automation-v1/program-session-recovery-fix-v1",
+    "python311_receipt_sha256": "86734db831ddeddd338373e137203c889f779297a96562a6b5aac7352133327f"
+  },
+  "scope": {
+    "new_native_callbacks": "Session and recognized working scenes archived at their exact native origin",
+    "legacy_fallback": "RESTORATION_ONLY with authenticated canonical receipt and exact archived bytes",
+    "normal_replay": "Strict current references; no legacy fallback",
+    "historical_receipt_rewritten": false,
+    "restoration_after_fix": "NOT_EXECUTED",
+    "fitting": "NOT_EXECUTED",
+    "product_acceptance": "NOT_GRANTED"
+  }
+}

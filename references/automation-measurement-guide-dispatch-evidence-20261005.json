@@ -1,0 +1,137 @@
+{
+  "scope": "COLLAR_MEASUREMENT_GUIDE_REPRESENTATION_DISPATCH",
+  "qualification": "NONE",
+  "fitting": "NOT_EXECUTED",
+  "native": "NOT_EXECUTED",
+  "installed_runtime_changed": false,
+  "commits_created_by_worker": false,
+  "tests": {
+    "python311": {
+      "count": 28,
+      "elapsed_seconds": 0.49,
+      "status": "PASS",
+      "modules": [
+        "tests.test_collar_measurement_guide_dispatch",
+        "tests.test_garment_measurements"
+      ]
+    },
+    "python313": {
+      "count": 28,
+      "elapsed_seconds": 0.607,
+      "status": "PASS",
+      "modules": [
+        "tests.test_collar_measurement_guide_dispatch",
+        "tests.test_garment_measurements"
+      ]
+    }
+  },
+  "files_sha256": {
+    "source\\a3d\\garment_measurements.py": "c3c7f262b8bb669eef08c2579e584f0b092a453a0ff532fe5ec4523cd1dc3afe",
+    "source\\tests\\test_collar_measurement_guide_dispatch.py": "fd9a167e3afecf89881528af65056129837799fc4061a2830815d7011cdfe5aa",
+    "program-measurement-guide-dispatch-v1\\probe.py": "1dcc589a6991ff261a4eeccda62471df99db8bb34be2afc0cd99cbb38c87b17f",
+    "program-measurement-guide-dispatch-v1\\python311-receipt.json": "bb77fe3ca3d363482dbdd7bdda3b177c4077afe2a1f37adcdb77ab5241155332",
+    "program-measurement-guide-dispatch-v1\\python311-result.json": "2848e2b7eb8abd1463c2525526888b8cddcf475def39d63874124ffe60055c24",
+    "program-measurement-guide-dispatch-v1\\python311-tests.log": "2bae6a83df31641482c91c0f9ff7abae742fb8b0c5bb6df644149f0b21044283",
+    "program-measurement-guide-dispatch-v1\\python313-tests.log": "ca3cf097adf10eba921cf9ed3b3a547efbf8af3516d895021c9a44968336323d"
+  },
+  "coverage_policy": "Exact Fraction clipping of full source-UV row against actual cage triangles; all cell breaks and interval midpoints mapped by existing _cage_point.",
+  "plane_gate_cm": 1e-07,
+  "plane_gate_changed": false,
+  "material_source_changed": false,
+  "limitations": [
+    "Exact V2 read-only compilation returns8localized diagnostics and0proposals; no fit or homology approval.",
+    "Actual collar extreme rows are not wholly on measured neck plane; neither is accepted as neck circumference.",
+    "Three torso requests retain strict native sewing UV binary32 round-trip refusals.",
+    "V2 limb request uses no current authenticated measured body-region descriptor.",
+    "Source fix is not loaded by installedMCPdev2026100503 until separately built, installed and reloaded."
+  ],
+  "exact_input_diagnostic": {
+    "status": "READ_ONLY_COMPILER_RETURNED",
+    "compilation_status": "READY_TO_PLAN",
+    "measurement_status": "MEASUREMENT_PATH_PROPOSALS_NEED_REVIEW",
+    "elapsed_seconds": 31.008642399974633,
+    "input_files_unchanged": true,
+    "source_mutated": false,
+    "proposals": [],
+    "diagnostics": [
+      {
+        "id": "coat.chest",
+        "code": "HOMOLOGOUS_SOURCE_PATH_NEEDS_DATA",
+        "message": "Native sewing UV differs from its exact source parameter binary32 round-trip",
+        "source_open_collar_options_missing": null,
+        "collar_rows": []
+      },
+      {
+        "id": "coat.hip",
+        "code": "HOMOLOGOUS_SOURCE_PATH_NEEDS_DATA",
+        "message": "Native sewing UV differs from its exact source parameter binary32 round-trip",
+        "source_open_collar_options_missing": null,
+        "collar_rows": []
+      },
+      {
+        "id": "coat.neck",
+        "code": "HOMOLOGOUS_SOURCE_PATH_NEEDS_DATA",
+        "message": "Open collar needs one actual measured neck-plane source row with complete declared neckline attachments",
+        "source_open_collar_options_missing": null,
+        "collar_rows": [
+          {
+            "id": "coat.neck.open-source-endpoint-row.0",
+            "height_min_cm": 144.70469525563797,
+            "height_max_cm": 152.8728902279046,
+            "sample_count": 725,
+            "body_plane_correspondence": "ACTUAL_BODY_SECTION_AT_THIS_HEIGHT_REQUIRED"
+          },
+          {
+            "id": "coat.neck.open-source-endpoint-row.1",
+            "height_min_cm": 153.30705926473607,
+            "height_max_cm": 159.08467937210017,
+            "sample_count": 17,
+            "body_plane_correspondence": "ACTUAL_BODY_SECTION_AT_THIS_HEIGHT_REQUIRED"
+          }
+        ]
+      },
+      {
+        "id": "coat.upper-arm.left",
+        "code": "HOMOLOGOUS_SOURCE_PATH_NEEDS_DATA",
+        "message": "Actual measured anatomical limb section is missing",
+        "source_open_collar_options_missing": null,
+        "collar_rows": []
+      },
+      {
+        "id": "coat.upper-arm.right",
+        "code": "HOMOLOGOUS_SOURCE_PATH_NEEDS_DATA",
+        "message": "Actual measured anatomical limb section is missing",
+        "source_open_collar_options_missing": null,
+        "collar_rows": []
+      },
+      {
+        "id": "coat.waist",
+        "code": "HOMOLOGOUS_SOURCE_PATH_NEEDS_DATA",
+        "message": "Native sewing UV differs from its exact source parameter binary32 round-trip",
+        "source_open_collar_options_missing": null,
+        "collar_rows": []
+      },
+      {
+        "id": "coat.wrist.left",
+        "code": "HOMOLOGOUS_SOURCE_PATH_NEEDS_DATA",
+        "message": "Actual measured anatomical limb section is missing",
+        "source_open_collar_options_missing": null,
+        "collar_rows": []
+      },
+      {
+        "id": "coat.wrist.right",
+        "code": "HOMOLOGOUS_SOURCE_PATH_NEEDS_DATA",
+        "message": "Actual measured anatomical limb section is missing",
+        "source_open_collar_options_missing": null,
+        "collar_rows": []
+      }
+    ]
+  },
+  "validation_file_sha256": "308f7ae83c413866185e615c87d689c98397e55e1bac0b36d07a1859cc715486",
+  "independent_review": {
+    "status": "NO_P2_OR_HIGHER_CONFIRMED",
+    "full_source_row_coverage": true,
+    "interior_gap_independently_refused": true,
+    "human_homology_and_fitting_not_granted": true
+  }
+}

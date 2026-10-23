@@ -1,0 +1,44 @@
+{
+  "type": "object",
+  "properties": {
+    "version": {"const": 1},
+    "selection_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "anatomy_adapter": {"type": "object", "properties": {
+      "path": {"type": "string", "minLength": 1},
+      "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+    }, "required": ["path", "sha256"], "additionalProperties": false},
+    "orientation": {"type": "object", "properties": {
+      "up_axis": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}},
+      "forward_axis": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}},
+      "origin_cm": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}}
+    }, "required": ["up_axis", "forward_axis", "origin_cm"], "additionalProperties": false},
+    "target_stature_cm": {"type": "number", "minimum": 30, "maximum": 400},
+    "target_girths_cm": {"type": "object", "properties": {
+      "chest": {"type": "number", "minimum": 10, "maximum": 400},
+      "waist": {"type": "number", "minimum": 10, "maximum": 400},
+      "hip": {"type": "number", "minimum": 10, "maximum": 400}
+    }, "additionalProperties": false},
+    "provenance": {"type": "object", "properties": {
+      "source_ref": {"type": "string", "minLength": 1},
+      "measurements_status": {"enum": ["DECLARED_FOR_REVIEW", "APPROVED_TARGETS"]}
+    }, "required": ["source_ref", "measurements_status"], "additionalProperties": false},
+    "tolerances": {"type": "object", "properties": {
+      "stature_cm": {"type": "number", "minimum": 0.00001, "maximum": 1},
+      "floor_cm": {"type": "number", "minimum": 0.00001, "maximum": 1},
+      "roundtrip_cm": {"type": "number", "minimum": 0.00001, "maximum": 1},
+      "girth_cm": {"type": "number", "minimum": 0.00001, "maximum": 2}
+    }, "required": ["stature_cm", "floor_cm", "roundtrip_cm", "girth_cm"], "additionalProperties": false},
+    "budgets": {"type": "object", "properties": {
+      "max_iterations": {"type": "integer", "minimum": 1, "maximum": 100},
+      "max_evaluations": {"type": "integer", "minimum": 1, "maximum": 2000},
+      "finite_difference_step": {"type": "number", "minimum": 0.00001, "maximum": 0.05},
+      "damping": {"type": "number", "minimum": 0.000000000001, "maximum": 100},
+      "line_search_steps": {"type": "integer", "minimum": 1, "maximum": 20},
+      "min_scale": {"type": "number", "minimum": 0.5, "maximum": 1},
+      "max_scale": {"type": "number", "minimum": 1, "maximum": 1.5}
+    }, "required": ["max_iterations", "max_evaluations", "finite_difference_step", "damping", "line_search_steps", "min_scale", "max_scale"], "additionalProperties": false},
+    "section_count": {"type": "integer", "minimum": 24, "maximum": 200}
+  },
+  "required": ["version", "selection_sha256", "anatomy_adapter", "orientation", "target_stature_cm", "provenance", "tolerances", "budgets"],
+  "additionalProperties": false
+}

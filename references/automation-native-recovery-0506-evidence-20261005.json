@@ -1,0 +1,50 @@
+{
+  "scope": "ACTUAL_NATIVE_RESTORATION_AND_CURRENT_PIECE_INSPECTION",
+  "code_commit": "b378b60510a50a3b55943551238db1a659fa99ac",
+  "runtime_version": "0.7.0-rc.2.dev.2026100506",
+  "restart": {"doctor": "PASS", "pipeline_admitted": true, "receipt_sha256": "3cb3d6ea835d06a7b90e53cf40946987038320dc3f158a4f91e63a29b94ea3dd"},
+  "restoration": {
+    "operation": "restore_checkpoint", "human_authorized": true, "executions": 1,
+    "permission_reply": "call_Z96WrkDPS3QnkAVgMpiW40h8",
+    "run_id": "run.04d8b017e9d340e4834eb1e26d4eafd0",
+    "attempt_id": "attempt.c5b8a1c8f91949edb10e65c54bca7477",
+    "status": "NATIVE_SUCCEEDED_CANONICAL_EVENT_AUTHENTICATED",
+    "checkpoint": {"path": ".a3d/checkpoints/pre-028b75a4767b4e28b491a65da4bc85c0.blend", "sha256": "376aa273e226cef381f00a717d66db49f794e2c8450928189143c97adca7c301"},
+    "working_ref": {"path": ".a3d/blender/working-recovered-be1ae9977e664a809cec23a65a404e76.blend", "sha256": "a81adebbc140ae4b7155d1a5471e47b86e1662bfb9e72f5f1f812a20ee9d5b9c"},
+    "receipt": "G:/projets/atelier-3d/work/garment-automation-v1/program-restart506-verification-v1/restore-execution-result.json",
+    "sha256": "f827dee0ddf7f39733116a2e2573b9144a4e41f5aba489124a00c00111c3dbbb",
+    "restoration_only": true, "qualification": "NOT_GRANTED", "already_restored": false
+  },
+  "canonical_readback": {
+    "status": "PASS_HISTORICAL_RECOVERY_DESCRIPTOR", "restored_event_present": true,
+    "all_three_historical_projection_archives": "EXACT_ARCHIVE", "db_unchanged_by_readback": true,
+    "receipt": "G:/projets/atelier-3d/work/garment-automation-v1/program-restart506-verification-v1/canonical-recovery-readonly/receipt.json",
+    "sha256": "50bc3ef44315b841c64bacf8118f6a536ac4fe17f3bb2f53523b8c97884e78bf"
+  },
+  "connected_scene": {
+    "saved": true, "dirty": false, "objects": ["A3D.BodyTarget.MainMale180"],
+    "body_height_m": 1.8000000715255737, "body_scale": [1,1,1], "body_geometry_changed": false,
+    "path_receipt_sha256": "c7ef55d4e9d1f579b24641202fb0060fd9998e4dd85a86afde9f3b1442277add",
+    "objects_receipt_sha256": "3832a46d5d3215702bd54a4f6994cef1a5b1011a50467bb48206c286ee36c4e2"
+  },
+  "inspection": {
+    "operation": "inspect", "human_authorized": true, "permission_reply": "call_rqj4Br866V5TCvt014TcAbui",
+    "status": "NATIVE_SUCCEEDED", "blender_version": "5.2.2 LTS",
+    "textiles_present": 0, "textiles_expected": 15, "rigid_buckle_present": false,
+    "missing": "10_COAT_PIECES_BELT_2_HOOD_PIECES_2_YOKE_PIECES_AND_BUCKLE",
+    "body_collision_outer_cm": 0.3000000026077032, "body_collision_inner_cm": 0.3000000026077032,
+    "receipt": "G:/projets/atelier-3d/work/garment-automation-v1/program-restart506-verification-v1/inspection-execution-result.json",
+    "sha256": "3b7f9368becad2d4bb27145d204b43f1012edaaf4d3838c69c1d2b4569aa9b64",
+    "project_status_sha256": "fe35efa6cff44a3b58be7cf5d513ef8d3ede33963cd4ce83075a82c5daa754f9"
+  },
+  "screenshot": {
+    "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-restart506-verification-v1/restored-scene.png",
+    "sha256": "dd9fb9b910e522fb7405984613610d65c76d325957a278a1147140da3e05cc59",
+    "scope": "BODY_ONLY_VIEWPORT_AT_DISTANCE_NOT_ANATOMICAL_OR_ARTISTIC_ACCEPTANCE"
+  },
+  "old_run": {"status": "NEEDS_CORRECTION", "binding_status": "STALE_OR_UNVERIFIED", "cause": "CODE_FINGERPRINT_CHANGED_REQUIRES_NEW_SPECIFICATION_IDENTITY"},
+  "preservation": {"old_candidate_and_failure_receipts": true, "old_native_receipt_rewritten": false},
+  "fitting": "NOT_EXECUTED", "cloth": "NOT_EXECUTED", "motion": "NOT_EXECUTED", "artistic_review": "NOT_EXECUTED",
+  "qualification": "NONE", "cutting_review": "NO_NEW_PATTERN_PRODUCED",
+  "next": "GENERIC_REST_QUALITY_AND_PROTECTED_ANCHOR_PREFLIGHT_BEFORE_NEW_PLACEMENT_RUN"
+}

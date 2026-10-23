@@ -1,0 +1,239 @@
+{
+  "version": 1,
+  "status": "CASCADE_THREE_NATIVE_UV_RESULTS_INDEPENDENTLY_REVIEWED",
+  "scope": "ISOLATED_BLENDER_PURE_2D_MATH_NOT_PRODUCTION_SCENE",
+  "purpose": "TEST_ONLY",
+  "qualification": "NONE",
+  "product_admission": "NONE",
+  "changes": {
+    "source_patterns_changed": false,
+    "new_common_fractions": 4,
+    "new_partner_controls": 8,
+    "full_preparation_pieces": 10,
+    "full_preparation_relations": 24,
+    "boundary_points_before": 2236,
+    "boundary_points_after": 2324,
+    "preparation_charge": 88,
+    "native_portable_preparation": "EXACT_SCALARS_TYPES_FLOAT_BITS_AND_ARRAYS",
+    "production_consumer_changed": false
+  },
+  "numerical_results": [
+    {
+      "attempted_insertions": 31,
+      "cdt_calls": 4,
+      "initial_charge": 13,
+      "max_actual_cumulative_displacement_cm": 0.4995942500937573,
+      "min_angle_degrees": 15.073571488210522,
+      "min_edge_cm": 0.010898330561834733,
+      "piece": "back-left",
+      "remesh_attempts": 3
+    },
+    {
+      "attempted_insertions": 31,
+      "cdt_calls": 4,
+      "initial_charge": 13,
+      "max_actual_cumulative_displacement_cm": 0.4995942500937573,
+      "min_angle_degrees": 15.014253877651914,
+      "min_edge_cm": 0.010898330561834733,
+      "piece": "back-right",
+      "remesh_attempts": 3
+    },
+    {
+      "attempted_insertions": 14,
+      "cdt_calls": 2,
+      "initial_charge": 8,
+      "max_actual_cumulative_displacement_cm": 0.49607792361721503,
+      "min_angle_degrees": 15.288697188078848,
+      "min_edge_cm": 0.08353554762747706,
+      "piece": "collar",
+      "remesh_attempts": 1
+    }
+  ],
+  "validation": {
+    "independent_assertions": 1353016,
+    "protected_files": 4200,
+    "erratum_separately_preserved": true,
+    "exact_rational_signed_areas_and_boundary": true,
+    "permanent_birth_squared_displacements_at_most_one_quarter_cm_squared": true,
+    "Float32_transport_also_checked": true,
+    "no_refunds": true,
+    "final_complete_best_snapshot_equal": true,
+    "nonmonotonic_rollback_exercised": false
+  },
+  "terminal_scopes_seconds": {
+    "native_receipt_before_write": 50.58168449997902,
+    "native_attestation_after_persist": 50.585447999997996,
+    "consumer_after_read_and_hash": 50.99285290000262,
+    "persisted_host_before_write_snapshot": 50.992956200032495,
+    "tool_stdout_host_after_write_observation_not_persisted": 50.99368620000314,
+    "host_launch_duration": 62.16579509997973
+  },
+  "budgets": {
+    "campaign_calculation_seconds": 90,
+    "external_host_watchdog_seconds": 120,
+    "global_origin_scope": "AFTER_VALIDATION_BEFORE_CAPTURE_NOT_END_TO_END_LAUNCH",
+    "clock": "SHARED_PERF_COUNTER_QUERY_PERFORMANCE_COUNTER_SECONDS",
+    "max_attempted_insertions": 4000,
+    "max_points": 30000,
+    "max_remesh": 8,
+    "max_CDT": 9,
+    "minimum_angle_degrees": 15,
+    "minimum_edge_cm": 0.001,
+    "permanent_displacement_cm": 0.5
+  },
+  "runtime_clock_audit": {
+    "status": "NO_CROSS_PROCESS_CLOCK_ORIGIN_DEFECT_DEMONSTRATED_IN_EXAMINED_PRODUCT_PATHS",
+    "portable_probes": 18,
+    "preserved_source_schema_files": 27,
+    "product_patch_proposed": false,
+    "installed_runtime": "NOT_VERIFIED"
+  },
+  "remaining": {
+    "seven_other_new_candidate_pieces": "NOT_EXECUTED_NOT_QUALIFIED",
+    "all_authored_physical_node_presence": "NOT_ESTABLISHED",
+    "three_dimensional_surfaces": "NOT_QUALIFIED",
+    "placement": "NOT_ADMITTED",
+    "contacts": "NOT_QUALIFIED",
+    "Cloth": "NOT_EXECUTED",
+    "fitting": "NOT_EXECUTED",
+    "movement": "NOT_EXECUTED",
+    "artistic_review": "NOT_PERFORMED",
+    "whole_product_15_textiles_plus_buckle": "NOT_ACCEPTED",
+    "production_integration": "NOT_PERFORMED",
+    "release": "NOT_PUBLISHED",
+    "installation": "NOT_PERFORMED"
+  },
+  "historical_full_ten_campaign": "INCOMPLETE_UNCHANGED_NO_PASS_TRANSFER",
+  "references": {
+    "program-graded-boundary-cascade-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-graded-boundary-cascade-v1\\FROZEN.json",
+        "sha256": "2569b039decbc60e8af7e1095251fd293b7f00a5d830a445a963627bbce33d7f"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-graded-boundary-cascade-v1\\receipt.json",
+        "sha256": "b24aa3b9e0d8cd9379e57d22538276985f87c3e3096d20e37dde26ec244607d1"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-graded-boundary-cascade-v1\\report.md",
+        "sha256": "3fb9fe8e8d961c2fea19e7c2e307d2dd0c97866c39e673759fb1c230a6f230ea"
+      }
+    },
+    "program-graded-boundary-cascade-review-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-graded-boundary-cascade-review-v1\\FROZEN.json",
+        "sha256": "52a4e7825298b66016278056fdbbf29e37a649d6174325b7953adb57883689ae"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-graded-boundary-cascade-review-v1\\receipt.json",
+        "sha256": "9a9750e59b94eea9f892761f8cbcfd82a5f53598dc83efb146f3529155da2fd3"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-graded-boundary-cascade-review-v1\\report.md",
+        "sha256": "6fce5f342ea9f52edd153ccf78a47142207d6fdd6ff522108468299369265d73"
+      }
+    },
+    "program-native-graded-full-ten-v3": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-full-ten-v3\\FROZEN.json",
+        "sha256": "c135ef5e467cb667331aaf6fc5aae4ffeb05a5a36ffc659ffcdc82ec3dac6d99"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-full-ten-v3\\receipt.json",
+        "sha256": "1b6f7455d1fb4d71b7746356c6bd053339d813f108c35d45ed3682fb2643d86b"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-full-ten-v3\\report.md",
+        "sha256": "07cdd6b7de0ff8dbb5f38b583db35af3d90c57b8d8a541fc15182f2335d1bd6b"
+      }
+    },
+    "program-native-graded-full-ten-v3-review-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-full-ten-v3-review-v1\\FROZEN.json",
+        "sha256": "3e9b0d8b5527322beb2693f63440a93570d6e76a88042b9eaa60a5ab977a3c7a"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-full-ten-v3-review-v1\\receipt.json",
+        "sha256": "4a057e998dc6231d06e8e528c43704ad2a3542049a66377c24f843f85af8c62d"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-full-ten-v3-review-v1\\report.md",
+        "sha256": "6b63c61f581b619be4adfdbbee717022a01c06473f34f81513e70742a16b48b5"
+      }
+    },
+    "program-native-graded-cascade-three-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-cascade-three-v1\\FROZEN.json",
+        "sha256": "bc44f88973cb69f1352e3e0540c055689a8d197fa27c5d6e6c2303c5435105db"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-cascade-three-v1\\receipt.json",
+        "sha256": "1564228947d6ea17b0da42a1144e5462116ee4529e400915cae7c50a88b59b02"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-cascade-three-v1\\report.md",
+        "sha256": "6dfdaa5f9cc8ae08a15ab8c72388ec3e3a97e0ea51eb093c01c79abc67a2e29c"
+      }
+    },
+    "program-native-graded-cascade-three-review-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-cascade-three-review-v1\\FROZEN.json",
+        "sha256": "fee2272aa504722e89a2d02904c713247f51264b27685f5a5208170b58038e4e"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-cascade-three-review-v1\\receipt.json",
+        "sha256": "594bec2e290deaf95df127463fa8736eb1d4cb45edd8b1c624b8e84e776df782"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-cascade-three-review-v1\\report.md",
+        "sha256": "150b8799162cfaeff92f7e1f919d609f606dfe73a47f77387f7abc9ed8a15a13"
+      }
+    },
+    "program-native-graded-cascade-three-result-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-cascade-three-result-v1\\FROZEN.json",
+        "sha256": "dccb889e51a0540b936d431a47c10604c06e65be2875fd19575a24f97aee7300"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-cascade-three-result-v1\\receipt.json",
+        "sha256": "6e99d27c7691577da74100f1545589794d6b0547ee218da4a37a6711012b20fb"
+      }
+    },
+    "program-native-graded-cascade-three-result-review-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-cascade-three-result-review-v1\\FROZEN.json",
+        "sha256": "0697b96486ff0139cbde1073430056fb94acf6f52fe90c0b4020be396f1e3153"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-cascade-three-result-review-v1\\receipt.json",
+        "sha256": "e3bd4c04e14f6073d112a965385017bfc2f0d950b864defd8ebc3961bfb034eb"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-cascade-three-result-review-v1\\report.md",
+        "sha256": "55ec4941d983311096723cbfe82474648b05815bfbf9150e8112e2aee810f8d0"
+      }
+    },
+    "program-production-clock-boundary-audit-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-clock-boundary-audit-v1\\FROZEN.json",
+        "sha256": "b18a7fb477b3751418340b087ee6461f400b46eb65d5b981d94a44a3dbf23cf3"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-clock-boundary-audit-v1\\receipt.json",
+        "sha256": "2860ed4c28ce321d67dfa0ab9c85e6ad5e0af1f5b78358aa4f4fe57f42d2c99d"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-clock-boundary-audit-v1\\report.md",
+        "sha256": "36234c500e756137066025e9fa9ae025ca43139c5c767edf441cd0f72d5bd996"
+      }
+    },
+    "program-native-graded-cascade-three-v1/output-v1/receipt.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-cascade-three-v1\\output-v1\\receipt.json",
+      "sha256": "fb3b59191fd876199fa2baa14cf14fa423fa66dac1f06e5057b1d2e61c78adf2"
+    },
+    "program-native-graded-cascade-three-run-audit-v1/time-scope-erratum.json": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-graded-cascade-three-run-audit-v1\\time-scope-erratum.json",
+      "sha256": "d269cecf9fdd5d99b3c4f7a2f17774f174384d9d50cb8554bcce4328570abddc"
+    }
+  }
+}

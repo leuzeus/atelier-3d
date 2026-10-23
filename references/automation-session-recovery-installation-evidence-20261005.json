@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "status": "EXACT_INTEGRATED_CANDIDATE_VALIDATED_AND_INSTALLED_RESTART_REQUIRED",
+  "source_commit": "074850e2a5bcf5176f4ea935fade3fd1399b2e86",
+  "integrated_validation": {
+    "tests": 1635,
+    "skipped": 0,
+    "test_seconds": 210.694,
+    "python": "3.11",
+    "contracts": 14,
+    "source_unchanged": true,
+    "directory": "G:/projets/atelier-3d/work/garment-automation-v1/program-session-recovery-integrated-validation-v1",
+    "validation_receipt_sha256": "474f2f992dbcaa66654e5ae1d8b93ea9bc341933f4d8a7f1ab4ffe9099e7bcdb",
+    "tests_receipt_sha256": "0c66a21c3fa8332f0190c3e8dcf010d0573fa680fc2a3160f8a0a5be0ee24eb2",
+    "contracts_receipt_sha256": "029dcc5f1067fc769fcd66eb6751f60650c90e5ef4131f3ee6ef2e66c24cb017",
+    "tests_log_sha256": "654b848134479c86f3ec869d9ac451ab25709730648648fc807653bcaf76e097",
+    "contracts_log_sha256": "c103412537739b27ec7ed6d2d97f551aac61fe267a0028ea686761e37916e8d6",
+    "scope": "Portable integrated tests and contracts; not native garment acceptance"
+  },
+  "runtime_verified_before_update": {
+    "version": "0.7.0-rc.2.dev.2026100504",
+    "doctor": "PASS",
+    "schema_files": 52,
+    "pipeline_admitted": true,
+    "evidence_directory": "G:/projets/atelier-3d/work/garment-automation-v1/program-restart-verification-v1",
+    "public_compilation": "READY_TO_PLAN_15_TEXTILES_AND_1_RIGID",
+    "fit_preflight": "FIT_PREFLIGHT_INCOMPLETE",
+    "public_compilation_result_sha256": "09c94f998eec3543a937f381673ffc4281a4ee47997a522ecb541ea186944e5b",
+    "restoration": "PARTIAL_SAVE_FAILED_HISTORICAL_SESSION_CHECK"
+  },
+  "local_installation": {
+    "version": "0.7.0-rc.2.dev.2026100505",
+    "method": "NATIVE_CODEX_PLUGIN_ADD",
+    "build_directory": "G:/projets/atelier-3d/work/garment-automation-v1/program-session-recovery-local-build-v2",
+    "source_files_compared_exactly": 632,
+    "installed_files_compared_exactly": 633,
+    "source_archive_sha256": "1b03a77d16d97e001a7af325f81a6fa83956af46df9744f730e4f3da7f841d3f",
+    "preparation_receipt_sha256": "2173bd634ea7461a3f9aee958c560e62830d707c21f42b9a0dfd24136ce31691",
+    "native_install_result_sha256": "a5088a3ce9c3f2f573b95d20a0ccdfa99841d422833f22e950ae5bc42f89b3d6",
+    "verification_receipt_sha256": "40e7ed8195cd670285be5fff81b721359b6a6fc2751e45d572aa1ab58394057d",
+    "verification_directory": "G:/projets/atelier-3d/work/garment-automation-v1/program-session-recovery-installed-verification-v1",
+    "previous_g_stages_preserved": true,
+    "hook_trust_scripted": false,
+    "first_staging_refusal_preserved": "program-session-recovery-local-build-v1/staging-refusal.json; verifier JSON order corrected, plugin candidate unchanged"
+  },
+  "generic_development_helpers": {
+    "directory": "G:/projets/atelier-3d/work/garment-automation-v1/development-tools-v1",
+    "validate_export.py": "d0c490d08ae8f14425ee1f342afee9340490c6d63ffe9a05819190554f1ce276",
+    "prepare_stage.py": "49855bd984ea883ec3790544c10c308b346257e3d4f9042fc73c1f5fc2192ff5",
+    "verify_install.py": "eecca0ed89829ad80f9040121c9cd2cdadafa72932122f2fa37b44e4ac984393",
+    "parameters": "Explicit repository, candidate, fresh outputs, executables, version, configuration, marketplace and receipt paths"
+  },
+  "connected_runtime_after_install": {
+    "status": "RESTART_REQUIRED",
+    "observed_old_version": "0.7.0-rc.2.dev.2026100504",
+    "doctor": "ERROR_MISSING_OLD_CACHE_SCHEMA",
+    "doctor_result_sha256": "fedc6bf4b6787a501d32f21918c041805da8699069947ce36a14747ecc8bd376",
+    "new_runtime_loaded": "NOT_VERIFIED"
+  },
+  "remaining_native_restoration": "Prepare again on reloaded dev0505 and obtain exact permission before execution",
+  "new_pattern_review": "NONE_NEW_PATTERN_PRODUCED",
+  "public_release": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "product_qualification": "NONE"
+}

@@ -1,0 +1,66 @@
+{
+  "scope": "CONNECTED_RUNTIME_AND_ACTUAL_SOURCE_PREPARATION_ATTEMPT_ONLY",
+  "code_commit": "11d0b807f716c0df4216cce9c1e0b6158561c79e",
+  "project_id": "44f03e6c-dc68-4adb-85b9-e30f88b1aeaa",
+  "connected_runtime": {
+    "status": "PASS",
+    "version": "0.7.0-rc.2.dev.2026100501",
+    "root": "C:\\Users\\leuz9\\.codex\\plugins\\cache\\atelier-3d-local\\atelier-3d\\0.7.0-rc.2.dev.2026100501",
+    "source_sha256": "809f5c26e91384aae9eeed7558ec8b19b337099c88511e6e83be4ff672001d0c",
+    "schema_files": 52
+  },
+  "pipeline": {
+    "admitted": true,
+    "stage": "RECONSTRUCTING",
+    "issues": [],
+    "scope": "Current stage prerequisites only; each transition/operation performs its own additional admission.",
+    "next": "Resolve listed issues, then follow references/lifecycle-guards.md for the current stage. Failed/interrupted Blender mutations require restore_checkpoint before continuing."
+  },
+  "source_preparation_attempt": {
+    "tool": "studio_compile_production_dossier",
+    "request": "preparation/public-source-preparation-request-v1.json",
+    "isError": true,
+    "result": {
+      "error": "Source preparation requires complete measured guides: garment.coat",
+      "preparation_phase": "COMPONENT_TEMPLATES",
+      "diagnostic": {
+        "phase": "COMPONENT_TEMPLATES",
+        "qualification": "NONE",
+        "simulation": "NOT_EXECUTED",
+        "fitting": "NOT_EXECUTED",
+        "acceptance": "NOT_GRANTED",
+        "partial_artifacts": {
+          "guide_policy": {
+            "path": "preparation/public-source-preparation-v1/guide-policy.json",
+            "sha256": "7c29a2cb8b073d78fe6517d50177c8483ed5ed2e7fce1d14a782abc0a3462def"
+          },
+          "guides": {
+            "path": "preparation/public-source-preparation-v1/guides.json",
+            "sha256": "82b20a5391e06c82c8910c9cdd41b7d0e4079f917ea9d8a6a82abf8932a2156f"
+          },
+          "assembly_plan": {
+            "path": "preparation/public-source-preparation-v1/assembly-plan.json",
+            "sha256": "3e44352ed8b0a851f0ffabbf744c76fd6e874d993832d41e7887763f23ce32be"
+          }
+        },
+        "guide_diagnostics": {
+          "garment.coat": {
+            "status": "PARTIAL_GUIDES",
+            "pending_pieces": [],
+            "diagnostics": [
+              {
+                "family": "source_rigid_alignment",
+                "code": "PARTIAL_SOURCE_RELATION_ALIGNMENT",
+                "message": "Rigid seeds cover front attachments only; other permanent relations still require correction"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "blender_mutation": "NOT_EXECUTED_IN_THIS_ATTEMPT",
+  "simulation": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "product_qualification": "NONE"
+}

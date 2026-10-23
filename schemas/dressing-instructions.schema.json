@@ -1,0 +1,270 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "paths_sha256",
+    "entry_candidate_ref",
+    "mount_order",
+    "mount_order_source_ref",
+    "method_stages",
+    "frame_end",
+    "supports",
+    "endpoint_constraints"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "paths_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "entry_candidate_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "mount_order": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "mount_order_source_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "frame_end": {
+      "type": "integer",
+      "minimum": 3,
+      "maximum": 300
+    },
+    "method_stages": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "method_id",
+          "start_frame",
+          "end_frame"
+        ],
+        "properties": {
+          "method_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "start_frame": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 298
+          },
+          "end_frame": {
+            "type": "integer",
+            "minimum": 3,
+            "maximum": 300
+          }
+        }
+      }
+    },
+    "supports": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "method_id",
+          "start_frame",
+          "piece",
+          "edge",
+          "edge_vertex",
+          "weight",
+          "release_frame",
+          "waypoints"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "piece": {
+            "type": "string",
+            "minLength": 1
+          },
+          "edge": {
+            "type": "string",
+            "minLength": 1
+          },
+          "method_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "start_frame": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 298
+          },
+          "edge_vertex": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "weight": {
+            "type": "number",
+            "maximum": 1,
+            "minimum": 1e-09
+          },
+          "release_frame": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 299
+          },
+          "waypoints": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 300,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "frame",
+                "source_ref",
+                "pointer"
+              ],
+              "properties": {
+                "frame": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 300
+                },
+                "source_ref": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "path",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "sha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  }
+                },
+                "pointer": {
+                  "type": "string",
+                  "pattern": "^/",
+                  "maxLength": 1024
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "endpoint_constraints": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "method_id",
+          "piece",
+          "edge",
+          "edge_vertex",
+          "source_ref",
+          "pointer",
+          "tolerance_cm"
+        ],
+        "properties": {
+          "method_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "piece": {
+            "type": "string",
+            "minLength": 1
+          },
+          "edge": {
+            "type": "string",
+            "minLength": 1
+          },
+          "edge_vertex": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "source_ref": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "sha256"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          },
+          "pointer": {
+            "type": "string",
+            "pattern": "^/",
+            "maxLength": 1024
+          },
+          "tolerance_cm": {
+            "type": "number",
+            "minimum": 1e-06,
+            "maximum": 5
+          }
+        }
+      }
+    }
+  }
+}

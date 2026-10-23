@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "date": "2026-10-04",
+  "status": "EASE_DEVELOPMENT_UNIT_CHECKED",
+  "code_commit": "49ade3c6a78b3514c17f0104af02441761f9ca09",
+  "tested_snapshot": {
+    "identity_sha256": "6a2ad258fafca340e2f312a72db3c0d36562696b03d59641e52a52e54cd462ed",
+    "files": 474
+  },
+  "committed_code_files_verified": 369,
+  "committed_code_sha256": "78969b85cb1ac6ee1ad663db42dad606e6e8a11cf4463750b1874ad20ee35a0d",
+  "portable": {
+    "status": "PASS",
+    "tests": 868,
+    "seconds": 103.962,
+    "scope": "PORTABLE_ONLY",
+    "receipt_ref": {
+      "path": "program-portable-source43-v1/receipt.json",
+      "sha256": "0d0f25ef30067580ebea31bbe6ed205a466441795b670c9ff4e104b58f36d070"
+    },
+    "log_ref": {
+      "path": "program-portable-source43-v1/tests.log",
+      "sha256": "adb96f427f15af608ecd5dc600cef3568f0989e79e2f7b1187d01e9b147d9bbd"
+    }
+  },
+  "contracts": {
+    "status": "PASS",
+    "distinct_checks": 29,
+    "fail": 0,
+    "skip": 3,
+    "validator": "PowerShell Test-Json",
+    "report_ref": {
+      "path": "program-contracts-ease-v1/report.json",
+      "sha256": "77ead3ab955447f631f5abbe4077d9168bbcfb3894e7652e3daa7c309354a365"
+    }
+  },
+  "native_groups": {
+    "status": "PASS",
+    "seconds": 36.28200000000652,
+    "purpose": "TEST_ONLY",
+    "receipt_ref": {
+      "path": "program-native-textile-v16/receipt.json",
+      "sha256": "4ea5068c875457edb390cf9a0caf6a34ed3578f067d80ece18bae3ea95d7651a"
+    },
+    "result_ref": {
+      "path": "program-native-textile-v16/result.json",
+      "sha256": "e8f7668710180346bd8297637639d6f0c2b4247d2259896b4902f7c632fe8cf8"
+    }
+  },
+  "native_source_cage": {
+    "status": "PASS",
+    "seconds": 4.0310000000172295,
+    "purpose": "TEST_ONLY",
+    "launch_ref": {
+      "path": "program-native-source-cage-v2/launch.json",
+      "sha256": "970c0be1fcac9caca78e01b2bc04b78c0111a5ee98eba4d0c4faf170cb438de9"
+    },
+    "result_ref": {
+      "path": "program-native-source-cage-v2/result.json",
+      "sha256": "efeb07b8555ffdc9d5aabe092a9b0c71d743877acf225c28f3aede4746fb5126"
+    }
+  },
+  "source_uv_review": {
+    "status": "PASS_SCOPED_REVIEW",
+    "tests": 11,
+    "independent_assertions": 7,
+    "initial_failure_preserved": true,
+    "final_ref": {
+      "path": "program-source-uv-review-v1/review-final.json",
+      "sha256": "ff2262258cfef43c4b0fb579c946883630127901478fd6a40114affe6fd72641"
+    }
+  },
+  "main_measurements": {
+    "status": "FIT_PREFLIGHT_INCOMPLETE",
+    "seconds": 129.48499999998603,
+    "proposals": 7,
+    "chest": "REFUSED_OLD_NATIVE_BOUNDARY_CHORD_NOT_ON_SOURCE_EDGE",
+    "qualification": "NONE",
+    "receipt_ref": {
+      "path": "program-main-fit-public-measurements-v8/receipt.json",
+      "sha256": "097e1d15ae015e1bb7f688c7e5686b37ca78db3eeec6eb4ba1902bfeffe913a3"
+    },
+    "report_ref": {
+      "path": "program-main-fit-public-measurements-v8/report.json",
+      "sha256": "f288b82f038aa0d97662295a89e4c1d0123aeca106cac2e2b219680e4274e65a"
+    },
+    "remeasure_ref": {
+      "path": "program-main-path-remesure-v2/receipt.json",
+      "sha256": "3fff40b9d20c11e5b5ee88772cd5a1511513d5d51d5a86db6018e994f8e28ffd"
+    }
+  },
+  "variant": {
+    "status": "NEEDS_DATA_OPEN_TORSO_AND_COLLAR",
+    "comparison_ref": {
+      "path": "program-production-main-v1/variants/ease-variant-policies-v2/comparison.json",
+      "sha256": "03d434c12eedbd6e84a60397b4667d8cadd92eb574d977014543c24993b50be9"
+    },
+    "proposal_ref": {
+      "path": "program-production-main-v1/variants/ease-variant-dense-v2/proposal.json",
+      "sha256": "4d4c63fef0fb1d7e39093069ed981c10480da50bdf1d0aecb0f5422f9ecbde6a"
+    },
+    "human_sleeve_decision_ref": {
+      "path": "program-production-main-v1/variants/ease-variant-dense-v2/sleeve-pattern-decision-v1.json",
+      "sha256": "6bc1d81b01b8c540af7dd4553de4eb1cb07da718f25b28b32e9b528f4f275bc4"
+    },
+    "production_binding": "NOT_CHANGED"
+  },
+  "torso_input_audit": {
+    "scope": "GUIDE_ONLY",
+    "report_ref": {
+      "path": "program-torso-ease-input-audit-v1/report.md",
+      "sha256": "055e7d51b3be903ba818e092ffaf40b67411d5dfe7fadf1298d560969c87eaf4"
+    },
+    "external_inner_front_and_collar_guides": "NEED_SOURCE_SEAM_COUPLING",
+    "coverage": "NOT_QUALIFIED"
+  },
+  "human_decisions": {
+    "body": "MALE_180_ACCEPTED",
+    "numeric_design_intent": "REVIEWED",
+    "two_sleeve_patterns": "REVIEWED",
+    "complete_fit_profile": "PENDING"
+  },
+  "main_placement": "NEEDS_CORRECTION",
+  "main_cloth": "NOT_EXECUTED",
+  "main_dressing": "NOT_EXECUTED",
+  "main_fitting": "NOT_QUALIFIED",
+  "main_garment_motion": "NOT_EXECUTED",
+  "main_artistic_acceptance": "NOT_GRANTED",
+  "final_release": "NOT_PUBLISHED",
+  "new_installation": "NOT_EXECUTED",
+  "qualification": "DEVELOPMENT_SOFTWARE_ONLY",
+  "acceptance": "NOT_GRANTED"
+}

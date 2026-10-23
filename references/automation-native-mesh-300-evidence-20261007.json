@@ -1,0 +1,142 @@
+{
+  "date": "2026-10-07",
+  "scope": "EXACT_NATIVE_0704_PREPARATION_REFUSAL_AND_RESTORATION",
+  "run_id": "run.dcc0c3d66da54b47b5401ed92e9d9968",
+  "attempt_id": "attempt.909d6d9bd3864a7e8ebce726b451b553",
+  "runtime_version": "0.7.0-rc.2.dev.2026100704",
+  "human_execution_permission": "Autoriser l’essai à 300 secondes",
+  "native_receipt": {
+    "path": ".a3d/runs/native/attempt.909d6d9bd3864a7e8ebce726b451b553.json",
+    "sha256": "de844f9e4d5fe3e1ea5ca8aadbf09591996594bd6b2b0f51c29ac3e41d17045c"
+  },
+  "preparation_receipt": {
+    "path": ".a3d/blender/pattern-preparation/attempt-8409424b26cc4d28a7e160974f3ea138/receipt.json",
+    "sha256": "ae53c61cc673399912ef10775feba0820d465f2eeea603c88a41d41fc8fab963"
+  },
+  "native_execution": "RETURNED",
+  "native_elapsed_seconds": 392.08746550010983,
+  "transport": {
+    "timeout_seconds": 300,
+    "status": "TIMED_OUT",
+    "reconciled_from_exact_native_receipt": true,
+    "resubmission": false
+  },
+  "meshing": {
+    "status": "COMPLETED_MESH_BUILD_ONLY",
+    "elapsed_seconds": 102.74398789997213,
+    "declared_max_seconds": 300,
+    "vertices": 15895,
+    "faces": 29431,
+    "source_min_angle_degrees": 15.038750451109664,
+    "quality_limit_degrees": 15,
+    "native_cdt_calls": 27,
+    "admission": "NONE"
+  },
+  "placement": {
+    "status": "NEEDS_CORRECTION",
+    "correction_stop_reason": "ANCHOR_RESERVE_TIME_BUDGET",
+    "anchor_kernel_status": "NEEDS_MEASUREMENT",
+    "anchor_measurement_calls": 57,
+    "anchor_elapsed_seconds": 60.69818770000711,
+    "best_unadmitted_translation_cm": 2.75,
+    "required_clearance_cm": 0.3,
+    "best_protected_minimum_offset_cm": 0.2483465772314455,
+    "applied_correction_cm": 0.0,
+    "metric_recovery": "NOT_EXECUTED",
+    "placed_min_angle_degrees": 0.2858828481098965,
+    "placed_principal_stretch_min": 0.00628547870920596,
+    "placed_principal_stretch_max": 5.972841575087384,
+    "problems": [
+      {
+        "readiness": "NEEDS_CORRECTION",
+        "category": "geometry_safety",
+        "message": "Source cloth metric rejected: degenerate_or_sliver, compression, stretch, principal_compression, principal_stretch"
+      },
+      {
+        "readiness": "NEEDS_CLARIFICATION",
+        "category": "layer_order",
+        "message": "SEPARATE_PER_LAYER_NATIVE_SIMULATIONS_REQUIRED"
+      },
+      {
+        "readiness": "NEEDS_CORRECTION",
+        "category": "placement_correction",
+        "message": "ANCHOR_RESERVE_TIME_BUDGET"
+      },
+      {
+        "readiness": "NEEDS_CORRECTION",
+        "category": "placement_or_layer_contacts",
+        "message": "The prepared preform violates collision reserve or separate-layer contact checks"
+      },
+      {
+        "readiness": "NEEDS_CLARIFICATION",
+        "category": "placement_enfilage",
+        "message": "LEGACY_DRESSING_NOT_ASSESSED"
+      },
+      {
+        "readiness": "NEEDS_CORRECTION",
+        "category": "strict_native_geometry",
+        "message": "Source cloth metric rejected: degenerate_or_sliver, compression, stretch, principal_compression, principal_stretch"
+      },
+      {
+        "readiness": "NEEDS_CORRECTION",
+        "category": "preparation_assessment",
+        "message": "MIN_PLACED_ANGLE_DEGREES, MIN_PRINCIPAL_STRETCH, MAX_PRINCIPAL_STRETCH, PLACEMENT_CONTACT"
+      }
+    ]
+  },
+  "candidate": {
+    "textile_present": 10,
+    "textile_expected": 15,
+    "missing": [
+      [
+        "garment.belt",
+        "belt"
+      ],
+      [
+        "garment.hood-yoke",
+        "hood-left"
+      ],
+      [
+        "garment.hood-yoke",
+        "hood-right"
+      ],
+      [
+        "garment.hood-yoke",
+        "yoke-lower"
+      ],
+      [
+        "garment.hood-yoke",
+        "yoke-upper"
+      ]
+    ],
+    "rigid_buckle": "ABSENT",
+    "master": {
+      "path": ".a3d/blender/pattern-preparation/attempt-8409424b26cc4d28a7e160974f3ea138/master-preparation-v001.blend",
+      "sha256": "54d6c99eace7d397c1a8ff806ceeb36cf52853e9996be98c394969c3b1b57b66"
+    },
+    "technical_views": 12,
+    "visual_observation": "UPPER_TORSO_AND_SHOULDERS_INSIDE_BODY_IN_EXACT_FRONT_AND_BACK_VIEWS",
+    "artistic_acceptance": "NOT_GRANTED"
+  },
+  "restoration": {
+    "human_permission": "Autoriser la restauration de cet essai",
+    "status": "RETURNED",
+    "checkpoint": {
+      "path": ".a3d/checkpoints/pre-660891ec377f4a25ba2b916816fab1c3.blend",
+      "sha256": "25a319eee667143fc8b32a4b277c1a6f5d39a9c23c9d7cd1fdcc60caeb90b903"
+    },
+    "working_ref": {
+      "path": ".a3d/blender/working-recovered-df4b685d8a36408ca4182eedb147f377.blend",
+      "sha256": "bf1f565b409141f60e6c22ae544ce428d167ca9253babe609f34388fbc8cdf5e"
+    },
+    "current_scene": "ACCEPTED_BODY_ONLY",
+    "textile_present": 0
+  },
+  "body_changed": false,
+  "patterns_changed": false,
+  "fitting": "NOT_EXECUTED",
+  "cloth": "NOT_EXECUTED",
+  "motion": "NOT_EXECUTED",
+  "qualification": "NONE",
+  "final_release": "NOT_PUBLISHED"
+}

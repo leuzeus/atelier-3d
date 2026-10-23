@@ -4,7 +4,7 @@ import math
 from a3d.core import StudioError
 
 
-def length(a,b):return math.sqrt(sum((x-y)**2 for x,y in zip(a,b)))
+def length(a,b):return math.sqrt(math.fsum((x-y)**2 for x,y in zip(a,b)))
 
 
 def sample_curve(curve,s):
@@ -12,7 +12,7 @@ def sample_curve(curve,s):
         raise StudioError('Volume guide requires finite 3D points and an arc coordinate')
     lengths=[length(a,b) for a,b in zip(curve,curve[1:])]
     if min(lengths)<=1e-12:raise StudioError('Volume guide has a zero-length segment')
-    total=sum(lengths)
+    total=math.fsum(lengths)
     if s<0 or s>total:raise StudioError('Volume guide arc exceeds its explicit polyline')
     cumulative=0.
     for index,(a,b,edge) in enumerate(zip(curve,curve[1:],lengths)):
@@ -32,13 +32,13 @@ def edge_coordinate(piece,edge,v):
             t=(v-a[1])/(b[1]-a[1]);hits.append(a[0]+t*(b[0]-a[0]))
     if not hits or max(hits)-min(hits)>1e-5:
         raise StudioError('Volume guide row needs a unique source named-edge intersection')
-    return sum(hits)/len(hits)
+    return math.fsum(hits)/len(hits)
 
 
 def half_ellipse(half_perimeter,aspect,center_xy,z,side,segments=256):
     """Set the declared auxiliary arc length; never scale source UV."""
     base=[[side*aspect*math.sin(math.pi*i/segments),-math.cos(math.pi*i/segments)] for i in range(segments+1)]
-    scale=half_perimeter/sum(length(a,b) for a,b in zip(base,base[1:]))
+    scale=half_perimeter/math.fsum(length(a,b) for a,b in zip(base,base[1:]))
     return [[center_xy[0]+scale*x,center_xy[1]+scale*y,z] for x,y in base]
 
 
@@ -53,7 +53,7 @@ def _smooth_rows(rows,key,window,slope):
     result=[]
     for row in rows:
         values=[(other[key],max(0.,1-abs(other['v_cm']-row['v_cm'])/(window/2))) for other in rows]
-        result.append(sum(value*weight for value,weight in values)/sum(weight for _,weight in values))
+        result.append(math.fsum(value*weight for value,weight in values)/math.fsum(weight for _,weight in values))
     # Bound only the variation of the auxiliary guide. Source coordinates,
     # source girths and simulation strain gates are retained independently.
     for _ in range(64):
@@ -164,7 +164,7 @@ def volume_frames(data,groups,body_frame,upper_blend=0.,guide_smoothing_cm=40.):
                         # would collapse its v metric near the upper boundary.
                         new[2]+=v-maximum_v
                         target.append([(1-factor)*x+factor*y for x,y in zip(old,new)])
-                    total=sum(length(a,b) for a,b in zip(target,target[1:]))
+                    total=math.fsum(length(a,b) for a,b in zip(target,target[1:]))
                     target=extend_tangent(target,max(2.,maximum_u-total+2.))
                     offset=0.;direction=1
                 frames[pid].append({'v_cm':v,'arc_offset_cm':offset,'curve_cm':target})
@@ -182,3 +182,76 @@ def volume_frames(data,groups,body_frame,upper_blend=0.,guide_smoothing_cm=40.):
                         row['curve_cm']=extend_tangent(row['curve_cm'])
                         row['arc_offset_cm']=0.
     return panels,report
+
+
+def paired_volume_frames(data,group,body_frame,guide_smoothing_cm=40.):
+    """A real front/back cut, without inventing opening or side panels.
+
+    Named source contours determine signed material coordinates and raw girth.
+    Rows above the side seam retain their v coordinate; shoulder shaping and
+    seam closure need separate measured preparation and qualification.
+    """
+    if group.get('uv_origin_cm')!=[0.,0.]:
+        raise StudioError('Paired torso guide requires the source UV origin convention [0,0]')
+    if not math.isfinite(guide_smoothing_cm) or guide_smoothing_cm<=0:
+        raise StudioError('Paired torso smoothing window must be positive and finite')
+    roles={role:data['pieces'][group[role]] for role in ('front','back')}
+    signs={};edges=group['source_edges']
+    for role,piece in roles.items():
+        declared=edges[role]
+        if not all(name in piece['edges'] for name in declared.values()):
+            raise StudioError('Paired torso guide references a missing named source edge: '+group[role])
+        if any(abs(piece['vertices'][i][1])>1e-8 for i in piece['edges'][declared['hem']]):
+            raise StudioError('Paired torso source hem must match its declared zero UV origin')
+        values=[piece['vertices'][i][0] for i in piece['edges'][declared['side']]]
+        if not values or not all(math.isfinite(v) for v in values) or min(values)*max(values)<=0:
+            raise StudioError('Paired torso side edge needs one nonzero source transverse direction')
+        signs[role]=1 if values[0]>0 else -1
+        if any(signs[role]*point[0]<-1e-8 for point in piece['vertices']):
+            raise StudioError('Paired torso panel crosses its declared source center')
+    back=roles['back']
+    if any(abs(back['vertices'][i][0])>1e-8 for i in back['edges'][edges['back']['center']]):
+        raise StudioError('Paired torso back center must match its declared zero UV origin')
+    shared_top=min(max(piece['vertices'][i][1] for i in piece['edges'][edges[role]['side']])
+                   for role,piece in roles.items())
+    maximum_v=max(point[1] for piece in roles.values() for point in piece['vertices'])
+    if shared_top<=0 or maximum_v<shared_top:
+        raise StudioError('Paired torso side contour has no usable longitudinal range')
+    rows=sorted(set([0.,shared_top,maximum_v]+[float(v) for v in range(5,math.ceil(shared_top),5)]))
+    raw=[]
+    for v in rows:
+        widths={role:signs[role]*edge_coordinate(piece,edges[role]['side'],min(v,shared_top))
+                for role,piece in roles.items()}
+        if min(widths.values())<=0:
+            raise StudioError('Paired torso source section is collapsed')
+        raw.append({'v_cm':v,'source_v_cm':min(v,shared_top),
+                    'front_cm':widths['front'],'back_cm':widths['back'],
+                    'half_girth_cm':math.fsum(widths.values())})
+    # A pair has no intervening side panel to absorb an altered guide offset.
+    # Smoothing its half-girth independently of both side contours can make
+    # their interiors overlap or open a seam that matched the source metric.
+    smoothed=_smooth_rows(raw,'half_girth_cm',guide_smoothing_cm,.45)
+    covering=[max(row['half_girth_cm'],value) for row,value in zip(raw,smoothed)]
+    # Minimal Lipschitz majorant: retain source coverage while bounding the
+    # change of the auxiliary arc, including at the end of the side seam.
+    half_values=[max(value-.45*abs(row['v_cm']-other['v_cm'])
+                     for other,value in zip(raw,covering)) for row in raw]
+    panels={group[role]:{'source_ref':body_frame['source_ref']+'; paired source contours '+group[role],
+                         'arc_sections':[],'u_direction':signs[role]*(1 if role=='front' else -1)}
+            for role in roles}
+    sections=[]
+    for row,half in zip(raw,half_values):
+        curve=extend_tangent(half_ellipse(half,body_frame['aspect_ratio'],body_frame['center_xy_cm'],
+                          body_frame['hem_z_cm']+row['v_cm'],group['side_sign']))
+        sections.append({'v_cm':row['v_cm'],'raw_source':row,
+                         'applied_guide':{'half_girth_cm':half},'above_underarm_extension':row['v_cm']>shared_top})
+        for role in roles:
+            panels[group[role]]['arc_sections'].append({'v_cm':row['v_cm'],
+                'arc_offset_cm':0. if role=='front' else half,'curve_cm':curve})
+    return panels,{'status':'UNQUALIFIED_PLACEMENT_HYPOTHESIS','cut':'FRONT_BACK_PAIR',
+                   'body_frame':body_frame,'sections':sections,'source_uv_scaled':False,
+                   'body_changed':False,'fabricated_source_panels':[],
+                   'guide_smoothing':{'mode':'SOURCE_COVERING_SMOOTHED_GIRTH','window_cm':guide_smoothing_cm,
+                                      'half_girth_max_slope_cm_per_cm':.45,
+                                      'source_coverage':'NO_HALF_GIRTH_BELOW_RAW_PAIR'},
+                   'shoulder_shaping':'NOT_EXECUTED','closure':'NOT_EXECUTED'}

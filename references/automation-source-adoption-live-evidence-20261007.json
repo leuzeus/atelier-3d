@@ -1,0 +1,217 @@
+{
+  "date": "2026-10-07",
+  "scope": "ACTUAL_CANONICAL_SOURCE_ADOPTION_AND_PUBLIC_RECOMPILATION",
+  "project_id": "44f03e6c-dc68-4adb-85b9-e30f88b1aeaa",
+  "runtime_version": "0.7.0-rc.2.dev.2026100702",
+  "adoption": {
+    "status": "REVIEWED_SOURCE_INPUTS_ADOPTED",
+    "source_epoch": "19ca533d1eabf37df59bf934d22925001a464a71bddc7cba9e3b6366a2a6f640",
+    "parent_epoch": "cd3510df816031360237aa832f1d123fea9716306e476b5fc5ca1bc099f32e5c",
+    "manifest_ref": {
+      "path": ".a3d/evidence/reviewed-source-adoption-2a4f9e684c7744b484d2a0e1a96e8d75/manifest.json",
+      "sha256": "e8e8fa1b9dd0f8b6dd4e429f19f0ca903c66e3a12aca3b8b0fe503c1e30d51d9"
+    },
+    "reviewed_piece_ids": [
+      "back-left",
+      "back-right",
+      "collar",
+      "front-left",
+      "front-right"
+    ],
+    "component_id": "garment.coat",
+    "invalidated_evidence_keys": [],
+    "invalidated_run_ids": [
+      "run.433754fe078b4a46b1f689aec50cbf54",
+      "run.1a4b661f07cc4215abf1535c70529df8",
+      "run.04d8b017e9d340e4834eb1e26d4eafd0",
+      "run.613b83aa54c04e07b1e3cb8146b63087",
+      "run.1b551b8b47fe431eae3f40601bbb2399"
+    ],
+    "qualification": "NONE",
+    "fitting": "NOT_GRANTED",
+    "permission": "NOT_GRANTED"
+  },
+  "compilation": {
+    "status": "READY_TO_PLAN",
+    "textiles": 15,
+    "rigid_parts": 1,
+    "source_ref": {
+      "path": "preparation/reviewed-source-revision-v6/effective-dossier.json",
+      "sha256": "fd1a0c7fe7c48c3f7fa56457a2a08d41819c2bcf60b59fe99cbfe91472a2c610"
+    },
+    "specification_ref": {
+      "path": "preparation/adopted-production-inputs-v1/production-metadata.json",
+      "sha256": "f774f170b34a46329d993b1382fcadfd62b80e94d0c5a53a1075432b81e8de67"
+    },
+    "compiled_sha256": "4b72a1922517e7a489e8c9f24a32dab880412b56565dad0f9b9b00961b644b84"
+  },
+  "component_preparation": {
+    "version": 1,
+    "status": "SOURCE_PREPARATION_TEMPLATES_READY",
+    "artifacts": {
+      "guide_policy": {
+        "path": "preparation/public-source-preparation-v4/guide-policy.json",
+        "sha256": "5030d0bad2b8c8b133dc424233eb7598c780ae07909d9fafe42995df886dab7a"
+      },
+      "guides": {
+        "path": "preparation/public-source-preparation-v4/guides.json",
+        "sha256": "5eab958ef55694befb9c0259217f5c77d21413bdbb0882efd3b9553db9cf4741"
+      },
+      "assembly_plan": {
+        "path": "preparation/public-source-preparation-v4/assembly-plan.json",
+        "sha256": "2bf8bd616247d391ff42df9e0e6175133f9447221e153edec4d09a756c0db9a5"
+      },
+      "templates": {
+        "path": "preparation/public-source-preparation-v4/component-templates.json",
+        "sha256": "547e71a97b4f7bf312e3d5a3ec67bac3c97a6390f0cdb9b857de869210d9ec87"
+      },
+      "guide_report": {
+        "path": "preparation/public-source-preparation-v4/guide-report.json",
+        "sha256": "38b05b35232e461321e7414ae4f8edd459cf3b1bf8b536b51440fabe6433f867"
+      }
+    },
+    "diagnostics": [
+      {
+        "component_id": "garment.coat",
+        "category": "guide_placement",
+        "assessment": "NEEDS_CORRECTION",
+        "guide_assessment": {
+          "status": "NEEDS_CORRECTION",
+          "source_guide_status": "PARTIAL_GUIDES",
+          "alignment_status": "PARTIAL_ROLE_SEEDS_PREPARED",
+          "proposal_scope": "PARTIAL_TEST_ONLY",
+          "whole_piece_admission": false,
+          "diagnostics": [
+            {
+              "family": "source_rigid_alignment",
+              "code": "PARTIAL_SOURCE_RELATION_ALIGNMENT",
+              "message": "Rigid seeds cover front attachments only; other permanent relations still require correction"
+            }
+          ],
+          "qualification": "NONE",
+          "simulation": "NOT_EXECUTED",
+          "fitting": "NOT_EXECUTED"
+        }
+      }
+    ],
+    "parameters_ref": {
+      "path": "preparation/guide-parameters-composed-v1.json",
+      "sha256": "3bb37e08779032b40d0fbd1b7da53746993c7406f0a5af2e928bf40536d41f9a"
+    },
+    "compiler_inputs": {
+      "assembly_plan_ref": {
+        "path": "preparation/public-source-preparation-v4/assembly-plan.json",
+        "sha256": "2bf8bd616247d391ff42df9e0e6175133f9447221e153edec4d09a756c0db9a5"
+      },
+      "guides_ref": {
+        "path": "preparation/public-source-preparation-v4/guides.json",
+        "sha256": "5eab958ef55694befb9c0259217f5c77d21413bdbb0882efd3b9553db9cf4741"
+      },
+      "production_spec_ref": {
+        "path": "preparation/adopted-production-inputs-v1/production-metadata.json",
+        "sha256": "f774f170b34a46329d993b1382fcadfd62b80e94d0c5a53a1075432b81e8de67"
+      },
+      "standard_recipe_ref": {
+        "path": "preparation/standard-sewing-recipe.json",
+        "sha256": "d2ee821cb57990b25470f50a95e48bdf43d2cc37c67614c413b39db7cd4082a9"
+      },
+      "dossier_ref": {
+        "path": "preparation/reviewed-source-revision-v6/effective-dossier.json",
+        "sha256": "fd1a0c7fe7c48c3f7fa56457a2a08d41819c2bcf60b59fe99cbfe91472a2c610"
+      }
+    },
+    "native_body_origin": {
+      "event_id": 23,
+      "receipt": {
+        "path": ".a3d/runs/native/attempt.8c48bcd1ae1249c5a97011bc95ec61f4.json",
+        "sha256": "65589246127ab5c6008d1869822d227e44a5c39bd42ca34708500c332d7ec969"
+      },
+      "run_id": "run.74b32ba8748a452a93e1983fa1664357",
+      "unit_id": "bodycontext",
+      "attempt_id": "attempt.8c48bcd1ae1249c5a97011bc95ec61f4"
+    },
+    "body_ref": {
+      "path": ".a3d/outputs/body-target-7538c9a47520482ca744f85c201f6529/profile.json",
+      "sha256": "50f40c8999caed1e2e908da3eeb9a94d883a4ea2f3fdf6f15f3a4fd633bf437a"
+    },
+    "geometry_ref": {
+      "path": ".a3d/outputs/body-target-7538c9a47520482ca744f85c201f6529/geometry.json",
+      "sha256": "ad81aa69409ab4b2220152f68c1c12c90e475ba6b24613e33d5eb142d54de0c7"
+    },
+    "qualification": "NONE",
+    "planning_capability": {
+      "coupled_multilayer": "PROPOSAL_ONLY",
+      "native_path": "NOT_QUALIFIED"
+    },
+    "placement": "NOT_QUALIFIED",
+    "simulation": "NOT_EXECUTED",
+    "fitting": "NOT_EXECUTED",
+    "acceptance": "NOT_GRANTED",
+    "source_mutated": false,
+    "native_bindings_required": [
+      "BODY_COLLIDER_SNAPSHOT",
+      "NATIVE_REGULAR_MESH_MAP",
+      "COLLISION_ENVELOPE_REVIEW"
+    ]
+  },
+  "fit_preflight": {
+    "status": "FIT_METADATA_REQUIRED",
+    "qualification": "NONE",
+    "fitting": "NOT_EXECUTED",
+    "acceptance": "NOT_GRANTED"
+  },
+  "blender_scene_observation": {
+    "status": "ok",
+    "result": {
+      "status": "ok",
+      "scene_name": "Scene",
+      "active_workspace": "Layout",
+      "active_object": "A3D.BodyTarget.MainMale180",
+      "object_mode": "OBJECT",
+      "camera_object": null,
+      "collections": [
+        {
+          "name": "Scene Collection",
+          "exclude": false,
+          "hide_viewport": false,
+          "objects": [
+            {
+              "name": "A3D.BodyTarget.MainMale180",
+              "type": "MESH",
+              "parent": null,
+              "data_name": "A3D.BodyTargetMesh.7538c9a47520482ca744f85c201f6529",
+              "selected": false,
+              "visible": true,
+              "hide_viewport": false
+            }
+          ],
+          "children": []
+        }
+      ]
+    }
+  },
+  "prepared_operation": {
+    "operation": "bind_component_preparations",
+    "arguments": {
+      "templates_path": "preparation/public-source-preparation-v4/component-templates.json",
+      "body_object": "A3D.BodyTarget.MainMale180",
+      "body_geometry_ref": {
+        "path": ".a3d/outputs/body-target-7538c9a47520482ca744f85c201f6529/geometry.json",
+        "sha256": "ad81aa69409ab4b2220152f68c1c12c90e475ba6b24613e33d5eb142d54de0c7"
+      },
+      "output_directory": "preparation/native-source-bindings-v3",
+      "policy_path": "preparation/public-source-preparation-v4/guide-policy.json"
+    },
+    "code_path": "preparation/native-binding-request-v3/code.py",
+    "executed": false,
+    "authorization": "PENDING"
+  },
+  "remaining": [
+    "Native binding of new sources",
+    "Correct and measure shoulder placement and open-front torso coverage",
+    "Cloth, drape, fitting and motion",
+    "Exact candidate artistic review and final delivery"
+  ],
+  "human_cutting_review": "APPROVED_CANONICALLY_AUTHENTICATED_NO_NEW_CUTTING_REVIEW_REQUIRED_FOR_SAME_VARIANT",
+  "human_visual_review": "FUTURE_CANDIDATE_REQUIRED"
+}

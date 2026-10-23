@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-07",
+  "scope": "ACCEPTED_BODY_ARM_ROOT_PATHS_ONLY",
+  "report_ref": {
+    "path": "preparation/arm-root-body-path-review-v1/report.json",
+    "sha256": "d5e93665e808067cccd614527ab52eda5c802f28201448c86dce78a940e6cb63"
+  },
+  "paths": [
+    {
+      "id": "arm-root.source-left",
+      "source_joint": "shoulder.left",
+      "source_regions": [
+        1,
+        21
+      ],
+      "length_cm": 66.58358810559739,
+      "body_frame_height_range_cm": [
+        129.52125072479248,
+        147.90750741958618
+      ],
+      "topology": "ONE_EXACT_DECLARED_REGION_INTERFACE_CYCLE"
+    },
+    {
+      "id": "arm-root.source-right",
+      "source_joint": "shoulder.right",
+      "source_regions": [
+        1,
+        20
+      ],
+      "length_cm": 66.45676656493386,
+      "body_frame_height_range_cm": [
+        129.53932285308838,
+        147.91011810302734
+      ],
+      "topology": "ONE_EXACT_DECLARED_REGION_INTERFACE_CYCLE"
+    }
+  ],
+  "human_decisions": {
+    "body-path-homology.arm-root.source-left": {
+      "approved": true,
+      "decision_id": "4227c2f5-c41e-4b85-8d8b-3beccc673331",
+      "evidence": {
+        "body-path-homology.arm-roots.projections": {
+          "path": "preparation/arm-root-body-path-review-v1/projections.png",
+          "recorded_at": "2026-10-08T00:48:17.100214+00:00",
+          "sha256": "0e12f92d6f9cb605b57e3799b5f87a582a36e77fd7ac5f393d17dd566a0c257d"
+        },
+        "body-path-homology.arm-roots.report": {
+          "path": "preparation/arm-root-body-path-review-v1/report.json",
+          "recorded_at": "2026-10-08T00:47:56.981633+00:00",
+          "sha256": "d5e93665e808067cccd614527ab52eda5c802f28201448c86dce78a940e6cb63"
+        }
+      },
+      "source": "human",
+      "source_ref": "codex://threads/01a10118-bef1-7c71-9a8f-6ac8191361a2#user-arm-root-path-review-call_c683bd25ce104b1a9b6bfbb7310cd10b-20261007",
+      "statement": "Accepter les repères de racine des bras",
+      "timestamp": "2026-10-08T00:48:37.219527+00:00"
+    },
+    "body-path-homology.arm-root.source-right": {
+      "approved": true,
+      "decision_id": "58aec1c4-f9c9-4ef9-8535-38e199795b39",
+      "evidence": {
+        "body-path-homology.arm-roots.projections": {
+          "path": "preparation/arm-root-body-path-review-v1/projections.png",
+          "recorded_at": "2026-10-08T00:48:17.100214+00:00",
+          "sha256": "0e12f92d6f9cb605b57e3799b5f87a582a36e77fd7ac5f393d17dd566a0c257d"
+        },
+        "body-path-homology.arm-roots.report": {
+          "path": "preparation/arm-root-body-path-review-v1/report.json",
+          "recorded_at": "2026-10-08T00:47:56.981633+00:00",
+          "sha256": "d5e93665e808067cccd614527ab52eda5c802f28201448c86dce78a940e6cb63"
+        }
+      },
+      "source": "human",
+      "source_ref": "codex://threads/01a10118-bef1-7c71-9a8f-6ac8191361a2#user-arm-root-path-review-call_c683bd25ce104b1a9b6bfbb7310cd10b-20261007",
+      "statement": "Accepter les repères de racine des bras",
+      "timestamp": "2026-10-08T00:48:57.332870+00:00"
+    }
+  },
+  "garment_armscye_position": "NOT_FIXED_BY_THIS_DECISION",
+  "ease": "NO_NEW_VALUE",
+  "patterns_changed": false,
+  "body_changed": false,
+  "fitting": "NOT_QUALIFIED",
+  "qualification": "BODY_REFERENCE_REVIEW_ONLY"
+}

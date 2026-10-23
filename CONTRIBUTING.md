@@ -41,3 +41,11 @@ Ouvrir une branche, puis une pull request vers `main`. Les tests Windows et Linu
 doivent réussir avant fusion. Aucun nombre minimal d'approbations externes n'est
 imposé à ce projet personnel ; le mainteneur reste responsable de la revue.
 Les contributions sont proposées sous [licence MIT](LICENSE).
+
+Sous Windows, enregistrer la description de PR dans un fichier UTF-8 et le
+transmettre directement avec `gh pr edit --body-file`. Si PowerShell relit ce
+fichier, préciser `Get-Content -Raw -Encoding UTF8` avant toute réécriture : un
+décodage implicite peut publier des accents corrompus. Après publication, relire
+la réponse JSON de GitHub en UTF-8 et comparer le texte distant au fichier
+envoyé. Une sortie de terminal seule ne permet pas de distinguer une corruption
+publiée d'un problème d'affichage local.

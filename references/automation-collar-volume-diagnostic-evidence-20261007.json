@@ -1,0 +1,216 @@
+{
+  "date": "2026-10-07",
+  "scope": "COLLAR_GUIDE_VOLUME_DIAGNOSTIC_ONLY",
+  "source_material_width_cm": 55.215414631164414,
+  "source_material_height_cm": 7,
+  "approved_lower_3d_path_cm": 51.215414631164414,
+  "approved_ease_cm": 4,
+  "initial_guide": {
+    "horizontal_section_height_cm": 153.47056622279464,
+    "horizontal_section_girth_cm": 42.900102551821405,
+    "section_width_cm": 14.29881,
+    "section_depth_cm": 12.80699,
+    "method": "SOURCE_DEVELOPABLE_NECK_BAND_SINGLE_TRANSVERSE_SECTION",
+    "approved_lower_3d_path_shape_used": false,
+    "full_height_surface_shape_used": false
+  },
+  "actual_guide": {
+    "path": "preparation/native-source-bindings-v3/garment.coat/plan.json",
+    "sha256": "664e57ab046f3e05841113ae17166442be594b0f7ecfe2a2009e5046f22b12a1",
+    "same_u_witness": {
+      "indices": [
+        251,
+        471
+      ],
+      "source_uv_cm": [
+        [
+          27.607707315582203,
+          0.0
+        ],
+        [
+          27.607707315582207,
+          7.0
+        ]
+      ],
+      "target_cm": [
+        [
+          -0.0036275906099301155,
+          4.932383774550272,
+          150.97035460382668
+        ],
+        [
+          -0.005418790912547925,
+          1.2914418772050347,
+          158.70980298459165
+        ]
+      ],
+      "u_match_tolerance_cm": 1e-10,
+      "source_length_cm": 7.0,
+      "placed_chord_cm": 8.5531001599869,
+      "relative_chord_excess": 0.22187145142670017
+    },
+    "body_up_bbox_cm": [
+      144.9101725530105,
+      158.70980298459165
+    ],
+    "bbox_is_material_height": false
+  },
+  "obstacle_sections": {
+    "path": "preparation/guide-obstacle-sections-collar-v1/report.json",
+    "sha256": "2d51e7c9d29f0b4f8052cbb7ad69b5b395d6f5af3fe731a7201eaf947d4c51fa",
+    "sample_count": 15,
+    "measured": 13,
+    "incomplete": 2,
+    "rows": [
+      {
+        "height_cm": 144.9101725530105,
+        "status": "MEASURED",
+        "reason": null,
+        "anatomical_girth": "NOT_QUALIFIED",
+        "width_cm": 46.20789,
+        "depth_cm": 17.38255,
+        "obstacle_perimeter_cm": 109.49023233791104
+      },
+      {
+        "height_cm": 145.89586044098058,
+        "status": "MEASURED",
+        "reason": null,
+        "anatomical_girth": "NOT_QUALIFIED",
+        "width_cm": 44.12084,
+        "depth_cm": 16.59985,
+        "obstacle_perimeter_cm": 103.70837884718753
+      },
+      {
+        "height_cm": 146.8815483289507,
+        "status": "MEASURED",
+        "reason": null,
+        "anatomical_girth": "NOT_QUALIFIED",
+        "width_cm": 40.43036,
+        "depth_cm": 15.94437,
+        "obstacle_perimeter_cm": 94.92254056976994
+      },
+      {
+        "height_cm": 147.86723621692076,
+        "status": "MEASURED",
+        "reason": null,
+        "anatomical_girth": "NOT_QUALIFIED",
+        "width_cm": 34.62569,
+        "depth_cm": 15.39597,
+        "obstacle_perimeter_cm": 83.11156762079383
+      },
+      {
+        "height_cm": 148.85292410489083,
+        "status": "MEASURED",
+        "reason": null,
+        "anatomical_girth": "NOT_QUALIFIED",
+        "width_cm": 31.367620000000002,
+        "depth_cm": 14.98042,
+        "obstacle_perimeter_cm": 75.33085965064457
+      },
+      {
+        "height_cm": 149.8386119928609,
+        "status": "MEASURED",
+        "reason": null,
+        "anatomical_girth": "NOT_QUALIFIED",
+        "width_cm": 28.22882,
+        "depth_cm": 14.51263,
+        "obstacle_perimeter_cm": 68.93311567951862
+      },
+      {
+        "height_cm": 150.824299880831,
+        "status": "MEASURED",
+        "reason": null,
+        "anatomical_girth": "NOT_QUALIFIED",
+        "width_cm": 24.350320000000004,
+        "depth_cm": 13.899799999999999,
+        "obstacle_perimeter_cm": 61.28311890263437
+      },
+      {
+        "height_cm": 151.80998776880108,
+        "status": "MEASURED",
+        "reason": null,
+        "anatomical_girth": "NOT_QUALIFIED",
+        "width_cm": 19.60942,
+        "depth_cm": 13.17487,
+        "obstacle_perimeter_cm": 52.660892469961006
+      },
+      {
+        "height_cm": 152.79567565677115,
+        "status": "MEASURED",
+        "reason": null,
+        "anatomical_girth": "NOT_QUALIFIED",
+        "width_cm": 15.89251,
+        "depth_cm": 12.91038,
+        "obstacle_perimeter_cm": 45.63326551683051
+      },
+      {
+        "height_cm": 153.78136354474125,
+        "status": "MEASURED",
+        "reason": null,
+        "anatomical_girth": "NOT_QUALIFIED",
+        "width_cm": 13.786159999999999,
+        "depth_cm": 12.74413,
+        "obstacle_perimeter_cm": 41.913911172471884
+      },
+      {
+        "height_cm": 154.76705143271133,
+        "status": "MEASURED",
+        "reason": null,
+        "anatomical_girth": "NOT_QUALIFIED",
+        "width_cm": 13.00855,
+        "depth_cm": 12.94658,
+        "obstacle_perimeter_cm": 40.624525817896924
+      },
+      {
+        "height_cm": 155.7527393206814,
+        "status": "MEASURED",
+        "reason": null,
+        "anatomical_girth": "NOT_QUALIFIED",
+        "width_cm": 12.8719,
+        "depth_cm": 17.51634,
+        "obstacle_perimeter_cm": 48.361591291222666
+      },
+      {
+        "height_cm": 156.73842720865147,
+        "status": "MEASURED",
+        "reason": null,
+        "anatomical_girth": "NOT_QUALIFIED",
+        "width_cm": 12.87452,
+        "depth_cm": 17.964679999999998,
+        "obstacle_perimeter_cm": 48.869471219053146
+      },
+      {
+        "height_cm": 157.72411509662157,
+        "status": "NOT_QUALIFIED",
+        "reason": "SECTION_OPEN_AMBIGUOUS_OR_COPLANAR",
+        "anatomical_girth": "NOT_QUALIFIED"
+      },
+      {
+        "height_cm": 158.70980298459165,
+        "status": "NOT_QUALIFIED",
+        "reason": "SECTION_OPEN_AMBIGUOUS_OR_COPLANAR",
+        "anatomical_girth": "NOT_QUALIFIED"
+      }
+    ],
+    "qualification": "OBSTACLE_GUIDE_CONTOURS_ONLY",
+    "anatomical_girths_replaced": false,
+    "full_volume_clearance": "NOT_TESTED"
+  },
+  "diagnosis": [
+    "Initial guide uses one section aspect plus source material height, without approved lower 3D path shape.",
+    "Rigid collar seed preserves metrics; permanent seam cohort averaging can deform the resulting guide.",
+    "Same-u guide witness is stretched by about22.2percent.",
+    "Additional contours do not define upper design boundary or admit fitting."
+  ],
+  "next": [
+    "Use approved lower 3D path with explicit seam phase correspondence.",
+    "Prepare the upper correspondence from source height and measured body surfaces for visual review.",
+    "Constrain joint collar and neckline placement, then recheck source metrics and exact contacts.",
+    "Keep incomplete contours refused."
+  ],
+  "body_changed": false,
+  "patterns_changed": false,
+  "native_execution": false,
+  "fitting": "NOT_QUALIFIED",
+  "qualification": "NONE"
+}

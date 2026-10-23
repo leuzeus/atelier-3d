@@ -1,0 +1,369 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Versioned immutable source/body/skin guide reconstruction policy",
+  "type": "object",
+  "properties": {
+    "version": {
+      "enum": [1, 2]
+    },
+    "generator": {
+      "enum": ["GARMENT_VOLUME_FRAMES_V1", "GARMENT_VOLUME_FRAMES_V2"]
+    },
+    "compiled_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "dossier_ref": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "specification_ref": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "body_ref": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "geometry_ref": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "generator_code_sha256": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      }
+    },
+    "components": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "package_source_ref": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "path",
+              "sha256"
+            ],
+            "additionalProperties": false
+          },
+          "upper_blend": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "surface_sections": {
+            "type": "boolean"
+          },
+          "section_parameterization": {
+            "enum": ["POLYLINE_ARCLENGTH_V1", "SOURCE_MATERIAL_U_V1"]
+          },
+          "limb_parameterization": {
+            "enum": ["SOURCE_ROW_CIRCUMFERENCE_V1", "SOURCE_SEWN_DOMAIN_V1"]
+          },
+          "skin_section_heights_cm": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 400
+            },
+            "uniqueItems": true,
+            "maxItems": 32
+          },
+          "skin_sections_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "anatomical_references_ref": {
+            "type": "object",
+            "properties": {
+              "path": {"type": "string", "minLength": 1},
+              "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+            },
+            "required": ["path", "sha256"],
+            "additionalProperties": false
+          },
+          "anatomical_references_sha256": {
+            "type": "string", "pattern": "^[a-f0-9]{64}$"
+          },
+          "attachment_clearance": {
+            "type": "object",
+            "properties": {
+              "method": {"const": "FIXED_SOURCE_TARGET_BODY_RESERVE_V1"},
+              "collider_object": {"type": "string", "minLength": 1, "maxLength": 256},
+              "budgets": {
+                "type": "object",
+                "properties": {
+                  "max_seconds": {"type": "number", "minimum": 0, "maximum": 60},
+                  "max_triangle_visits": {"type": "integer", "minimum": 1, "maximum": 10000000},
+                  "max_candidates": {"type": "integer", "minimum": 1, "maximum": 1024},
+                  "max_body_vertices": {"type": "integer", "minimum": 1, "maximum": 200000},
+                  "max_body_triangles": {"type": "integer", "minimum": 1, "maximum": 200000}
+                },
+                "required": ["max_seconds"], "additionalProperties": false
+              },
+              "recipe_ref": {
+                "type": "object", "properties": {
+                  "path": {"type": "string", "minLength": 1},
+                  "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+                },
+                "required": ["path", "sha256"], "additionalProperties": false
+              }
+            },
+            "required": ["method", "collider_object", "budgets", "recipe_ref"],
+            "additionalProperties": false
+          },
+          "source_boundary_bindings": {
+            "type": "object",
+            "properties": {
+              "version": {"const": 1},
+              "method": {"const": "HOMOLOGOUS_PATH_BAND_BOUNDARY_V1"},
+              "driver_piece": {"type": "string", "minLength": 1, "maxLength": 100},
+              "source_seam_ids": {
+                "type": "array", "minItems": 1, "maxItems": 128, "uniqueItems": true,
+                "items": {"type": "string", "minLength": 1, "maxLength": 100}
+              },
+              "ease_distribution": {"const": "UNIFORM_NORMALIZED_SOURCE_ARC"},
+              "query_target_kind": {"const": "CURRENT_PARTNER_BOUNDARY_TARGET"},
+              "budgets": {
+                "type": "object",
+                "properties": {
+                  "max_source_points": {"type": "integer", "minimum": 1, "maximum": 80000},
+                  "max_source_triangles": {"type": "integer", "minimum": 1, "maximum": 32768},
+                  "max_controls": {"type": "integer", "minimum": 1, "maximum": 70000},
+                  "max_triangles": {"type": "integer", "minimum": 1, "maximum": 131072},
+                  "max_seconds": {"type": "number", "minimum": 0.000001, "maximum": 120}
+                },
+                "required": ["max_seconds"],
+                "additionalProperties": false
+              },
+              "continuation": {
+                "type": "object",
+                "properties": {
+                  "method": {"const": "SEEDED_SURFACE_PATH_LIFT_V2"},
+                  "min_cosine": {"type": "number", "minimum": 0, "maximum": 1},
+                  "max_events": {"type": "integer", "minimum": 1, "maximum": 2000000}
+                },
+                "required": ["method", "min_cosine", "max_events"],
+                "additionalProperties": false
+              },
+              "recipe_ref": {
+                "type": "object",
+                "properties": {
+                  "path": {"type": "string", "minLength": 1},
+                  "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+                },
+                "required": ["path", "sha256"],
+                "additionalProperties": false
+              }
+            },
+            "required": ["version", "method", "driver_piece", "source_seam_ids", "ease_distribution", "query_target_kind", "budgets", "continuation", "recipe_ref"],
+            "additionalProperties": false
+          },
+          "source_seam_coupling": {
+            "type": "object",
+            "properties": {
+              "strategy": {"enum": ["COUPLED_REST_METRIC_V2"]},
+              "piece_scope": {"enum": ["EXPLICIT", "PERMANENT_COMPONENT"]},
+              "numerical_anchor_edges": {
+                "type": "array", "minItems": 1, "maxItems": 256, "uniqueItems": true,
+                "items": {"type": "object", "properties": {
+                  "piece": {"type": "string", "minLength": 1, "maxLength": 100},
+                  "edge": {"type": "string", "minLength": 1, "maxLength": 100}
+                }, "required": ["piece", "edge"], "additionalProperties": false}
+              },
+              "relaxation": {
+                "type": "object",
+                "properties": {
+                  "max_iterations": {"type": "integer", "minimum": 1, "maximum": 1000},
+                  "rigid_iterations": {"type": "integer", "minimum": 0, "maximum": 100},
+                  "max_displacement_cm": {"type": "number", "minimum": 0.000001, "maximum": 100},
+                  "metric_weight": {"type": "number", "minimum": 0.000001, "maximum": 10000},
+                  "seam_weight": {"type": "number", "minimum": 0.000001, "maximum": 1000},
+                  "position_weight": {"type": "number", "minimum": 0, "maximum": 100},
+                  "seam_tolerance_cm": {"type": "number", "minimum": 0.000001, "maximum": 5},
+                  "strain_tolerance": {"type": "number", "minimum": 0.000001, "maximum": 0.5},
+                  "stagnation_iterations": {"type": "integer", "minimum": 1, "maximum": 100},
+                  "improvement_tolerance": {"type": "number", "minimum": 0.000000000001, "maximum": 0.01},
+                  "ease_distribution": {"enum": ["UNIFORM_NORMALIZED_SOURCE_ARC", "ZERO_EASE_ONLY"]},
+                  "constraint_projection": {"enum": ["ACTIVE_PRINCIPAL_CONE_V1"]}
+                },
+                "additionalProperties": false
+              },
+              "pieces": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$"
+                },
+                "minItems": 1,
+                "maxItems": 16,
+                "uniqueItems": true
+              },
+              "subdivisions": {
+                "type": "integer",
+                "minimum": 2,
+                "maximum": 16
+              },
+              "budgets": {
+                "type": "object",
+                "properties": {
+                  "max_source_points": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 80000
+                  },
+                  "max_source_triangles": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 32768
+                  },
+                  "max_controls": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 70000
+                  },
+                  "max_triangles": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 131072
+                  },
+                  "max_seconds": {
+                    "type": "number",
+                    "minimum": 0.001,
+                    "maximum": 120
+                  }
+                },
+                "required": [
+                  "max_source_points",
+                  "max_source_triangles",
+                  "max_controls",
+                  "max_triangles",
+                  "max_seconds"
+                ],
+                "additionalProperties": false
+              },
+              "recipe_ref": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                },
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "pieces",
+              "subdivisions",
+              "budgets",
+              "recipe_ref"
+            ],
+            "additionalProperties": false
+          },
+          "source_seam_recipe_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "package_source_ref",
+          "upper_blend",
+          "surface_sections",
+          "skin_section_heights_cm"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "version",
+    "generator",
+    "compiled_sha256",
+    "dossier_ref",
+    "specification_ref",
+    "body_ref",
+    "geometry_ref",
+    "generator_code_sha256",
+    "components"
+  ],
+  "additionalProperties": false
+}

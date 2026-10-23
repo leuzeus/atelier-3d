@@ -53,6 +53,59 @@ class ProtocolTests(unittest.TestCase):
         s=self.initialized(); response=s.handle({"jsonrpc":"2.0","id":2,"method":"tools/list"})
         self.assertGreater(len(response["result"]["tools"]),15)
 
+    def test_body_path_review_public_arguments_and_artifact_annotation(self):
+        from unittest.mock import patch
+        descriptor=TOOLS['studio_prepare_body_path_review']['descriptor']
+        self.assertFalse(descriptor['annotations']['readOnlyHint'])
+        self.assertFalse(descriptor['annotations']['destructiveHint'])
+        arguments={'project_root':'selected-project','body_profile_path':'profile.json',
+                   'specification_path':'paths.json','output_dir':'preparation/fresh'}
+        with patch('a3d.tools.Project', return_value='project') as project, \
+                patch('a3d.body_source_paths.prepare_project_body_path_review',
+                      return_value={'status':'BODY_SOURCE_PATH_REVIEW_PREPARED'}) as prepare:
+            self.assertEqual(call('studio_prepare_body_path_review',arguments),
+                             {'status':'BODY_SOURCE_PATH_REVIEW_PREPARED'})
+            project.assert_called_once_with('selected-project')
+            prepare.assert_called_once_with('project','profile.json','paths.json','preparation/fresh')
+        with self.assertRaises(StudioError):
+            call('studio_prepare_body_path_review',dict(arguments, implicit_anatomy=True))
+
+    def test_reviewed_pattern_revision_public_arguments_and_scope(self):
+        from unittest.mock import patch
+        descriptor = TOOLS['studio_prepare_reviewed_pattern_revision']['descriptor']
+        self.assertFalse(descriptor['annotations']['readOnlyHint'])
+        self.assertFalse(descriptor['annotations']['destructiveHint'])
+        roles = dict(proposal='proposal-key', review='review-key',
+                     candidate_dossier='dossier-key', variant_package='package-key')
+        arguments = dict(project_root='selected-project', gate_name='reviewed-variant',
+                         roles=roles, output_dir='preparation/fresh')
+        with patch('a3d.tools.Project', return_value='project') as project, \
+                patch('a3d.reviewed_pattern_revisions.prepare_project_reviewed_pattern_revision',
+                      return_value={'status': 'DESIGN_SOURCE_REVISION_PREPARED'}) as prepare:
+            self.assertEqual(call('studio_prepare_reviewed_pattern_revision', arguments),
+                             {'status': 'DESIGN_SOURCE_REVISION_PREPARED'})
+            project.assert_called_once_with('selected-project')
+            prepare.assert_called_once_with('project', 'reviewed-variant', roles, 'preparation/fresh')
+        with self.assertRaises(StudioError):
+            call('studio_prepare_reviewed_pattern_revision', dict(arguments, adopt=True))
+        with self.assertRaises(StudioError):
+            call('studio_prepare_reviewed_pattern_revision', dict(arguments, roles=dict(roles, implicit=True)))
+
+    def test_reviewed_source_adoption_public_arguments_and_annotation(self):
+        from unittest.mock import patch
+        descriptor = TOOLS['studio_adopt_reviewed_source_revision']['descriptor']
+        self.assertFalse(descriptor['annotations']['readOnlyHint'])
+        arguments = dict(project_root='selected-project', revision_path='preparation/revision/revision.json',
+                         expected_parent_epoch='a'*64, request_key='revision.test')
+        with patch('a3d.tools.Project', return_value='project'), \
+             patch('a3d.reviewed_source_adoption.adopt_reviewed_source_revision',
+                   return_value={'status': 'REVIEWED_SOURCE_REVISION_ADOPTED'}) as adopt:
+            self.assertEqual(call('studio_adopt_reviewed_source_revision', arguments)['status'],
+                             'REVIEWED_SOURCE_REVISION_ADOPTED')
+            adopt.assert_called_once_with('project', 'preparation/revision/revision.json', 'a'*64, 'revision.test')
+        with self.assertRaises(StudioError):
+            call('studio_adopt_reviewed_source_revision', dict(arguments, approve_fitting=True))
+
     def test_preinitialize_tools_refused(self):
         s=Server(); r=s.handle({"jsonrpc":"2.0","id":1,"method":"tools/list"})
         self.assertIn("error",r)
@@ -104,7 +157,7 @@ class ProtocolTests(unittest.TestCase):
     def test_schemas_and_skill_links_exist(self):
         from a3d.core import read_json
         import re
-        self.assertEqual(len(list((ROOT/"skills").glob("*/SKILL.md"))),11)
+        self.assertEqual(len(list((ROOT/"skills").glob("*/SKILL.md"))),12)
         for path in (ROOT/"skills").glob("*/SKILL.md"):
             text=path.read_text(encoding="utf-8")
             self.assertIn("name: "+path.parent.name,text)
@@ -118,6 +171,8 @@ class ProtocolTests(unittest.TestCase):
         self.assertIn("servers/studio/main.py",files)
         self.assertIn("mcp.json",files)
         self.assertIn("hooks/handler.py",files)
+        self.assertIn("skills/patronage/SKILL.md",files)
+        self.assertIn("templates/agents/atelier3d-patronage.toml",files)
         self.assertNotIn("config.local.json",files)
         self.assertFalse(any(name.startswith("work/") or ".sqlite3" in name for name in files))
 

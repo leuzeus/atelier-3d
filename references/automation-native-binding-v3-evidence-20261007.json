@@ -1,0 +1,87 @@
+{
+  "status": "VERIFIED_PERSISTED_NATIVE_BINDING_AFTER_TRANSPORT_TIMEOUT",
+  "date": "2026-10-07",
+  "project_id": "44f03e6c-dc68-4adb-85b9-e30f88b1aeaa",
+  "source_epoch": "19ca533d1eabf37df59bf934d22925001a464a71bddc7cba9e3b6366a2a6f640",
+  "requested_runtime": "0.7.0-rc.2.dev.2026100702",
+  "user_authorization": {
+    "statement": "J autorise",
+    "operation": "bind_component_preparations",
+    "code_sha256": "55c67c82e693fe7f3686750f82f929fe44c9011337877d6bede354e628389b0c"
+  },
+  "transport": {
+    "status": "TIMEOUT",
+    "response_received": false,
+    "proof": "Persisted binding and canonical blender_finished event",
+    "automatic_replay": false
+  },
+  "canonical_events": {
+    "started_id": 108,
+    "finished_id": 109,
+    "native_elapsed_seconds": 84.363774,
+    "execution_count": 1
+  },
+  "verification_receipt": {
+    "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-native-binding-v3-execution-v1/persisted-verification.json",
+    "sha256": "a379e0123d84afba34e9c476e5507dd8a1bc33393f9b003baed2e5792782aa29",
+    "referenced_files_verified": 27
+  },
+  "binding_ref": {
+    "path": "preparation/native-source-bindings-v3/binding.json",
+    "sha256": "d6aa0f87ea09c600d6ee61701fa2413e9d03d067467d4111cb559794d9cbf4bf"
+  },
+  "checkpoint": {
+    "path": ".a3d/checkpoints/pre-da5e0254faaa4195a69579a213b80ee9.blend",
+    "sha256": "a67c0255fdad05976d48db0890eb30def7280d74d9eb089dea4e9179523701be"
+  },
+  "components": [
+    "garment.belt",
+    "garment.coat",
+    "garment.hood-yoke"
+  ],
+  "probe_quality": {
+    "belt": "NO_PROBE_REJECTION",
+    "coat": "NO_PROBE_REJECTION",
+    "hood_yoke": {
+      "status": "NEEDS_CORRECTION",
+      "reason": "Degenerate/sliver simulation triangles",
+      "min_angle_degrees": 1.7943119898575155,
+      "min_area_cm2": 0.0001413792324566425
+    }
+  },
+  "next_prepared_operation": {
+    "status": "AWAITING_CONFIRMATION",
+    "unit_id": "prepare-garment.coat",
+    "attempt_id": "attempt.a574c5e5ea1d4f71af5f9980d82f0f08",
+    "operation": "prepare_pattern_assembly",
+    "arguments": {
+      "component_id": "garment.coat",
+      "preparation_path": "preparation/native-source-bindings-v3/garment.coat/preparation.json",
+      "recipe_path": "preparation/native-source-bindings-v3/garment.coat/recipe.json"
+    },
+    "code": "# Atelier 3D controlled operation v2\nimport runpy\ndispatch = runpy.run_path('C:\\\\Users\\\\leuz9\\\\.codex\\\\plugins\\\\cache\\\\atelier-3d-local\\\\atelier-3d\\\\0.7.0-rc.2.dev.2026100702\\\\blender\\\\bootstrap.py')['dispatch_current']\nresult = dispatch(**{'project_root': 'G:\\\\projets\\\\atelier-3d\\\\work\\\\garment-automation-v1\\\\program-reviewed-design-main-v1\\\\execution-project', 'operation': 'prepare_pattern_assembly', 'arguments': {'component_id': 'garment.coat', 'preparation_path': 'preparation/native-source-bindings-v3/garment.coat/preparation.json', 'recipe_path': 'preparation/native-source-bindings-v3/garment.coat/recipe.json'}})\n",
+    "code_sha256": "0d6a5857a1f781c0598adf9b5365afdd672d332d04c0fb37bf38ce0b57241cea",
+    "executed": false,
+    "execution_permission_required": true,
+    "qualification": "NOT_GRANTED",
+    "budgets": {
+      "max_attempts": 2,
+      "max_seconds": 3600
+    },
+    "next": "Present this exact operation and effects, ask for permission, wait for an affirmative reply, then use the guarded Blender MCP. Preparation is not execution permission.",
+    "run_id": "run.cece5c47060e4336b10132c0e921732c"
+  },
+  "qualification": "INPUT_BINDING_ONLY",
+  "piece_completeness": {
+    "prepared_source_textiles": 15,
+    "rigid_source_parts": 1,
+    "current_scene": "BODY_ONLY",
+    "cloth": "NOT_EXECUTED",
+    "fitting": "NOT_QUALIFIED"
+  },
+  "human_reviews": {
+    "cutting": "EXISTING_SCOPED_APPROVAL_PRESERVED",
+    "visual_candidate": "PENDING_CANDIDATE_NOT_CREATED"
+  },
+  "blender_execution_permission_for_next_step": "PENDING_EXACT_REQUEST"
+}

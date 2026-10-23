@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-07",
+  "scope": "SYNCHRONIZED_MESH_BUDGET_REFUSAL_AND_PORTABLE_REFINEMENT_CACHE",
+  "project_id": "44f03e6c-dc68-4adb-85b9-e30f88b1aeaa",
+  "source_epoch": "19ca533d1eabf37df59bf934d22925001a464a71bddc7cba9e3b6366a2a6f640",
+  "run_id": "run.bdfb2820c4eb4406b8e7f2f4ebb07c7e",
+  "attempt_id": "attempt.34f9928c75464e109d0be1a26d52eef1",
+  "runtime_version": "0.7.0-rc.2.dev.2026100702",
+  "readiness": "NEEDS_CORRECTION",
+  "native_elapsed_seconds": 194.3169906999683,
+  "native_receipt": {
+    "path": ".a3d/runs/native/attempt.34f9928c75464e109d0be1a26d52eef1.json",
+    "sha256": "20c895be772817ff22989ddb608350ea03b7981d450fcea78f7a59b0332bd44f"
+  },
+  "entry_checkpoint": {
+    "path": ".a3d/checkpoints/pre-3bc73b266545440888909d041611bf16.blend",
+    "sha256": "3e5f17eac18534ea5a8245d0b5848ca0fa093ff2523d61b00792bd4e41730240"
+  },
+  "native_result": {
+    "mesh_build": "INCOMPLETE",
+    "reason": "DEADLINE_EXHAUSTED",
+    "last_phase": "interior_refinement:vertex",
+    "elapsed_mesh_budget_seconds": 90.00000470003579,
+    "active_piece": "back-right",
+    "candidate_created": false,
+    "local_textiles": "0/10",
+    "global_textiles": "0/15",
+    "rigid_buckle": "ABSENT",
+    "simulation": "NOT_EXECUTED",
+    "fitting": "NOT_QUALIFIED",
+    "visual_validation": "NOT_EXECUTED",
+    "body_or_patterns_changed": false,
+    "cpu_attribution": "NOT_ESTABLISHED_LAST_PHASE_IS_NOT_A_CPU_PROFILE"
+  },
+  "generic_change": {
+    "module": "a3d/mesh_refinement.py",
+    "cache_scope": "ONE_CALL_COMMITTED_FACE_METRICS",
+    "trial_metrics": "UNCACHED",
+    "accepted_move": "INVALIDATE_ALL_INCIDENT_FACES",
+    "terminal_audit": "RECOMPUTE_FROM_ACTUAL_COORDINATES",
+    "checkpoints": "RETAINED_IN_SAME_ORDER",
+    "native_budget_seconds": 90,
+    "native_angle_gate_degrees": 15,
+    "installed": false,
+    "native_validation": "NOT_EXECUTED"
+  },
+  "validation": {
+    "targeted_tests": {
+      "status": "PASS",
+      "count": 76,
+      "skipped": 0,
+      "command": "python -m unittest tests.test_mesh_refinement tests.test_mesh_refinement_shared_reference tests.test_mesh_refinement_checkpoints tests.test_mesh_refinement_metric_cache tests.test_bounded_pattern_meshing tests.test_meshing_envelope"
+    },
+    "portable_replay": {
+      "status": "PASS",
+      "historical_mesh_sha256": "a6786be2ec6982f2bded2f8187a9bd006bff11f938c56cfb22874b36ad292ed2",
+      "pieces": 10,
+      "exact_coordinates_and_reports": true,
+      "exact_checkpoint_sequences": true,
+      "receipt": "G:/projets/atelier-3d/work/garment-automation-v1/program-mesh-refinement-performance-v1/portable-replay-v3.json",
+      "speedup_scope": "REFINEMENT_ONLY_HISTORICAL_UV_REPLAY_WITH_INSTRUMENTATION",
+      "native_budget_success": "NOT_ESTABLISHED"
+    },
+    "independent_review": {
+      "reviewer": "review_refinement_cache",
+      "findings": "NO_P1_OR_P2",
+      "reported_targeted_tests": 29,
+      "reported_differential_comparisons": 32,
+      "reported_accepted_moves": 279,
+      "native_execution": "NOT_EXECUTED"
+    }
+  },
+  "recovery": {
+    "restoration": "PREPARED_NOT_EXECUTED",
+    "request": "preparation/coat-recovery-current-source-v1/restore-after-budget-request.json",
+    "next": "Exact restore authorization, then qualification of a local build before a new native preparation"
+  },
+  "human_reviews": {
+    "new_cutting_review": "NOT_REQUIRED_UNCHANGED_APPROVED_PATTERNS",
+    "candidate_visual_review": "PENDING_NO_CURRENT_TEXTILE_CANDIDATE"
+  },
+  "qualification": "NONE"
+}

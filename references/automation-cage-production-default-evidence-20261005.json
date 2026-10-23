@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "status": "PORTABLE_GENERIC_KERNELS_VALIDATED_EXPERIMENTAL_ACCELERATION_NOT_QUALIFIED",
+  "code_sha256": {
+    "a3d/cage_lookup.py": "d0c8a748334efa47ccc5fe95b3514593450729de004f1e22567bc6112c64ef6c",
+    "a3d/garment_measurements.py": "5b5256b4faf59bb2d091a35babb4511fa4bfd2e29ceff621ca0a8207ddf5c512",
+    "tests/test_cage_lookup.py": "4a4080a515a4b0dd87e9233a6803f6c39535c97811ada19435570417ff3b3e00",
+    "tests/test_barycentric_guide_measurements.py": "cecc70f318d5f6d88a6fbd194ab62377466067d514e0c78edbbc62299876662e"
+  },
+  "tests": {
+    "python311": {
+      "status": "PASS", "count": 79, "seconds": 2.364,
+      "log_sha256": "0e538fbdd0b70e579efa2644ebd7ad16a1b89131dce1ba91df09bdf7cd97d726"
+    },
+    "python313": {
+      "status": "PASS", "count": 79, "seconds": 2.670,
+      "log_sha256": "5a65f760549d3536aff6ab99e57d9d8ba75f63409d109d8447236c0c7c8589f5"
+    }
+  },
+  "local_logs": "G:/projets/atelier-3d/work/garment-automation-v1/program-cage-integration-v1/*production-default-v2.log",
+  "independent_review": "NO_P2_OR_HIGHER_CONFIRMED_HELPER_EXACT_INTEGERS_AND_PRODUCTION_DEFAULT",
+  "production_backend": "LINEAR_CAGE_DEFAULT_NO_PUBLIC_EXPERIMENTAL_OPT_IN",
+  "experimental_parameter": "intersect_guide_material_plane(use_cage_lookup=True); strict boolean; result backend explicit",
+  "integer_coefficients": "Original-type subtractions first; finite exact conversion of origins, differences and denominator only; original narrow-phase inputs preserved",
+  "negative_real_input_probe": {
+    "consumer_code_phase": "Before restoring exhaustive production default; source fingerprints are preserved in the separate profile receipt",
+    "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-cage-lookup-v1/current-input-probe-exact-int-python311/profile.json",
+    "sha256": "34b9c85dd1da5d4d44049df938462e558d8a15a218e6c0f76f9c9194ac6bd05b",
+    "source_faces": 5242,
+    "guide_cells": 11922,
+    "typical_candidate_count_approximate": 9269,
+    "chest_completed_faces": 568,
+    "waist_completed_faces": 575,
+    "hip_completed_faces": 572,
+    "unchanged_time_budget_seconds": 15,
+    "outcome": "ALL_THREE_TIME_BUDGET_REFUSALS_NO_COMPLETE_CAPACITY_PERFORMANCE_REGRESSION"
+  },
+  "negative_probes_and_previous_code_preserved": true,
+  "current_default_performance_rebenchmark": "NOT_EXECUTED_OR_CLAIMED",
+  "runtime_installation": "NOT_EXECUTED_FOR_THIS_CHANGE",
+  "public_product_compilation": "NOT_EXECUTED",
+  "native_execution": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "product_qualification": "NONE"
+}

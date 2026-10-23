@@ -1,0 +1,218 @@
+{
+  "version": 1,
+  "status": "REVIEWED_RESTORATION_AND_CAGE_CODE_INTEGRATED",
+  "qualification": "NONE",
+  "restoration_commit": "a4aad9bd7225ad09ecddf590504e4ffbc99391e4",
+  "cage_commit": "9f95efade6b2fc5e61468f4c709eff59bcb613f5",
+  "references": {
+    "restoration_capture": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v56\\capture.json",
+      "sha256": "e58a96b9f2ed575ad4767340c4e0abe91ee65c6bd0b9b0fca4e9be00d949b714"
+    },
+    "native_request": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-protected-boundary-native-failure-investigation-v1\\input\\request.json",
+      "sha256": "e450ae1524d1890e0f9889fd306b4991eda052af18d3c4febe2cf624bc38a28f"
+    },
+    "native_preflight": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-protected-boundary-native-probe-preflight-v1\\receipt.json",
+      "sha256": "2ead3276a1172cc08a81d4cecf88a6d32170d24c7e0303ebdfd5ec7a07c45301"
+    },
+    "native_result": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-protected-boundary-native-failure-investigation-v1\\output-v1\\receipt.json",
+      "sha256": "2f73d2ea0697a2333769e3bdf8ec9071047c65382f74dd0cd4bd12edf82e38a9"
+    },
+    "native_launch": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-protected-boundary-native-failure-investigation-v1\\launch-native-v1.json",
+      "sha256": "5ad11c14da6f006ad5ffc9554dae1b8f9bea16bda7f1b0fcc06a5ed6cf67ce85"
+    },
+    "native_review": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-protected-boundary-native-result-review-v1\\review.json",
+      "sha256": "c17bd12460b9dd5b5f3b76217a55f1d66456f0e84dafa37d408d312a80779f2f"
+    },
+    "cage_frozen": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-cage-sampling-v1\\FROZEN.json",
+      "sha256": "06425c2760d939da4d5e047da38529f3ba487910f47b99e1de07ac69eae0582c"
+    },
+    "cage_witness": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-cage-sampling-v1\\final-v-row-witness-v3.json",
+      "sha256": "d210aa16241faf5bb51c149785d7cfb3b3ded303b197914da57f8ab9181c50fc"
+    },
+    "cage_review": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-cage-sampling-review-v1\\review.json",
+      "sha256": "d123cc3af4c671d45c6e3b3015c20c73edb27806d23b879f8c8e2654702a9101"
+    },
+    "integrated_capture": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v57\\capture.json",
+      "sha256": "eb99a40f81f614cdaff9b33711bdf61c9b3ee6b605a5e71ecd8f7c18ec9f8b44"
+    },
+    "portable_launch": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source57-v1\\launch-receipt.json",
+      "sha256": "905be0ad3582da9d08d65389f8ecfc67f63954023f11c58e7546082d05bfa628"
+    },
+    "portable_log": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source57-v1\\tests.log",
+      "sha256": "ac596b4dae1ae8438997007bb891c9c90f72037e935a7dd86ac1ee0016dec31b"
+    }
+  },
+  "source56": {
+    "files": 502,
+    "scope": "RESTORATION_KERNEL_ONLY"
+  },
+  "source57": {
+    "files": 505,
+    "identity_sha256": "d09e85365e354c33cd2c02ce3e9e61f5341db20571991da2bf686ad0501feaa8",
+    "code_files": {
+      "a3d/guide_cage_sampling.py": "deb639561935d4554c6933f6212a1063dc7487bb1cf62b15bf484aa59ac94a71",
+      "a3d/torso_sections.py": "29d95493624bd93be11d9409557c2f2b75fed3209ceff56968a58d10752fd607",
+      "a3d/source_seam_coupling.py": "9805bb44f16b28a9d5ec7b1b610002f1242ee6eb2bce499079b4ed79a61b2577",
+      "a3d/garment_guides.py": "1af6067eeb8430743a569edf7e77770061af86161801bc31e4c509c2063178a7",
+      "a3d/semantic_placement.py": "2ac1150d47ecafd8850b023459507c86cdfefbb1c2e0b45bbc4d14303c70aaa3",
+      "tests/test_guide_cage_sampling.py": "fb1b407e4a24b65da1f519ee381937a9263314210172458d106a158d093a3d20",
+      "references/guide-cage-sampling.md": "8606f6412bb0db9b86763a9545e24901581d2d9b04e5597532446da78cb232ff",
+      "a3d/garment_guide_policy.py": "bf95bfa39d5a45114482017da37857affc1f24272d6e804838d952f70226ada7",
+      "tests/test_garment_guide_policy.py": "6872d8f58d0cd18efe0dcb8b2088a399b8e186fbec587c38866ff6f84721ec4b",
+      "tests/portable_production_preparation_diagnostic.py": "777bed85a56c3f0269361efc30567945bd73ca15003f274760ad13c427dbf8ac"
+    },
+    "portable_tests": 1055,
+    "portable_test_seconds": 188.52,
+    "launcher_seconds": 189.7029999999795,
+    "all_captured_files_unchanged": true
+  },
+  "native_comparison": {
+    "full_input_pieces": 10,
+    "prepared_permanent_and_typed_relations": 24,
+    "replays": 9,
+    "native_seconds": 36.29415320005501,
+    "launcher_seconds": 41.29700000002049,
+    "restoration_meshes_and_traces_identical_to_source53": true,
+    "metrics": {
+      "source53": {
+        "sleeve-left": {
+          "final_quality": "NEEDS_CORRECTION",
+          "final_min_angle_degrees": 4.061236941605269,
+          "final_min_edge_cm": 0.010898330670841666,
+          "vertices": 901,
+          "triangles": 1653,
+          "cdt_call_count": 4,
+          "source_anchors_exact": true
+        },
+        "sleeve-right": {
+          "final_quality": "NEEDS_CORRECTION",
+          "final_min_angle_degrees": 4.0574631479835315,
+          "final_min_edge_cm": 0.010898330670841666,
+          "vertices": 901,
+          "triangles": 1653,
+          "cdt_call_count": 4,
+          "source_anchors_exact": true
+        },
+        "front-left": {
+          "final_quality": "NEEDS_CORRECTION",
+          "final_min_angle_degrees": 4.483886989191477,
+          "final_min_edge_cm": 0.010898330561834733,
+          "vertices": 2463,
+          "triangles": 4587,
+          "cdt_call_count": 5,
+          "source_anchors_exact": true
+        }
+      },
+      "source54": {
+        "sleeve-left": {
+          "final_quality": "NEEDS_CORRECTION",
+          "final_min_angle_degrees": 1.490443406019782,
+          "final_min_edge_cm": 0.010898330670841666,
+          "vertices": 885,
+          "triangles": 1621,
+          "cdt_call_count": 2,
+          "source_anchors_exact": true
+        },
+        "sleeve-right": {
+          "final_quality": "NEEDS_CORRECTION",
+          "final_min_angle_degrees": 1.5775533823378571,
+          "final_min_edge_cm": 0.010898330670841666,
+          "vertices": 885,
+          "triangles": 1621,
+          "cdt_call_count": 2,
+          "source_anchors_exact": true
+        },
+        "front-left": {
+          "final_quality": "NEEDS_CORRECTION",
+          "final_min_angle_degrees": 4.869994040649678,
+          "final_min_edge_cm": 0.010898330561834733,
+          "vertices": 2460,
+          "triangles": 4581,
+          "cdt_call_count": 4,
+          "source_anchors_exact": true
+        }
+      },
+      "candidate": {
+        "sleeve-left": {
+          "final_quality": "NEEDS_CORRECTION",
+          "final_min_angle_degrees": 4.061236941605269,
+          "final_min_edge_cm": 0.010898330670841666,
+          "vertices": 901,
+          "triangles": 1653,
+          "cdt_call_count": 4,
+          "source_anchors_exact": true
+        },
+        "sleeve-right": {
+          "final_quality": "NEEDS_CORRECTION",
+          "final_min_angle_degrees": 4.0574631479835315,
+          "final_min_edge_cm": 0.010898330670841666,
+          "vertices": 901,
+          "triangles": 1653,
+          "cdt_call_count": 4,
+          "source_anchors_exact": true
+        },
+        "front-left": {
+          "final_quality": "NEEDS_CORRECTION",
+          "final_min_angle_degrees": 4.483886989191477,
+          "final_min_edge_cm": 0.010898330561834733,
+          "vertices": 2463,
+          "triangles": 4587,
+          "cdt_call_count": 5,
+          "source_anchors_exact": true
+        }
+      }
+    },
+    "regular_mesh_gate": "NEEDS_CORRECTION_15_DEGREES"
+  },
+  "cage_witness": {
+    "status": "BUILT_NOT_QUALIFIED",
+    "principal_stretch": [
+      0.9958346521659985,
+      1.0022739779100867
+    ],
+    "raw_principal_stretch": [
+      0.9959157598279005,
+      1.0023458774571217
+    ],
+    "max_raw_residual_cm": 0.001833298578895843,
+    "controls": 6144,
+    "triangles": 11907,
+    "build_seconds": 3.9890129000414163,
+    "preserve_seconds": 1.78106619999744,
+    "consumer_preserved_exactly": true
+  },
+  "cage_review": {
+    "targeted_tests": 88,
+    "independent_adversarial_tests": 4,
+    "source_boundary_corners_domain_manifold_winding_support_and_budgets": "PASS",
+    "global_u_partition": "REFUSED_AND_PRESERVED",
+    "cage_determinant_threshold_cm2": 1e-10
+  },
+  "scope_limits": [
+    "Cage witness is one local back triangle, not all-panel metric admission",
+    "Restored UV triangulation still fails the unchanged regular 15-degree gate",
+    "Inner-front and collar alignment still require separate correction",
+    "Documentation additions follow source57 capture and do not extend its test result"
+  ],
+  "body_changed": false,
+  "patterns_changed": false,
+  "main_project_changed": false,
+  "cloth": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "artistic_review": "NOT_EXECUTED",
+  "release": "NOT_PUBLISHED",
+  "installation": "NOT_PERFORMED",
+  "product_acceptance": "NOT_GRANTED"
+}

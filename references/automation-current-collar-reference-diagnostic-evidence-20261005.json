@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "date": "2026-10-05",
+  "status": "FRESH_COLLAR_REFERENCE_REFUSED_CAUSE_NOT_LOCALIZED",
+  "purpose": "TEST_ONLY",
+  "qualification": "NONE",
+  "admission": "NONE",
+  "source_commit": "65f8965deed6a03475f3f1c66f70c8685db3c4e9",
+  "observed_process": {
+    "status": "PROCESS_EXIT_OBSERVED_ONLY",
+    "qualification": "NONE",
+    "admission": "NONE",
+    "automatic_retry": false,
+    "watchdog_seconds": 75.0,
+    "cleanup_child_wait_seconds": 2.0,
+    "log_drain_grace_seconds": 2.0,
+    "cleanup_wait_and_drain_max_seconds": 4.0,
+    "log_caps": {
+      "per_stream_bytes": 2097152,
+      "total_bytes": 4194304,
+      "read_chunk_bytes": 65536,
+      "queue_slots": 16
+    },
+    "command": [
+      "C:\\Program Files\\Python311\\python.exe",
+      "-B",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-rigid-reference-preflight-v1\\driver.py",
+      "--output",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-rigid-reference-result-v1\\reference"
+    ],
+    "pid": 82784,
+    "exit_code": 2,
+    "stop_reason": null,
+    "events": [
+      {
+        "phase": "gate_passed_before_Popen",
+        "time": 400304.8951499
+      },
+      {
+        "phase": "owned_child_created",
+        "time": 400304.9289517,
+        "pid": 82784
+      }
+    ],
+    "log_bytes": {
+      "stdout": 169,
+      "stderr": 0
+    },
+    "observed_log_bytes": {
+      "stdout": 169,
+      "stderr": 0
+    },
+    "watchdog_origin_before_Popen": 400304.8960694,
+    "elapsed_host_seconds": 30.077943600015715
+  },
+  "observed_diagnostic": "A3D_FRESH_COLLAR_REFERENCE_DIAGNOSTIC {\"status\": \"REFUSED\", \"reason\": \"StudioError\", \"qualification\": \"NONE\", \"admission\": \"NONE\", \"complete_reference\": \"NOT_ATTESTED\"}",
+  "calculation_status": "UNKNOWN_OR_UNATTESTED",
+  "quality_status": "NOT_OBSERVED",
+  "cause": "NOT_LOCALIZED_CLASS_ONLY_STUDIOERROR",
+  "phase": "NOT_OBSERVED",
+  "complete_reference": "ABSENT",
+  "piece_or_face_counts": "NOT_ATTESTED",
+  "independent_readback": {
+    "actual_field_compiles": 0,
+    "actual_generators": 0,
+    "actual_observers": 0,
+    "actual_processes_created_by_reviewer": 0,
+    "actual_reruns": 0,
+    "admission": "NONE",
+    "calculation_status": "UNKNOWN_OR_UNATTESTED",
+    "cause": "NOT_LOCALIZED",
+    "driver_sha256": "ce694a296b32c4b4c9cb0e31750d7b86cbde3e2461d19ae40264a9a838ad0f2f",
+    "gate_sha256": "3f0a2a07a96881c01f1b23c9e8daae105fd053727329cfe4446b7abd5bd65969",
+    "helper_sha256": "90a4782be5e12e2bd9ae45ad622837080adaa7637e7a11e3c86c899396127aef",
+    "host_process_seconds": 30.077943600015715,
+    "independent_result_readback": true,
+    "observations_preserved": 6,
+    "observed_exit_code": 2,
+    "observed_pid": 82784,
+    "protected_inputs": 824,
+    "protected_maps_equal": true,
+    "qualification": "NONE",
+    "quality_status": "NOT_OBSERVED",
+    "request_sha256": "d2cd990a945a077370a473e6772787e2adcef3c3b511c87f82b040012d1dc4fd",
+    "result_frozen_bytes": 864,
+    "result_frozen_sha256": "7ea82b96bf645db2cbb2ffbcaaddb789bbaccf078671303b815f144123eac482",
+    "result_producer": "ROOT",
+    "status": "PASS_CURRENT_COLLAR_RIGID_REFERENCE_DIAGNOSTIC_READBACK_ONLY",
+    "stdout_physical_bytes": 169
+  },
+  "proofs": [
+    {
+      "path": "program-current-collar-rigid-reference-result-v1/FROZEN.json",
+      "bytes": 864,
+      "sha256": "7ea82b96bf645db2cbb2ffbcaaddb789bbaccf078671303b815f144123eac482"
+    },
+    {
+      "path": "program-current-collar-rigid-reference-result-review-v1/FROZEN.json",
+      "bytes": 1042,
+      "sha256": "c2975dcfb5ceb988cbec0ebe0edffe4fdc65364ff22ec642578696b8a8e2144e"
+    },
+    {
+      "path": "program-current-collar-rigid-reference-result-review-v1/receipt.json",
+      "bytes": 1044,
+      "sha256": "b0750548eaf55995f86cb9a384d83cacdcfee81bd4a03f546f6e661c1d5c2b18"
+    },
+    {
+      "path": "program-current-collar-rigid-reference-result-v1/launch-receipt.json",
+      "bytes": 2014,
+      "sha256": "c4fa2191fb51829949efbb4f6902db88699c5fb57cc055cdde967283593fcb29"
+    },
+    {
+      "path": "program-current-collar-rigid-reference-result-v1/stdout.log",
+      "bytes": 169,
+      "sha256": "b8834d3fdc7cbc18277e226ffef30c452115e989594144a4617d6d1973172a18"
+    },
+    {
+      "path": "program-current-collar-rigid-reference-root-gate-v3.json",
+      "bytes": 3383,
+      "sha256": "3f0a2a07a96881c01f1b23c9e8daae105fd053727329cfe4446b7abd5bd65969"
+    },
+    {
+      "path": "program-current-collar-rigid-reference-host-review-v3/FROZEN.json",
+      "bytes": 17484,
+      "sha256": "b6a725e5aeb30c1b540467da1312b1f509d439e1e444bccc45a9771af16e1e3a"
+    }
+  ],
+  "next_action": "Prepare a new bounded diagnostic retaining the actual exception message and phase.",
+  "no_source_pattern_or_body_mutation": true,
+  "automatic_retry": false,
+  "NOT_QUALIFIED": [
+    "GUIDE_QUALITY",
+    "MATERIAL_FIELD",
+    "PLACEMENT",
+    "CONTACTS",
+    "CLOTH",
+    "FITTING"
+  ]
+}

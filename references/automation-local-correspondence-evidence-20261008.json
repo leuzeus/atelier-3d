@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "source_commit": "f4b91f6c3dd330aa9531ee3633432d298d9deade",
+  "software": {
+    "status": "PASS",
+    "tests": 2199,
+    "skipped": 0,
+    "test_seconds": 435.396,
+    "contracts": 14
+  },
+  "replay_status": "PRODUCT_GUIDES_RETURNED_UNQUALIFIED",
+  "product_status": "PARTIAL_GUIDES",
+  "replay_original_software_scope": "INTEGRATED_IMMUTABLE_EXPORT_FULL_SUITE_PENDING",
+  "original_replay_receipt_preserved": true,
+  "replay_commit_matches_qualification": true,
+  "generation_seconds": 5.312999999965541,
+  "generation_and_audit_seconds": 7.594000000040978,
+  "source_and_body_unchanged": true,
+  "canonical_state_modified": false,
+  "existing_anatomical_attachments_unchanged": true,
+  "new_skin_attachment": false,
+  "garment_qualification": "NONE",
+  "contacts": "NOT_QUALIFIED",
+  "fitting": "NOT_EXECUTED",
+  "native_execution": false,
+  "installed_runtime_changed": false,
+  "pending_human_cutting_review": false,
+  "artistic_review": "PENDING_FUTURE_COMPLETE_CANDIDATE",
+  "files": [
+    {
+      "path": "program-segment-axis-validation-v1/validation.json",
+      "sha256": "1cf0bab269e107dc467ed736e83af2d4f1eec5cbc167e6bff64f3c8b5f92117f"
+    },
+    {
+      "path": "program-segment-axis-validation-v1/tests-receipt.json",
+      "sha256": "6daf71008f46ba4c6595e43934f66944130882160ab0e87aa19351d924e79e2b"
+    },
+    {
+      "path": "program-segment-axis-validation-v1/contracts-receipt.json",
+      "sha256": "1e812a745663b03b954e49b73fb581abed2f7208062bdba4ef8d91f4857c9ef3"
+    },
+    {
+      "path": "program-segment-axis-product-replay-v1/execution-v2/report.json",
+      "sha256": "ca0240734c7f8516c0ed5fd6e2e45467b1c34dd09aa55e373e14579f6525ca4a"
+    },
+    {
+      "path": "program-segment-axis-product-replay-v1/preview/requests.json",
+      "sha256": "423905f0ee934cc68bc0cca312c179af2bde6e278a70c0b63bfba221fb9ce243"
+    },
+    {
+      "path": "program-segment-axis-product-replay-v1/preview/after/manifest.json",
+      "sha256": "13f3e7af8ca7a4e7ee8c8d5c4b11bd638f4e580525f68b7161d3eded2f87cfaf"
+    },
+    {
+      "path": "program-segment-axis-product-replay-v1/preview/after/board-comparison.png",
+      "sha256": "97c73fcefaef7e6482d1303ba2dbbc01854112ecf8f3a4d07d7ab81f1782c328"
+    },
+    {
+      "path": "program-segment-axis-product-replay-v1/preview/after/board-details.png",
+      "sha256": "52d13faf331d8a62d250640438a8fad061487225ebb132620894e2c567e607bd"
+    },
+    {
+      "path": "program-segment-axis-product-replay-v1/preview/visual-observation.json",
+      "sha256": "0e2a3bf297fca20b2a757b0564b9d409eeac72d4ed18b7497d724b6bb96fc42a"
+    },
+    {
+      "path": "program-limb-sewn-cuff-causes-v1/preview/before/manifest.json",
+      "sha256": "db6c4acbf7650082d80344c6e2cd9d5bf9935cb6ab5d554bbce8e1d894618f04"
+    },
+    {
+      "path": "program-limb-sewn-cuff-causes-v1/preview/conditional-section-bounds.json",
+      "sha256": "784341cb63e3bfe6d6ca197352114aecd4fc113461edcebf4ceed870b12ebd91"
+    },
+    {
+      "path": "program-sewn-domain-coupling-replay-v1/execution-run-v1/report.json",
+      "sha256": "284fc75fb241c2b23f31c3e0d95a3134c3b26610566eade6943f5b7e09d96e26"
+    },
+    {
+      "path": "program-sewn-domain-coupling-replay-v1/preview/before/manifest.json",
+      "sha256": "3d18429bcd40fd626acad8e8878130c85c87e4417a0a70936fd9d13c608f28c7"
+    },
+    {
+      "path": "program-sewn-domain-coupling-replay-v1/preview/after/manifest.json",
+      "sha256": "f49e2a8267ce47cdc87a04de56fa4da60628dbf08c7b44f44badf347e3138da4"
+    },
+    {
+      "path": "program-seeded-surface-continuation-poc-v1/real-witnesses.json",
+      "sha256": "3586582023b60a1309e8e3aa0196bbb03243f06fe4e895814fdb491cc318adcd"
+    },
+    {
+      "path": "program-seeded-surface-continuation-poc-v1/synthetic-tests.json",
+      "sha256": "412e3549c6677f62473168e1c4c22decbd7c55a20ad18e5abb4b0d0491701197"
+    },
+    {
+      "path": "program-seeded-surface-continuation-poc-v1/limb-axis-review/report-final.json",
+      "sha256": "73ba70fdcdb3cf23519579660cf5f490d90f0cf505af0123940d6f75ec83f168"
+    }
+  ]
+}

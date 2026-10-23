@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-06",
+  "scope": "CONNECTED_0603_PATRONAGE_DIAGNOSTICS_BEFORE_REPLAY_FIX",
+  "runtime": {
+    "status": "PASS",
+    "version": "0.7.0-rc.2.dev.2026100603",
+    "source_sha256": "7ca5cf3afad8ea61e87a8a52a3db203ef45958b5e4308655819b90f0de71b4a8",
+    "schema_files": 52,
+    "doctor": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-patronage-runtime-reload-v1/doctor.json",
+      "sha256": "07cb5c8d2971c658ca9542b10dd779615e5e2435c1ab8b7e9274166763352803"
+    }
+  },
+  "pipeline": {
+    "admitted": true,
+    "issues": [],
+    "evidence": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-patronage-runtime-reload-v1/pipeline.json",
+      "sha256": "99e53e54632bc629d3c376efa2f75ca759b845fd4250059a043ee022383d2550"
+    }
+  },
+  "public_patronage": {
+    "status": "PATRONAGE_DATA_INCOMPLETE",
+    "body_rows": 8,
+    "adopted_source_paths": 0,
+    "report": {
+      "path": "preparation/patronage-runtime-review-v8/report.json",
+      "sha256": "37eb07f7e86067a4abf974f2c8dd942b323eceef0faeef0f2f4e38a7eba7ee31"
+    },
+    "response": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-patronage-runtime-reload-v1/patronage-result-v8.json",
+      "sha256": "90d82d02aafc225291f2a8d0a2f7189f4ddad10f2360dc41888cd8fad5f4db1f"
+    }
+  },
+  "original_human_numeric_decision": {
+    "method": "PUBLIC_MCP_RECONCILIATION_OF_EXISTING_USER_QUOTE_AND_FIVE_EXACT_ORIGINAL_FILES",
+    "statement": "ok continue avec ca",
+    "source_ref": "codex://threads/01a10118-bef1-7c71-9a8f-6ac8191361a2#user-ok-continue-avec-ca-2026-10-04",
+    "decision_id": "596af72e-aa62-4568-88d0-9d1f91694ddc",
+    "existing_values_changed": false,
+    "current_dossier_scope": "REQUIRES_DESIGN_SCOPE_RECONCILIATION",
+    "evidence": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-patronage-runtime-reload-v1/original-numeric-human-decision-complete.json",
+      "sha256": "0144eea0e964282bfddccb18fbed4c50a17fa2a85f81ccd2df238107ead51228"
+    }
+  },
+  "public_measurement_compiler": {
+    "status": "MEASUREMENT_PATH_PROPOSALS_NEED_REVIEW",
+    "proposals": 2,
+    "wrists": {
+      "left_cm": 25,
+      "right_cm": 25
+    },
+    "guide_reconstruction": "GUIDE_HYPOTHESES_RECONSTRUCTED",
+    "diagnostics": {
+      "synchronized_replay_unsupported": [
+        "coat.chest",
+        "coat.waist",
+        "coat.hip",
+        "coat.upper-arm.left",
+        "coat.upper-arm.right"
+      ],
+      "anatomical_collar_row_missing": [
+        "coat.neck"
+      ]
+    },
+    "source_mesh": {
+      "path": ".a3d/blender/pattern-preparation/attempt-a3c425b9731441fd88dd0d769a4d54ba/mesh.json",
+      "sha256": "e19de9c9b4bf3d87a083df0cbdcf997b6ec09c585c1b1636515f31fb8c2fd489"
+    },
+    "source_native_event": 76,
+    "source_placement_readiness": "NEEDS_CORRECTION",
+    "placement_qualification_transferred": false,
+    "evidence": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-patronage-runtime-reload-v1/measurement-result-v6.json",
+      "sha256": "79eb2caee1a340123d89e2966f41f4c48bf3b37d1ba2252aed434127ee0e00bf"
+    }
+  },
+  "native_execution": false,
+  "source_or_body_changed": false,
+  "new_pattern_variant": false,
+  "fitting": "NOT_EXECUTED",
+  "artistic_acceptance": "NOT_GRANTED",
+  "live_completeness": "NOT_REINSPECTED",
+  "next": "Implement and qualify exact synchronized source boundary replay; measure missing source paths, review homology and reconcile design scope before pattern variants"
+}

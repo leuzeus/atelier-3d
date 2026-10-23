@@ -1,0 +1,403 @@
+{
+  "version": 1,
+  "status": "SOFTWARE_SOURCE67_REVIEWED_TESTED_BUILT",
+  "purpose": "TEST_ONLY",
+  "qualification": "NONE",
+  "product_admission": "NONE",
+  "tested_commit": "0f18f0b1e17748fc8f3723108904f2b3d3b51e5c",
+  "source_files": 559,
+  "source_identity_sha256": "259d3b361f75feef7133a6156b62d72d2b58e74705e23952a290821eb753e031",
+  "changes": {
+    "source_patterns_changed": false,
+    "approved_body_changed": false,
+    "meshing_profile": "SYNCHRONIZED_GRADED_V1_EXPLICIT_OPT_IN",
+    "historical_path_preserved_when_profile_absent": true,
+    "component_attempted_insertions_shared_with_boundary_controls": true,
+    "future_piece_boundary_vertices_reserved": true,
+    "failure_observation_cannot_grant_READY": true,
+    "native_clock_scope": "SOURCE_CAPTURE_AND_MESH_BUILD_ONLY_CALLER_LOCAL",
+    "permission_for_execute_blender_code_unchanged": true
+  },
+  "validation": {
+    "portable_tests": 1392,
+    "portable_test_seconds": 197.602,
+    "external_test_seconds": 198.849810899992,
+    "contracts": 14,
+    "profile_targeted_tests": 223,
+    "profile_independent_probes": 62,
+    "envelope_targeted_tests": 57,
+    "envelope_independent_checks": 126,
+    "boundary_targeted_tests": 109,
+    "boundary_independent_probes": 13,
+    "native_module_targeted_tests": 69,
+    "native_module_independent_probes": 12,
+    "protected_source_distribution_preserved": true,
+    "self_contained_native_fixture_sha256": "d5e4006f4b122ea425dd9a6db862a0f43da079df465b545896c921caf398c374"
+  },
+  "saved_portable_real_boundary_probe": {
+    "pieces": 10,
+    "relations": 24,
+    "boundary_points_before": 2236,
+    "boundary_points_after": 2324,
+    "material_controls": 88,
+    "public_fields_exact": 9,
+    "scalars_exact": 56032,
+    "float_bits_exact": 26932,
+    "scope": "SAVED_PUBLIC_UV_FIELDS_AND_COMPLETE_SEAMS_ONLY",
+    "sampling_calls": 4,
+    "sampling_point_slots": 120000,
+    "fraction_requests": 44,
+    "work_steps": 71048710,
+    "whole_DTO_equivalence": false,
+    "historical_before_after_inventories_persisted": false,
+    "checkpoint_scope": "AFTER_RESULT_WRITE_BEFORE_FINAL_ASSERTIONS_RECEIPT_AND_FROZEN",
+    "terminal_MCP_or_Blender_attestation": false,
+    "new_integrated_profile_native_execution": "NOT_YET_EXECUTED"
+  },
+  "real_collar_surface_trial_after_exact_disjoint_clipping": {
+    "outcome": "INCOMPLETE",
+    "reason": "BUDGET_EXHAUSTED_OUTPUT_NODES",
+    "external_seconds": 52.1924633999588,
+    "host_terminal_seconds": 51.65700000000652,
+    "host_terminal_attested": true,
+    "compiler_calls": 1,
+    "intersection_pairs": 1922721,
+    "fraction_operations": 267914,
+    "output_nodes_limit": 500000,
+    "compiled_result": null,
+    "source_fresh_reference_replaced": false,
+    "automatic_retry": false,
+    "output_investigation_lower_bound_nodes": 575076,
+    "compact_format": "SEPARATE_FORMAT_IN_DEVELOPMENT_NOT_QUALIFIED"
+  },
+  "local_build": {
+    "status": "LOCAL_DEVELOPMENT_PACKAGE_VERIFIED",
+    "commit": "0f18f0b1e17748fc8f3723108904f2b3d3b51e5c",
+    "snapshot_identity_sha256": "259d3b361f75feef7133a6156b62d72d2b58e74705e23952a290821eb753e031",
+    "files_count": 559,
+    "portable_tests": 1392,
+    "portable_test_seconds": 197.602,
+    "portable_launch_seconds": 198.849810899992,
+    "independent_contracts": 14,
+    "validation_evidence_sha256": {
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v67\\capture.json": "69b0945fb7e2a0a71d37cef2dbc7136de15dc46674580b6e51106e4101c3619f",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source67-v1\\launch-receipt.json": "21e2329d2bd00d5b198c3d349ef7f9ecc0878fabcb188b0edd87ef9d3651cb74",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source67-v1\\tests.log": "9e6b8257a2d89d692f3184b5a51824d763e64d6029d7d60c71dcd197054729c6",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source67-v1\\contracts.json": "276964e10f6aebd95e0fc9b0896f96506cc7301cabf9647558761cc47ae45160",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source67-v1\\contracts-launch-receipt.json": "6e1d712125aca154c50300fe131d163cfbb997ccd65c5826d59550329f8d4a50",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source67-v1\\contracts.stdout.log": "c103412537739b27ec7ed6d2d97f551aac61fe267a0028ea686761e37916e8d6",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source67-v1\\contracts.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-git-export-v67\\committed-source.zip": "61ec2153ab6d281232747458bb884e606bb9a0f8fdbfc11ff19c2c76d3529cd6"
+    },
+    "contract_source_sha256": {
+      "templates/config.json": "35b40c8c6003aae5eeb8d67aa9f8482edb6195276c5e57f99c4bdf1880aa6114",
+      "templates/sewing-recipe.json": "d2ee821cb57990b25470f50a95e48bdf43d2cc37c67614c413b39db7cd4082a9",
+      "templates/pattern-assembly.json": "51b37547fbabc3e5ebbac8083a87d42e792082e32b723158df6c7b95a40cbfff",
+      "templates/pattern-preparation.json": "fde3a7a9739ce50ac1a06797b32a142e5e492c98496778b5564cbd9e745838b6",
+      "templates/fitting-plan.json": "bb39daccbdd544bc83499246bde8dfce4255bfe94b1c6a001e5c6fb0395b7654",
+      "templates/body-source.json": "d3bb2529b379ac781ce46aa5caef2886d48673f879aa5f7ad53bbc912b2d223a",
+      "templates/fitting-envelope.json": "6d892d8164a43735dd0f8e001cef5c29decfe7510962a906efd9b20a2854d052",
+      "templates/fitting-pose.json": "c5c72f1491d4122a00a19511b9ae50122a55c59a5b931ecadedb424c21c126e0",
+      "tests/fixtures/articulated-skeleton/asset.json": "554e70feddf71c3c23a4c2c188b6822996a4a0f65f65e8304417cf11b101d566",
+      "tests/fixtures/articulated-skeleton/packages/body.jaw/part.json": "f3b2b82c43fcc01bc65b5828e5eea188f5a7c904a8de787b6aaf3107953b7d9c",
+      "tests/fixtures/articulated-skeleton/packages/body.ribcage/part.json": "8829d90bbe3befcf818a76958da3a6e4a3df86d0edd384396e157a7974637cbe",
+      "tests/fixtures/articulated-skeleton/packages/body.skull/part.json": "2f7303ada3c6252ec9a2c0ec9d6ddbb763b2d49b04f09a4c019ef38fa21267fe",
+      "tests/fixtures/garment-coat/asset.json": "591f8a75c905544c65de477178d442acc823cc3df9dec2633c3e6b93f094eee8",
+      "tests/fixtures/garment-coat/package/garment.json": "c1cafe43cd62bc46722cff10fb1eef92c6e6546d7a1a534a26077f338ca630bb"
+    },
+    "builder_sha256": "99d080c1fe00f9040b7cf4ba200bf2695495ebb8a0f43960f114c06e98fb99dc",
+    "build_script_sha256": "be360601094d355754754f304b9b129509bd7e7caa88ebcab8f89a91e29e5a3e",
+    "all_distribution_bytes_match_git": true,
+    "snapshot_preserved": true,
+    "package_contents_match_snapshot": true,
+    "package": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-local-build-source67-v1\\atelier-3d-development-source67.zip",
+      "files": 559,
+      "bytes": 3093196,
+      "sha256": "098a06f3f402e743534e54a567c665d1ee2da10adc4379e72e7279b4e6486508",
+      "checksums": "PASS"
+    },
+    "declared_plugin_version": "0.7.0-rc.2",
+    "scope": "SOFTWARE_DEVELOPMENT_BUILD_ONLY",
+    "qualification": "NONE",
+    "product_placement": "NOT_ADMITTED",
+    "cloth": "NOT_QUALIFIED",
+    "fitting": "NOT_QUALIFIED",
+    "artistic_review": "NOT_PERFORMED",
+    "final_prerelease": "NOT_PUBLISHED",
+    "installation": "NOT_PERFORMED",
+    "connected_runtime": "NOT_RELOADED"
+  },
+  "historical_failures": {
+    "software_source66": "1392_TESTS_PASS_CONTRACT_VALIDATOR_REFUSED_MISPLACED_REFERENCE_DATA",
+    "envelope_v1": "PRESERVED_F1_F2_CORRECTED_ONLY_ON_V2",
+    "boundary_real_probe_v1": "PRESERVED_SOURCE_VERTEX_KEY_REFUSAL_CORRECTED_ON_V2",
+    "profile_integration_v1": "PRESERVED_EXTERNAL_TEST_FIXTURE_DEPENDENCY_FAILURE",
+    "profile_review_v2": "PRESERVED_UNSTRUCTURED_KERNEL_REFUSAL_CORRECTED_ONLY_ON_V3",
+    "collar_field_v1": "PRESERVED_UNATTESTED_DEADLINE",
+    "historical_native_ten_piece_campaign": "PRESERVED_INCOMPLETE_NO_PASS_TRANSFER"
+  },
+  "remaining": {
+    "integrated_profile_actual_native_campaign": "NOT_YET_EXECUTED",
+    "other_seven_native_pieces_new_candidate": "NOT_QUALIFIED",
+    "full_authored_physical_node_presence": "NOT_ESTABLISHED",
+    "full_real_3d_surfaces": "NOT_QUALIFIED",
+    "placement": "NOT_ADMITTED",
+    "contacts": "NOT_QUALIFIED",
+    "Cloth": "NOT_EXECUTED_ON_COMPLETE_GARMENT",
+    "fitting": "NOT_EXECUTED_ON_COMPLETE_GARMENT",
+    "motion": "NOT_EXECUTED_ON_COMPLETE_GARMENT",
+    "artistic_review": "NOT_PERFORMED",
+    "whole_product_15_textiles_plus_buckle": "NOT_ACCEPTED",
+    "final_prerelease": "NOT_PUBLISHED",
+    "installation": "NOT_PERFORMED",
+    "connected_runtime": "NOT_RELOADED"
+  },
+  "references": {
+    "program-meshing-envelope-v2": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-meshing-envelope-v2\\FROZEN.json",
+        "sha256": "e37e6613025f5cfda5b56c4889b0fde2949eab91f49302e081a59192fe972615"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-meshing-envelope-v2\\receipt.json",
+        "sha256": "b3145bb55b13b4c456fab49ef3a7f7f9f7c116d959b990ca7b171bc91a185af3"
+      },
+      "tests.log": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-meshing-envelope-v2\\tests.log",
+        "sha256": "c4bab4a290eb07a93685f0dabfd867ec4430048b8e25a7df1c50e31f8c3f6a60"
+      }
+    },
+    "program-meshing-envelope-review-v2": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-meshing-envelope-review-v2\\FROZEN.json",
+        "sha256": "790b5efbf60f19bd6acef2dee03a57c74ba96bdfa98bfc001cc30adf29b354a3"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-meshing-envelope-review-v2\\receipt.json",
+        "sha256": "0dbf1cc3431dcf5898de73300b8a4837a50f2469485a9193712ab045af933f43"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-meshing-envelope-review-v2\\report.md",
+        "sha256": "70d091b3f7bebbca8265ac115a3f6a7297dc5a378c20912c2c091d7622c9787d"
+      }
+    },
+    "program-boundary-gradation-module-v2": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-boundary-gradation-module-v2\\FROZEN.json",
+        "sha256": "97114688e29dd3d9a81a7a4acd6ac11a0216d69632559690bc8708563cf7d243"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-boundary-gradation-module-v2\\receipt.json",
+        "sha256": "c77050d659c40cd8ccf97b08b51217ab2a022301dd4ed65d45080b8a7c34abf9"
+      }
+    },
+    "program-boundary-gradation-review-v2": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-boundary-gradation-review-v2\\FROZEN.json",
+        "sha256": "8f5ae16ef5f43e8bf0ace9f781224fd4f5a0584cf7ae257e41f69960728c2e12"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-boundary-gradation-review-v2\\receipt.json",
+        "sha256": "23d7a09727884067a4b87ada33d85ed258b9d323f1fe3f17f804f36660c92367"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-boundary-gradation-review-v2\\report.md",
+        "sha256": "69b2f54906492120b3757b3995362e97e3f527260aa4bdbaa8388f2456abf542"
+      }
+    },
+    "program-boundary-module-real-probe-v2": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-boundary-module-real-probe-v2\\FROZEN.json",
+        "sha256": "2313432228b5dc43ff85a69c860cab2312bdea0054ba71e012020cd244aeb37f"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-boundary-module-real-probe-v2\\receipt.json",
+        "sha256": "2dd29fd3c864989423b65d3f2c6ae856710dbc76572a28a68e94d0f8c4c0463b"
+      }
+    },
+    "program-boundary-module-real-probe-review-v2": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-boundary-module-real-probe-review-v2\\FROZEN.json",
+        "sha256": "8019968be4bc96390eec639fe84637dcffa811c2b72811f093f95c29c44b616f"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-boundary-module-real-probe-review-v2\\receipt.json",
+        "sha256": "dabf73920c8fca3978aad8085d3e601df960731a0ea937f2a3ddf1dceb242819"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-boundary-module-real-probe-review-v2\\report.md",
+        "sha256": "1ba8e87609f4c527731cba59baf534c83d0b26bb69ef5d5bbdf379eb83869b4d"
+      }
+    },
+    "program-bounded-pattern-meshing-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-bounded-pattern-meshing-v1\\FROZEN.json",
+        "sha256": "f0d72f62343b9541d7e29cfec88c258d372e336421a6ad7b5205f5791fc0c9ab"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-bounded-pattern-meshing-v1\\receipt.json",
+        "sha256": "bb412e544223aeb167f0d323d55e1b6b99145ce73ed8769505860634ee921a8e"
+      }
+    },
+    "program-bounded-pattern-meshing-review-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-bounded-pattern-meshing-review-v1\\FROZEN.json",
+        "sha256": "6a6d9398e23526406e026b8bdd8aa77d2cc349b91d965637a80aff2145b70bf4"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-bounded-pattern-meshing-review-v1\\receipt.json",
+        "sha256": "1e97aee971534c01381a625a955bd2eb8b106c0a8b344d9bc857b45bfcb0ced7"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-bounded-pattern-meshing-review-v1\\report.md",
+        "sha256": "f9374eca509d3f0a7f88da57fb66b124fbd72848562b9da95c3a9e2084753473"
+      }
+    },
+    "program-synchronized-meshing-integration-v3": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-synchronized-meshing-integration-v3\\FROZEN.json",
+        "sha256": "d8f5123e6d68e3b18f6414447c6f39e6bcc693526a88070bd2f4ab9c1a3f451d"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-synchronized-meshing-integration-v3\\receipt.json",
+        "sha256": "97ffef8a3f584e26827af2b57bd7cf1141358e4d3a76b7a9ddaff49e1599fdc6"
+      },
+      "tests.log": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-synchronized-meshing-integration-v3\\tests.log",
+        "sha256": "30fd5baaf338febfc07a942c47a448741b704f0003baa6e987023a3ac84b793b"
+      }
+    },
+    "program-synchronized-meshing-review-v2": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-synchronized-meshing-review-v2\\FROZEN.json",
+        "sha256": "729fe935c8d75e18b84b7c1ad84fdfa8e5743f285cfe6c39c80ad1a5c7c82a3b"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-synchronized-meshing-review-v2\\receipt.json",
+        "sha256": "cce83e342de79fa8ee5db75398e086735b67d76f19953b655aad28e483278086"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-synchronized-meshing-review-v2\\report.md",
+        "sha256": "44dd4b220e3ba3131f32130f2080c252400b9e439355a748beafca2f5477ae22"
+      }
+    },
+    "program-synchronized-meshing-review-v3": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-synchronized-meshing-review-v3\\FROZEN.json",
+        "sha256": "d8826037decf3321c382cc4228ec259febc5471191c9360925f9016e8db41f12"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-synchronized-meshing-review-v3\\receipt.json",
+        "sha256": "f2352f0ae6609ecf90288ce18b0aa4b8d9d065d51ce65487d1bf20ec6e2c712b"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-synchronized-meshing-review-v3\\report.md",
+        "sha256": "408cc2cc97afbe26e4794e439bf49df36e40699e40c97490646d33c369f380e4"
+      }
+    },
+    "program-native-fixture-layout-review-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-fixture-layout-review-v1\\FROZEN.json",
+        "sha256": "b8768e640860f224f0fa7880f1d91861d6555e1cfe42304f1e0ba45a004bd217"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-fixture-layout-review-v1\\receipt.json",
+        "sha256": "bacd9147cca11d652f06cdfb9ea9ff97daf7c86b8b56b1ac882ee4a44e74df82"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-fixture-layout-review-v1\\report.md",
+        "sha256": "03f9feb98d7a1cc12b4f4a79ea803de4da78ac7c00aeb8d66a8600ee87e6bf56"
+      },
+      "contracts.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-fixture-layout-review-v1\\contracts.json",
+        "sha256": "c103412537739b27ec7ed6d2d97f551aac61fe267a0028ea686761e37916e8d6"
+      },
+      "contracts.stdout.log": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-fixture-layout-review-v1\\contracts.stdout.log",
+        "sha256": "c103412537739b27ec7ed6d2d97f551aac61fe267a0028ea686761e37916e8d6"
+      },
+      "contracts.stderr.log": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-fixture-layout-review-v1\\contracts.stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "program-current-collar-field-preflight-v2": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-field-preflight-v2\\FROZEN.json",
+        "sha256": "f0384e98ab447cf450cafa5a7bbc4b9654c27d3ad7e0ba96a9a2332c6aeefd92"
+      }
+    },
+    "program-current-collar-field-preflight-review-v2": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-field-preflight-review-v2\\FROZEN.json",
+        "sha256": "9b8c6f1f47b1e7665f493dab0f5fc04936c60112d6e781a1bcb1b8d7c804e94d"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-field-preflight-review-v2\\receipt.json",
+        "sha256": "4f4dcf5fbd4d8f0ebec2044b7cdc3134d3a8490eee338ceaa6bf80bec50880bc"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-field-preflight-review-v2\\report.md",
+        "sha256": "3350f2b41d5633dcecfbb3099c0103a08e81feab8fc3d865805596f8344a708b"
+      }
+    },
+    "program-current-collar-field-result-v2": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-field-result-v2\\FROZEN.json",
+        "sha256": "771f23c52a482a5ae8b26a6abff60d53d3e4abdb741a38d37f1bab911c4c7e22"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-field-result-v2\\receipt.json",
+        "sha256": "6b94e9b19d7aa7da6c5c09742e9188cf844ca0fa785e3969d0f12e550943d2f4"
+      }
+    },
+    "program-current-collar-field-output-investigation-v1": {
+      "FROZEN.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-field-output-investigation-v1\\FROZEN.json",
+        "sha256": "e1cca796cb0c052714fa88380d5915f7ef429e2b01705100f68c040b162a52f2"
+      },
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-field-output-investigation-v1\\receipt.json",
+        "sha256": "198eddfe4bc30e69eef8fc95d797b23da2de85048b2753b7c30be65a1d73707a"
+      },
+      "report.md": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-current-collar-field-output-investigation-v1\\report.md",
+        "sha256": "9cdaa85f2960df98ad4be0be6f28352a107885759c1b497dc7b789f1d3e411eb"
+      }
+    },
+    "program-portable-source67-v1": {
+      "launch-receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source67-v1\\launch-receipt.json",
+        "sha256": "21e2329d2bd00d5b198c3d349ef7f9ecc0878fabcb188b0edd87ef9d3651cb74"
+      },
+      "contracts.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source67-v1\\contracts.json",
+        "sha256": "276964e10f6aebd95e0fc9b0896f96506cc7301cabf9647558761cc47ae45160"
+      },
+      "tests.log": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source67-v1\\tests.log",
+        "sha256": "9e6b8257a2d89d692f3184b5a51824d763e64d6029d7d60c71dcd197054729c6"
+      },
+      "contracts-launch-receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source67-v1\\contracts-launch-receipt.json",
+        "sha256": "6e1d712125aca154c50300fe131d163cfbb997ccd65c5826d59550329f8d4a50"
+      },
+      "contracts.stdout.log": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source67-v1\\contracts.stdout.log",
+        "sha256": "c103412537739b27ec7ed6d2d97f551aac61fe267a0028ea686761e37916e8d6"
+      },
+      "contracts.stderr.log": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source67-v1\\contracts.stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "program-local-build-source67-v1": {
+      "receipt.json": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-local-build-source67-v1\\receipt.json",
+        "sha256": "a3598d2a94620a3ef0947a16590c2938acc405bff2afbf5384c9bf354dc9476e"
+      }
+    }
+  },
+  "documentation_scope": "THIS_EVIDENCE_COMMIT_FOLLOWS_TESTED_SOFTWARE_COMMIT"
+}

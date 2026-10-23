@@ -5,7 +5,7 @@ from a3d.core import StudioError,atomic_json,read_json,sha
 from blender.body_source import data_ids,live_geometry
 from blender.operations import dispatch
 
-def run(project,real_selection=None):
+def run(project,real_selection=None,catalog_selection=False):
     marker_mesh=bpy.data.meshes.new('LIVE_MARKER');marker_mesh.from_pydata([(0,0,0),(.5,0,0),(0,0,.5)],[],[(0,1,2)])
     marker=bpy.data.objects.new('LIVE_MARKER',marker_mesh);bpy.context.scene.collection.objects.link(marker)
     baseline=data_ids();geometry=live_geometry();scene=bpy.context.scene;frame=scene.frame_current
@@ -54,9 +54,26 @@ def run(project,real_selection=None):
         'snapshot':snapshot}
     if real_selection:
         selection=read_json(real_selection);atomic_json(project.root/'real-body-selection.json',selection)
+        inspected=dispatch(str(project.root),'inspect_body_source',{'selection_path':'real-body-selection.json'})
         real=dispatch(str(project.root),'prepare_body_reference',{'selection_path':'real-body-selection.json'})
-        assert len(real['meshes'])==28 and len(real['dependencies'])==3
-        assert abs(real['height_cm']-179.99318795264116)<.001
+        assert real['meshes']==inspected['meshes'] and real['dependencies']==sorted(selection['dependencies'])
+        assert real['bounds_cm']==inspected['bounds_cm'] and real['height_cm']==inspected['height_cm']
+        assert real['source_sha256']==selection['source_sha256']
         assert live_geometry()==geometry
         result['real_body']=real
+    if catalog_selection:
+        from a3d.mannequins import catalog,select_catalog_body
+        result['catalog_bodies']=[]
+        for entry in catalog()['entries']:
+            chosen=select_catalog_body(project,entry['id'])
+            args={'selection_path':chosen['selection']['path']}
+            inspected=dispatch(str(project.root),'inspect_body_source',args)
+            snapshot=dispatch(str(project.root),'prepare_body_reference',args)
+            assert snapshot['meshes']==inspected['meshes']
+            assert snapshot['bounds_cm']==inspected['bounds_cm']
+            assert snapshot['source_sha256']==entry['sha256']
+            assert abs(snapshot['height_cm']-entry['stature_cm'])<.001
+            assert data_ids()==baseline and live_geometry()==geometry and sha(project.db)==db
+            result['catalog_bodies'].append({'catalog_id':entry['id'],'selection':chosen,
+                'snapshot':snapshot,'live_scene_db_unchanged':True,'qualification':'STATIC_BODY_REFERENCE_ONLY'})
     return result

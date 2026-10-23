@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-06",
+  "scope": "SYNCHRONIZED_SOURCE_BOUNDARY_REPLAY_DEVELOPMENT_QUALIFICATION",
+  "code_commit": "26fd0a9c189f430f11416bd28b47214008bce31c",
+  "source_uv_witnesses_sha256": "3e33a4d6c5e21e803ab6a8074f1f5f9923d602df683980de3264be28b1087ece",
+  "targeted": {
+    "tests": 51,
+    "python311": {
+      "version": "3.11.0",
+      "seconds": 6.85,
+      "log_sha256": "a9098d381e8f63b8cd020c44e0f66b335de6596b7c82629a8cc41657ae2aaee4",
+      "receipt_sha256": "b4d2a20a6011815a06e57f20e5be88f368fb3403004f88477021f636908770db"
+    },
+    "python313": {
+      "seconds": 8.36,
+      "log": "G:/projets/atelier-3d/work/garment-automation-v1/program-source-uv-replay-python313-v1/unittest.log",
+      "log_sha256": "277512442fe54dac9fad0f13190e5648329051abe233c979a9daa162242e540e"
+    }
+  },
+  "review": {
+    "status": "NO_REMAINING_CONFIRMED_P0_P1_P2",
+    "closed_issue": "Writer ledger owner_work, material_controls and last_phase incompletely validated",
+    "counterprobes_refused": 4
+  },
+  "real_replay": {
+    "status": "CANONICAL_SOURCE_BOUNDARY_REPLAY_CHECKED",
+    "storage_mode": "SOURCE_DOUBLE",
+    "native_event": 76,
+    "boundary_points": 2324,
+    "pieces": 10,
+    "replay_seconds": 14.281,
+    "probe_seconds": 15.484,
+    "source_mesh_sha256": "e19de9c9b4bf3d87a083df0cbdcf997b6ec09c585c1b1636515f31fb8c2fd489",
+    "inputs": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-source-uv-replay-probe-20261006-v1/inputs.json",
+      "sha256": "5d41efd0c8ac7dd59f245a4848a281f4efaa4680eae189ae14dc86f3f8c0f18c"
+    },
+    "storage_sha256": "0a877c0e6096292d8a40037310615e19b735e5172e9b8cd22180390a39e88e88",
+    "result_sha256": "6d64198bb7fec19b9ce6698aba6b9255917050f0bd6973838688afecc18413c1"
+  },
+  "public_handler_probe": {
+    "method": "EXACT_PUBLIC_HANDLER_DEVELOPMENT_PROCESS",
+    "connected_mcp": false,
+    "status": "READY_TO_PLAN",
+    "fit_preflight": "FIT_PREFLIGHT_INCOMPLETE",
+    "proposals": 4,
+    "upper_arm_cm": {
+      "left": 45.20489425393275,
+      "right": 45.24033562461178
+    },
+    "wrist_cm": {
+      "left": 25,
+      "right": 25
+    },
+    "seconds": 104.89613210002426,
+    "remaining": {
+      "chest": "GUIDE_PLANE_TIME_BUDGET_EXHAUSTED",
+      "waist": "GUIDE_PLANE_TIME_BUDGET_EXHAUSTED",
+      "hip": "GUIDE_PLANE_TIME_BUDGET_EXHAUSTED",
+      "neck": "ANATOMICAL_NECK_PLANE_AND_COMPLETE_ATTACHMENT_CORRESPONDENCE_REQUIRED"
+    },
+    "receipt": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-patronage-synchronized-proposal-probe-v1/receipt.json",
+      "sha256": "ae2d5d986edc1a4021993d3ebf72bfe3ed2564e982ffba74903d616e95c6d7b0"
+    },
+    "result": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-patronage-synchronized-proposal-probe-v1/result.json",
+      "sha256": "228141c94bcfedc1e33e4546a468326179eda2e147a5b70dfe10dd4643f073a1"
+    }
+  },
+  "integrated_qualification": "PENDING_CURRENT_INTEGRATION",
+  "installed_mcp": "UNCHANGED_0603",
+  "native_execution": false,
+  "body_or_patterns_changed": false,
+  "qualification": "NONE",
+  "placement": "REFUSED_CANDIDATE_OBSERVATION_ONLY",
+  "fitting": "NOT_EXECUTED",
+  "new_cutting_variant": "NOT_PRODUCED",
+  "next": "Optimize repeated guide evaluation within unchanged time budgets; retain exact source and measure missing anatomical collar correspondence"
+}

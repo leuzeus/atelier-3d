@@ -11,6 +11,7 @@ def main():
     p.add_argument('--blender',required=True);p.add_argument('--addon',required=True)
     p.add_argument('--output',required=True);p.add_argument('--runtime');p.add_argument('--body-selection')
     p.add_argument('--fitting-preparation',action='store_true')
+    p.add_argument('--catalog-selection',action='store_true')
     args=p.parse_args();out=Path(args.output).resolve();out.mkdir(parents=True,exist_ok=True)
     if (out/'owned-pid.txt').exists():raise ValueError('Choose a fresh isolated output directory')
     root=Path(args.runtime).resolve() if args.runtime else Path(__file__).resolve().parents[1]
@@ -31,7 +32,10 @@ prefs.host='127.0.0.1';prefs.port={port};prefs.use_autostart=False
 bpy.ops.blmcp.server_start()
 ''',encoding='utf-8')
     env=dict(os.environ,BLENDER_USER_RESOURCES=str(out/'profile'),PYTHONDONTWRITEBYTECODE='1',
+        APPDATA=str(out/'appdata'),LOCALAPPDATA=str(out/'localappdata'),
         TMP=str(out),TEMP=str(out))
+    for directory in ('profile','appdata','localappdata'):
+        (out/directory).mkdir(parents=True,exist_ok=True)
     log=(out/'interactive.log').open('w',encoding='utf-8')
     # Launch hidden via native PowerShell; exactly this owned PID is stopped.
     def quote(s):return "'"+str(s).replace("'","''")+"'"
@@ -75,7 +79,7 @@ bpy.ops.blmcp.server_start()
         assert fault['status']=='ok',fault
         recovery=execute('from tests import interactive_clean_scenario as scenario\nresult=scenario.recover('+repr(fault['result']['recovery_path'])+')')
         assert recovery['status']=='ok',recovery
-        body=execute('from tests import interactive_clean_scenario as scenario\nfrom tests import native_body_source_scenario\nresult=native_body_source_scenario.run(scenario.project,'+repr(args.body_selection)+')')
+        body=execute('from tests import interactive_clean_scenario as scenario\nfrom tests import native_body_source_scenario\nresult=native_body_source_scenario.run(scenario.project,'+repr(args.body_selection)+','+repr(args.catalog_selection)+')')
         assert body['status']=='ok',body
         preparation=None;regional=None;pose=None
         if args.fitting_preparation:

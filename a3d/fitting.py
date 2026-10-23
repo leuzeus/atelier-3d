@@ -1,15 +1,16 @@
 """Homologous seam-line measurements and bounded proposals; never edit patterns."""
 import math
+import copy
+from dataclasses import dataclass
 from .core import StudioError, contract, digest
 from .sewing import edge_chain, sample_chain, chain_lengths, point_inside, segment_distance
 
 
-def path_inside(a,b,polygon):
-    """Split at every boundary intersection; check each open interval."""
+def _path_inside_engine(a,b,polygon,intersection_edges,edge_pairs):
     cross=lambda u,v:u[0]*v[1]-u[1]*v[0]
     d=[b[k]-a[k] for k in range(2)];cuts={0.,1.}
-    for x,y in zip(polygon,polygon[1:]+polygon[:1]):
-        e=[y[k]-x[k] for k in range(2)];v=[x[k]-a[k] for k in range(2)];den=cross(d,e)
+    for x,y,e in intersection_edges():
+        v=[x[k]-a[k] for k in range(2)];den=cross(d,e)
         if abs(den)>1e-12:
             t,u=cross(v,e)/den,cross(v,d)/den
             if 0<=t<=1 and 0<=u<=1:cuts.add(t)
@@ -20,8 +21,64 @@ def path_inside(a,b,polygon):
     values=sorted(cuts)
     for lo,hi in zip(values,values[1:]):
         p=[a[k]+(lo+hi)/2*d[k] for k in range(2)]
-        if not point_inside(p,polygon) and min(segment_distance(p,x,y) for x,y in zip(polygon,polygon[1:]+polygon[:1]))>1e-7:return False
+        if not point_inside(p,polygon) and min(segment_distance(p,x,y) for x,y in edge_pairs())>1e-7:return False
     return True
+
+
+def path_inside(a,b,polygon):
+    """Split at every boundary intersection; check each open interval."""
+    pairs=lambda:zip(polygon,polygon[1:]+polygon[:1])
+    intersections=lambda:((x,y,[y[k]-x[k]for k in range(2)])for x,y in pairs())
+    return _path_inside_engine(a,b,polygon,intersections,pairs)
+
+
+@dataclass(frozen=True)
+class _PreparedPathContour:
+    polygon:tuple
+    pairs:tuple
+    intersections:tuple
+    complete:bool
+
+    def path_inside(self,a,b):
+        if self.complete:
+            intersections=lambda:iter(self.intersections)
+        else:
+            # Unsupported or overflowing constant arithmetic remains lazy, so
+            # the query raises the same error at the same stage as path_inside.
+            intersections=lambda:((x,y,e if e is not None else[y[k]-x[k]for k in range(2)])
+                                  for x,y,e in self.intersections)
+        return _path_inside_engine(a,b,self.polygon,intersections,lambda:iter(self.pairs))
+
+
+def prepare_path_contour(polygon,*,max_edges=None,check_time=None):
+    """Copy one local contour; reuse only query-independent edge differences.
+
+    The source points are not coerced or rounded. Query direction, its lazy
+    norm, cuts, point_inside and segment_distance retain the historical engine.
+    This is not a query cache, spatial index or geometry/fit admission.
+    """
+    if max_edges is not None and(type(max_edges)is not int or max_edges<0 or len(polygon)>max_edges):
+        raise StudioError('Prepared material contour edge budget exhausted or invalid')
+    def check():
+        if check_time is not None:check_time()
+    check();snapshot=[]
+    for point in polygon:
+        check()
+        copied=copy.deepcopy(point)
+        # Retain malformed sequence types for their original lazy error text;
+        # measurement contours are validated two-coordinate numeric points.
+        snapshot.append(tuple(copied)if isinstance(copied,(list,tuple))and len(copied)>=2 else copied)
+    snapshot=tuple(snapshot);pairs=tuple(zip(snapshot,snapshot[1:]+snapshot[:1]));rows=[]
+    for x,y in pairs:
+        check();difference=None
+        try:
+            if all(type(point[k])in(int,float,bool)for point in (x,y)for k in range(2)):
+                difference=tuple(y[k]-x[k]for k in range(2))
+        except (IndexError,KeyError,TypeError,ValueError,OverflowError):
+            pass
+        rows.append((x,y,difference))
+    check()
+    return _PreparedPathContour(snapshot,pairs,tuple(rows),all(row[2]is not None for row in rows))
 
 
 def section_loop(vertices, faces, section):

@@ -1,0 +1,106 @@
+{
+  "date": "2026-10-07",
+  "scope": "GENERIC_OPEN_BODY_MESH_EDGE_PATHS_AND_HUMAN_REFERENCE_REVIEW",
+  "software": {
+    "status": "PASS",
+    "observed_targeted_tests": 79,
+    "body_surface_path_tests": 11,
+    "test_seconds": 0.441,
+    "source_code_sha256": {
+      "a3d/body_surface_paths.py": "91ad08c6454a77addf003008d4581e66cad4e5b6f361588d1ce6fc9c929327b3",
+      "tests/test_body_surface_paths.py": "17eb5fdcc6b15bc4d231ad2e91a4ecc9f2741f050e939a84c31b2cf6ed8ddec9"
+    },
+    "independent_review": {
+      "P1_P2": [],
+      "resolved": "MINIMUM_AND_NEAR_TIED_ROUTE_PREDECESSOR_AMBIGUITY",
+      "tests_reexecuted_by_reviewer": false
+    }
+  },
+  "replay": {
+    "elapsed_seconds": 0.18700000003445894,
+    "report_ref": {
+      "path": "preparation/shoulder-open-body-path-review-v1/report.json",
+      "sha256": "cf8d20951ef64f0241f67631ff9147cd755ca3605d2eb3e63df20c3dc41ad4d0",
+      "canonical_document_digest": "1e8bfe15c9f802797f7aeaeb7f3f3fab429051a079e843adc1cd36f27cff5b0e"
+    },
+    "projection_ref": {
+      "path": "preparation/shoulder-open-body-path-review-v1/projections.png",
+      "sha256": "d871b6b9f1d35c1c453a446673c4dc64e8a745994b960996bee69efbea9cb169"
+    },
+    "inputs_unchanged": true,
+    "paths": [
+      {
+        "id": "shoulder.surface-proposal-left",
+        "edge_arclength_cm": 13.168021155342775,
+        "endpoint_chord_cm": 9.484400158864908,
+        "vertical_drop_cm": 2.067840099334717,
+        "source_endpoints": [
+          7900,
+          8375
+        ]
+      },
+      {
+        "id": "shoulder.surface-proposal-right",
+        "edge_arclength_cm": 13.187844567779743,
+        "endpoint_chord_cm": 9.47541613378188,
+        "vertical_drop_cm": 2.0615458488464355,
+        "source_endpoints": [
+          2766,
+          3119
+        ]
+      }
+    ]
+  },
+  "human_decisions": {
+    "body-path-homology.shoulder.surface-proposal-left": {
+      "decision_id": "6ac516b8-0657-4474-8cce-fd97d2208384",
+      "source": "human",
+      "source_ref": "codex://threads/01a10118-bef1-7c71-9a8f-6ac8191361a2#user-shoulder-path-review-call_26ed3451e8f041649b22e8ef5507545b-20261007",
+      "statement": "Accepter ces trajets corporels",
+      "approved": true,
+      "evidence": {
+        "body-path-homology.shoulder-open.report": {
+          "path": "preparation/shoulder-open-body-path-review-v1/report.json",
+          "recorded_at": "2026-10-08T01:21:41.554527+00:00",
+          "sha256": "cf8d20951ef64f0241f67631ff9147cd755ca3605d2eb3e63df20c3dc41ad4d0"
+        },
+        "body-path-homology.shoulder-open.projections": {
+          "path": "preparation/shoulder-open-body-path-review-v1/projections.png",
+          "recorded_at": "2026-10-08T01:22:01.676754+00:00",
+          "sha256": "d871b6b9f1d35c1c453a446673c4dc64e8a745994b960996bee69efbea9cb169"
+        }
+      },
+      "timestamp": "2026-10-08T01:22:56.442636+00:00"
+    },
+    "body-path-homology.shoulder.surface-proposal-right": {
+      "decision_id": "cbb9bdae-b4fb-4113-b310-6296829083ae",
+      "source": "human",
+      "source_ref": "codex://threads/01a10118-bef1-7c71-9a8f-6ac8191361a2#user-shoulder-path-review-call_26ed3451e8f041649b22e8ef5507545b-20261007",
+      "statement": "Accepter ces trajets corporels",
+      "approved": true,
+      "evidence": {
+        "body-path-homology.shoulder-open.report": {
+          "path": "preparation/shoulder-open-body-path-review-v1/report.json",
+          "recorded_at": "2026-10-08T01:21:41.554527+00:00",
+          "sha256": "cf8d20951ef64f0241f67631ff9147cd755ca3605d2eb3e63df20c3dc41ad4d0"
+        },
+        "body-path-homology.shoulder-open.projections": {
+          "path": "preparation/shoulder-open-body-path-review-v1/projections.png",
+          "recorded_at": "2026-10-08T01:22:01.676754+00:00",
+          "sha256": "d871b6b9f1d35c1c453a446673c4dc64e8a745994b960996bee69efbea9cb169"
+        }
+      },
+      "timestamp": "2026-10-08T01:23:16.573049+00:00"
+    }
+  },
+  "measurement_scope": "ACTUAL_SOURCE_MESH_EDGE_POLYLINE",
+  "smooth_geodesic_error_bound": "NOT_ESTABLISHED",
+  "garment_seam_position": "NOT_FIXED_BY_THIS_DECISION",
+  "new_ease": "NONE",
+  "patterns_changed": false,
+  "body_changed": false,
+  "native_Blender_execution": false,
+  "fitting": "NOT_EXECUTED",
+  "qualification": "BODY_REFERENCE_REVIEW_ONLY",
+  "connected_runtime": "0704_UNCHANGED_KERNEL_NOT_INSTALLED"
+}

@@ -4,7 +4,8 @@ import unittest
 
 from a3d.core import StudioError, digest
 from a3d.pattern_assembly import (bounded_close, consolidate, continuous_quality,
-    map_digest, migrate_legacy_receipt, preform_coordinates, support_weights, validate_plan)
+    map_digest, migrate_legacy_receipt, preform_coordinates, support_weights, validate_plan,
+    verify_permanent_continuity)
 
 
 def example():
@@ -49,6 +50,60 @@ def arc_example():
 
 
 class PatternAssembly(unittest.TestCase):
+    def consolidated_fixture(self):
+        source,plan=example();coords,_=preform_coordinates(source,plan)
+        coords,_=bounded_close(source,coords,plan)
+        continuous,report=consolidate(source,coords,plan)
+        return source,plan,continuous,report
+
+    def test_consolidation_proof_verifies_source_permanent_pairs_after_zero_springs(self):
+        from blender.sewing import simulation_pairs
+        source,plan,continuous,report=self.consolidated_fixture()
+        before=digest(continuous);proof=verify_permanent_continuity(continuous,plan['consolidation']['weld_gap_cm'])
+        self.assertEqual(simulation_pairs(continuous),[])
+        self.assertEqual(proof['status'],'CONTINUITY_VERIFIED')
+        self.assertEqual(proof['source_permanent_pair_count'],2)
+        self.assertGreater(proof['explicit_unions'],0)
+        self.assertEqual(proof,report['permanent_continuity'])
+        self.assertTrue(proof['current_physics_validation_required'])
+        self.assertEqual(proof['qualification'],'GEOMETRY_ONLY')
+        self.assertEqual(digest(continuous),before)
+        self.assertEqual(source['seams']['join']['kind'],'permanent')
+
+    def test_continuity_refuses_flags_missing_proof_stale_mapping_cohorts_and_weld_budget(self):
+        _,plan,continuous,_=self.consolidated_fixture()
+        for change in ('missing','checksum','faces','cohorts','mapping','rest','seam_kind','source_pairs'):
+            candidate=copy.deepcopy(continuous)
+            if change=='missing':candidate.pop('permanent_consolidation')
+            elif change=='checksum':candidate['permanent_consolidation']['observed_pair_gap_cm']=0.
+            elif change=='faces':candidate['faces'][0][0]=candidate['faces'][0][1]
+            elif change=='cohorts':candidate['source_vertex_cohorts']['0'].append(999)
+            elif change=='mapping':candidate['source_vertex_map']['0']=1
+            elif change=='rest':candidate['rest_cm'][0][0]+=1.
+            elif change=='seam_kind':candidate['seams']['join']['kind']='closure';candidate['seams']['fake']=copy.deepcopy(continuous['seams']['join'])
+            else:
+                proof=candidate['permanent_consolidation'];proof['source']['seams']['join']['pairs']=[]
+                proof['source_mapping_sha256']=map_digest(proof['source']);candidate['source_mapping_sha256']=proof['source_mapping_sha256']
+                proof['proof_sha256']=digest({k:v for k,v in proof.items() if k!='proof_sha256'})
+            with self.subTest(change=change),self.assertRaises(StudioError):
+                verify_permanent_continuity(candidate,plan['consolidation']['weld_gap_cm'])
+        with self.assertRaisesRegex(StudioError,'weld budget'):
+            verify_permanent_continuity(continuous,plan['consolidation']['weld_gap_cm']/2)
+
+    def test_continuity_reconstructs_edges_and_openings_even_after_resigning_map(self):
+        _,plan,continuous,_=self.consolidated_fixture()
+        candidate=copy.deepcopy(continuous);candidate['panels']['left']['edges']['right'].reverse()
+        proof=candidate['permanent_consolidation'];proof['result_mapping_sha256']=map_digest(candidate)
+        proof['proof_sha256']=digest({k:v for k,v in proof.items() if k!='proof_sha256'})
+        with self.assertRaisesRegex(StudioError,'source panel boundaries'):
+            verify_permanent_continuity(candidate,plan['consolidation']['weld_gap_cm'])
+        candidate=copy.deepcopy(continuous)
+        candidate['seams']['new-detachable']={**copy.deepcopy(candidate['seams']['join']),'kind':'detachable'}
+        proof=candidate['permanent_consolidation'];proof['result_mapping_sha256']=map_digest(candidate)
+        proof['proof_sha256']=digest({k:v for k,v in proof.items() if k!='proof_sha256'})
+        with self.assertRaisesRegex(StudioError,'source sewing pairs'):
+            verify_permanent_continuity(candidate,plan['consolidation']['weld_gap_cm'])
+
     def test_native_bend_plan_accepts_zero_angle_but_requires_native_backend(self):
         payload, plan = example()
         plan['preform']['panels']['left']['native_bend'] = {

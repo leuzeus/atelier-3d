@@ -1,0 +1,695 @@
+{
+  "version": 1,
+  "status": "SCOPED_REVIEWED_INPUTS_ADMITTED_SOURCE54_VARIANT_BUILD_REFUSED_AND_ORIGINAL_METRIC_QUALITY_REFUSED",
+  "qualification": "NONE",
+  "branch": "codex/garment-automation-v1",
+  "declared_plugin_version": "0.7.0-rc.2",
+  "code_commit": "b08732641a342b8314ab765485cdcff013a5fb01",
+  "capability_commits": {
+    "source_corners_and_material_notches": "45284244307e31b5baf637479c276481690807cc",
+    "authenticated_scoped_pattern_admission": "b08732641a342b8314ab765485cdcff013a5fb01"
+  },
+  "frozen_source": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v53\\source",
+    "file_count": 497,
+    "identity_sha256": "acf950165513b1a2b29a7d99295de13b907d4020b7ec6785493968411d58353a",
+    "files_unchanged": true,
+    "selected_code_files": {
+      "a3d/sewing.py": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v53\\source\\a3d\\sewing.py",
+        "sha256": "f7d85540382ae840cda3fb3fe621363b241ed1bff1ecf345736da8b29cacf132"
+      },
+      "a3d/pattern_preparation.py": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v53\\source\\a3d\\pattern_preparation.py",
+        "sha256": "3f1de0676186f2a60f6df407f0373d7811edf5fe3aaa924eca7a57a623a5c278"
+      },
+      "a3d/approved_inputs.py": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v53\\source\\a3d\\approved_inputs.py",
+        "sha256": "cc7b280b70625615cba89100d1233d32de5e491df323d6ae0e087eeddf5ea354"
+      },
+      "a3d/reviewed_pattern_admission.py": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v53\\source\\a3d\\reviewed_pattern_admission.py",
+        "sha256": "9095706492135efab871c6aeb6f09220b45f7026ac9e4ee686bdeb3591321ecb"
+      },
+      "a3d/pattern_variant_composition.py": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v53\\source\\a3d\\pattern_variant_composition.py",
+        "sha256": "5fe190d839b38e9ccab980ff0fb3a6acede96ebdd4ae19246143c8edf9f1c8b0"
+      },
+      "a3d/planning.py": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v53\\source\\a3d\\planning.py",
+        "sha256": "71498dc21a71dac10199870744a97f43c465479e415d7667e908854366defd01"
+      },
+      "a3d/tools.py": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v53\\source\\a3d\\tools.py",
+        "sha256": "4a35c87c7cdf8dbad35e8f09beaa4a27c5f352a1e2c2502887551c8f17e7d61a"
+      },
+      "a3d/guide_metric_solver.py": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v53\\source\\a3d\\guide_metric_solver.py",
+        "sha256": "20b65ec6ca601bbd345358a081e87ca8ace4593b1d2e8b835a4785946f172365"
+      },
+      "blender/sewing.py": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v53\\source\\blender\\sewing.py",
+        "sha256": "24372dc8e3e2d9b608a125697cfea2a45c3f2de0253d984a62ae0caf46e3badc"
+      }
+    }
+  },
+  "documentation_scope": "POST_SOURCE53_AND_SOURCE54_CAPTURE_RECORD; THIS DOCUMENT DOES NOT EXTEND THE EXECUTED SUITE OR NATIVE QUALIFICATION",
+  "portable": {
+    "status": "PASS",
+    "tests": 1012,
+    "unittest_seconds": 206.46,
+    "launch_seconds": 207.65599999995902,
+    "scope": "PORTABLE_SOFTWARE_ONLY"
+  },
+  "source_notches": {
+    "status": "PASS_INDEPENDENT_SOURCE_NOTCH_REVIEW",
+    "targeted_tests": 100,
+    "targeted_seconds": 8.046,
+    "binding_policy": "MATERIAL_REFERENCE_WITHOUT_REQUIRED_PHYSICAL_VERTEX",
+    "original_and_accepted_variant_pure_replays": [
+      {
+        "check": "Pure replay original",
+        "boundary_vertices": 2216,
+        "exact_source_corners": 249,
+        "micro_edges": 0,
+        "source_notches": 48,
+        "underarm_binding_kinds": [
+          "BOUNDARY_SEGMENT",
+          "BOUNDARY_SEGMENT",
+          "BOUNDARY_SEGMENT",
+          "BOUNDARY_SEGMENT"
+        ],
+        "max_residual_notch": {
+          "seam_id": "sleeve-underarm-left",
+          "notch_id": "sleeve-underarm-left-mid",
+          "piece": "sleeve-left",
+          "side": "b",
+          "numeric_reconstruction_residual_cm": 7.32410687763558e-15
+        },
+        "max_numeric_reconstruction_residual_cm": 7.32410687763558e-15
+      },
+      {
+        "check": "Pure replay accepted-two-sleeve-composition",
+        "boundary_vertices": 2236,
+        "exact_source_corners": 253,
+        "micro_edges": 0,
+        "source_notches": 48,
+        "underarm_binding_kinds": [
+          "BOUNDARY_SEGMENT",
+          "BOUNDARY_SEGMENT",
+          "BOUNDARY_SEGMENT",
+          "BOUNDARY_SEGMENT"
+        ],
+        "max_residual_notch": {
+          "seam_id": "collar-inner-right",
+          "notch_id": "collar-inner-right-mid",
+          "piece": "collar",
+          "side": "a",
+          "numeric_reconstruction_residual_cm": 7.105427357601002e-15
+        },
+        "max_numeric_reconstruction_residual_cm": 7.105427357601002e-15
+      }
+    ],
+    "legacy_physical_indices_on_segment_notch": "REFUSED",
+    "authored_source_corners": "EXACTLY_PRESERVED",
+    "physical_qualification": "NOT_GRANTED"
+  },
+  "canonical_reviewed_candidate": {
+    "status": "SCOPED_REVIEWED_DESIGN_ADMITTED",
+    "target_root": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project",
+    "target_project_id": "44f03e6c-dc68-4adb-85b9-e30f88b1aeaa",
+    "target_stage": "RECONSTRUCTING",
+    "scope": "APPROVED_SOURCE_INPUTS_ONLY; NO_PLACEMENT_OR_FITTING_ADMISSION",
+    "reviewed_piece_ids": [
+      "sleeve-left",
+      "sleeve-right"
+    ],
+    "human_pattern_decision_origin": {
+      "project": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1",
+      "project_id": "8cb179ee-37ee-4544-bf9a-cbc67ecc5d06",
+      "event_id": 185,
+      "decision_id": "d0613494-01bc-4486-8378-688401ba782a",
+      "gate_name": "pattern-variant.sleeves.garment.coat",
+      "import_lineage": []
+    },
+    "authenticated_original_generation_origin": {
+      "kind": "EXISTING_ORIGINAL_DESIGN_GENERATION",
+      "source_project": "G:\\projets\\atelier-3d\\work\\robe-bleu-nuit-nouveau-20261003",
+      "source_project_id": "1938cf80-cb68-4178-a163-04594f67d73a",
+      "board_ref": {
+        "path": ".a3d/outputs/construction-c1f0612ceb914bb284d2129480439984/board.json",
+        "sha256": "ab171bfc1e3a393df6a831f3d31dde8f45a75b3ad5620a34f90ed94b4b32a0ae"
+      },
+      "request": {
+        "path": ".a3d/evidence/exploded-request-8411c33549a844de8f9cb9ffae590a15.json",
+        "recorded_at": "2026-10-03T18:02:08.582984+00:00",
+        "sha256": "48f12f53bae33c0a00eda2e9bc5c55759c869e90d959357d0e6ec88e1f7bfc3d"
+      },
+      "receipt": {
+        "path": ".a3d/evidence/exploded-generation-50e5378fbca148a2bdb3dae9840f6f82.json",
+        "recorded_at": "2026-10-03T18:10:38.948419+00:00",
+        "sha256": "246479c2854941c0e5e197bcc53ed105fac1aa4e87241b294f3f497857e0933f"
+      },
+      "import_lineage": [
+        {
+          "project": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-production-main-v1",
+          "project_id": "8cb179ee-37ee-4544-bf9a-cbc67ecc5d06",
+          "event_id": 7,
+          "import_ref": {
+            "path": ".a3d/evidence/approved-design-import.json",
+            "sha256": "b7beb26ec97680737b83ed8d0e1a23940ef49c1a38d9c8960c644657fdff8fb1"
+          }
+        }
+      ],
+      "design_scope": "ORIGINAL_APPROVED_INPUTS_ONLY"
+    },
+    "excluded_unreviewed_dossier_rows": 10,
+    "textile_pieces_count": 15,
+    "rigid_components": [
+      "prop.buckle"
+    ],
+    "composed_dossier_ref": {
+      "path": ".a3d/evidence/reviewed-pattern-composition-dossier.json",
+      "sha256": "620457742c3038ed981976ccb641558a269a8e042d651c3bbee3d01039c01711"
+    },
+    "composition_ref": {
+      "path": ".a3d/evidence/reviewed-pattern-composition.json",
+      "recorded_at": "2026-10-04T20:56:10.356986+00:00",
+      "sha256": "f044ccff8d239ed1ee9b3f45c798387c9bacbdc0182ad088ad5d97b32ca4b87f"
+    },
+    "source_input_files_equal_to_copied_files": true,
+    "original_MAIN_bindings": "UNCHANGED",
+    "original_MAIN_sqlite_sha256": "c82264a8d006e9caa1816bb5a25df5dea939eeb36e1181b1d884c9a1ba45e1a4",
+    "original_MAIN_sqlite_unchanged_from_existing_pre_import_evidence": true,
+    "original_import_timing": "NOT_RECORDED_DUE_TO_REPORTING_ERROR",
+    "parent_databases_pre_import_bytes": "NOT_RECORDED_BY_INITIAL_SCRIPT",
+    "import_repeated": false,
+    "subsequent_readonly_reconciliation_seconds": 7.51600000000326,
+    "subsequent_reconciliation_target_sqlite_unchanged": true,
+    "later_real_preflight_review": {
+      "status": "PASS",
+      "scope": "READ_ONLY_AUTHENTICATION_AT_LATER_REVIEW_TIME",
+      "access": "SQLite mode=ro / query_only / SELECT",
+      "three_database_hashes_unchanged_during_review": true,
+      "retrospective_initial_parent_import_preservation_claim": "NOT_GRANTED"
+    },
+    "portable_service_review_scope": "INDEPENDENT_PORTABLE_REVIEW_SHARED_IMPORT_AND_SCOPED_PATTERN_HELPER",
+    "portable_service_review_real_MAIN_execution": "SKIPPED"
+  },
+  "native_source53_diagnostic": {
+    "status": "TEST_ONLY_DIAGNOSTIC_MEASURED",
+    "scope": "REAL_SOURCE_REGULAR_MESH_AND_GUIDE_DIAGNOSTIC_ONLY",
+    "qualification": "NONE",
+    "elapsed_seconds": 121.67920980002964,
+    "launch_seconds": 130.98399999999674,
+    "full_original_build": {
+      "status": "NATIVE_PAYLOAD_BUILT",
+      "mapping_sha256": "8dc579b3af23b4e44fd3b3c35eb7e1bcb1d070805bf3721f82c51ce1c6146a46",
+      "vertices": 15555,
+      "triangles": 28874,
+      "qualification": "NONE",
+      "elapsed_seconds": 39.52489970001625,
+      "regular_quality": "NOT_ADMITTED"
+    },
+    "accepted_two_sleeve_variant_build": {
+      "status": "NATIVE_PAYLOAD_BUILT",
+      "vertices": 15669,
+      "triangles": 29082,
+      "reviewed_piece_ids": [
+        "sleeve-left",
+        "sleeve-right"
+      ],
+      "elapsed_seconds": 38.90530199999921,
+      "regular_quality": "NOT_ADMITTED",
+      "qualification": "NONE"
+    },
+    "six_piece_subset": {
+      "vertices": 12829,
+      "triangles": 23894,
+      "exact_full_source_rest_faces_and_uv": true
+    },
+    "recipe_min_angle_degrees": 2,
+    "required_regular_min_angle_degrees": 15.0,
+    "source_min_angle_degrees": 4.483886989191477,
+    "source_min_angle_witness": {
+      "value": 4.483886989191477,
+      "face": 2605,
+      "piece": "front-left",
+      "vertices": [
+        163,
+        2462,
+        162
+      ],
+      "source_uv_cm": [
+        [
+          23.578993,
+          118.45081
+        ],
+        [
+          23.681974411010742,
+          117.20684051513672
+        ],
+        [
+          23.842698501622912,
+          116.8255726412122
+        ]
+      ]
+    },
+    "source_min_area_cm2": 0.00047567653166467633,
+    "correction_status": "NEEDS_CORRECTION",
+    "stop_reason": "METRIC_RECOVERY_IMMUTABLE_SOURCE_MESH_QUALITY",
+    "metric_iterations_started": 0,
+    "metric_iterations_accepted": 0,
+    "correction_seconds": 16.15902040002402,
+    "contact_search": "NOT_STARTED_INVALID_SOURCE_METRIC",
+    "source_quality_cause": "EXACT_DERIVED_MATERIAL_TRIANGLES_FAIL_REGULAR15; NOT_SUBSET_OR_BINARY32_PROVENANCE_ERROR",
+    "source_pattern_feasibility": "NOT_ASSESSED",
+    "original_sources_MAIN_and_body_preserved": true,
+    "historical_source50_independent_six_piece_col15_438_result_transferred": "NO"
+  },
+  "ci": {
+    "status": "PASS_CI_PUBLISHED_CANDIDATE",
+    "head_commit": "b08732641a342b8314ab765485cdcff013a5fb01",
+    "url": "https://github.com/leuzeus/atelier-3d/actions/runs/37234999162",
+    "jobs": [
+      {
+        "job": "Tests (ubuntu-latest, Python 3.13)",
+        "tests": "PASS",
+        "package": "PASS",
+        "contracts": "skipped",
+        "url": "https://github.com/leuzeus/atelier-3d/actions/runs/37234999162/job/111532228143"
+      },
+      {
+        "job": "Tests (windows-latest, Python 3.11)",
+        "tests": "PASS",
+        "package": "PASS",
+        "contracts": "success",
+        "url": "https://github.com/leuzeus/atelier-3d/actions/runs/37234999162/job/111532228241"
+      }
+    ],
+    "scope": "SOFTWARE_CI_ONLY",
+    "qualification": "NONE",
+    "contracts_summary": {
+      "Windows_Python311": "PASS",
+      "Linux_Python313": "SKIP"
+    }
+  },
+  "next_units": {
+    "fast_definite_metric_rejection": {
+      "code_commit": "336cdb6257e7794d941b608d9ffbb64ce7d61cf7",
+      "independent_review": "PASS",
+      "independent_tests": "68 tests, comprising65 targeted and3 independent tests",
+      "full_suite_and_native_for_this_unit": "SEE_SEPARATE_SOURCE54_PORTABLE_AND_SYNTHETIC_SCOPE; REAL_SOURCE_NATIVE_RESULT_PENDING",
+      "source53_contains_this_unit": false
+    },
+    "short_protected_boundary_cdt_proposals": {
+      "status": "COMMITTED_INDEPENDENT_PORTABLE_REVIEW_PASS",
+      "full_suite_and_native_for_this_unit": "SEE_SEPARATE_SOURCE54_PORTABLE_AND_SYNTHETIC_SCOPE; REAL_SOURCE_NATIVE_RESULT_PENDING",
+      "scope": "DERIVED_MESH_ONLY_EXACT_CORNERS_AND_REGULAR15_GATES_PRESERVED",
+      "code_commit": "9febfb3a606d39d840140918ae8c1b62b3470312"
+    },
+    "next_action": "FINISH_INDEPENDENT_REVIEW; TEST_THE_INTEGRATED_FROZEN_CODE; REPEAT_ORIGINAL_AND_ACCEPTED_VARIANT_NATIVE_FULL_SOURCE_AND_PLACEMENT_CONTROLS",
+    "full_suite_and_native": "SOURCE54_PORTABLE_1040_PASS_AND_SYNTHETIC_NATIVE_PASS; REAL_VARIANT_BUILD_REFUSED_1_490237725_DEGREES; ORIGINAL_SUBSET_METRIC_QUALITY_REFUSED_ZERO_ITERATIONS; NEXT_ALGORITHM_PENDING"
+  },
+  "references": {
+    "portable": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source53-v1\\launch-receipt.json",
+      "sha256": "217f5027ffbcfdd9d213a41de0569f86b0edc5f83f65d9b5dc77f605444fd005"
+    },
+    "portable_log": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source53-v1\\tests.log",
+      "sha256": "e4dbc4e2979870b9bebbc332826c48fb5be15d53cdaeb044a7f627b0d88e212b"
+    },
+    "notch_review": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-source-notch-review-v1\\receipt-after-fix.json",
+      "sha256": "517b16c43a2f8604ef5fb6bac36bcfbb43f86d3fab4d6be4b92db19d049d1d08"
+    },
+    "notch_review_report": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-source-notch-review-v1\\review-after-fix.json",
+      "sha256": "b84d1724b3916b21565e6d4bae16ce952e6a0017f187a0216f1ff911c70a0071"
+    },
+    "admission_review": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-admission-review-v1\\review-final.json",
+      "sha256": "da816c3b5ede928864a8e8f232a36c14fb8053c921513c5d810b3a862f8a80b7"
+    },
+    "real_design_admission": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\receipt.json",
+      "sha256": "ecbb3bcc8a210a30b4913fd8ded23b7518087dfe9c15557a5dc38adfe3c500bb"
+    },
+    "real_preflight_review": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-regular-guide-diagnostic-review-v3\\review.json",
+      "sha256": "1509d6c48c24512f81106926876c423117c9c4bdd1a0a32718c09345e7fa813f"
+    },
+    "real_native_diagnostic": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-regular-guide-diagnostic-v3\\output-v1\\receipt.json",
+      "sha256": "2f8f52772c2643e2c86eee66e5a85b6b64e17a0b5c3252ef7fa3b90490a42597"
+    },
+    "real_native_launch": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-regular-guide-diagnostic-v3\\launch-output-v1.json",
+      "sha256": "c628b7ae17c4b9d74dce58411ecb0065a77666d05b8dbe5bf4fd24088b3f4d34"
+    },
+    "real_native_correction": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-regular-guide-diagnostic-v3\\output-v1\\correction-result.json",
+      "sha256": "87cffdd81f24e876591db699ea21ef387b19b77de9e4fde8b9149096cd88f1a6"
+    },
+    "full_source_investigation": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-full-source-quality-investigation-v1\\report.json",
+      "sha256": "f9b2016f3d0e36fd39c23523011058bb53519ee3f80c53e6df76f28f3067933d"
+    },
+    "ci": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-ci-source53-v1\\receipt.json",
+      "sha256": "45121965687449c06e370bc8b99c59ed110f55117250658306f34e335d4387c3"
+    },
+    "ci_provider_response": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-ci-source53-v1\\github-response.json",
+      "sha256": "8c08b2ecd44f7717b7e4683eb89c7531b2e4d06bcc183faa5940ce0062525691"
+    },
+    "later_fast_unit_review": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-metric-fast-rejection-review-v1\\review-final.json",
+      "sha256": "f89af6ba8f58be61d6bbe71e8f6d9bb6a72ddf60fcb439825f84e5ea46e5bd20"
+    },
+    "historical_source50_evidence": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\source\\references\\automation-source-conditioning-evidence-20261004.json",
+      "sha256": "e1cf0c79fbb28839490893730ecd7eb17745757b99c3118835cf92266513adf8"
+    },
+    "portable_source54": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source54-v1\\launch-receipt.json",
+      "sha256": "40fcb444ae50fd990baf66f58487cf8bc0832d5c3bf9c102427dc8dd8baa2d79"
+    },
+    "portable_source54_log": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-portable-source54-v1\\tests.log",
+      "sha256": "70bf0ffa37dab764c01e3bee8f926f52923c6dcedf662ab836b86f12d5ff0b3a"
+    },
+    "synthetic_source54_native": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-mesh-conditioning-v3\\receipt.json",
+      "sha256": "f50da4ad9d4d5980d6df04b654b0260f45f80982648034541de5ba0ca03a3a25"
+    },
+    "synthetic_source54_launch": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-mesh-conditioning-v3\\launch-receipt.json",
+      "sha256": "b52e929b3ef8d4cd64a5edc2d3e4ecba6bd30645e91d82d102e93a6a508cfa97"
+    },
+    "protected_boundary_review": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-protected-boundary-review-v1\\review-final.json",
+      "sha256": "0b4420fe38e777fdfa6b57f08c9fd086cd5ebc9ccc5fdb1f43e381d472bbbf95"
+    },
+    "source54_native_preflight": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-regular-guide-diagnostic-review-v4\\review.json",
+      "sha256": "d40bde95b4b9a67c5f3a7b4257c938562276a8cd8aedd74e112b9afc455ba69d"
+    },
+    "source54_real_native_diagnostic": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-regular-guide-diagnostic-v4\\output-v1\\receipt.json",
+      "sha256": "b3fe4ba4c23715e12a31515aa50881f3295edc5fe01a77148df09d96626fb344"
+    },
+    "source54_real_native_launch": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-regular-guide-diagnostic-v4\\launch-output-v1.json",
+      "sha256": "4e3a7b78e4f9799d8e95d3d75f4b4cb38918edfc05d71e8b455f4a81850b7110"
+    },
+    "source54_real_native_correction": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-regular-guide-diagnostic-v4\\output-v1\\correction-result.json",
+      "sha256": "62d2c701a964a5289336aae4c984bbde0aa5bc5ea06f8c542435833499e0c53f"
+    },
+    "source54_accepted_variant_build_refusal": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-regular-guide-diagnostic-v4\\output-v1\\accepted-variant-ten-piece-build-refusal.json",
+      "sha256": "54d794f4116c856a965327d1dd7bae2e731faadbbf74841dc5afd42e7eb83a66"
+    },
+    "source54_accepted_variant_refused_payload": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-regular-guide-diagnostic-v4\\output-v1\\accepted-variant-ten-piece-refused-payload.json",
+      "sha256": "68677457a2dbc3b2fa848282ac744a51a990382a233d3043b79bdaa047ce033b"
+    },
+    "source54_original_full_payload": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-regular-guide-diagnostic-v4\\output-v1\\full-ten-piece-payload.json",
+      "sha256": "f50b0fcbd4b97c77ee2188c6a9e00c8c81eccf683c04a7623900cd22f67c6e2e"
+    },
+    "source54_ci": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-ci-source54-v1\\receipt.json",
+      "sha256": "c1761ec6196bba384a397e6d693f1f950acd1ef80759e59648ca1dd145b368f8"
+    },
+    "source54_ci_provider_response": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-ci-source54-v1\\github-response.json",
+      "sha256": "3a525ecf3f67ecd2d8f986364ea76d371dda2ad2e59aa0dc976d972235c90894"
+    },
+    "source54_independent_result_review": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-regular-guide-diagnostic-result-review-v4\\review.json",
+      "sha256": "1e7fe3ac727b02db15d7da4a0428b2badc8e17e1174b5182e6ca0295af89aee9"
+    },
+    "source54_causal_addendum": {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-native-regular-guide-diagnostic-result-review-v4\\causal-addendum.json",
+      "sha256": "723d21dd170c78d06084217c7cb674769bed55dc67404ea7e8cd38e26609d246"
+    }
+  },
+  "cloth": "NOT_EXECUTED",
+  "physical_donning": "NOT_EXECUTED",
+  "full_fitting": "NOT_QUALIFIED",
+  "garment_motion": "NOT_QUALIFIED",
+  "artistic_review": "NOT_EXECUTED",
+  "final_release": "NOT_PUBLISHED",
+  "new_installation": "NOT_EXECUTED",
+  "connected_development_runtime": "NOT_VERIFIED",
+  "post_source53_integration_source54": {
+    "identity_sha256": "fe517779f1f19fecf91eca55297c2a2d47ff5c908f3ab1b7e9ff10e1870d23b0",
+    "file_count": 501,
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v54\\source",
+    "selected_producers": {
+      "a3d/guide_metric_solver.py": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v54\\source\\a3d\\guide_metric_solver.py",
+        "sha256": "c633be098148e26fbf6ab906bb59511898d19938ac39ec7a6bd05df785f230af"
+      },
+      "blender/sewing.py": {
+        "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-runtime-source-v54\\source\\blender\\sewing.py",
+        "sha256": "71f8defae40545e0b2027fdfb3eb10f88d44863b8644e37c869bc0b02b52a1c4"
+      }
+    },
+    "capability_commits": {
+      "fast_definite_metric_rejection": "336cdb6257e7794d941b608d9ffbb64ce7d61cf7",
+      "local_protected_boundary_cdt_proposals": "9febfb3a606d39d840140918ae8c1b62b3470312"
+    },
+    "portable": {
+      "status": "PASS",
+      "tests": 1040,
+      "unittest_seconds": 177.628,
+      "launch_seconds": 178.71899999998277,
+      "frozen_files_unchanged": true,
+      "scope": "PORTABLE_SOFTWARE_ONLY"
+    },
+    "protected_boundary_independent_review": {
+      "status": "PASS",
+      "portable_tests": 49,
+      "qualification": "NONE"
+    },
+    "native_synthetic": {
+      "status": "TEST_ONLY_NATIVE_CONDITIONING_OBSERVED",
+      "scope": "SYNTHETIC_CDT_CONDITIONING_FIXED_SOURCE_ANCHORS_AND_REOPEN",
+      "elapsed_seconds": 0.2937060999684036,
+      "launch_seconds": 4.313000000023749,
+      "source_anchors_preserved": true,
+      "reopened_equal": true,
+      "qualification": "NONE",
+      "cases": [
+        {
+          "id": "regular-square",
+          "status": "TARGET_REACHED",
+          "expected": "TARGET_REACHED",
+          "vertices": 30,
+          "faces": 42,
+          "material_metrics": {
+            "min_angle_degrees": 23.793977601396243,
+            "min_edge_cm": 0.5176380942280278,
+            "area_cm2": 16.0
+          },
+          "native_geometry_metrics": {
+            "min_angle_degrees": 23.79397123444832,
+            "min_edge_cm": 0.5176379828681756,
+            "area_cm2": 15.99999928474427
+          },
+          "source_hash_preserved": true,
+          "validation_status": "PASS"
+        },
+        {
+          "id": "short-fixed-source-intervals",
+          "status": "TARGET_REACHED",
+          "expected": null,
+          "vertices": 168,
+          "faces": 284,
+          "material_metrics": {
+            "min_angle_degrees": 15.87424594455644,
+            "min_edge_cm": 0.08353554762748061,
+            "area_cm2": 119.0
+          },
+          "native_geometry_metrics": {
+            "min_angle_degrees": 15.874234371886418,
+            "min_edge_cm": 0.08353590965270996,
+            "area_cm2": 119.00000175833702
+          },
+          "source_hash_preserved": true,
+          "validation_status": "PASS"
+        },
+        {
+          "id": "immutable-acute-source-corner",
+          "status": "NEEDS_CORRECTION",
+          "expected": "NEEDS_CORRECTION",
+          "vertices": 3,
+          "faces": 1,
+          "material_metrics": {
+            "min_angle_degrees": 0.7161599454711681,
+            "min_edge_cm": 0.05,
+            "area_cm2": 0.1
+          },
+          "native_geometry_metrics": {
+            "min_angle_degrees": 0.7161599954881509,
+            "min_edge_cm": 0.050000002374872565,
+            "area_cm2": 0.10000000251457085
+          },
+          "source_hash_preserved": true,
+          "validation_status": "PASS"
+        }
+      ]
+    },
+    "real_source_native_diagnostic": {
+      "status": "TEST_ONLY_DIAGNOSTIC_MEASURED",
+      "scope": "REAL_SOURCE_REGULAR_MESH_AND_GUIDE_DIAGNOSTIC_ONLY",
+      "qualification": "NONE",
+      "elapsed_seconds": 118.6720543000265,
+      "launch_seconds": 127.68799999996554,
+      "exit_code": 0,
+      "original_ten_piece_build": {
+        "status": "NATIVE_PAYLOAD_BUILT",
+        "mapping_sha256": "fbb77cb414081662de176b79f5d4948396400a695cd130564b312c3acec2dd78",
+        "vertices": 15515,
+        "triangles": 28794,
+        "qualification": "NONE"
+      },
+      "accepted_variant_ten_piece_build": {
+        "status": "REFUSED",
+        "error_type": "StudioError",
+        "qualification": "NONE",
+        "quality_violations": [
+          "degenerate_or_sliver"
+        ],
+        "quality_metrics": {
+          "min_angle_degrees": 1.490237725227749,
+          "min_area_cm2": 0.0003353787725862092,
+          "min_edge_cm": 0.010890092372518038,
+          "min_stretch": 0.9992440870397578,
+          "max_stretch": 1.000737106473141,
+          "rest_area_cm2": 20833.262922128186
+        },
+        "refused_payload_not_used": true
+      },
+      "accepted_variant_build_recipe_min_angle_degrees": 2.0,
+      "six_original_source_subset": {
+        "mesh_route": "EXACT_SUBSET_OF_SUCCESSFUL_FULL_NATIVE_PAYLOAD",
+        "source_pieces_byte_semantics_unchanged": true,
+        "closure_changed": false,
+        "scope": "SIX_REAL_SOURCE_PIECES_DIAGNOSTIC_ONLY",
+        "qualification": "NONE"
+      },
+      "metric_recovery": {
+        "status": "NEEDS_CORRECTION",
+        "stop_reason": "METRIC_RECOVERY_IMMUTABLE_SOURCE_MESH_QUALITY",
+        "iterations": 0,
+        "contact_search": "NOT_STARTED_INVALID_SOURCE_METRIC",
+        "source_mutated": false,
+        "qualification": "NONE",
+        "simulation": "NOT_EXECUTED",
+        "fitting": "NOT_EXECUTED"
+      },
+      "inputs_preserved": true,
+      "original_state_preserved": true,
+      "source54_files_preserved": true,
+      "source54_file_count": 501,
+      "body_native_geometry_preserved": true,
+      "sqlite_connected": false,
+      "main_operation_executed": false,
+      "human_gates_created": false,
+      "cloth": "NOT_EXECUTED",
+      "fitting": "NOT_EXECUTED",
+      "product_acceptance": "NOT_GRANTED",
+      "artistic_review": "NOT_EXECUTED",
+      "fast_metric_rejection_exercised_in_real_recovery": false,
+      "global_performance_gain": "NOT_ESTABLISHED",
+      "independent_detailed_result_review": {
+        "status": "REVIEW_COMPLETE_NATIVE_QUALITY_REFUSALS_CONFIRMED",
+        "review_checks": "PASS",
+        "qualification": "NONE",
+        "source_files_verified": 501,
+        "source_modules_verified": 24,
+        "output_artifacts_verified": 18,
+        "native_executed_by_reviewer": false,
+        "database_connected_by_reviewer": false,
+        "geometry": {
+          "original_v3": {
+            "vertices": 15555,
+            "faces": 28874,
+            "minimum_source_angle_degrees": 4.483886989191642,
+            "faces_below_15": 36,
+            "faces_below_2": 0,
+            "total_area_cm2": 20697.820539104025
+          },
+          "original_v4": {
+            "vertices": 15515,
+            "faces": 28794,
+            "minimum_source_angle_degrees": 2.5603470940701127,
+            "faces_below_15": 24,
+            "faces_below_2": 0,
+            "total_area_cm2": 20697.820539104025
+          },
+          "variant_v3": {
+            "vertices": 15669,
+            "faces": 29082,
+            "minimum_source_angle_degrees": 4.057463147983511,
+            "faces_below_15": 30,
+            "faces_below_2": 0,
+            "total_area_cm2": 20833.262922128208
+          },
+          "variant_v4": {
+            "vertices": 15621,
+            "faces": 28986,
+            "minimum_source_angle_degrees": 1.4904434060198761,
+            "faces_below_15": 26,
+            "faces_below_2": 4,
+            "total_area_cm2": 20833.262922128208
+          }
+        },
+        "causal_status": "CAUSAL_EVIDENCE_CONFIRMED",
+        "causal_conclusion": "New candidate trajectory stalls at the first refinement attempt; exact rollback preserves baseline. Post-build placement does not cause crossing recipe2: both immutable source and placed result already fail2."
+      },
+      "next_action": "INVESTIGATE_REAL_SOURCE_CONDITIONING_AND_CDT_PROPOSALS; PRESERVE_SOURCES_BODY_SUPPORTS_THRESHOLDS; RERUN_DEPENDENT_GATES_AFTER_TARGETED_FIX",
+      "diagnostic_blend_reopened": "NOT_EXECUTED"
+    },
+    "real_source_preflight": {
+      "status": "PASS",
+      "review_kind": "STRICT_CLONE_OF_V3_IDENTITIES_ONLY",
+      "new_SQLite_authentication": "NOT_EXECUTED_STRICT_CLONE_REVIEW_OF_V3_IDENTITIES_ONLY"
+    },
+    "real_source_quality_or_garment_acceptance_transferred_from_coupons": false,
+    "new_CI_head_result": {
+      "status": "PASS_CI_PUBLISHED_CANDIDATE",
+      "head_commit": "9febfb3a606d39d840140918ae8c1b62b3470312",
+      "url": "https://github.com/leuzeus/atelier-3d/actions/runs/37236866063",
+      "jobs": [
+        {
+          "job": "Tests (windows-latest, Python 3.11)",
+          "tests": "PASS",
+          "package": "PASS",
+          "contracts": "success",
+          "url": "https://github.com/leuzeus/atelier-3d/actions/runs/37236866063/job/111537616469"
+        },
+        {
+          "job": "Tests (ubuntu-latest, Python 3.13)",
+          "tests": "PASS",
+          "package": "PASS",
+          "contracts": "skipped",
+          "url": "https://github.com/leuzeus/atelier-3d/actions/runs/37236866063/job/111537616516"
+        }
+      ],
+      "github_response_sha256": "3a525ecf3f67ecd2d8f986364ea76d371dda2ad2e59aa0dc976d972235c90894",
+      "scope": "SOFTWARE_CI_ONLY",
+      "qualification": "NONE",
+      "product_acceptance": "NOT_GRANTED",
+      "contracts_summary": {
+        "Windows_Python_3_11": "PASS",
+        "Linux_Python_3_13": "SKIP"
+      }
+    }
+  }
+}

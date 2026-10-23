@@ -1,0 +1,109 @@
+{
+  "date": "2026-10-07",
+  "scope": "ACTUAL_COAT_PREPARATION_REFUSED_AND_TECHNICAL_RECOVERY_INPUTS",
+  "project_id": "44f03e6c-dc68-4adb-85b9-e30f88b1aeaa",
+  "source_epoch": "19ca533d1eabf37df59bf934d22925001a464a71bddc7cba9e3b6366a2a6f640",
+  "runtime_version": "0.7.0-rc.2.dev.2026100702",
+  "run_id": "run.cece5c47060e4336b10132c0e921732c",
+  "attempt_id": "attempt.a574c5e5ea1d4f71af5f9980d82f0f08",
+  "readiness": "NEEDS_CORRECTION",
+  "native_elapsed_seconds": 317.9037561999867,
+  "transport": {
+    "status": "TIMEOUT_AFTER_300_SECONDS",
+    "result_reconciled_by": "studio_next_run_step",
+    "automatic_replay": false,
+    "mcp_subsequent_scene_read": "PASS"
+  },
+  "native_receipt": {
+    "path": ".a3d/runs/native/attempt.a574c5e5ea1d4f71af5f9980d82f0f08.json",
+    "sha256": "2050c7feab39e52c84fa2bb1ca9fa52b700815d2c15c766b337e67f20dfd9f73"
+  },
+  "entry_checkpoint": {
+    "path": ".a3d/checkpoints/pre-6bdb7fb5fde4409fab63d6a8d216faee.blend",
+    "sha256": "a67c0255fdad05976d48db0890eb30def7280d74d9eb089dea4e9179523701be"
+  },
+  "candidate_master": {
+    "path": ".a3d/blender/pattern-preparation/attempt-d575d9b6d2f640ebb27c42b11b7c067f/master-preparation-v001.blend",
+    "sha256": "74f6ee911cfc4dac13c0b8be4a664535ebe53eb02632af4953a9c552e995c0e7"
+  },
+  "candidate_report": {
+    "path": ".a3d/blender/pattern-preparation/attempt-d575d9b6d2f640ebb27c42b11b7c067f/receipt.json",
+    "sha256": "9bc5f0dcaae68d983022415edaf357b8291d40b1a1275ba48ee4d8f92f3851a5"
+  },
+  "technical_views": {
+    "directory": ".a3d/blender/pattern-preparation/attempt-d575d9b6d2f640ebb27c42b11b7c067f",
+    "view_count": 12,
+    "front_pixels_inspected": true,
+    "visual_human_acceptance": "NOT_GRANTED"
+  },
+  "piece_presence": {
+    "local": "garment.coat 10/10",
+    "global_textiles": "10/15",
+    "missing_textiles": [
+      "belt",
+      "hood-left",
+      "hood-right",
+      "yoke-lower",
+      "yoke-upper"
+    ],
+    "rigid_buckle": "ABSENT",
+    "scope": "CANDIDATE_REPORT_PRESENCE_ONLY_LIVE_INSPECTION_REQUIRED"
+  },
+  "failure": {
+    "stop_reason": "METRIC_RECOVERY_IMMUTABLE_SOURCE_MESH_QUALITY",
+    "immutable_rest_min_angle_degrees": 4.0574631479835315,
+    "required_min_angle_degrees": 15,
+    "piece": "sleeve-right",
+    "face": 27284,
+    "metric_recovery_iterations": 0,
+    "source_patterns_insufficient": "NOT_ESTABLISHED",
+    "visible_shoulder_penetration": true
+  },
+  "cause": {
+    "meshing_profile_missing_from_new_preparation": true,
+    "quality_refinement_missing_from_new_recipe": true,
+    "anchor_reserve_policy_missing_from_new_preparation": true,
+    "classification": "TECHNICAL_INPUT_OPTIONS_OMITTED_BY_COORDINATOR_NOT_SOURCE_CUTTING_REJECTION"
+  },
+  "technical_recovery": {
+    "status": "PREPARED_NOT_EXECUTED",
+    "receipt": {
+      "path": "preparation/coat-recovery-current-source-v1/receipt.json",
+      "sha256": "d4f450c7ca331a1d1a643a1e03528d3f5650310f16513c1f0de6fcc3dc22cd2f"
+    },
+    "run_specification": {
+      "path": "preparation/coat-recovery-current-source-v1/run.json",
+      "sha256": "593c1e07a7b653d4052a121d6f066f950f7b3017c418ead4429bc4fe5cb41fa4"
+    },
+    "producer": "a3d.meshing_profile.prepare_recovery_profile",
+    "meshing_mode": "SYNCHRONIZED_GRADED_V1",
+    "anchor_mode": "PERMANENT_COMPONENT_BODY_AXIS_TRANSLATION_V1",
+    "angle_gate_degrees": 15,
+    "max_mesh_seconds": 90,
+    "max_vertices": 30000,
+    "code_change": false,
+    "new_installation_needed": false,
+    "body_or_source_patterns_changed": false,
+    "native_qualification": "NOT_GRANTED"
+  },
+  "restore_operation": {
+    "operation": "restore_checkpoint",
+    "arguments": {
+      "run_id": "run.cece5c47060e4336b10132c0e921732c",
+      "attempt_id": "attempt.a574c5e5ea1d4f71af5f9980d82f0f08"
+    },
+    "executed": false,
+    "user_authorization": "PENDING"
+  },
+  "qualification": "NONE",
+  "Cloth": "NOT_EXECUTED",
+  "fitting": "NOT_QUALIFIED",
+  "remaining": [
+    "Restore entry checkpoint",
+    "Execute corrected preparation with exact authorization",
+    "Check source metric, shoulder placement and torso coverage",
+    "Resolve separate layers and dressing",
+    "Construct remaining five textiles and rigid buckle",
+    "Cloth, drape, fitting, motion and actual artistic review"
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "date": "2026-10-05",
+  "status": "PORTABLE_COLLAR_RIGID_SEED_REVIEWED_REAL_CORRECTION_NOT_EXECUTED",
+  "purpose": "TEST_ONLY",
+  "qualification": "NONE",
+  "product_admission": "NONE",
+  "source_files": {
+    "a3d/rigid_guide_alignment.py": {
+      "path": "source/a3d/rigid_guide_alignment.py",
+      "bytes": 28285,
+      "sha256": "65d2c26e15a07ad4844f337f5ebd56a75a2ca77aa7dfa8b0a4b493902eacb2bb"
+    },
+    "references/collar-rigid-alignment.md": {
+      "path": "source/references/collar-rigid-alignment.md",
+      "bytes": 5254,
+      "sha256": "d726eeab58ac94ae7928ae8fd3a414cfc72e2edf06978aba6da524a78a4c4593"
+    },
+    "tests/test_rigid_guide_alignment.py": {
+      "path": "source/tests/test_rigid_guide_alignment.py",
+      "bytes": 34812,
+      "sha256": "65dc0027627533637ea280472bb8f4f1a97abf9a3ab0a6c76d5fc2695aa6901d"
+    }
+  },
+  "author_receipt": {
+    "admission": "NONE",
+    "caller_source_edits": [],
+    "candidate_sources": {
+      "a3d/rigid_guide_alignment.py": {
+        "bytes": 28285,
+        "sha256": "65d2c26e15a07ad4844f337f5ebd56a75a2ca77aa7dfa8b0a4b493902eacb2bb"
+      },
+      "references/collar-rigid-alignment.md": {
+        "bytes": 5254,
+        "sha256": "d726eeab58ac94ae7928ae8fd3a414cfc72e2edf06978aba6da524a78a4c4593"
+      },
+      "tests/test_rigid_guide_alignment.py": {
+        "bytes": 34812,
+        "sha256": "65dc0027627533637ea280472bb8f4f1a97abf9a3ab0a6c76d5fc2695aa6901d"
+      }
+    },
+    "code_identity_change": "ACTUAL_MODULE_SHA_ONLY_FOR_OLD_FRONT_RECEIPT",
+    "command": "& 'C:/Program Files/Python311/python.exe' -B ./run_tests.py",
+    "consumed_source_files_preserved": 35,
+    "contacts": "NOT_ASSESSED",
+    "db": "NOT_EXECUTED",
+    "fitting": "NOT_EXECUTED",
+    "historical_cases": 7,
+    "historical_result_files_preserved": 16,
+    "independent_review": "PENDING",
+    "interior_propagation": "NOT_ASSESSED",
+    "legacy_functions_ast_exact": 9,
+    "metric_after_coupling": "NOT_ASSESSED",
+    "native": "NOT_EXECUTED",
+    "owned_source_edits": [
+      "a3d/rigid_guide_alignment.py",
+      "references/collar-rigid-alignment.md",
+      "tests/test_rigid_guide_alignment.py"
+    ],
+    "proposal_scope": "PARTIAL_TEST_ONLY",
+    "qualification": "NONE",
+    "raw_48_violation_proofs": "PRESERVED_NO_REPLAY",
+    "real_collar": "NOT_EXECUTED",
+    "status": "PASS_PORTABLE_COLLAR_RIGID_SEED_ONLY",
+    "tests": {
+      "alignment": 33,
+      "coupling": 16,
+      "isolated": 59,
+      "live": 59,
+      "policy": 10
+    }
+  },
+  "review_receipt": {
+    "admission": "NONE",
+    "author_frozen_sha256": "c43e41ce7bb743f6f35fc967d69205b6678017b1916a1f3b9f27ddd81a17b229",
+    "author_receipt_sha256": "7313d418155a14ea34119f537a7f98c2eab873e184c890e1ce955c5af06f297e",
+    "doc_sha256": "d726eeab58ac94ae7928ae8fd3a414cfc72e2edf06978aba6da524a78a4c4593",
+    "findings": [],
+    "historical_comparisons": 7,
+    "independent_probes": 11,
+    "module_sha256": "65d2c26e15a07ad4844f337f5ebd56a75a2ca77aa7dfa8b0a4b493902eacb2bb",
+    "no_real_collar_or_native_compiler_observer": true,
+    "no_source_edits": true,
+    "protected_files_preserved": 71,
+    "qualification": "NONE",
+    "report_sha256": "79084cff9b3eac473227da4b1a17b71be3e0beb4ac42829590be44cf4a7ef908",
+    "status": "PASS_COLLAR_RIGID_ALIGNMENT_PORTABLE_REVIEW_ONLY",
+    "targeted_tests": 59,
+    "tests_sha256": "65dc0027627533637ea280472bb8f4f1a97abf9a3ab0a6c76d5fc2695aa6901d"
+  },
+  "proofs": [
+    {
+      "path": "program-collar-rigid-alignment-v1/FROZEN.json",
+      "bytes": 7968,
+      "sha256": "c43e41ce7bb743f6f35fc967d69205b6678017b1916a1f3b9f27ddd81a17b229"
+    },
+    {
+      "path": "program-collar-rigid-alignment-v1/receipt.json",
+      "bytes": 1315,
+      "sha256": "7313d418155a14ea34119f537a7f98c2eab873e184c890e1ce955c5af06f297e"
+    },
+    {
+      "path": "program-collar-rigid-alignment-review-v1/FROZEN.json",
+      "bytes": 12772,
+      "sha256": "40451e8294ea662b4ce6db70bc5164e83f16be15d4bc3228160ef270afa3b7cb"
+    },
+    {
+      "path": "program-collar-rigid-alignment-review-v1/receipt.json",
+      "bytes": 867,
+      "sha256": "0329e8b004466a4483729aa8a2da20a54a5b9f2e8a4e35908d18d44a62cca3b0"
+    }
+  ],
+  "approved_patterns_and_body": "PRESERVED",
+  "real_auxiliary_collar_48_failed_faces": "PRESERVED_HISTORICAL_OBSERVATION_ONLY",
+  "next_action": "Prepare a fresh complete source-bound reference, then measure the effect of the rigid seed and remaining interior propagation.",
+  "NOT_QUALIFIED": [
+    "METRIC_AFTER_COUPLING",
+    "CONTACTS",
+    "PLACEMENT",
+    "CLOTH",
+    "FITTING",
+    "GARMENT_ACCEPTANCE"
+  ],
+  "automatic_retry": false
+}

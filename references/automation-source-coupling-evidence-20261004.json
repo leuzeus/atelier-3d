@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "date": "2026-10-04",
+  "status": "SOURCE_COUPLING_DEVELOPMENT_UNIT_CHECKED",
+  "code_commit": "848c9a89f6e5ff57576bcc9ed91fd8dedaa2211f",
+  "tested_snapshot": {
+    "identity_sha256": "6762731d8bb71bef47cf202b9737843c6651f8872d9c7523254bebb76739a483",
+    "files": 480
+  },
+  "committed_code_files_verified": 389,
+  "committed_code_sha256": "3662055bb245dd14aba516f30622a8f7c63892a2301b058af722241b167b1c5a",
+  "portable": {
+    "status": "PASS",
+    "tests": 900,
+    "seconds": 114.496,
+    "launcher_seconds": 115.71899999998277,
+    "receipt_ref": {
+      "path": "program-portable-source45-v1/receipt.json",
+      "sha256": "8f26ff33c6341d81636d9c274a4351e03066a9cb059c69fba40b2ed1f9067653"
+    },
+    "log_ref": {
+      "path": "program-portable-source45-v1/tests.log",
+      "sha256": "28679b202953168534943027d7f288c62627c5ff6b3d86ee261011998400db5b"
+    }
+  },
+  "independent_review": {
+    "status": "PASS_SCOPED_REVIEW",
+    "tests": 49,
+    "report_ref": {
+      "path": "program-source-seam-coupling-review-v1/review-corners-final.json",
+      "sha256": "64a24681aa5f1f34efa3e8ccbe34d4c3cbc189315404a9245fc0f818690002f9"
+    },
+    "initial_late_budget_failure_preserved": true
+  },
+  "native_source_cage": {
+    "status": "PASS",
+    "purpose": "TEST_ONLY",
+    "seconds": 6.219000000040978,
+    "launch_ref": {
+      "path": "program-native-source-cage-v3/launch.json",
+      "sha256": "6187fc9a99b3fd6226a7135f17510c75073bdff8aa08416437f0c0280855465b"
+    },
+    "result_ref": {
+      "path": "program-native-source-cage-v3/result.json",
+      "sha256": "d0c3a4eb55daba3ad9ca10ac7e268a1683d3ea9abb952bda051df54e32192a5b"
+    }
+  },
+  "native_source_contour": {
+    "status": "PASS",
+    "purpose": "TEST_ONLY",
+    "seconds": 4.717999999993481,
+    "launch_ref": {
+      "path": "program-native-source-contour-v1/launch.json",
+      "sha256": "eb1f1c958b22f5e0caf7506e173092d16b83e95d68c1584afbe5389f14b3b031"
+    },
+    "result_ref": {
+      "path": "program-native-source-contour-v1/result.json",
+      "sha256": "a54b03c2e451293f697dfcad7ba2fc0990a6c12487d1ff59dd85a6f013da6769"
+    }
+  },
+  "guide_policy_contract": {
+    "status": "PASS",
+    "validator": "PowerShell Test-Json",
+    "report_ref": {
+      "path": "program-contracts-guide-v8-v1/report.json",
+      "sha256": "9a7acdb65966ed7ce3b2348ed14f18dce538711a19b669b96dd3fb2a4f3e327c"
+    }
+  },
+  "main_guide_hypothesis": {
+    "status": "GUIDE_HYPOTHESES_RECONSTRUCTED",
+    "qualification": "NONE",
+    "pieces": 6,
+    "relations": 13,
+    "unprocessed_external_relations": 4,
+    "max_common_control_gap_cm": 0.0,
+    "max_target_correction_cm": 10.51971685036295,
+    "policy_ref": {
+      "path": "program-production-main-v1/preparation/source-guide-policy-proposal-v8.json",
+      "sha256": "e95e0034626ad9e04df5c467bc41394147103494ffa3b05a8f1db75680a5c996"
+    },
+    "guides_ref": {
+      "path": "program-production-main-v1/preparation/source-guide-proposals-policy-v8.json",
+      "sha256": "355043fb3de4d7fe7bab03b8c21e05c6813f00680cc37e2971ed9e713aeb5a02"
+    },
+    "report_ref": {
+      "path": "program-production-main-v1/preparation/source-guide-policy-generation-v8.json",
+      "sha256": "3abbd3132cb213377f6dcb7c1ba0ddc900f0c6a22c337f4f43aa5767336e530f"
+    },
+    "source_packages_preserved": true,
+    "body_preserved": true,
+    "sqlite_preserved": true,
+    "metric_assessment": "REQUIRED",
+    "contacts": "NOT_ASSESSED",
+    "front_coverage": "NOT_REVIEWED"
+  },
+  "source_corner_correction": {
+    "status": "PURE_SOURCE_PREPARATION_CHECKED",
+    "qualification": "NONE",
+    "investigation_ref": {
+      "path": "program-source-contour-investigation-v1/report.json",
+      "sha256": "3e3b0733b7320e6335c3301ee96f9c73ac23e21762c291568bef9be2cf3dd8c2"
+    },
+    "corrected_source_report_ref": {
+      "path": "program-source-corner-preservation-v1/report.json",
+      "sha256": "fe1e4d19f8495e2622c764fc4dd0a3374cf9a86a894422035ddf85811282e4df"
+    },
+    "main_old_native_mesh": "PRESERVED_NOT_REPAIRED",
+    "new_main_native_preparation": "NOT_EXECUTED"
+  },
+  "scope": "DEVELOPMENT_SOFTWARE_ONLY",
+  "main_cloth": "NOT_EXECUTED",
+  "main_fitting": "NOT_QUALIFIED",
+  "final_release": "NOT_PUBLISHED",
+  "installed": "NOT_EXECUTED"
+}

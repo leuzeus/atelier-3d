@@ -1,0 +1,1132 @@
+{
+  "date": "2026-10-07",
+  "scope": "SEPARATE_COLLAR_PATTERN_PROPOSAL_ONLY",
+  "status": "PROPOSAL_READY_FOR_REVIEW",
+  "qualification": "PATTERN_PROPOSAL_ONLY",
+  "target_material_length_cm": 55.215414631164414,
+  "measured_material_length_cm": 55.215414631164414,
+  "solver": {
+    "stop_reason": "STAGNATION",
+    "evaluations": 320,
+    "iterations": 22,
+    "initial_score": 40.71704144779247,
+    "best_score": 8.463418909086222e-09,
+    "parameters": {
+      "local-row.collar:y": 1.0,
+      "local-row.inner-front:x": 1.0,
+      "local-row.inner-front:y": 1.0,
+      "local-row.back-left:x": 1.1142530144236014,
+      "local-row.back-left:y": 0.9826263619187957,
+      "local-row.back-right:x": 1.1139370722406872,
+      "local-row.back-right:y": 0.9898770196232767,
+      "local-row.collar:x": 1.14271533286414,
+      "local-row.front-left:x": 1.6024797947704124,
+      "local-row.front-left:y": 1.0072807579982215,
+      "local-row.front-right:x": 1.600721922371315,
+      "local-row.front-right:y": 1.0136143630865613
+    },
+    "history": [
+      {
+        "iteration": 0,
+        "score": 40.71704144779247,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.0,
+          "local-row.back-left:y": 1.0,
+          "local-row.back-right:x": 1.0,
+          "local-row.back-right:y": 1.0,
+          "local-row.collar:x": 1.0,
+          "local-row.front-left:x": 1.0,
+          "local-row.front-left:y": 1.0,
+          "local-row.front-right:x": 1.0,
+          "local-row.front-right:y": 1.0
+        }
+      },
+      {
+        "iteration": 1,
+        "score": 39.954009477132665,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.005212998305769,
+          "local-row.back-left:y": 0.99916713766694,
+          "local-row.back-right:x": 1.0052235187487977,
+          "local-row.back-right:y": 0.999513849707759,
+          "local-row.collar:x": 1.0044598488508043,
+          "local-row.front-left:x": 1.0484195295743928,
+          "local-row.front-left:y": 1.0007913250206817,
+          "local-row.front-right:x": 1.0479986148189482,
+          "local-row.front-right:y": 1.0014661467070285
+        }
+      },
+      {
+        "iteration": 2,
+        "score": 39.81304540749063,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.0100151344809658,
+          "local-row.back-left:y": 0.9984043483806826,
+          "local-row.back-right:x": 1.010032694285604,
+          "local-row.back-right:y": 0.999068753079716,
+          "local-row.collar:x": 1.008780329703188,
+          "local-row.front-left:x": 1.0840741314706124,
+          "local-row.front-left:y": 1.00134925578578,
+          "local-row.front-right:x": 1.083499104389802,
+          "local-row.front-right:y": 1.002505616942184
+        }
+      },
+      {
+        "iteration": 3,
+        "score": 39.44582871958154,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.0144709550384459,
+          "local-row.back-left:y": 0.9977002331119672,
+          "local-row.back-right:x": 1.0144929710941581,
+          "local-row.back-right:y": 0.9986580027593528,
+          "local-row.collar:x": 1.0129657963913112,
+          "local-row.front-left:x": 1.1135810151408407,
+          "local-row.front-left:y": 1.0017955301827408,
+          "local-row.front-right:x": 1.1129138637723304,
+          "local-row.front-right:y": 1.0033386229308239
+        }
+      },
+      {
+        "iteration": 4,
+        "score": 38.81345772977182,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.0186287993572498,
+          "local-row.back-left:y": 0.9970462773853508,
+          "local-row.back-right:x": 1.0186532983568284,
+          "local-row.back-right:y": 0.9982765952211449,
+          "local-row.collar:x": 1.017020467714504,
+          "local-row.front-left:x": 1.1391744931600498,
+          "local-row.front-left:y": 1.0021713906189327,
+          "local-row.front-right:x": 1.138440701764397,
+          "local-row.front-right:y": 1.004040904331957
+        }
+      },
+      {
+        "iteration": 5,
+        "score": 37.962286872099625,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.0225260999953958,
+          "local-row.back-left:y": 0.9964359074238952,
+          "local-row.back-right:x": 1.0225515416756426,
+          "local-row.back-right:y": 0.9979206713586196,
+          "local-row.collar:x": 1.0209484308574446,
+          "local-row.front-left:x": 1.1619599266524667,
+          "local-row.front-left:y": 1.0024972916261186,
+          "local-row.front-right:x": 1.1611727895272015,
+          "local-row.front-right:y": 1.0046502339077081
+        }
+      },
+      {
+        "iteration": 6,
+        "score": 36.94462942220873,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.0261926291547308,
+          "local-row.back-left:y": 0.9958639118199919,
+          "local-row.back-right:x": 1.0262177916799562,
+          "local-row.back-right:y": 0.997587174390056,
+          "local-row.collar:x": 1.0247536453603852,
+          "local-row.front-left:x": 1.1825868132593602,
+          "local-row.front-left:y": 1.0027852724443367,
+          "local-row.front-right:x": 1.1817543315181693,
+          "local-row.front-right:y": 1.005188912877949
+        }
+      },
+      {
+        "iteration": 7,
+        "score": 35.805686749452015,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.0296525904518778,
+          "local-row.back-left:y": 0.9953260688070664,
+          "local-row.back-right:x": 1.0296764927398612,
+          "local-row.back-right:y": 0.9972736297275994,
+          "local-row.collar:x": 1.0284399470642995,
+          "local-row.front-left:x": 1.20147785613634,
+          "local-row.front-left:y": 1.0030431750365967,
+          "local-row.front-right:x": 1.2006053514922785,
+          "local-row.front-right:y": 1.0056714968294158
+        }
+      },
+      {
+        "iteration": 8,
+        "score": 35.57065169940844,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.0361994557686285,
+          "local-row.back-left:y": 0.9943117232180128,
+          "local-row.back-right:x": 1.036219247804027,
+          "local-row.back-right:y": 0.9966823650176961,
+          "local-row.collar:x": 1.0355821568540347,
+          "local-row.front-left:x": 1.236377588381497,
+          "local-row.front-left:y": 1.003509756629454,
+          "local-row.front-right:x": 1.2354326722726616,
+          "local-row.front-right:y": 1.0065447965877408
+        }
+      },
+      {
+        "iteration": 9,
+        "score": 34.55152683706578,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.0420792770899834,
+          "local-row.back-left:y": 0.993406296234924,
+          "local-row.back-right:x": 1.0420920304973125,
+          "local-row.back-right:y": 0.9961546813301431,
+          "local-row.collar:x": 1.0422779788893752,
+          "local-row.front-left:x": 1.2665453505125723,
+          "local-row.front-left:y": 1.0038971119990328,
+          "local-row.front-right:x": 1.2655387831771086,
+          "local-row.front-right:y": 1.007270120063166
+        }
+      },
+      {
+        "iteration": 10,
+        "score": 32.97394383871689,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.0473979694142321,
+          "local-row.back-left:y": 0.9925915938569105,
+          "local-row.back-right:x": 1.0474018006059396,
+          "local-row.back-right:y": 0.9956799371248937,
+          "local-row.collar:x": 1.0485553122919018,
+          "local-row.front-left:x": 1.293117745480303,
+          "local-row.front-left:y": 1.004226228395727,
+          "local-row.front-right:x": 1.2920567090131632,
+          "local-row.front-right:y": 1.0078865773574923
+        }
+      },
+      {
+        "iteration": 11,
+        "score": 31.041684378315146,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.05223538977524,
+          "local-row.back-left:y": 0.9918540023866435,
+          "local-row.back-right:x": 1.052229153702702,
+          "local-row.back-right:y": 0.995250176185638,
+          "local-row.collar:x": 1.0544403125357624,
+          "local-row.front-left:x": 1.3168195449826017,
+          "local-row.front-left:y": 1.0045103809944191,
+          "local-row.front-right:x": 1.3157094650366412,
+          "local-row.front-right:y": 1.0084189359314164
+        }
+      },
+      {
+        "iteration": 12,
+        "score": 30.3802154746412,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.0610725428286354,
+          "local-row.back-left:y": 0.9905119469512821,
+          "local-row.back-right:x": 1.0610448525446192,
+          "local-row.back-right:y": 0.9944682980457275,
+          "local-row.collar:x": 1.0654746882679127,
+          "local-row.front-left:x": 1.359483037675228,
+          "local-row.front-left:y": 1.0050068830904435,
+          "local-row.front-right:x": 1.358283693321668,
+          "local-row.front-right:y": 1.0093492984660803
+        }
+      },
+      {
+        "iteration": 13,
+        "score": 27.66641374421698,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.0684580580827332,
+          "local-row.back-left:y": 0.989398403985642,
+          "local-row.back-right:x": 1.0684070183579755,
+          "local-row.back-right:y": 0.9938196480467913,
+          "local-row.collar:x": 1.0751297674484468,
+          "local-row.front-left:x": 1.394332505714543,
+          "local-row.front-left:y": 1.0053899246574114,
+          "local-row.front-right:x": 1.3930583652101165,
+          "local-row.front-right:y": 1.0100672677037812
+        }
+      },
+      {
+        "iteration": 14,
+        "score": 26.97012834700498,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.0809362280937151,
+          "local-row.back-left:y": 0.9875276624483362,
+          "local-row.back-right:x": 1.0808389404718992,
+          "local-row.back-right:y": 0.9927300604935588,
+          "local-row.collar:x": 1.0920261565762128,
+          "local-row.front-left:x": 1.4523656801514384,
+          "local-row.front-left:y": 1.005997605171715,
+          "local-row.front-right:x": 1.4509645706391974,
+          "local-row.front-right:y": 1.0112065469785687
+        }
+      },
+      {
+        "iteration": 15,
+        "score": 25.24944950837061,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.0985835477529067,
+          "local-row.back-left:y": 0.9849074537239854,
+          "local-row.back-right:x": 1.0984020409195385,
+          "local-row.back-right:y": 0.9912042950245876,
+          "local-row.collar:x": 1.1173707418144394,
+          "local-row.front-left:x": 1.5328114260869952,
+          "local-row.front-left:y": 1.0067653441890712,
+          "local-row.front-right:x": 1.5312281361100908,
+          "local-row.front-right:y": 1.0126464529187027
+        }
+      },
+      {
+        "iteration": 16,
+        "score": 3.336522897525725,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.1146437014983537,
+          "local-row.back-left:y": 0.9825608253017725,
+          "local-row.back-right:x": 1.1143476941353387,
+          "local-row.back-right:y": 0.9898384744151812,
+          "local-row.collar:x": 1.1427153304450746,
+          "local-row.front-left:x": 1.604368007639375,
+          "local-row.front-left:y": 1.0073291470118715,
+          "local-row.front-right:x": 1.602612361615357,
+          "local-row.front-right:y": 1.0137047808098691
+        }
+      },
+      {
+        "iteration": 17,
+        "score": 6.509066527123161e-06,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.1142525755777923,
+          "local-row.back-left:y": 0.9826263458376352,
+          "local-row.back-right:x": 1.113935945502329,
+          "local-row.back-right:y": 0.9898770179763466,
+          "local-row.collar:x": 1.14271533292125,
+          "local-row.front-left:x": 1.602485100161713,
+          "local-row.front-left:y": 1.0072807481321093,
+          "local-row.front-right:x": 1.6007261243943134,
+          "local-row.front-right:y": 1.0136143611092379
+        }
+      },
+      {
+        "iteration": 18,
+        "score": 8.463471137857998e-09,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.1142530142039346,
+          "local-row.back-left:y": 0.982626361926785,
+          "local-row.back-right:x": 1.1139370722009794,
+          "local-row.back-right:y": 0.9898770196286197,
+          "local-row.collar:x": 1.1427153328642727,
+          "local-row.front-left:x": 1.602479794398427,
+          "local-row.front-left:y": 1.007280758008357,
+          "local-row.front-right:x": 1.6007219224672515,
+          "local-row.front-right:y": 1.0136143630958945
+        }
+      },
+      {
+        "iteration": 19,
+        "score": 8.463418909086222e-09,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.1142530144236014,
+          "local-row.back-left:y": 0.9826263619187957,
+          "local-row.back-right:x": 1.1139370722406872,
+          "local-row.back-right:y": 0.9898770196232767,
+          "local-row.collar:x": 1.14271533286414,
+          "local-row.front-left:x": 1.6024797947704124,
+          "local-row.front-left:y": 1.0072807579982215,
+          "local-row.front-right:x": 1.600721922371315,
+          "local-row.front-right:y": 1.0136143630865613
+        }
+      },
+      {
+        "iteration": 20,
+        "score": 8.463418909086222e-09,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.1142530144236014,
+          "local-row.back-left:y": 0.9826263619187957,
+          "local-row.back-right:x": 1.1139370722406872,
+          "local-row.back-right:y": 0.9898770196232767,
+          "local-row.collar:x": 1.14271533286414,
+          "local-row.front-left:x": 1.6024797947704124,
+          "local-row.front-left:y": 1.0072807579982215,
+          "local-row.front-right:x": 1.600721922371315,
+          "local-row.front-right:y": 1.0136143630865613
+        }
+      },
+      {
+        "iteration": 21,
+        "score": 8.463418909086222e-09,
+        "parameters": {
+          "local-row.collar:y": 1.0,
+          "local-row.inner-front:x": 1.0,
+          "local-row.inner-front:y": 1.0,
+          "local-row.back-left:x": 1.1142530144236014,
+          "local-row.back-left:y": 0.9826263619187957,
+          "local-row.back-right:x": 1.1139370722406872,
+          "local-row.back-right:y": 0.9898770196232767,
+          "local-row.collar:x": 1.14271533286414,
+          "local-row.front-left:x": 1.6024797947704124,
+          "local-row.front-left:y": 1.0072807579982215,
+          "local-row.front-right:x": 1.600721922371315,
+          "local-row.front-right:y": 1.0136143630865613
+        }
+      }
+    ],
+    "seconds_elapsed": 32.84400000004098,
+    "budgets": {
+      "max_iterations": 60,
+      "max_evaluations": 1200,
+      "max_seconds": 60.0,
+      "finite_difference_step": 0.0001,
+      "damping": 1e-05,
+      "minimum_step": 0.0001,
+      "stagnation_iterations": 3
+    },
+    "geometry_domain": {
+      "enabled": true,
+      "best_valid": true,
+      "rejected_evaluations": 0,
+      "retained_rejection_limit": 32,
+      "witnesses_per_rejection_limit": 16,
+      "rejections": [],
+      "qualification": "SOURCE_UV_GEOMETRY_ONLY"
+    }
+  },
+  "proposal": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\variants\\source-row-grading-v3\\proposal.json",
+    "sha256": "54537d847b8e14b4c65cd6077ac34b415ad30906995cf8550c19aea9522299a0"
+  },
+  "review_closeups": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\source-row-pattern-review-v1\\closeups.png",
+    "sha256": "22776309d7c63d75f3b6bf79ca7f43179db2a5935621c07a2657ae35c12715d5"
+  },
+  "review_svg": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-reviewed-design-main-v1\\execution-project\\preparation\\source-row-pattern-review-v1\\closeups.svg",
+    "sha256": "4c1ff0e38963785f7b644f8d94d8a90de89feef2228d74f74857cdf9ab32597c"
+  },
+  "changed_pieces": [
+    "back-left",
+    "back-right",
+    "collar",
+    "front-left",
+    "front-right"
+  ],
+  "source_piece_diff": [
+    {
+      "piece": "back-left",
+      "component_id": "garment.coat",
+      "family": "local-row.back-left",
+      "source_geometry_sha256": "d067e78a063c5c53e8d57ba13fb777c30c01a528bbb608cb33d5f4374199cc2b",
+      "variant_geometry_sha256": "1deaad3ccc0f25d2f257adc93b1675571c586a9f55b864588cdd199a3f669c37",
+      "source_bounds_uv_cm": [
+        [
+          -45,
+          0
+        ],
+        [
+          0,
+          134
+        ]
+      ],
+      "variant_bounds_uv_cm": [
+        [
+          -45,
+          0
+        ],
+        [
+          0,
+          134
+        ]
+      ],
+      "max_vertex_displacement_cm": 1.4448778087559146,
+      "source_vertex_max_displacement_cm": 1.4448778087559146,
+      "vertices_preserved": true,
+      "faces_preserved": true,
+      "edges_preserved": true,
+      "grain_direction": [
+        0,
+        1
+      ],
+      "layer": "coat",
+      "assembly_marks_preserved": false,
+      "assembly_mark_identifiers_preserved": true,
+      "material_notch_points_preserved": true,
+      "topology_mapping": null
+    },
+    {
+      "piece": "back-right",
+      "component_id": "garment.coat",
+      "family": "local-row.back-right",
+      "source_geometry_sha256": "45b5b98c7114e32ddb5bb630170cd856c6c06876524d3a627eaebd7feee72b65",
+      "variant_geometry_sha256": "6cd494ac243629905125b1c9877833805f7feb49e2327eba29b6cf9175a18589",
+      "source_bounds_uv_cm": [
+        [
+          0,
+          45
+        ],
+        [
+          0,
+          134
+        ]
+      ],
+      "variant_bounds_uv_cm": [
+        [
+          0,
+          45
+        ],
+        [
+          0,
+          134
+        ]
+      ],
+      "max_vertex_displacement_cm": 1.4465106607038485,
+      "source_vertex_max_displacement_cm": 1.4465106607038485,
+      "vertices_preserved": true,
+      "faces_preserved": true,
+      "edges_preserved": true,
+      "grain_direction": [
+        0,
+        1
+      ],
+      "layer": "coat",
+      "assembly_marks_preserved": false,
+      "assembly_mark_identifiers_preserved": true,
+      "material_notch_points_preserved": true,
+      "topology_mapping": null
+    },
+    {
+      "piece": "belt",
+      "component_id": "garment.belt",
+      "family": null,
+      "source_geometry_sha256": "849d8702f053a411b29fdbedc5733d2abe363a92a63e2c8581f6bc763bbb1fc6",
+      "variant_geometry_sha256": "849d8702f053a411b29fdbedc5733d2abe363a92a63e2c8581f6bc763bbb1fc6",
+      "source_bounds_uv_cm": [
+        [
+          0,
+          96
+        ],
+        [
+          0,
+          6
+        ]
+      ],
+      "variant_bounds_uv_cm": [
+        [
+          0,
+          96
+        ],
+        [
+          0,
+          6
+        ]
+      ],
+      "max_vertex_displacement_cm": 0.0,
+      "source_vertex_max_displacement_cm": 0.0,
+      "vertices_preserved": true,
+      "faces_preserved": true,
+      "edges_preserved": true,
+      "grain_direction": [
+        1,
+        0
+      ],
+      "layer": "belt",
+      "assembly_marks_preserved": true,
+      "assembly_mark_identifiers_preserved": true,
+      "material_notch_points_preserved": true,
+      "topology_mapping": null
+    },
+    {
+      "piece": "collar",
+      "component_id": "garment.coat",
+      "family": "local-row.collar",
+      "source_geometry_sha256": "048b0216824b52a1eb3e0949642f4716088729bc23335c855410a381883a5fba",
+      "variant_geometry_sha256": "be3df210b5f6e0f556e74b6714d8f756c08c57db83d05be854fd8fd4318f6f88",
+      "source_bounds_uv_cm": [
+        [
+          0.0,
+          48.834424
+        ],
+        [
+          0,
+          7
+        ]
+      ],
+      "variant_bounds_uv_cm": [
+        [
+          0.0,
+          55.215414631164414
+        ],
+        [
+          0,
+          7
+        ]
+      ],
+      "max_vertex_displacement_cm": 6.380990631164416,
+      "source_vertex_max_displacement_cm": 6.380990631164416,
+      "vertices_preserved": true,
+      "faces_preserved": true,
+      "edges_preserved": true,
+      "grain_direction": [
+        0,
+        1
+      ],
+      "layer": "coat",
+      "assembly_marks_preserved": false,
+      "assembly_mark_identifiers_preserved": true,
+      "material_notch_points_preserved": true,
+      "topology_mapping": null
+    },
+    {
+      "piece": "cuff-left",
+      "component_id": "garment.coat",
+      "family": null,
+      "source_geometry_sha256": "368c19c4c4e278345a456dfa80d42fab1bdda36cf4aa61f7bb3d5ad2cde90978",
+      "variant_geometry_sha256": "368c19c4c4e278345a456dfa80d42fab1bdda36cf4aa61f7bb3d5ad2cde90978",
+      "source_bounds_uv_cm": [
+        [
+          0,
+          29
+        ],
+        [
+          0,
+          20
+        ]
+      ],
+      "variant_bounds_uv_cm": [
+        [
+          0,
+          29
+        ],
+        [
+          0,
+          20
+        ]
+      ],
+      "max_vertex_displacement_cm": 0.0,
+      "source_vertex_max_displacement_cm": 0.0,
+      "vertices_preserved": true,
+      "faces_preserved": true,
+      "edges_preserved": true,
+      "grain_direction": [
+        0,
+        1
+      ],
+      "layer": "coat",
+      "assembly_marks_preserved": true,
+      "assembly_mark_identifiers_preserved": true,
+      "material_notch_points_preserved": true,
+      "topology_mapping": null
+    },
+    {
+      "piece": "cuff-right",
+      "component_id": "garment.coat",
+      "family": null,
+      "source_geometry_sha256": "8622fda32c6c8775516f3851dcfd48b5a68caacbe9d6bd7d59e3286bb48dfea4",
+      "variant_geometry_sha256": "8622fda32c6c8775516f3851dcfd48b5a68caacbe9d6bd7d59e3286bb48dfea4",
+      "source_bounds_uv_cm": [
+        [
+          -29,
+          0
+        ],
+        [
+          0,
+          20
+        ]
+      ],
+      "variant_bounds_uv_cm": [
+        [
+          -29,
+          0
+        ],
+        [
+          0,
+          20
+        ]
+      ],
+      "max_vertex_displacement_cm": 0.0,
+      "source_vertex_max_displacement_cm": 0.0,
+      "vertices_preserved": true,
+      "faces_preserved": true,
+      "edges_preserved": true,
+      "grain_direction": [
+        0,
+        1
+      ],
+      "layer": "coat",
+      "assembly_marks_preserved": true,
+      "assembly_mark_identifiers_preserved": true,
+      "material_notch_points_preserved": true,
+      "topology_mapping": null
+    },
+    {
+      "piece": "front-left",
+      "component_id": "garment.coat",
+      "family": "local-row.front-left",
+      "source_geometry_sha256": "e095f2b022ffc336f1b47dfa6bead02aae6558128029b9613f27777b3abe342a",
+      "variant_geometry_sha256": "5961465184de3b7bea28063ef7dfd5626080a90f65461bd946b12a509d4acddb",
+      "source_bounds_uv_cm": [
+        [
+          2.0,
+          45
+        ],
+        [
+          0,
+          134
+        ]
+      ],
+      "variant_bounds_uv_cm": [
+        [
+          1.2128445335603135,
+          45
+        ],
+        [
+          0,
+          134
+        ]
+      ],
+      "max_vertex_displacement_cm": 2.32228194009148,
+      "source_vertex_max_displacement_cm": 2.32228194009148,
+      "vertices_preserved": true,
+      "faces_preserved": true,
+      "edges_preserved": true,
+      "grain_direction": [
+        0,
+        1
+      ],
+      "layer": "coat",
+      "assembly_marks_preserved": false,
+      "assembly_mark_identifiers_preserved": true,
+      "material_notch_points_preserved": true,
+      "topology_mapping": null
+    },
+    {
+      "piece": "front-right",
+      "component_id": "garment.coat",
+      "family": "local-row.front-right",
+      "source_geometry_sha256": "66eb0ace50b2aefd340c44e9f63dadef8e9963fee47bb2a86bb126a3f7a83cc6",
+      "variant_geometry_sha256": "df4b53aade6ffbb773e11bd20c2f46a09e39c67283c128c7a4770f0b8a417ff2",
+      "source_bounds_uv_cm": [
+        [
+          -45,
+          -2.0
+        ],
+        [
+          0,
+          134
+        ]
+      ],
+      "variant_bounds_uv_cm": [
+        [
+          -45,
+          -1.2172873657698362
+        ],
+        [
+          0,
+          134
+        ]
+      ],
+      "max_vertex_displacement_cm": 2.3133009439885286,
+      "source_vertex_max_displacement_cm": 2.3133009439885286,
+      "vertices_preserved": true,
+      "faces_preserved": true,
+      "edges_preserved": true,
+      "grain_direction": [
+        0,
+        1
+      ],
+      "layer": "coat",
+      "assembly_marks_preserved": false,
+      "assembly_mark_identifiers_preserved": true,
+      "material_notch_points_preserved": true,
+      "topology_mapping": null
+    },
+    {
+      "piece": "hood-left",
+      "component_id": "garment.hood-yoke",
+      "family": null,
+      "source_geometry_sha256": "5d9c16ae63f21834768f3c99386618392eb2f8c0b803ca02304294348066d379",
+      "variant_geometry_sha256": "5d9c16ae63f21834768f3c99386618392eb2f8c0b803ca02304294348066d379",
+      "source_bounds_uv_cm": [
+        [
+          0,
+          31.0
+        ],
+        [
+          0.0,
+          34.0
+        ]
+      ],
+      "variant_bounds_uv_cm": [
+        [
+          0,
+          31.0
+        ],
+        [
+          0.0,
+          34.0
+        ]
+      ],
+      "max_vertex_displacement_cm": 0.0,
+      "source_vertex_max_displacement_cm": 0.0,
+      "vertices_preserved": true,
+      "faces_preserved": true,
+      "edges_preserved": true,
+      "grain_direction": [
+        0,
+        1
+      ],
+      "layer": "hood-upper",
+      "assembly_marks_preserved": false,
+      "assembly_mark_identifiers_preserved": true,
+      "material_notch_points_preserved": true,
+      "topology_mapping": null
+    },
+    {
+      "piece": "hood-right",
+      "component_id": "garment.hood-yoke",
+      "family": null,
+      "source_geometry_sha256": "9b10c6df952817832249814ffae08c45dca00298f7ff2cb209ad5eda73586664",
+      "variant_geometry_sha256": "9b10c6df952817832249814ffae08c45dca00298f7ff2cb209ad5eda73586664",
+      "source_bounds_uv_cm": [
+        [
+          42.0,
+          73
+        ],
+        [
+          0.0,
+          34.0
+        ]
+      ],
+      "variant_bounds_uv_cm": [
+        [
+          42.0,
+          73
+        ],
+        [
+          0.0,
+          34.0
+        ]
+      ],
+      "max_vertex_displacement_cm": 0.0,
+      "source_vertex_max_displacement_cm": 0.0,
+      "vertices_preserved": true,
+      "faces_preserved": true,
+      "edges_preserved": true,
+      "grain_direction": [
+        0,
+        1
+      ],
+      "layer": "hood-upper",
+      "assembly_marks_preserved": false,
+      "assembly_mark_identifiers_preserved": true,
+      "material_notch_points_preserved": true,
+      "topology_mapping": null
+    },
+    {
+      "piece": "inner-front",
+      "component_id": "garment.coat",
+      "family": "local-row.inner-front",
+      "source_geometry_sha256": "951d4d3dcf8b8a209cbe7924a1e0d76d83c05b1601a776414c1bc5b6a8467f90",
+      "variant_geometry_sha256": "951d4d3dcf8b8a209cbe7924a1e0d76d83c05b1601a776414c1bc5b6a8467f90",
+      "source_bounds_uv_cm": [
+        [
+          -15,
+          15.0
+        ],
+        [
+          12,
+          124
+        ]
+      ],
+      "variant_bounds_uv_cm": [
+        [
+          -15,
+          15.0
+        ],
+        [
+          12,
+          124
+        ]
+      ],
+      "max_vertex_displacement_cm": 0.0,
+      "source_vertex_max_displacement_cm": 0.0,
+      "vertices_preserved": true,
+      "faces_preserved": true,
+      "edges_preserved": true,
+      "grain_direction": [
+        0,
+        1
+      ],
+      "layer": "inner-front",
+      "assembly_marks_preserved": true,
+      "assembly_mark_identifiers_preserved": true,
+      "material_notch_points_preserved": true,
+      "topology_mapping": null
+    },
+    {
+      "piece": "sleeve-left",
+      "component_id": "garment.coat",
+      "family": null,
+      "source_geometry_sha256": "9997d6ae32172283ab39d7f441edc8d7f050df6a732ea6bda1ba7c098c898f92",
+      "variant_geometry_sha256": "9997d6ae32172283ab39d7f441edc8d7f050df6a732ea6bda1ba7c098c898f92",
+      "source_bounds_uv_cm": [
+        [
+          -4.719951170842471,
+          40.71995117084247
+        ],
+        [
+          0,
+          35.0
+        ]
+      ],
+      "variant_bounds_uv_cm": [
+        [
+          -4.719951170842471,
+          40.71995117084247
+        ],
+        [
+          0,
+          35.0
+        ]
+      ],
+      "max_vertex_displacement_cm": 0.0,
+      "source_vertex_max_displacement_cm": 0.0,
+      "vertices_preserved": true,
+      "faces_preserved": true,
+      "edges_preserved": true,
+      "grain_direction": [
+        0,
+        1
+      ],
+      "layer": "coat",
+      "assembly_marks_preserved": true,
+      "assembly_mark_identifiers_preserved": true,
+      "material_notch_points_preserved": true,
+      "topology_mapping": null
+    },
+    {
+      "piece": "sleeve-right",
+      "component_id": "garment.coat",
+      "family": null,
+      "source_geometry_sha256": "63e7196ec4c6aa4d9da44ea208749beb0b57013b4b822c2311e720380e0db7bf",
+      "variant_geometry_sha256": "63e7196ec4c6aa4d9da44ea208749beb0b57013b4b822c2311e720380e0db7bf",
+      "source_bounds_uv_cm": [
+        [
+          -40.73849442018003,
+          4.738494420180029
+        ],
+        [
+          0,
+          35.0
+        ]
+      ],
+      "variant_bounds_uv_cm": [
+        [
+          -40.73849442018003,
+          4.738494420180029
+        ],
+        [
+          0,
+          35.0
+        ]
+      ],
+      "max_vertex_displacement_cm": 0.0,
+      "source_vertex_max_displacement_cm": 0.0,
+      "vertices_preserved": true,
+      "faces_preserved": true,
+      "edges_preserved": true,
+      "grain_direction": [
+        0,
+        1
+      ],
+      "layer": "coat",
+      "assembly_marks_preserved": true,
+      "assembly_mark_identifiers_preserved": true,
+      "material_notch_points_preserved": true,
+      "topology_mapping": null
+    },
+    {
+      "piece": "yoke-lower",
+      "component_id": "garment.hood-yoke",
+      "family": null,
+      "source_geometry_sha256": "3aeef424b0c187483f9b820814a11ad9becbe0d0b492821b0df75d46ce32c009",
+      "variant_geometry_sha256": "3aeef424b0c187483f9b820814a11ad9becbe0d0b492821b0df75d46ce32c009",
+      "source_bounds_uv_cm": [
+        [
+          6.0,
+          54.0
+        ],
+        [
+          108,
+          161.0
+        ]
+      ],
+      "variant_bounds_uv_cm": [
+        [
+          6.0,
+          54.0
+        ],
+        [
+          108,
+          161.0
+        ]
+      ],
+      "max_vertex_displacement_cm": 0.0,
+      "source_vertex_max_displacement_cm": 0.0,
+      "vertices_preserved": true,
+      "faces_preserved": true,
+      "edges_preserved": true,
+      "grain_direction": [
+        0,
+        1
+      ],
+      "layer": "hood-lower",
+      "assembly_marks_preserved": false,
+      "assembly_mark_identifiers_preserved": true,
+      "material_notch_points_preserved": true,
+      "topology_mapping": null
+    },
+    {
+      "piece": "yoke-upper",
+      "component_id": "garment.hood-yoke",
+      "family": null,
+      "source_geometry_sha256": "4979ef335974b107e5435ab2d677868a0fbf9443267d2b0d853572e68a5fd0ad",
+      "variant_geometry_sha256": "4979ef335974b107e5435ab2d677868a0fbf9443267d2b0d853572e68a5fd0ad",
+      "source_bounds_uv_cm": [
+        [
+          3.0,
+          57.0
+        ],
+        [
+          50,
+          96.0
+        ]
+      ],
+      "variant_bounds_uv_cm": [
+        [
+          3.0,
+          57.0
+        ],
+        [
+          50,
+          96.0
+        ]
+      ],
+      "max_vertex_displacement_cm": 0.0,
+      "source_vertex_max_displacement_cm": 0.0,
+      "vertices_preserved": true,
+      "faces_preserved": true,
+      "edges_preserved": true,
+      "grain_direction": [
+        0,
+        1
+      ],
+      "layer": "hood-upper",
+      "assembly_marks_preserved": false,
+      "assembly_mark_identifiers_preserved": true,
+      "material_notch_points_preserved": true,
+      "topology_mapping": null
+    }
+  ],
+  "all_permanent_seams_compatible": true,
+  "body_changed": false,
+  "central_source_piece_changed": false,
+  "source_data_unchanged": true,
+  "pattern_review": "HUMAN_APPROVED",
+  "production_binding": "NOT_CHANGED",
+  "Blender": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "artistic_acceptance": "NOT_GRANTED",
+  "distribution": "BRANCH_SOURCE_ONLY_NOT_INSTALLED_IN_0701",
+  "independent_review": {
+    "confirmed_remaining_findings": [],
+    "targeted_tests_pass": 57,
+    "scope": "PORTABLE_KERNEL_POLICY_INTENT_ONLY",
+    "reviewer": "/root/implement_textile"
+  },
+  "source_probe_receipt": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-source-row-real-variant-probe-v3\\receipt.json",
+    "sha256": "daad8b1156cd0f712f92c51bb3c1ef2f654e05f4379f27bd5fd96952dbd97cbc"
+  },
+  "human_cutting_decision": {
+    "decision_id": "1d9f7648-a6cc-420b-a498-25d8f9a1ec51",
+    "source": "human",
+    "source_ref": "codex://threads/01a10118-bef1-7c71-9a8f-6ac8191361a2#user-je-valide-collar-source-row-v3-2026-10-07",
+    "statement": "Je valide",
+    "approved": true,
+    "evidence": {
+      "pattern-variant.collar-source-row-v3.proposal": {
+        "path": "variants/source-row-grading-v3/proposal.json",
+        "recorded_at": "2026-10-07T08:23:36.454186+00:00",
+        "sha256": "54537d847b8e14b4c65cd6077ac34b415ad30906995cf8550c19aea9522299a0"
+      },
+      "pattern-variant.collar-source-row-v3.review": {
+        "path": "preparation/source-row-pattern-review-v1/closeups.png",
+        "recorded_at": "2026-10-07T08:23:56.578375+00:00",
+        "sha256": "22776309d7c63d75f3b6bf79ca7f43179db2a5935621c07a2657ae35c12715d5"
+      },
+      "pattern-variant.collar-source-row-v3.package": {
+        "path": "variants/source-row-grading-v3/packages/garment.coat.garmentpkg",
+        "recorded_at": "2026-10-07T08:24:17.451831+00:00",
+        "sha256": "3ba1ffe6a5b647fb41db388476e118fdaf2f4ee57e4e3c4a8c3c624915faddf1"
+      },
+      "pattern-variant.collar-source-row-v3.dossier": {
+        "path": "variants/source-row-grading-v3/candidate-dossier.json",
+        "recorded_at": "2026-10-07T08:24:38.341859+00:00",
+        "sha256": "17a7e313542a1708e0588feec48beb91789f9fbd9fa8bf90606b2e02fdb2f493"
+      }
+    },
+    "timestamp": "2026-10-07T12:30:18.625128+00:00"
+  }
+}

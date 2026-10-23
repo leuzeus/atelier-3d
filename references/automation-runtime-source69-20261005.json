@@ -1,0 +1,47 @@
+{
+  "scope": "LOCAL_INSTALLATION_AND_CONNECTED_RUNTIME_ONLY",
+  "code_commit": "21509d9061d40ffce0f05601e0cd91c7169fad46",
+  "development_version": "0.7.0-rc.2.dev.21509",
+  "source_archive_sha256": "f0d90b30c98dfa298ad90353baab35b1e6bf6bb6921d0b8676a7100efdda4132",
+  "installation": {
+    "method": "NATIVE_CODEX_PLUGIN_ADD",
+    "plugin_id": "atelier-3d@atelier-3d-local",
+    "installed_path": "C:/Users/leuz9/.codex/plugins/cache/atelier-3d-local/atelier-3d/0.7.0-rc.2.dev.21509",
+    "exact_stage_files_verified": 584,
+    "previous_stage_on_g_preserved": true,
+    "metadata_only_version_changes": ["plugin.json", ".codex-plugin/plugin.json", "pyproject.toml"],
+    "local_adaptations": "Existing prepare_local_install.py MCP and hook runtime configuration",
+    "verification_receipt": "G:/projets/atelier-3d/work/garment-automation-v1/program-development-runtime-source69-v1/installation-verification.json"
+  },
+  "connected_runtime_after_restart": {
+    "tool": "studio_doctor",
+    "status": "PASS",
+    "version": "0.7.0-rc.2.dev.21509",
+    "source_sha256": "4a35c87c7cdf8dbad35e8f09beaa4a27c5f352a1e2c2502887551c8f17e7d61a",
+    "schema_files": 52
+  },
+  "pipeline": {
+    "tool": "studio_check_pipeline",
+    "project_id": "44f03e6c-dc68-4adb-85b9-e30f88b1aeaa",
+    "admitted": true,
+    "stage": "RECONSTRUCTING",
+    "issues": [],
+    "scope": "Current stage prerequisites only; each transition/operation performs its own additional admission."
+  },
+  "body_inputs": {
+    "exact_inputs_checked": 14,
+    "new_inputs_copied": 13,
+    "anatomy_changed": false,
+    "run_specification": "preparation/body-context-run-v1.json",
+    "run_specification_sha256": "d0a6291491b2140af185a74c9b666521ffadf5ea8ddd40e29cd81b77c7ada28f"
+  },
+  "blender_prepare": {
+    "operation": "prepare",
+    "arguments": {},
+    "prepared_code": "preparation/native-prepare-v1.py",
+    "execution": "NOT_EXECUTED_AT_THIS_OBSERVATION",
+    "permission": "USER_REPLY_PENDING"
+  },
+  "product_qualification": "NONE",
+  "final_prerelease": "NOT_PUBLISHED"
+}

@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-07",
+  "scope": "PORTABLE_LOCAL_BODY_TRIANGLE_PLANES_IN_EXISTING_METRIC_SOLVER",
+  "option": "recover_guide_metric(surface_constraints=...)",
+  "software": {
+    "status": "PASS",
+    "command": "python -B -m unittest tests.test_constrained_guide_recovery tests.test_guide_metric_solver",
+    "cwd": "G:/projets/atelier-3d/work/garment-automation-v1/source",
+    "observed_tests": 58,
+    "new_tests": 18,
+    "existing_tests": 40,
+    "test_seconds": 0.479,
+    "process_wall_seconds": 1.4764396,
+    "log_summary": "Ran 58 tests in 0.479s\nOK\n",
+    "log_origin": "SUMMARY_TRANSCRIBED_FROM_WORKER_SUCCESSFUL_TOOL_RESULT_NO_EXTRA_TEST_EXECUTION",
+    "source_code_sha256": {
+      "a3d/constrained_guide_recovery.py": "b7c16c2c3b410d862b36d6ecf0b52afde9989cdb7bff49ea1e7227434d83f374",
+      "a3d/guide_metric_solver.py": "e5fa8bff967b644d8c706a2ad7b484302918be4b06f8b19609f0677f26e3fca7",
+      "tests/test_constrained_guide_recovery.py": "22efc8d59c6965fcb1e1a3966c40247e012f1c3188cc563da4fb4349d0f6e82f"
+    }
+  },
+  "independent_review": {
+    "P1_P2": [],
+    "resolved": [
+      "PARTIAL_CANDIDATE_PRESERVED_AFTER_PCG_AND_FINAL_VALIDATION_DEADLINE",
+      "STRUCTURAL_CAPS_BEFORE_FULL_HASH_OR_METRICS",
+      "TERMINAL_IMMUTABLE_HASH_INCLUDED_IN_DEADLINE"
+    ],
+    "tests_reexecuted_by_reviewer": false
+  },
+  "contracts": {
+    "default_or_None_result_preserved": true,
+    "immutable_material_source": true,
+    "exact_permanent_seam_quotient_preserved": true,
+    "fixed_stops_pins_and_inactive_pieces_preserved": true,
+    "complete_selected_vertex_sample_coverage": true,
+    "metric_and_local_constraints_both_required": true,
+    "trust_domain": "BALL_AND_PROJECTED_ORIENTED_TRIANGLE_PATCH",
+    "native_origin": "NOT_AUTHENTICATED_BY_PORTABLE_KERNEL",
+    "continuous_body_clearance": "NOT_QUALIFIED"
+  },
+  "limits": {
+    "selected_vertices_and_rows": 4096,
+    "body_vertices": 100000,
+    "body_faces_and_triangles": 200000,
+    "total_face_edges": 600000,
+    "total_section_triangle_references": 600000
+  },
+  "production_adapter": "NOT_INTEGRATED",
+  "actual_coat_candidate": "NOT_EXECUTED_WITH_THIS_OPTION",
+  "native_Blender_execution": false,
+  "connected_runtime": "0704_UNCHANGED_NEW_KERNEL_NOT_INSTALLED",
+  "body_changed": false,
+  "patterns_changed": false,
+  "contacts": "NOT_ASSESSED",
+  "simulation": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "qualification": "NONE"
+}

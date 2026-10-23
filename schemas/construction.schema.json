@@ -480,6 +480,15 @@
                             "minimum": 0,
                             "maximum": 1
                           },
+                          "seam_side_positions": {
+                            "type": "object",
+                            "properties": {
+                              "a": {"type": "number", "minimum": 0, "maximum": 1},
+                              "b": {"type": "number", "minimum": 0, "maximum": 1}
+                            },
+                            "required": ["a", "b"],
+                            "additionalProperties": false
+                          },
                           "symbol": {
                             "enum": [
                               "notch",

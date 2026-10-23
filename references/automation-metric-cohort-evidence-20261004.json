@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "date": "2026-10-04",
+  "status": "METRIC_COHORT_DEVELOPMENT_UNIT_CHECKED",
+  "code_commit": "d024819774b749c540bd65f172fa436ad345bf71",
+  "tested_snapshot": {
+    "identity_sha256": "33b30cf1833390805430d767d4067571686a294502d3780c31f502aaf783fd2b",
+    "files": 483
+  },
+  "committed_code_files_verified": 390,
+  "committed_code_sha256": "7acb6d50479a82811eaa69b3e5d3f76bdb04bbec482f0e88caad7841b10a8ba5",
+  "portable": {
+    "status": "PASS",
+    "tests": 922,
+    "seconds": 107.48,
+    "launcher_seconds": 108.54699999996228,
+    "receipt_ref": {
+      "path": "program-portable-source47-v1/receipt.json",
+      "sha256": "a429f0967216a53e09ac133226d5d2329cfcaec612329727e1f2c33a8ed22897"
+    },
+    "log_ref": {
+      "path": "program-portable-source47-v1/tests.log",
+      "sha256": "5cf6ac598b3957d89bec070c80b52660b9a73e17ae7d4e7b4340b9ec6723bb8d"
+    }
+  },
+  "independent_review": {
+    "status": "PASS_SCOPED_REVIEW",
+    "tests": 33,
+    "impossible_stop_cases": 2,
+    "core_contract_cases": 4,
+    "external_contract_cases": 4,
+    "report_ref": {
+      "path": "program-metric-cohort-review-v1/review-final.json",
+      "sha256": "e54432330eba7003a6a9860801bd0d0eb8e98d4d97eb7865700bb6daea7d0b58"
+    }
+  },
+  "native_static_coupled_fixture": {
+    "status": "PASS",
+    "purpose": "TEST_ONLY",
+    "seconds": 4.0939999999827705,
+    "receipt_ref": {
+      "path": "program-native-placement-correction-v3/receipt.json",
+      "sha256": "cc30bbc56a25a137c032c507e3563aefc16846447f7afd198440a06f7594b964"
+    },
+    "result_ref": {
+      "path": "program-native-placement-correction-v3/result.json",
+      "sha256": "97ddaccf34bf4819a4779671e173316599429248e1c810333b98f148ad2dc73d"
+    },
+    "scene_ref": {
+      "path": "program-native-placement-correction-v3/synthetic-coupled-recovery.blend",
+      "sha256": "249c5f6209dcabea652456559860f043778d36eb221bd90d1868c8e67a6c9ebb"
+    },
+    "source_body_unchanged": true,
+    "scene_reopened": true,
+    "cloth": "NOT_EXECUTED"
+  },
+  "main_fixed_stop_diagnostic": {
+    "status": "NEEDS_GUIDE_STOP_CORRECTION",
+    "runnable": false,
+    "qualification": "NONE",
+    "fixed_stop_blockers": 8,
+    "assessment_ref": {
+      "path": "program-main-recovery-input-audit-v1/assessment.json",
+      "sha256": "eb6a3ad0640b35250a60bf3a13d5e428aaf68b166de2bb388ce499b85d339cb1"
+    },
+    "report_ref": {
+      "path": "program-main-recovery-input-audit-v1/receipt.json",
+      "sha256": "0487d163405e17b94d29aadfc63a07de7e01a8293f3934603eddc2462d4876e4"
+    },
+    "phase_prototype_ref": {
+      "path": "program-guide-stop-investigation-v1/phase-comparison.json",
+      "sha256": "3de7c261be8a606ce2f316670e17e08bba1d48b00d6cd13e42c13372ad372acb"
+    },
+    "source_and_body_changed": false,
+    "new_native_preparation": "NOT_EXECUTED"
+  },
+  "exact_seam_equality_scope": "METRIC_RECOVERY_ONLY_CONTACT_SEARCH_RETAINS_EXISTING_GAP_GATE",
+  "scope": "DEVELOPMENT_SOFTWARE_ONLY",
+  "main_cloth": "NOT_EXECUTED",
+  "main_fitting": "NOT_QUALIFIED",
+  "final_release": "NOT_PUBLISHED",
+  "installed": "NOT_EXECUTED"
+}

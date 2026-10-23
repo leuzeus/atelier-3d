@@ -1,0 +1,72 @@
+{
+  "scope": "LOCAL_BUILD_NATIVE_INSTALL_AND_CONNECTED_SERVER_OBSERVATION",
+  "source_commit": "8b4a375ca49e7e4db6330e918edbfe09515f51e3",
+  "software_code_commit": "18dbde47950ebb9ece6c2946e8971c32bbb98881",
+  "build": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-guide-portability-local-build-v1\\atelier-3d-development-guide-portability.zip",
+    "files": 601,
+    "bytes": 3247021,
+    "sha256": "46977ae12eab7d97adf4b74e965577600d16658e6a8bb9db3ca326b84eaf0edc",
+    "checksums": "PASS",
+    "git_export_sha256": "43d3aab81b84bb4d79d067970f07b0929f4e83e527e953e4e66220e6eeaa271d",
+    "comparison": "ALL_DISTRIBUTED_SOURCE_FILES_IDENTICAL_TO_EXACT_GIT_EXPORT",
+    "source_files": 601,
+    "metadata_changes": [
+      {
+        "path": "plugin.json",
+        "before_sha256": "5ac532036ca25843d970313b500847590262caa1e654fe62641b0fe76556344c",
+        "after_sha256": "96eedff9fb6bcaf6eedce698ef37e515d6d1e68d0f79ccc6f83c7a0f20bbd556"
+      },
+      {
+        "path": ".codex-plugin/plugin.json",
+        "before_sha256": "2c77ff384509766b98be453efdc53ef24821db474747a0f65e3af1d507f01b6d",
+        "after_sha256": "6e1720c897d4e376f2f2747084d10d6e91e9b63650c0c0fc266cf9d9527baa0f"
+      },
+      {
+        "path": "pyproject.toml",
+        "before_sha256": "2665b3c28e9b946c22a622efa7a3e6ec26f25131d35a929dd55435daabc55c36",
+        "after_sha256": "768c037d2aa91aaa45592979946a3af81cf919b8a69634276bcb7a429eea53e5"
+      }
+    ],
+    "generator_hashes_match_pure_comparison": true
+  },
+  "installation": {
+    "status": "PASS_EXACT_NATIVE_INSTALLED_COPY",
+    "version": "0.7.0-rc.2.dev.2026100503",
+    "code_commit": "8b4a375ca49e7e4db6330e918edbfe09515f51e3",
+    "installed_path": "C:\\Users\\leuz9\\.codex\\plugins\\cache\\atelier-3d-local\\atelier-3d\\0.7.0-rc.2.dev.2026100503",
+    "files": 602,
+    "method": "NATIVE_CODEX_PLUGIN_ADD",
+    "previous_g_stages_preserved": [
+      "0.7.0-rc.2.dev.21509",
+      "0.7.0-rc.2.dev.2026100501",
+      "0.7.0-rc.2.dev.2026100502"
+    ],
+    "connected_runtime": "RESTART_REQUIRED_NOT_VERIFIED",
+    "qualification": "NONE",
+    "native_binding": "NEW_CANDIDATE_NOT_EXECUTED",
+    "fitting": "NOT_EXECUTED",
+    "acceptance": "NOT_GRANTED"
+  },
+  "connected_runtime": {
+    "status": "RESTART_REQUIRED",
+    "tool": "studio_doctor",
+    "isError": true,
+    "actual_error": "[Errno 2] No such file or directory: 'C:\\\\Users\\\\leuz9\\\\.codex\\\\plugins\\\\cache\\\\atelier-3d-local\\\\atelier-3d\\\\0.7.0-rc.2.dev.2026100502\\\\schemas\\\\config.schema.json'",
+    "scope": "Connected server still addresses the cache replaced by the native installer; corrected runtime not verified."
+  },
+  "doctor_output": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-development-runtime-guide-portability-v1\\connected-doctor-result.json",
+    "sha256": "37799e78677a8f669a2e5c6bd6f372d2d244da95b43c9a04ed794cf264a527cb"
+  },
+  "software_evidence": "automation-guide-portability-evidence-20261005.json",
+  "previous_refusal_and_restore": "automation-native-binding-refusal-20261005.json",
+  "next_request": "preparation/public-source-preparation-request-v3.json",
+  "native_binding": "NEW_CANDIDATE_NOT_EXECUTED",
+  "placement": "NOT_EXECUTED",
+  "simulation": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "acceptance": "NOT_GRANTED",
+  "github_release": "NOT_PUBLISHED_PRODUCT_GATES_PENDING",
+  "blender_execution_permission": "REQUIRED_FOR_EACH_NEW_EXACT_OPERATION"
+}

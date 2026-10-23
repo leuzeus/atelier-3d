@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "status": "PORTABLE_HELPER_AND_MATERIAL_CONSUMER_VALIDATED",
+  "base_source_commit": "8e7a73d",
+  "code_sha256": {
+    "a3d/cage_lookup.py": "cca5f2cc483871f2a584904c1e4529b9cebf8b3318338379de4205f9b8bc23f0",
+    "a3d/garment_measurements.py": "204ddbacac932f35ef81fc68b6b873134f8690a8469d0736fe55bfd38663cbe8",
+    "tests/test_cage_lookup.py": "67b7b546bc7f6ecee8ee40c2cba9ea5a8de80b3d8807b54336477ca1bdfbc4d5",
+    "tests/test_barycentric_guide_measurements.py": "f3b07d49e588380268b1ad23c2f4f5ca9f5a6bd215489d70d7f959b6c34e8ae0"
+  },
+  "tests": {
+    "python311": {
+      "status": "PASS", "count": 59, "seconds": 2.174,
+      "log_sha256": "461739c9b985334cae79d74289976912a9ea22f1e2bbfa5fe5e6075b3250218c"
+    },
+    "python313": {
+      "status": "PASS", "count": 59, "seconds": 2.395,
+      "log_sha256": "38109f6bb4e916808f22159228e7bbf180934b97f90a4306ea5af42467505501"
+    }
+  },
+  "test_modules": [
+    "tests.test_cage_lookup", "tests.test_barycentric_guide_measurements",
+    "tests.test_garment_measurements", "tests.test_collar_measurement_guide_dispatch",
+    "tests.test_source_uv_storage", "tests.test_source_uv_witnesses"
+  ],
+  "local_logs": "G:/projets/atelier-3d/work/garment-automation-v1/program-cage-integration-v1/",
+  "initial_sandbox_test_attempt": "47 tests executed; 11 wrapper errors from Windows sandbox Path.resolve permissions; final exact tests passed outside that sandbox limitation",
+  "independent_review": "NO_P2_OR_HIGHER_CONFIRMED_HELPER_AND_LOCAL_INTEGRATION",
+  "exploratory_review": {
+    "reported_comparisons": 1152,
+    "omissions": 0,
+    "changed_outcomes": 0,
+    "scope": "Reviewer reported pure helper exploration; no separate file receipt"
+  },
+  "preserved": [
+    "Original cage compiler and barycentric narrow phase",
+    "Existing tolerance predicate and all overlap candidates in compiled order",
+    "Full scan on unproved interval exclusions",
+    "Explicit source/guide/plane hashes and all material domain checks",
+    "Unchanged face/point/time budgets and qualification",
+    "Ephemeral immutable input-bound lookup without global cache"
+  ],
+  "consumer_full_scan_comparison": "EXACT_EQUAL_COMPLETE_MATERIAL_CURVE_DICTIONARY_IN_TWO_SOURCE_FRAMES",
+  "runtime_installation": "NOT_EXECUTED_FOR_THIS_CHANGE",
+  "public_product_compilation": "NOT_EXECUTED",
+  "native_execution": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "product_qualification": "NONE"
+}

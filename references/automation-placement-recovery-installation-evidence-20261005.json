@@ -1,0 +1,89 @@
+{
+  "status": "PASS_CODE_AND_INSTALLED_COPY_RESTART_REQUIRED",
+  "date": "2026-10-05",
+  "code_commit": "b889fc6a3ece3f5c67d64775ef3c195096763f46",
+  "version": "0.7.0-rc.2.dev.2026100507",
+  "full_validation": {
+    "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-anchor-full-validation-v1/validation.json",
+    "sha256": "d908101993e5bf4d0d54db8cc51a3e6e6aebd1553be9f305ffdae1c2269a07e2",
+    "tests": 1719,
+    "skipped": 0,
+    "test_seconds": 230.947,
+    "contracts": 14,
+    "source_unchanged": true,
+    "git_archive_sha256": "25c4367d2616562d47dcd97a058e7697611de18ce0e50eb34527f07274921a1e",
+    "tests_receipt_sha256": "fdc036a3ae496a316b7ddf169621f2bd0be4e1cdacac184ea4cee20bc8d7b48a",
+    "contracts_receipt_sha256": "79442f18ea10e35d3df10c0b48de39b0b3e95f5291b75500bf9e8da6c6211511",
+    "native_execution": false
+  },
+  "preparation": {
+    "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-anchor-local-build-v1/installation-preparation.json",
+    "sha256": "990f480fd234b0c1e8206e6ccade0a1e4e9ad21d770b7e2026ed1e044a576761",
+    "exact_source_files": 644,
+    "exact_stage_files": 645,
+    "source_archive_sha256": "29d79cda47322affa265d9d3429745ddf00b7a7a7d0caf75f00c380d80e6e546",
+    "previous_stages_on_g_preserved": true
+  },
+  "native_installation": {
+    "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-anchor-local-build-v1/native-install-result.json",
+    "sha256": "7230472902971da8f8e4ae9e29d23ff52e1000f954cf083278fc4b37ef949aeb",
+    "method": "NATIVE_CODEX_PLUGIN_ADD",
+    "exit_code": 0,
+    "auth_policy": "ON_INSTALL",
+    "hook_trust_scripted": false
+  },
+  "verification": {
+    "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-anchor-installed-verification-v1/installation-verification.json",
+    "sha256": "5f31a67c391b9f967bccf3052ccea1f1fd50d73fb5b194f44647115fc552204c",
+    "status": "PASS_EXACT_NATIVE_INSTALLED_COPY",
+    "files": 645
+  },
+  "connected_runtime": {
+    "status": "RESTART_REQUIRED",
+    "observation": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-anchor-installed-verification-v1/doctor-after-install.json",
+      "sha256": "830800d50e2cc519e39adc2240c0bf4ad8aaa9df7331f655a362c61547f9edbe"
+    },
+    "old_version": "0.7.0-rc.2.dev.2026100506",
+    "reason": "MISSING_CONFIG_SCHEMA_IN_REPLACED_OLD_CACHE",
+    "new_version_loaded": "NOT_VERIFIED"
+  },
+  "run_proposal": {
+    "status": "RUN_PROPOSAL_NOT_REGISTERED",
+    "id": "placement-recovery-be3cc84dc0388d0e02f9faf7",
+    "path": "preparation/coat-recovery-v3/run.json",
+    "sha256": "449393a682c1e143aa202a4814ede483b53759aa17f45e45f3bb30271b86f0a8",
+    "recipe": {
+      "path": "preparation/coat-recovery-v3/recipe.json",
+      "sha256": "681a905166ae4883cfa91e5ec948a1522dd41260c58e37c397b83cda2d81de52"
+    },
+    "preparation": {
+      "path": "preparation/coat-recovery-v3/preparation.json",
+      "sha256": "85fe44bbb06ddd72885d2a91a4d4b1cabf458db7911d9b85b113364d76c1222d"
+    },
+    "generic_builder": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/development-tools-v1/prepare_recovery_run_proposal.py",
+      "sha256": "4c421bbbaf631bbe6dc351a3d3af316420e22dc10a0e1efab089ec66fae8cc5c"
+    },
+    "canonical_database_changed": false,
+    "native_execution": false
+  },
+  "live_scene": {
+    "last_native_inspection_version": "0.7.0-rc.2.dev.2026100506",
+    "textile_pieces": 0,
+    "expected_textile_pieces": 15,
+    "buckle": "ABSENT",
+    "body": "ACCEPTED_MALE_180_UNCHANGED",
+    "refused_candidate": "PRESERVED_SEPARATELY"
+  },
+  "new_native_permission": "NOT_REQUESTED_UNTIL_CURRENT_RUNTIME_LOADED",
+  "cutting_review": "NO_NEW_CUT_VARIANT_PROPOSED",
+  "measurement_review": "TORSO_AND_SOURCE_HOMOLOGY_OPEN",
+  "visual_review": "NEW_EXACT_PLACEMENT_CANDIDATE_STILL_REQUIRED",
+  "cloth": "NOT_EXECUTED",
+  "drape": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "motion": "NOT_EXECUTED",
+  "final_prerelease": "NOT_PUBLISHED",
+  "qualification": "NONE"
+}

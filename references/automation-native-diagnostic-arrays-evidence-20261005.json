@@ -1,0 +1,155 @@
+{
+  "version": 1,
+  "date": "2026-10-05",
+  "status": "PORTABLE_CODEC_V2_REVIEWED_REAL_PAYLOAD_NOT_EXECUTED",
+  "purpose": "TEST_ONLY",
+  "qualification": "NONE",
+  "product_admission": "NONE",
+  "source_files": {
+    "a3d/native_diagnostic_arrays.py": {
+      "path": "source/a3d/native_diagnostic_arrays.py",
+      "bytes": 29026,
+      "sha256": "7c60b3d53e9f6439fa0a1bfba32850935e8e2044ed879e8bedcb652f150e2837"
+    },
+    "references/native-diagnostic-arrays.md": {
+      "path": "source/references/native-diagnostic-arrays.md",
+      "bytes": 10403,
+      "sha256": "249e515b75ea34e50aa134a13c2d5708db95012303d1b9eee9b2c0aa5de12f2d"
+    },
+    "tests/test_native_diagnostic_arrays.py": {
+      "path": "source/tests/test_native_diagnostic_arrays.py",
+      "bytes": 23943,
+      "sha256": "c9de07f1e2adfdb5e8ebd81feb9660c216502e678ff1d95f56c88c282de0d230"
+    }
+  },
+  "author_receipt": {
+    "existing_callers_changed": false,
+    "historical_native_transport_tests": 4,
+    "historical_private_metrics_tests": 18,
+    "historical_transport_scope": "existing fake stdio Python fixture only; no real provider or native tool",
+    "initial_failures": "Historical V1 harness/test failures remain in the immutable V1 proof; V2 fixes the independently measured Unicode allocation finding.",
+    "native": "NOT_EXECUTED",
+    "new_codec_tests": 44,
+    "output_caps": {
+      "max_bytes": 8388608,
+      "max_depth": 128,
+      "max_nodes": 500000
+    },
+    "owned_files": {
+      "a3d/native_diagnostic_arrays.py": {
+        "bytes": 29026,
+        "sha256": "7c60b3d53e9f6439fa0a1bfba32850935e8e2044ed879e8bedcb652f150e2837"
+      },
+      "references/native-diagnostic-arrays.md": {
+        "bytes": 10403,
+        "sha256": "249e515b75ea34e50aa134a13c2d5708db95012303d1b9eee9b2c0aa5de12f2d"
+      },
+      "tests/test_native_diagnostic_arrays.py": {
+        "bytes": 23943,
+        "sha256": "c9de07f1e2adfdb5e8ebd81feb9660c216502e678ff1d95f56c88c282de0d230"
+      }
+    },
+    "preliminary_review": "Three hazards repaired before freeze: big-int diagnostic rendering, prefix buffer copy, Vector iterator.",
+    "private_conservative_caps": {
+      "max_allocation_bytes": 268435456,
+      "max_work": 100000000
+    },
+    "production_integration": "NOT_IMPLEMENTED",
+    "protected_consumed_files": 21,
+    "protected_equal": true,
+    "qualification": "NONE",
+    "real_collar": "NOT_EXECUTED",
+    "status": "CANDIDATE_PORTABLE_TESTED_PENDING_INDEPENDENT_REVIEW",
+    "syntax": "PASS",
+    "tests_pass": 66,
+    "whitespace": "PASS"
+  },
+  "review_receipt": {
+    "author_frozen_sha256": "8bf7e8fdf2098a3a094f083cea50a9b18fe9c6600647c431bd9252858411a765",
+    "author_receipt_sha256": "6394c1c8d1b4ed2281d81eac51d3631a4c17713e2878213f45e5eb8692c77bd3",
+    "author_test_count": 66,
+    "closed_findings": [
+      "F1"
+    ],
+    "doc_sha256": "249e515b75ea34e50aa134a13c2d5708db95012303d1b9eee9b2c0aa5de12f2d",
+    "independent_probe_count": 18,
+    "independent_probes_sha256": "0da3018749537ae311d0eb9275c70dd44a248eafe7bdaabe8962fc957522307d",
+    "module_sha256": "7c60b3d53e9f6439fa0a1bfba32850935e8e2044ed879e8bedcb652f150e2837",
+    "no_native_execution": true,
+    "no_source_edits": true,
+    "old_fail_frozen_sha256": "b455ebd5e062933b89068c6abed9bfe304a4eb99c35134d4b9895a8059b02f47",
+    "protected_entries_preserved": 114,
+    "qualification": "NONE",
+    "report_sha256": "c05a77d25672bf7cdedc06b2d3257b395e0662fe5b2fa9b9c42333a30c0ee127",
+    "status": "PASS_NATIVE_DIAGNOSTIC_ARRAYS_PORTABLE_REVIEW_ONLY",
+    "tests_sha256": "c9de07f1e2adfdb5e8ebd81feb9660c216502e678ff1d95f56c88c282de0d230"
+  },
+  "proofs": [
+    {
+      "path": "program-native-diagnostic-arrays-v1/FROZEN.json",
+      "bytes": 5559,
+      "sha256": "0b346b8e18ff7a9d4fc6a75c26c8168207b00a394a1e495cd1df725639eb73e3"
+    },
+    {
+      "path": "program-native-diagnostic-arrays-review-v1/FROZEN.json",
+      "bytes": 5467,
+      "sha256": "b455ebd5e062933b89068c6abed9bfe304a4eb99c35134d4b9895a8059b02f47"
+    },
+    {
+      "path": "program-native-diagnostic-arrays-review-v1/receipt.json",
+      "bytes": 906,
+      "sha256": "e38ba7df09ae923a771142b625aa27e8e21c7c2cf905e888fdb111b3594394d5"
+    },
+    {
+      "path": "program-native-diagnostic-arrays-v2/FROZEN.json",
+      "bytes": 5516,
+      "sha256": "8bf7e8fdf2098a3a094f083cea50a9b18fe9c6600647c431bd9252858411a765"
+    },
+    {
+      "path": "program-native-diagnostic-arrays-v2/receipt.json",
+      "bytes": 1571,
+      "sha256": "6394c1c8d1b4ed2281d81eac51d3631a4c17713e2878213f45e5eb8692c77bd3"
+    },
+    {
+      "path": "program-native-diagnostic-arrays-review-v2/FROZEN.json",
+      "bytes": 5743,
+      "sha256": "69486a5e5929340f1b4642532b816bbd7c14a83237739e231059617f1d143aa6"
+    },
+    {
+      "path": "program-native-diagnostic-arrays-review-v2/receipt.json",
+      "bytes": 1017,
+      "sha256": "621db34c9ecea8ba4119bb31ba3b7d208bfeeef6c26c7350c80452477bf36abc"
+    },
+    {
+      "path": "program-native-synchronized-profile-result-v2/FROZEN.json",
+      "bytes": 1079,
+      "sha256": "ac53dffa25beaa3e77b25992c502a639c286ef11c274e0710e8e58b1f553eb49"
+    },
+    {
+      "path": "program-native-synchronized-profile-result-v3/FROZEN.json",
+      "bytes": 1079,
+      "sha256": "43b152f3f813caf00884efa53db0479c8c338db6d80860bfb441446a0bc2a5f2"
+    }
+  ],
+  "output_caps": {
+    "max_nodes": 500000,
+    "max_bytes": 8388608,
+    "max_depth": 128
+  },
+  "allocation_scope": "CONSERVATIVE_CUMULATIVE_RESERVATIONS_NOT_MEASURED_PROCESS_RSS",
+  "old_failure_preserved": "V1_UNICODE_SERIALIZATION_ALLOCATION_RESERVATION_UNDERESTIMATE",
+  "code_change_v2": "Reserve 9 * exact_UTF8_size + 256 before dumps; original caps retained.",
+  "native_caller_integration": "NOT_IMPLEMENTED",
+  "real_payload_fit": "NOT_VERIFIED",
+  "expansion": "Separately bounded; oversized expansion refuses before numeric materialization.",
+  "next_action": "Prepare and independently review an isolated V4 native storage adapter before one real run.",
+  "NOT_QUALIFIED": [
+    "NATIVE_MESH_QUALITY",
+    "PLACEMENT",
+    "CONTACTS",
+    "CLOTH",
+    "FITTING",
+    "GARMENT_ACCEPTANCE"
+  ],
+  "automatic_retry": false
+}

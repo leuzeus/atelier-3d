@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-07",
+  "scope": "GUIDE_GENERATOR_TRANSITIVE_DEPENDENCY_IDENTITY",
+  "historical_full_validation": {
+    "candidate": "ad21369d28d5c4d7db6efc75e9d223e42046c6a5",
+    "status": "FAIL",
+    "observed_tests": 1996,
+    "failures": 1,
+    "seconds": 410.371,
+    "failed_test": "test_generator_identity_covers_imported_coordinate_dependencies_including_upper_shoulders",
+    "reason": "guide_stage_metrics imported by source_seam_coupling missing from generator CODE_SOURCES",
+    "log_ref": {
+      "path": "G:/projets/atelier-3d/work/garment-automation-v1/program-body-path-constrained-full-validation-v1/unittest.log",
+      "sha256": "2e0d5fc2dfe0dca636a086c05cd0d3c7a77e8b51878f390504bb44a5ef8de12a"
+    },
+    "contracts_passed": 14,
+    "source_unchanged": true,
+    "qualification": "NONE"
+  },
+  "correction": {
+    "dependencies_added": [
+      "guide_stage_metrics",
+      "cloth_metrics"
+    ],
+    "relative_alias_imports_checked": true,
+    "mutated_dependency_hashes_refuse_stale_policy": [
+      "shoulder_guides",
+      "guide_stage_metrics",
+      "cloth_metrics"
+    ],
+    "source_code_sha256": {
+      "a3d/garment_guide_policy.py": "523641bb21382ee262bc67c422f8bf7bc0724be63f722fd5ea91596de7fd1077",
+      "tests/test_garment_guide_policy.py": "7984c3bc75ada0500a4e625acfad7cddf67efed3dd04f288d09636d5270981f5"
+    },
+    "targeted": {
+      "status": "PASS",
+      "observed_tests": 36,
+      "seconds": 0.636,
+      "command": "python -B -m unittest tests.test_garment_guide_policy tests.test_guide_stage_metrics tests.test_source_seam_coupling -v"
+    },
+    "strengthened_mutation_regression": {
+      "status": "PASS",
+      "observed_tests": 1,
+      "seconds": 0.118
+    },
+    "independent_review": {
+      "P1_P2": [],
+      "tests_reexecuted_by_reviewer": false
+    },
+    "coordinates_changed": false,
+    "gates_changed": false
+  },
+  "existing_guide_policy": "STALE_REGENERATE_WITH_EXACT_CURRENT_CODE_AND_SAME_APPROVED_SOURCES",
+  "body_or_patterns_changed": false,
+  "native_execution": false,
+  "fitting": "NOT_EXECUTED",
+  "qualification": "NONE",
+  "new_full_qualification": "REQUIRED_ON_NEW_EXACT_COMMIT"
+}

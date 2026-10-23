@@ -1,0 +1,100 @@
+{
+  "scope": "SOFTWARE_AND_NATIVE_LOCAL_INSTALL_ONLY",
+  "code_commit": "06173c2301e83901d6ac468dc8e4e1981b6fa9b0",
+  "project_id": "44f03e6c-dc68-4adb-85b9-e30f88b1aeaa",
+  "software": {
+    "status": "PASS",
+    "full_suite": {
+      "tests": 1551,
+      "seconds": 201.091,
+      "log_path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-public-binding-tests-v1.log",
+      "log_sha256": "b2d20fed9d84bd5d37530dfd7afeab541d214f844044f9cef8f4e81ab76b723b"
+    },
+    "contracts": {
+      "passed": 14,
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-public-binding-contracts-v1.json",
+      "sha256": "c103412537739b27ec7ed6d2d97f551aac61fe267a0028ea686761e37916e8d6"
+    },
+    "new_tests": {
+      "guide_completeness": 8,
+      "binding_guard": 15,
+      "files": {
+        "tests/test_template_guide_readiness.py": "8ee70ee526ca3b34bf950304476abbb31b1398c38410c3204c1773d4b8280965",
+        "tests/test_preparation_binding_guard.py": "dd2aee15331dd45dd0944e07ea1dd562fabd7e4e6b60373b62c2c6a62ec8ae30"
+      }
+    },
+    "initial_fixture_failures": "Test stubs adapted to canonical package return; no product proof from fixtures."
+  },
+  "independent_review": {
+    "status": "CLOSED",
+    "closed_findings": [
+      "Completed binding replay was incorrectly refused by the guard.",
+      "Canonical packages were verified only after native output creation."
+    ],
+    "final_test_review": "READ_ONLY_NO_ADDITIONAL_CONFIRMED_FINDING",
+    "native_execution": "NOT_EXECUTED"
+  },
+  "build": {
+    "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-public-binding-local-build-v1\\atelier-3d-development-public-binding.zip",
+    "files": 595,
+    "bytes": 3228181,
+    "sha256": "ec7f7b362887c3a3dd03d296aa3b8207d2131f270a17cb3e88d4f251d0268292",
+    "checksums": "PASS",
+    "comparison": "ALL_595_DISTRIBUTED_SOURCE_FILES_IDENTICAL_TO_GIT_EXPORT",
+    "git_export_sha256": "17be6ce6eccdfc3c085ad6ddacb426942d5f1e1f12e485bfad4dd108afbd75ce",
+    "metadata_changes": [
+      {
+        "path": "plugin.json",
+        "before_sha256": "5ac532036ca25843d970313b500847590262caa1e654fe62641b0fe76556344c",
+        "after_sha256": "a74aa28ec454433737db7b4c43c331de4c089ef90f994128d5d910ceba333247"
+      },
+      {
+        "path": ".codex-plugin/plugin.json",
+        "before_sha256": "2c77ff384509766b98be453efdc53ef24821db474747a0f65e3af1d507f01b6d",
+        "after_sha256": "e0b8084491f7a823a737c3637bed2c58ae8d001e139a11a12a951e16b860ef22"
+      },
+      {
+        "path": "pyproject.toml",
+        "before_sha256": "2665b3c28e9b946c22a622efa7a3e6ec26f25131d35a929dd55435daabc55c36",
+        "after_sha256": "69d0575c43ec67fd25ac0fdf8a767f91e7b8f8035446304e463977e2063fe435"
+      }
+    ]
+  },
+  "installation": {
+    "status": "PASS_EXACT_NATIVE_INSTALLED_COPY",
+    "version": "0.7.0-rc.2.dev.2026100502",
+    "code_commit": "06173c2301e83901d6ac468dc8e4e1981b6fa9b0",
+    "installed_path": "C:\\Users\\leuz9\\.codex\\plugins\\cache\\atelier-3d-local\\atelier-3d\\0.7.0-rc.2.dev.2026100502",
+    "files": 596,
+    "method": "NATIVE_CODEX_PLUGIN_ADD",
+    "old_stage_on_g_present": true,
+    "connected_runtime": {
+      "status": "RESTART_REQUIRED",
+      "tool": "studio_doctor",
+      "isError": true,
+      "error": "[Errno 2] No such file or directory: 'C:\\\\Users\\\\leuz9\\\\.codex\\\\plugins\\\\cache\\\\atelier-3d-local\\\\atelier-3d\\\\0.7.0-rc.2.dev.2026100501\\\\schemas\\\\config.schema.json'",
+      "scope": "Stale connected server still addresses the replaced cache; new runtime not verified."
+    },
+    "qualified_product": false
+  },
+  "connected_runtime": {
+    "status": "RESTART_REQUIRED",
+    "tool": "studio_doctor",
+    "isError": true,
+    "error": "[Errno 2] No such file or directory: 'C:\\\\Users\\\\leuz9\\\\.codex\\\\plugins\\\\cache\\\\atelier-3d-local\\\\atelier-3d\\\\0.7.0-rc.2.dev.2026100501\\\\schemas\\\\config.schema.json'",
+    "scope": "Stale connected server still addresses the replaced cache; new runtime not verified.",
+    "actual_tool_result_path": "program-development-runtime-public-binding-v1\\connected-doctor-result.json"
+  },
+  "previous_g_stages_preserved": [
+    "0.7.0-rc.2.dev.21509",
+    "0.7.0-rc.2.dev.2026100501"
+  ],
+  "next_request": "preparation/public-source-preparation-request-v2.json",
+  "native_binding": "NOT_EXECUTED",
+  "placement": "NOT_EXECUTED",
+  "simulation": "NOT_EXECUTED",
+  "fitting": "NOT_EXECUTED",
+  "acceptance": "NOT_GRANTED",
+  "github_release": "NOT_PUBLISHED_PRODUCT_GATES_PENDING",
+  "blender_execution_permission": "REQUIRED_FOR_EACH_EXACT_OPERATION"
+}

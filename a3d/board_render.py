@@ -5,7 +5,7 @@ import math
 import textwrap
 from .core import inside
 from .packages import png_dimensions
-from .board_contract import at_edge, inside_polygon, pieces, project_segment, distance
+from .board_contract import at_edge, inside_polygon, pieces, project_segment, distance, assembly_mark_position
 
 
 def render(project, dossier, garments, source_refs):
@@ -129,7 +129,7 @@ def render(project, dossier, garments, source_refs):
                 parts.append(f'<polyline class="seam-edge" points="{points([g["vertices"][i] for i in indexes])}" fill="none" stroke="#815329" stroke-width="2" stroke-dasharray="5 4"/>')
                 for mark in p['pattern']['assembly_marks']:
                     if mark['seam_id']!=seam['id']: continue
-                    mark_point=at_edge(g['vertices'],indexes,mark['position'])
+                    mark_point=at_edge(g['vertices'],indexes,assembly_mark_position(mark,seam,side))
                     cut_point=min((project_segment(mark_point,a,b) for a,b in zip(outline,outline[1:]+outline[:1])),key=lambda p:distance(mark_point,p))
                     ax,ay=coords(cut_point)
                     for offset in ((0,7) if mark['symbol']=='double-notch' else (0,)):

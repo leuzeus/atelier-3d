@@ -2,7 +2,7 @@
 
 Ces notes proviennent du README avant sa réorganisation du 3 octobre 2026. Elles décrivent les essais et limites aux versions citées, pas une nouvelle qualification du candidat actuel. Les paragraphes initiaux sur le fitting et la reprise interactive précèdent les notes datées de versions.
 
-Consulter [l’historique](../CHANGELOG.md) pour les changements et [la validation](../VALIDATION.md) pour les preuves et leurs limites. Les mentions historiques « non publié » de ces documents restent liées à leurs essais ; les manifestes du checkout indiquent 0.6.9.
+Consulter [l’historique](../CHANGELOG.md) pour les changements et [la validation](../VALIDATION.md) pour les preuves et leurs limites. Les mentions historiques « non publié » de ces documents restent liées à leurs essais ; les manifestes du checkout indiquent 0.7.0-rc.2.
 
 La [préparation native du fitting](fitting-preparation.md) peut produire
 une enveloppe auxiliaire depuis la référence évaluée du corps et un champ de

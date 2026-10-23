@@ -195,7 +195,11 @@
       }
     },
     "trial_mode": {
-      "enum": ["sewn", "single_panel"],
+      "enum": [
+        "sewn",
+        "single_panel",
+        "seam_free"
+      ],
       "description": "Single-panel mode is explicit and applies only to a complete one-panel source with no permanent seams."
     },
     "trial_pieces": {
@@ -535,6 +539,37 @@
                 "ceilings"
               ],
               "additionalProperties": false
+            },
+            "execution_control": {
+              "type": "object",
+              "properties": {
+                "max_seconds": {
+                  "type": "number",
+                  "minimum": 0.001,
+                  "maximum": 3600
+                },
+                "min_frames": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 10000
+                },
+                "window_frames": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 10000
+                },
+                "velocity_tolerance_cm_s": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "max_seconds",
+                "min_frames",
+                "window_frames",
+                "velocity_tolerance_cm_s"
+              ],
+              "additionalProperties": false
             }
           },
           "required": [
@@ -789,6 +824,37 @@
                 "assignments",
                 "reinforcements",
                 "ceilings"
+              ],
+              "additionalProperties": false
+            },
+            "execution_control": {
+              "type": "object",
+              "properties": {
+                "max_seconds": {
+                  "type": "number",
+                  "minimum": 0.001,
+                  "maximum": 3600
+                },
+                "min_frames": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 10000
+                },
+                "window_frames": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 10000
+                },
+                "velocity_tolerance_cm_s": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "max_seconds",
+                "min_frames",
+                "window_frames",
+                "velocity_tolerance_cm_s"
               ],
               "additionalProperties": false
             }
@@ -1288,6 +1354,58 @@
         "sha256"
       ],
       "additionalProperties": false
+    },
+    "physics_purpose": {
+      "enum": [
+        "TEST_ONLY",
+        "GARMENT_CANDIDATE"
+      ]
+    },
+    "fit_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "compiled_dossier_ref",
+        "fit_profile_ref"
+      ],
+      "properties": {
+        "compiled_dossier_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        },
+        "fit_profile_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        }
+      }
     }
   },
   "required": [
@@ -1307,7 +1425,42 @@
   ],
   "additionalProperties": false,
   "anyOf": [
-    {"required": ["trial_mode"], "properties": {"trial_mode": {"const": "single_panel"}, "trial_pieces": {"maxItems": 1}}},
-    {"properties": {"trial_mode": {"const": "sewn"}, "trial_pieces": {"minItems": 2}}}
+    {
+      "required": [
+        "trial_mode"
+      ],
+      "properties": {
+        "trial_mode": {
+          "const": "single_panel"
+        },
+        "trial_pieces": {
+          "maxItems": 1
+        }
+      }
+    },
+    {
+      "properties": {
+        "trial_mode": {
+          "const": "sewn"
+        },
+        "trial_pieces": {
+          "minItems": 2
+        }
+      }
+    },
+    {
+      "required": [
+        "trial_mode"
+      ],
+      "properties": {
+        "trial_mode": {
+          "const": "seam_free"
+        },
+        "trial_pieces": {
+          "minItems": 2,
+          "uniqueItems": true
+        }
+      }
+    }
   ]
 }

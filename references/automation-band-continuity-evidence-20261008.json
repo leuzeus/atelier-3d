@@ -1,0 +1,129 @@
+{
+  "version": 1,
+  "source_commit": "376a39e477aeadbb9abb48deb67b1122a378e3c5",
+  "status": "SOFTWARE_VALIDATED_REAL_GUIDES_PARTIAL",
+  "qualification": "NONE",
+  "validation": {
+    "tests": 2137,
+    "skipped": 0,
+    "contracts": 14,
+    "test_seconds": 438.861
+  },
+  "canonical_revision": 99,
+  "source_patterns_changed": false,
+  "body_changed": false,
+  "human_decisions_changed": false,
+  "collar_final_metrics": {
+    "controls": 723,
+    "triangles": 1055,
+    "unmeasurable": 0,
+    "principal_min": 0.5360888197057938,
+    "principal_max": 1.3086667938734897
+  },
+  "attachments": {
+    "status": "ANATOMICAL_ATTACHMENTS_PRESERVED",
+    "violations": 0,
+    "max_residual_cm": 0.0
+  },
+  "coupling": {
+    "status": "PROPOSAL_INCOMPLETE",
+    "termination": "ITERATION_BUDGET_EXHAUSTED",
+    "iterations": 8,
+    "best_phase": "WHOLE_PIECE_RIGID_TRANSLATION",
+    "initial": {
+      "material_energy": 2769241908.592311,
+      "max_edge_strain": 9001.274950134175,
+      "max_seam_gap_cm": 20.165041046983447,
+      "objective": 2769241908.601699,
+      "position_energy": 0.0,
+      "seam_energy": 0.009387984937771788
+    },
+    "best": {
+      "material_energy": 2769241908.59231,
+      "max_edge_strain": 9001.274950134175,
+      "max_seam_gap_cm": 16.956943279232,
+      "objective": 2769241908.597424,
+      "position_energy": 2.6005283600477946e-06,
+      "seam_energy": 0.0051115185586225005
+    }
+  },
+  "captures": {
+    "isolated_before_after": 27,
+    "whole_candidate": 16,
+    "candidate_scope": "TEN_COAT_PIECES",
+    "missing_from_views": [
+      "hood-left",
+      "hood-right",
+      "yoke-lower",
+      "yoke-upper",
+      "belt",
+      "buckle"
+    ]
+  },
+  "native_execution": false,
+  "connected_runtime": "0.7.0-rc.2.dev.2026100801",
+  "new_installation": false,
+  "artistic_review": "NOT_GRANTED",
+  "files": [
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-band-continuity-validation-v1\\validation.json",
+      "sha256": "56967fa5eb0742323b1d5d6cb03f57b8adf0d9ea9c4dcdd49e19e1f7b027d445"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-band-continuity-validation-v1\\tests-receipt.json",
+      "sha256": "12bed3e8018bb30ba993aa9878be3c8754bf34278e7840c2d6633440db29502e"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-band-continuity-validation-v1\\contracts-receipt.json",
+      "sha256": "cb135ff4e156eb8fd310602dc5d9eada97956b8ee3e90312c5229e150098171b"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-band-continuity-v1\\revalidation\\result.json",
+      "sha256": "63f0383f0993e466911febe1a2fe175e7fef37daae8d6cf3ae3094bb2cfcff79"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-band-continuity-v1\\compilation\\result.json",
+      "sha256": "45f09d8619add0afc9baf927b97930719996072ae3f629365677229de5e002a4"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-band-continuity-v1\\assembly-metrics.json",
+      "sha256": "7bd2c49c4db3201e9a802c1197c0efac8f17bed836b3ddf07c02cb6d9561cdaf"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-band-continuity-v1\\preview\\requests.json",
+      "sha256": "047a0a82e8c30add56b6460d4fd2b400b0191e0a3d3e4e35cced4a820c02983c"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-band-continuity-v1\\preview\\initial\\manifest.json",
+      "sha256": "8a46055d1a33a7f900399fb383dcc9a9674d46d11043e0570c30d5f7d5628929"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-band-continuity-v1\\preview\\constant-existing-cage\\manifest.json",
+      "sha256": "b440649474961e9beb151b463e4260f53031d4966c3cd38737ce242df2f974bf"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-band-continuity-v1\\preview\\constant-path-knot-partition\\manifest.json",
+      "sha256": "e5d0828cc7b9d3d4be417e135796bcc0e70bb5aa5066443a4401cc53f3e1bb4f"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-band-continuity-v1\\preview\\assembly\\manifest.json",
+      "sha256": "17567f8936971e09a4e35738ff5b438fc1d69d8e4a2fe8c187d4fc27f15420af"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-band-continuity-v1\\preview\\initial\\board-isolated.png",
+      "sha256": "f32cde245d56285133d062afcb4977dcbff5889fbcb56ae4aa7c8bcc070b411e"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-band-continuity-v1\\preview\\constant-path-knot-partition\\board-isolated.png",
+      "sha256": "112a5e50b93e33f22d190635c8b37a44236305d0c8f6a9217e93173225a2d19d"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-band-continuity-v1\\preview\\assembly\\board-overview.png",
+      "sha256": "c9ecd77d06a90040d5d1ef4931c4769c5e28ddb66c2040ba39b52b0c59379c1b"
+    },
+    {
+      "path": "G:\\projets\\atelier-3d\\work\\garment-automation-v1\\program-band-continuity-v1\\preview\\assembly\\board-details.png",
+      "sha256": "1d73f695c60bf8a3f365110f460cca629331274c35ffa9886602c745afeb491a"
+    }
+  ]
+}
