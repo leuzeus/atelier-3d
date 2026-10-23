@@ -1,0 +1,938 @@
+{
+  "type": "object",
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "component_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "mapping_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "preform": {
+      "type": "object",
+      "properties": {
+        "panels": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "source_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "origin_cm": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "u_axis": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "v_axis": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "offset_uv_cm": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 2,
+                    "maxItems": 2
+                  },
+                  "native_bend": {
+                    "type": "object",
+                    "properties": {
+                      "angle_degrees": {
+                        "type": "number"
+                      },
+                      "deform_axis": {
+                        "enum": [
+                          "X",
+                          "Y",
+                          "Z"
+                        ]
+                      },
+                      "origin_cm": {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        },
+                        "minItems": 3,
+                        "maxItems": 3
+                      },
+                      "rotation_degrees": {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        },
+                        "minItems": 3,
+                        "maxItems": 3
+                      }
+                    },
+                    "required": [
+                      "angle_degrees",
+                      "deform_axis",
+                      "origin_cm"
+                    ],
+                    "additionalProperties": false,
+                    "description": "Actual Blender Simple Deform BEND on the derived local XY source mesh. Origin and optional XYZ Euler rotation are in that local frame; no axis inference or Python curvature fallback."
+                  }
+                },
+                "required": [
+                  "source_ref",
+                  "origin_cm",
+                  "u_axis",
+                  "v_axis"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "source_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "uv_cm": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "minItems": 3
+                  },
+                  "target_cm": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 3,
+                      "maxItems": 3
+                    },
+                    "minItems": 3
+                  },
+                  "triangles": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "minItems": 3,
+                      "maxItems": 3
+                    },
+                    "minItems": 1
+                  }
+                },
+                "required": [
+                  "source_ref",
+                  "uv_cm",
+                  "target_cm",
+                  "triangles"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "source_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "arc_sections": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "v_cm": {
+                          "type": "number"
+                        },
+                        "arc_offset_cm": {
+                          "type": "number"
+                        },
+                        "curve_cm": {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            },
+                            "minItems": 3,
+                            "maxItems": 3
+                          },
+                          "minItems": 2
+                        }
+                      },
+                      "required": [
+                        "v_cm",
+                        "arc_offset_cm",
+                        "curve_cm"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "minItems": 2
+                  },
+                  "u_direction": {
+                    "enum": [
+                      -1,
+                      1
+                    ],
+                    "default": 1
+                  }
+                },
+                "required": [
+                  "source_ref",
+                  "arc_sections"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "panels"
+      ],
+      "additionalProperties": false
+    },
+    "assembly": {
+      "type": "object",
+      "properties": {
+        "max_initial_gap_cm": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 100
+        },
+        "max_displacement_cm": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 100
+        },
+        "max_step_cm": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 1
+        },
+        "iterations": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "neighborhood_rings": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "closure_support_release": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "max_initial_gap_cm",
+        "max_displacement_cm",
+        "max_step_cm",
+        "iterations",
+        "neighborhood_rings",
+        "closure_support_release"
+      ],
+      "additionalProperties": false
+    },
+    "consolidation": {
+      "type": "object",
+      "properties": {
+        "weld_gap_cm": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "weld_gap_cm"
+      ],
+      "additionalProperties": false
+    },
+    "quality": {
+      "type": "object",
+      "properties": {
+        "min_angle_degrees": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 60
+        },
+        "min_edge_cm": {
+          "type": "number",
+          "minimum": 1e-06,
+          "maximum": 10
+        },
+        "min_stretch": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 1
+        },
+        "max_stretch": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5
+        }
+      },
+      "required": [
+        "min_angle_degrees",
+        "min_edge_cm",
+        "min_stretch",
+        "max_stretch"
+      ],
+      "additionalProperties": false
+    },
+    "supports": {
+      "type": "object",
+      "properties": {
+        "temporary": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "piece": {
+                "type": "string",
+                "minLength": 1
+              },
+              "edge": {
+                "type": "string",
+                "minLength": 1
+              },
+              "weight": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "required": [
+              "id",
+              "source_ref",
+              "piece",
+              "weight"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0
+        },
+        "drape": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "piece": {
+                "type": "string",
+                "minLength": 1
+              },
+              "edge": {
+                "type": "string",
+                "minLength": 1
+              },
+              "weight": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "required": [
+              "id",
+              "source_ref",
+              "piece",
+              "weight"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0
+        },
+        "functional": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "piece": {
+                "type": "string",
+                "minLength": 1
+              },
+              "edge": {
+                "type": "string",
+                "minLength": 1
+              },
+              "weight": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "required": [
+              "id",
+              "source_ref",
+              "piece",
+              "weight"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0
+        }
+      },
+      "required": [
+        "temporary",
+        "drape",
+        "functional"
+      ],
+      "additionalProperties": false
+    },
+    "collision": {
+      "type": "object",
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+        "clearance_cm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "source_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "envelope_review": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "additionalProperties": false
+        },
+        "mode": {
+          "enum": [
+            "all_stages",
+            "drape_only"
+          ],
+          "default": "all_stages"
+        }
+      },
+      "required": [
+        "required",
+        "clearance_cm",
+        "source_ref"
+      ],
+      "additionalProperties": false
+    },
+    "cloth": {
+      "type": "object",
+      "properties": {
+        "mount_phase": {
+          "type": "string",
+          "minLength": 1
+        },
+        "relax_phase": {
+          "type": "string",
+          "minLength": 1
+        },
+        "drape_phase": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mount_release_steps": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "minItems": 2,
+          "maxItems": 20
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "dressing": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "source_ref": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "additionalProperties": false
+        },
+        "regions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_ref": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                },
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "additionalProperties": false
+              },
+              "collider": {
+                "type": "string",
+                "minLength": 1
+              },
+              "axis_start_cm": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "axis_end_cm": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "section_parameters": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "minItems": 1
+              }
+            },
+            "required": [
+              "id",
+              "source_ref",
+              "collider",
+              "axis_start_cm",
+              "axis_end_cm",
+              "section_parameters"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0
+        },
+        "openings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_ref": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                },
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "additionalProperties": false
+              },
+              "region": {
+                "type": "string",
+                "minLength": 1
+              },
+              "section_parameter": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "edges": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "piece": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "edge": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "reverse": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "piece",
+                    "edge"
+                  ],
+                  "additionalProperties": false
+                },
+                "minItems": 1
+              },
+              "plane_tolerance_cm": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10
+              }
+            },
+            "required": [
+              "id",
+              "source_ref",
+              "region",
+              "section_parameter",
+              "edges",
+              "plane_tolerance_cm"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0
+        },
+        "assignments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "piece": {
+                "type": "string",
+                "minLength": 1
+              },
+              "region": {
+                "type": "string",
+                "minLength": 1
+              },
+              "outward_normal_sign": {
+                "enum": [
+                  -1,
+                  1
+                ]
+              }
+            },
+            "required": [
+              "piece",
+              "region",
+              "outward_normal_sign"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0
+        },
+        "mount_order": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0
+        },
+        "milestones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_ref": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                },
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "additionalProperties": false
+              },
+              "translations_cm": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                }
+              }
+            },
+            "required": [
+              "id",
+              "source_ref",
+              "translations_cm"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0
+        }
+      },
+      "required": [
+        "version",
+        "required",
+        "source_ref",
+        "regions",
+        "openings",
+        "assignments",
+        "mount_order",
+        "milestones"
+      ],
+      "additionalProperties": false,
+      "description": "Source-bound geometric body passages, exterior orientation and rigid placement milestones. No declared boolean qualifies dressing; missing historical data remain NOT_ASSESSED."
+    },
+    "layers": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "source_ref": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "additionalProperties": false
+        },
+        "mode": {
+          "enum": [
+            "single",
+            "ordered"
+          ]
+        },
+        "interaction": {
+          "const": "one_way_declared"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "enum": [
+                  "body",
+                  "garment"
+                ]
+              },
+              "panels": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 0
+              },
+              "colliders": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 0
+              },
+              "source_ref": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                },
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "additionalProperties": false
+              },
+              "outward_normal_sign": {
+                "enum": [
+                  -1,
+                  1
+                ],
+                "description": "Sourced exterior orientation required to measure ordering against an external garment collider."
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "panels",
+              "colliders",
+              "source_ref"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "inside_to_outside": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "minItems": 0
+        }
+      },
+      "required": [
+        "version",
+        "source_ref",
+        "mode",
+        "interaction",
+        "nodes",
+        "inside_to_outside"
+      ],
+      "additionalProperties": false,
+      "description": "Explicit directed acyclic inner-to-outer order; named panels/colliders must be partitioned. One-way collision interaction is an approximation, not bidirectional cloth qualification."
+    }
+  },
+  "required": [
+    "version",
+    "component_id",
+    "source_refs",
+    "mapping_sha256",
+    "preform",
+    "assembly",
+    "consolidation",
+    "quality",
+    "supports",
+    "collision"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Source-bound PATTERN_SEWN assembly plan version 1",
+  "description": "Metric source patterns remain immutable; assembly and geometric consolidation grant no physical or artistic qualification."
+}

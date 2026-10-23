@@ -8,6 +8,13 @@ function Test-Contract([string]$Instance, [string]$Schema) {
     $checks.Add([pscustomobject]@{ file = [IO.Path]::GetRelativePath($projectRoot, $Instance); result = 'PASS' })
 }
 Test-Contract (Join-Path $projectRoot 'templates/config.json') (Join-Path $projectRoot 'schemas/config.schema.json')
+Test-Contract (Join-Path $projectRoot 'templates/sewing-recipe.json') (Join-Path $projectRoot 'schemas/sewing-recipe.schema.json')
+Test-Contract (Join-Path $projectRoot 'templates/pattern-assembly.json') (Join-Path $projectRoot 'schemas/pattern-assembly.schema.json')
+Test-Contract (Join-Path $projectRoot 'templates/pattern-preparation.json') (Join-Path $projectRoot 'schemas/pattern-preparation.schema.json')
+Test-Contract (Join-Path $projectRoot 'templates/fitting-plan.json') (Join-Path $projectRoot 'schemas/fitting-plan.schema.json')
+Test-Contract (Join-Path $projectRoot 'templates/body-source.json') (Join-Path $projectRoot 'schemas/body-source.schema.json')
+Test-Contract (Join-Path $projectRoot 'templates/fitting-envelope.json') (Join-Path $projectRoot 'schemas/fitting-envelope.schema.json')
+Test-Contract (Join-Path $projectRoot 'templates/fitting-pose.json') (Join-Path $projectRoot 'schemas/fitting-pose.schema.json')
 $localConfig = Join-Path $projectRoot 'config.local.json'
 if (Test-Path -LiteralPath $localConfig) {
     Test-Contract $localConfig (Join-Path $projectRoot 'schemas/config.schema.json')

@@ -3,138 +3,62 @@
 [![CI](https://github.com/leuzeus/atelier-3d/actions/workflows/ci.yml/badge.svg)](https://github.com/leuzeus/atelier-3d/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Plugin Codex pour préparer et produire des assets 3D à partir d'images de référence,
+Plugin Codex pour préparer et produire des assets 3D à partir d’images de référence,
 avec un choix de méthode par composant, des données de construction explicites et
 une validation humaine aux étapes déterminantes.
 
-**Version 0.4.0 — socle de développement.** Le runtime et ses contrats sont testés.
-L'installation Codex et les connexions ont été vérifiées sous Windows. Une
-production complète sur un vrai vêtement ou un asset articulé reste à qualifier.
-Voir [les résultats et limites](VALIDATION.md).
+## Démarrer
 
-## Ce que fait le plugin
+Le profil d’installation cible **Windows**, avec **Python 3.11+**. ComfyUI,
+son MCP officiel, Blender et son MCP s’installent séparément. La vue éclatée
+textile nécessite Codex Image dans la conversation.
 
-- Analyse les références, les pièces, les matériaux, les proportions, les parties
-  cachées et les articulations ; distingue observations et hypothèses.
-- Propose une pipeline par composant, explique les alternatives et conserve la
-  décision humaine avant de construire les packages.
-- Produit un dossier technique et un board à examiner avant la reconstruction.
-- Orchestre les jobs Comfy locaux et les opérations Blender avec preuves,
-  copies de travail, checkpoints et reprise après erreur.
-- Exige des validations liées au candidat actuel avant finition, comportement
-  et livraison. Pour un jeu, l'import dans le moteur fait partie des contrôles.
+1. Suivre [l’installation et la configuration](references/getting-started.md).
+   Cloner le dépôt ou télécharger un ZIP n’installe pas le plugin dans Codex.
+2. Sélectionner `@Atelier 3D`, joindre les références et choisir un dossier
+   d’asset distinct du code du plugin.
+3. Examiner la méthode et le board de découpage avant de lancer la construction.
+   Le guide contient [un exemple de brief](references/getting-started.md#exemple-de-brief).
 
-| Méthode | Usage | Données de construction |
-| --- | --- | --- |
-| `PATTERN_SEWN` | Vêtements et composants textiles | Patrons polygonaux en cm, panneaux, coutures, matières et simulation préparée |
-| `MULTIVIEW_PART` | Pièces volumiques séparées | Vues propres cohérentes, dimensions, ancrages et reconstruction par pièce |
+## Parcours disponibles
 
-Un même asset peut utiliser les deux méthodes. Une dépendance indisponible ne
-permet pas de substituer discrètement une autre méthode à celle approuvée.
-
-## Board textile en trois parties
-
-Le board est construit depuis **les images de référence originales**, puis
-présenté à l'utilisateur pour valider le découpage avant la 3D.
-
-1. **Vues orthographiques** : face, profil et dos, cadrage et échelle communs,
-   proportions comparées aux références et zones extrapolées signalées.
-2. **Décomposition du vêtement** : illustration produite avec **Codex Image** à
-   partir des originaux et de la liste exacte des pièces. Le compositeur ajoute
-   IDs, noms, traits de rappel, matières, dimensions et caractéristiques.
-3. **Patrons 2D de fabrication** : contours issus des packages, avec coupe,
-   couture/piqûre, plis ou milieu, droit-fil, marges, quantités et repères
-   d'assemblage appariés. Toutes les pièces utilisent la même échelle.
-
-`studio_prepare_exploded_view` prépare la demande d'image ; Codex appelle ensuite
-le générateur intégré et `studio_register_exploded_view` enregistre son résultat
-réel. Studio ne lance pas lui-même ce générateur. Le board final est un SVG autonome
-accompagné d'un dossier HTML. Il sert à la revue du découpage pour la 3D ; ce n'est
-pas une certification de patronage ni une planche de coupe à imprimer en taille réelle.
-
-Une modification des images, du dossier, des packages ou du board invalide
-l'approbation correspondante. Voir [le contrat de fabrication](references/fabrication-board.md).
-
-## Installation et premier usage
-
-Le profil d'installation fourni est qualifié **sous Windows**. Studio requiert
-**Python 3.11+**, sans dépendance Python tierce. ComfyUI, son MCP officiel,
-Blender et son MCP sont des installations externes. Codex Image doit être
-disponible dans la conversation pour la vue éclatée du board textile.
-
-```powershell
-git clone https://github.com/leuzeus/atelier-3d.git
-Set-Location atelier-3d
-python -m venv .venv
-.\.venv\Scripts\python.exe -B -m unittest discover -s tests -v
-```
-
-Suivre ensuite [le guide d'installation et de configuration](references/getting-started.md).
-Cloner le dépôt ou télécharger un ZIP n'installe pas le plugin dans Codex.
-
-Après installation, sélectionner **Atelier 3D** avec `@` dans une conversation
-Codex locale, joindre les références et préciser un dossier d'asset distinct du
-code du plugin. Exemple de brief :
-
-> Prépare un vêtement pour un jeu Unreal Engine PC/console à la troisième personne,
-> sur un personnage de 1,80 m, à partir des images jointes. Propose la méthode de
-> fabrication, distingue les observations des hypothèses et présente le dossier
-> technique et le board de découpage avant la construction 3D.
-
-La validation du board doit être donnée après avoir vu son contenu. Une demande
-générale de production ne vaut pas approbation d'une image encore inexistante.
-
-## Architecture
-
-Les **11 skills** guident Codex ; le serveur Studio expose **29 outils MCP** et
-utilise **17 schémas JSON**. L'état canonique du projet est conservé dans SQLite
-sous `.a3d`, avec les preuves et décisions. Les fichiers `.partpkg` et
-`.garmentpkg` sont des archives de transport contrôlées.
-
-Studio appelle le [MCP officiel Comfy local](https://docs.comfy.org/agent-tools/mcp)
-via stdio. Codex transmet les opérations préparées par Studio au MCP Blender.
-Le plugin fournit les contrôles métier et le code d'opérations, sans embarquer
-ces moteurs ni leurs modèles. Codex et Codex Image restent des services externes ;
-le terme « local » décrit Studio, les fichiers de projet et l'adaptateur Comfy.
-
-| Dossier | Responsabilité |
+| Méthode | Usage |
 | --- | --- |
-| `a3d`, `servers/studio` | État, contrats, admission, packages, jobs et MCP |
-| `blender`, `hooks` | Opérations contrôlées, checkpoints et contexte de session |
-| `skills`, `references` | Parcours de travail et documentation |
-| `schemas`, `templates`, `workflows` | Contrats, dossier type et graphes Comfy à qualifier |
-| `tests` | Tests de contrats/protocoles et données synthétiques |
+| `PATTERN_SEWN` | Vêtements et composants textiles issus de patrons approuvés |
+| `MULTIVIEW_PART` | Pièces volumiques reconstruites séparément depuis des vues cohérentes |
+
+Un asset peut combiner les deux méthodes. Le plugin organise les packages,
+jobs ComfyUI, opérations Blender, preuves et checkpoints. Les
+[fonctionnalités et limites](references/capabilities.md) détaillent ces parcours.
+Avant d’exécuter du code via Blender MCP, il demande l’autorisation de l’utilisateur ;
+cette consigne ne modifie pas les permissions MCP de Codex.
 
 ## Documentation
 
-- [Installer, configurer et démarrer](references/getting-started.md)
-- [Déroulement et état du projet](references/production.md)
-- [Proposition de méthode et revue du découpage](references/construction-review.md)
-- [Board et patrons de fabrication](references/fabrication-board.md)
-- [Contrôles des étapes et récupération](references/lifecycle-guards.md)
-- [Packages](references/packages.md), [références visuelles](references/references-3d.md),
-  [Comfy local](references/comfy-official.md), [Blender](references/blender.md)
-- [Validation](VALIDATION.md), [historique](CHANGELOG.md),
-  [contribution](CONTRIBUTING.md), [sécurité](SECURITY.md),
-  [maintenance GitHub](references/repository-maintenance.md)
+- [Index thématique de tous les guides](references/index.md)
+- [Installation, mise à jour et premier projet](references/getting-started.md)
+- [Production et validations humaines](references/production.md)
+- [Templates ComfyUI réutilisables](workflows/comfy/README.md)
+- [Architecture et responsabilités](references/architecture.md)
+- [Résultats des validations et limites de qualification](VALIDATION.md)
+- [Historique des changements](CHANGELOG.md) et [notes des essais par version](references/version-notes.md)
+- [Contribution](CONTRIBUTING.md), [sécurité](SECURITY.md) et [maintenance du dépôt](references/repository-maintenance.md)
 
-## Limites actuelles
+## État et limites
 
-Les exemples sont synthétiques : ils ne démontrent pas la fidélité d'un vêtement.
-Les templates SD1.5 et Hunyuan doivent être adaptés et qualifiés sur les nœuds et
-modèles présents. Aucun modèle n'est téléchargé automatiquement.
+Les manifestes du checkout indiquent **0.6.9**. Le runtime, ses contrats et le
+profil d’installation Windows ont des vérifications documentées dans
+[VALIDATION.md](VALIDATION.md). Une production complète sur un vêtement réel
+ou un asset articulé reste à qualifier. Les contrôles numériques ne remplacent
+pas la comparaison visuelle ni l’acceptation humaine.
 
-La construction des panneaux Cloth est fournie ; le placement, le fitting,
-le bake, la retopologie, les UV, le rig et les exports restent des travaux
-assistés à exécuter et à vérifier sur chaque asset. Les contrôles numériques
-ne certifient pas l'apparence ni la véracité d'une preuve déclarée.
-
-Les hooks et les scripts Blender ne constituent pas un bac à sable du système.
-Une mutation interrompue bloque la suite jusqu'à restauration contrôlée. Un job
-Comfy dont la soumission est incertaine n'est pas renvoyé automatiquement.
+Les templates ComfyUI fournis restent à qualifier sur les nœuds et modèles de
+l’installation cible. Aucun modèle n’est téléchargé automatiquement. Le paquet
+portable contient le plugin et ses références ; les scènes, modèles,
+configurations locales et sorties de production sont exclus.
 
 ## Licence
 
 Le code et la documentation sont sous [licence MIT](LICENSE).
-Les moteurs, modèles, références fournis par l'utilisateur et assets produits
+Les moteurs, modèles, références fournis par l’utilisateur et assets produits
 conservent leurs propres droits et conditions ; ils ne sont pas distribués ici.

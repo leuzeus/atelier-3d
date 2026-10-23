@@ -1,5 +1,15 @@
 # Comfy MCP officiel local
 
+Les bases réutilisables et leurs exemples de paramètres sont répertoriés dans
+[le catalogue des templates ComfyUI](../workflows/comfy/README.md).
+
+Studio réutilise des graphes au format API enregistrés dans
+`workflows/comfy/registry.json`. Il applique leurs paramètres déclarés ; chaque
+job conserve son graphe exact et son empreinte. Un changement de structure ou
+l'ajout d'un workflow externe passe par une variante revue et enregistrée, avec
+provenance et cibles de paramètres vérifiées. Le catalogue distingue les bases
+enregistrées de leur compatibilité native et de leur qualification visuelle.
+
 Décision d'architecture : utiliser https://github.com/Comfy-Org/comfy-mcp et ses outils existants. Aucun client HTTP ComfyUI n'est livré. Le MCP studio ajoute les contrôles métier avant d'appeler le fournisseur officiel. Aucune copie de son code n'est incluse dans la distribution.
 
 L'installation est une étape séparée. Prévoir comfy-mcp et comfy-cli compatibles, idéalement dans un environnement dédié. La connexion de développement a été vérifiée avec comfy-mcp 0.10.0 et comfy-cli 1.22.0 ; consulter les prérequis du fournisseur avant une nouvelle installation. Le runtime du plugin utilise uniquement la bibliothèque standard Python >= 3.11. Configurer mcp_command et cli_command avec leurs exécutables absolus si le PATH de Codex ne les trouve pas. Ne pas réinstaller le ComfyUI existant.

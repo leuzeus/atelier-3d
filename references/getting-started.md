@@ -74,6 +74,30 @@ les six définitions de hooks dans l'interface native avant de les approuver.
 Un serveur déjà attaché à une ancienne conversation ne se recharge pas forcément
 lorsqu'une nouvelle version est installée.
 
+### Mise à jour et erreurs de hooks
+
+Terminer les opérations en cours avant de remplacer le plugin. Après une mise à
+jour, fermer puis rouvrir Codex avant de reprendre la production. Le remplacement
+du cache peut retirer les scripts d'une ancienne version alors qu'une conversation
+conserve encore ses chemins : un hook peut alors sortir avec le code 1 avant même
+d'exécuter ses contrôles. Recharger seulement le MCP ne prouve pas que les hooks
+de la conversation ont été rechargés.
+
+Pour diagnostiquer `hook exited with code 1`, distinguer trois vérifications :
+
+- Les définitions sont présentes, activées et approuvées dans Codex.
+- Les commandes de la copie installée s'exécutent avec succès ; cela teste les
+  scripts, mais pas leur chargement dans une conversation déjà ouverte.
+- Une nouvelle exécution dans l'application réussit après rechargement. Consulter
+  les résultats du nouvel échange ; un ancien échec reste une preuve historique.
+
+Relever l'événement, la version et le chemin concernés, ainsi que l'erreur détaillée
+si elle est disponible. Ne pas attribuer un code 1 au remplacement du cache sur la
+seule base du message générique. Si l'échec persiste dans un nouvel échange après
+redémarrage, poursuivre le diagnostic du lanceur et de son environnement. Ne pas
+désactiver les hooks, recréer manuellement l'ancien cache ou accorder leur confiance
+par script pour masquer le problème.
+
 Le profil de compatibilité a été vérifié avec Codex 0.159.2. Il utilise
 `.codex-plugin/plugin.json`, un `cwd` relatif et une copie du manifeste portable
 renommée `plugin.portable.json` pour éviter un défaut de découverte des hooks
@@ -102,13 +126,57 @@ Codex peut présenter des choix quand une information manque. La provenance d'un
 image et la fidélité d'une hypothèse ne doivent jamais être fabriquées pour
 franchir une étape. Lire [le parcours complet](production.md).
 
+## Exemple de brief
+
+Après installation, sélectionner **Atelier 3D** avec `@` dans une conversation
+Codex locale, joindre les références et préciser un dossier d'asset distinct du
+code du plugin. Exemple de brief :
+
+> Prépare un vêtement pour un jeu Unreal Engine PC/console à la troisième personne,
+> sur un personnage de 1,80 m, à partir des images jointes. Propose la méthode de
+> fabrication, distingue les observations des hypothèses et présente le dossier
+> technique et le board de découpage avant la construction 3D.
+
+La validation du board doit être donnée après avoir vu son contenu. Une demande
+générale de production ne vaut pas approbation d'une image encore inexistante.
+
+## Backend textile natif
+
+Le préformage textile n'exige pas Garment Tool. Il utilise les outils natifs
+de Blender : `Simple Deform → Bend` pour courber les pièces simples, puis
+Cloth pour le montage. Avant consolidation, `Rest Shape Key` conserve
+`A3D.FlatRest` et `Dynamic Mesh` reste désactivé ; après consolidation, le repos
+3D et les métriques 2D par face sont conservés séparément. Le backend est testé
+sous Blender 5.2.2 LTS. Le MCP pilote les opérations dans une copie de travail ;
+aucun add-on textile supplémentaire n'est à installer. Voir la
+[recette de préparation et ses contrôles](pattern-preparation.md).
+
+## Choisir un template ComfyUI
+
+Consulter [le catalogue de référence](../workflows/comfy/README.md) avant une
+génération. `reference-sd15` consomme un original PNG et un prompt ;
+`hunyuan-multiview` consomme deux vues clean, face et gauche, pour une partie
+`MULTIVIEW_PART`. Les panneaux textiles restent issus de leurs patrons approuvés.
+
+Vérifier les nœuds et modèles disponibles, uploader les images exactes puis
+remplacer les placeholders des exemples par les `input_name` retournés. Appeler
+`comfy_validate_workflow` avec le `project_root`, l'identifiant et les paramètres.
+Pour une exécution autorisée, soumettre ensuite avec une `request_key` stable
+et conserver le graphe, les sources, paramètres, reçus et sorties dans l'asset.
+
+Un graphe enregistré est une base réutilisable. Sa présence ne prouve ni sa
+compatibilité avec l'installation cible, ni la qualité du résultat. Examiner
+les images ou le mesh avant acceptation ; les deux bases sont encore à qualifier.
+Voir [l'intégration officielle](comfy-official.md) pour le suivi et la reprise
+des jobs.
+
 ## CLI et archive portable
 
 ```powershell
 .\.venv\Scripts\python.exe -B scripts/studio.py tools
 .\.venv\Scripts\python.exe -B scripts/studio.py call studio_create_project --arguments create-project.json
 New-Item -ItemType Directory -Force dist | Out-Null
-.\.venv\Scripts\python.exe -B scripts/package_plugin.py --output dist/atelier-3d-0.4.0.zip
+.\.venv\Scripts\python.exe -B scripts/package_plugin.py --output dist/atelier-3d-check.zip
 ```
 
 `create-project.json` doit contenir `project_root` absolu et un `asset` conforme à
@@ -120,3 +188,6 @@ L'archive portable inclut sources, contrats, skills, documentation et licence,
 avec inventaire et empreintes. Elle exclut la configuration machine et les assets.
 Elle ne remplace pas la préparation du profil local et refuse l'écrasement d'une
 archive existante.
+
+
+[Retour à la documentation](index.md).

@@ -90,6 +90,9 @@ def assembly_plan(project, state, path=None, verify_baseline=True):
 
 
 def assembly_result(project, state):
+    from .piece_inventory import current_proof
+    if any(c['route']['selected'] == 'PATTERN_SEWN' for c in state['components'].values()):
+        current_proof(project, state, require_global=True)
     plan, rec = assembly_plan(project, state, verify_baseline=False)
     proof = project.verify_evidence(state, "assembly-result")
     receipt = read_json(inside(project.root, proof["path"]))
@@ -117,6 +120,9 @@ def required_final_checks(state):
 
 
 def final_validation(project, state):
+    from .piece_inventory import current_proof
+    if any(c['route']['selected'] == 'PATTERN_SEWN' for c in state['components'].values()):
+        current_proof(project, state, require_global=True)
     project.require_gate(state, "final")
     if "final-validation" not in state["gates"]["final"]["evidence"]:
         raise StudioError("Final gate must bind final-validation report")
@@ -161,4 +167,10 @@ def simulation_plan(project, state, path, component_ids):
         raise StudioError("Invalid simulation frame range or budget exceeded")
     if set(plan["collision_components"]) - state["components"].keys() or plan["component_id"] in plan["collision_components"]:
         raise StudioError("Simulation colliders must be distinct declared components")
+    if "sewing_recipe" not in plan or "phase" not in plan:
+        raise StudioError("Legacy simulation plan lacks sewing_recipe/phase; use the native local trial before full cloth")
+    recipe = contract("sewing-recipe", read_json(inside(project.root, plan["sewing_recipe"])))
+    profile = recipe["phases"][plan["phase"]]
+    if recipe["component_id"] != plan["component_id"] or plan["frame_start"] != 1 or plan["frame_end"] != profile["frames"] or plan["quality"] != profile["quality"]:
+        raise StudioError("Simulation plan and physical recipe disagree")
     return plan
